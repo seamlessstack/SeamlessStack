@@ -1,0 +1,537 @@
+/*************************************************************************
+ * 
+ * SEAMLESSSTACK CONFIDENTIAL
+ * __________________________
+ * 
+ *  [2012] - [2013]  SeamlessStack Inc
+ *  All Rights Reserved.
+ * 
+ * NOTICE:  All information contained herein is, and remains
+ * the property of SeamlessStack Incorporated and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to SeamlessStack Incorporated
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ * Dissemination of this information or reproduction of this material
+ * is strictly forbidden unless prior written permission is obtained
+ * from SeamlessStack Incorporated.
+ */
+
+#define _XOPEN_SOURCE 500
+#define _BSD_SOURCE 1
+#include <fuse.h>
+#include <fuse/fuse_opt.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/vfs.h>
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <inttypes.h>
+#include <sys/xattr.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <dirent.h>
+
+/* Local headers */
+#include <sstack_md.h>
+#include <sstack_db.h>
+#include <sstack_jobs.h>
+#include <sstack_log.h>
+#include <sstack_helper.h>
+#include <sstack_version.h>
+#include <sstack_bitops.h>
+#include <sfs.h>
+#include <mongo_db.h>
+/* Macros */
+
+/* BSS */
+log_ctx_t *sfs_ctx = NULL;
+char sstack_log_directory[PATH_MAX] = { '\0' };
+sfs_log_level_t sstack_log_level = SFS_DEBUG;
+sfs_chunk_entry_t	*sfs_chunks = NULL;
+uint64_t nchunks = 0;
+db_t *db = NULL;
+
+/* Structure definitions */
+
+static struct fuse_opt sfs_opts[] = {
+	FUSE_OPT_KEY("log_file_dir=%s", KEY_LOG_FILE_DIR),
+	FUSE_OPT_KEY("branches=%s", KEY_BRANCHES),
+	FUSE_OPT_KEY("--help", KEY_HELP),
+	FUSE_OPT_KEY("-h", KEY_HELP),
+	FUSE_OPT_KEY("--version", KEY_VERSION),
+	FUSE_OPT_KEY("-v", KEY_VERSION),
+	FUSE_OPT_KEY("log_level=%d", KEY_LOG_LEVEL),
+	FUSE_OPT_END
+};
+
+
+/* Functions */
+
+
+static int
+add_inodes(const char *path)
+{
+	char *buffer = NULL;
+	extent_t attr;
+	inode_t *inode;
+	policy_t *policy = NULL;
+	uint64_t *value = NULL;
+	char *fname = NULL;
+	struct stat status;
+
+    sfs_log(sfs_ctx, SFS_DEBUG, "%s: path = %s\n", __FUNCTION__, path);
+    if (lstat(path, &status) == -1) {
+		sfs_log(sfs_ctx, SFS_ERR,
+			"%s: stat failed on %s with error %d\n",
+			__FUNCTION__, path, errno);
+		return -errno;
+    }
+
+	buffer = calloc((sizeof(inode_t) + sizeof(extent_t)), 1);
+	if (NULL == buffer) {
+		// TBD
+		sfs_log(sfs_ctx,SFS_CRIT, "Out of memory at line %d function %s \n",
+			__LINE__, __FUNCTION__);
+		return -1;
+	}
+
+	// Use buffer as (inode + extent)
+	inode = (inode_t *)buffer;
+	// Populate inode structure
+	inode->i_num = get_free_inode();
+	strcpy(inode->i_name, path);
+	inode->i_uid = status.st_uid;
+	inode->i_gid = status.st_gid;
+	inode->i_mode = status.st_mode;
+	switch (status.st_mode & S_IFMT) {
+		case S_IFDIR:
+			inode->i_type = DIRECTORY;
+			break;
+		case S_IFREG:
+			inode->i_type = REGFILE;
+			break;
+		case S_IFLNK:
+			inode->i_type = SYMLINK;
+			break;
+		case S_IFBLK:
+			inode->i_type = BLOCKDEV;
+			break;
+		case S_IFCHR:
+			inode->i_type = CHARDEV;
+			break;
+		case S_IFIFO:
+			inode->i_type = FIFO;
+			break;
+		case S_IFSOCK:
+			inode->i_type = SOCKET_TYPE;
+			break;
+		default:
+			inode->i_type = UNKNOWN;
+			break;
+	}
+
+	// Make sure we are not looping
+	// TBD
+
+	memcpy(&inode->i_atime, &status.st_atime, sizeof(struct timespec));
+	memcpy(&inode->i_ctime, &status.st_ctime, sizeof(struct timespec));
+	memcpy(&inode->i_mtime, &status.st_mtime, sizeof(struct timespec));
+	inode->i_size = status.st_size;
+	inode->i_numreplicas = 1; // For now, single copy
+	// Since the file already exists, done't split it now. Split it when 
+	// next write arrives
+	inode->i_numextents = 1;
+	inode->i_links = status.st_nlink;
+	sfs_log(sfs_ctx, SFS_INFO,
+		"%s: nlinks for %s are %d\n", __FUNCTION__, path, inode->i_links);
+	// Populate size of each extent
+	policy = get_policy(path);
+	if (NULL == policy) {
+		sfs_log(sfs_ctx, SFS_INFO,
+			"%s: No policies specified. Default policy applied\n",
+			__FUNCTION__);
+		memcpy(&inode->i_policy, &default_policy, sizeof(policy_t));
+	} else {
+		// Got the policy
+		sfs_log(sfs_ctx, SFS_INFO,
+			"%s: Got policy for file %s\n", __FUNCTION__, path);
+		sfs_log(sfs_ctx, SFS_INFO, "%s: %s %d %d %d %"PRId64" \n",
+			__FUNCTION__, path, policy->p_qoslevel, policy->p_ishidden,
+			policy->p_isstriped, policy->p_extentsize);
+		memcpy(&inode->i_policy, policy, sizeof(policy_t));
+	}
+	// Populate the extent
+	memset(&attr, 0, sizeof(extent_t));
+	attr.e_type = OFFSET;
+	attr.e_value = 0;
+	attr.e_size = status.st_size;
+	if (inode->i_type == REGFILE) {
+		attr.e_cksum = checksum(path); // CRC32
+		sfs_log(sfs_ctx, SFS_INFO, "%s: checksum of %s is %lu \n",
+			__FUNCTION__, path, attr.e_cksum);
+	} else
+		attr.e_cksum = 0; // Place holder
+	set_bit(attr.e_replica_valid, 1);
+	strcpy(attr.e_path[0], path);
+	memcpy((buffer+sizeof(inode_t)), &attr, sizeof(extent_t));
+
+	// Now inode is ready to be placed in DB
+	// Put it in DB
+	if (db->db_ops.db_insert && (db->db_ops.db_insert(inode->i_num, buffer,
+		(sizeof(inode_t) + sizeof(extent_t)), INODE_TYPE) != 1)) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to add inode to db . \n",
+			__FUNCTION__);
+		free(buffer);
+		return 0; // Though the operation failed. nothing much can be done.
+	}
+
+	// Insert into reverse lookup db
+	// TBD
+#if 0
+	value = calloc(sizeof(uint64_t), 1);
+	if (NULL == value) {
+		syslog(LOG_ERR, "%s: Unable to allocate memory for key.\n",
+			__FUNCTION__);
+		return 0;
+	}
+	memcpy(value, &inode->i_num, sizeof(uint64_t));
+	fname = strdup(path);
+
+	hashtable_insert(reverse_lookup, fname, value);
+	USYSLOG(LOG_INFO, "%s: filename stored for inode %"PRId64" is %s \n",
+		__FUNCTION__, *value, fname);
+#endif // if 0
+	free(buffer);
+
+	return 0;
+}
+
+
+static void
+populate_db(const char *dir_name)
+{
+	DIR *d = NULL;
+
+    /* Open the directory specified by "dir_name". */
+	sfs_log(sfs_ctx, SFS_ERR, "%s: dir_name = %s \n", __FUNCTION__, dir_name);
+
+	d = opendir (dir_name);
+
+	// Check it was opened
+	if (! d) {
+		sfs_log (sfs_ctx, SFS_ERR,  "%s: Cannot open directory '%s': %s\n",
+			__FUNCTION__, dir_name, strerror (errno));
+		exit (-1);
+	}
+
+	while (1) {
+		struct dirent * entry;
+		const char * d_name;
+		char path[PATH_MAX];
+		char *p = NULL;
+
+		// "Readdir" gets subsequent entries from "d"
+		entry = readdir (d);
+		if (! entry) {
+			/* 
+			 * There are no more entries in this directory, so break
+			 * out of the while loop.
+			 */
+			break;
+		}
+		d_name = entry->d_name;
+		// Don't bother for . and ..
+		if (strcmp (d_name, "..") != 0 && strcmp (d_name, ".") != 0) {
+			if (BUILD_PATH(path, dir_name, d_name))
+				return ;
+#if 0
+			sprintf(path, "%s%s", dir_name, d_name);
+			sfs_log(sfs_ctx, SFS_ERR, "%s: dir_name = %s, d_name = %s \n",
+				__FUNCTION__, dir_name, d_name);  
+#endif
+			p = rep(path, '/');
+			add_inodes(p);
+			free(p);
+		}
+
+		// See if "entry" is a subdirectory of "d"
+		if (entry->d_type & DT_DIR) {
+			// Check that the directory is not "d" or d's parent
+			if (strcmp (d_name, "..") != 0 &&
+						strcmp (d_name, ".") != 0) {
+				int path_length;
+				char path[PATH_MAX];
+
+				path_length = snprintf (path, PATH_MAX,
+								"%s/%s", dir_name, d_name);
+				if (path_length >= PATH_MAX) {
+					sfs_log (sfs_ctx, SFS_ERR,
+						"%s: Path length has got too long.\n", __FUNCTION__);
+					exit (-1);
+				}
+				// Recursively call populate_db with the new path
+				populate_db (path);
+			}
+		}
+	}
+	// After going through all the entries, close the directory
+	if (closedir (d)) {
+		sfs_log (sfs_ctx, SFS_ERR, "%s: Could not close '%s': %s\n",
+			__FUNCTION__, dir_name, strerror (errno));
+		exit (-1);
+	}
+}
+
+
+static void *
+sfs_init(struct fuse_conn_info *conn)
+{
+	pthread_t thread;
+	pthread_attr_t attr;
+	int ret = -1;
+	int chunk_index = 0;
+
+	// Create a thread t handle client requests
+	if(pthread_attr_init(&attr) == 0) {
+		pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
+		pthread_attr_setstacksize(&attr, 65536);
+		pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+		ret = pthread_create(&thread, &attr, handle_requests, NULL);
+	}
+
+	ASSERT((ret == 0), "Unable to create thread to handle cli requests",0, 0, 0);
+	(void) conn->max_readahead;
+	// Create db instance
+	db = create_db();
+	ASSERT((db != NULL), "Unable to create db. FATAL ERROR", 0, 1, NULL);
+	db_register(db, mongo_db_init, mongo_db_open, mongo_db_close,
+		mongo_db_insert, mongo_db_get, mongo_db_seekread, mongo_db_update,
+		mongo_db_delete, mongo_db_cleanup);
+	if (db->db_ops.db_init() != 0) {
+		sfs_log(sfs_ctx, SFS_CRIT, "%s: DB init faled with error %d\n",
+			__FUNCTION__, errno);
+		return NULL;
+	}
+	if (db->db_ops.db_open() != 0) {
+		sfs_log(sfs_ctx, SFS_CRIT, "%s: DB open faled with error %d\n",
+			__FUNCTION__, errno);
+		return NULL;
+	}
+
+	// Other init()s go here
+
+	// TBD
+	// Need to create one more collection for reverse lookup table
+	// This is to get inode number given pathname
+
+	// Populate the INODE collection of the DB with all the files found 
+	// in chunks added so far
+	for (chunk_index = 0; chunk_index < nchunks; chunk_index++)
+		populate_db(sfs_chunks[chunk_index].chunk_path);
+
+	sfs_log(sfs_ctx, SFS_INFO, "%s: SFS initialization completed\n",
+		__FUNCTION__);
+
+	return NULL;
+}
+
+static void
+sfs_print_help(const char *progname)
+{
+
+	fprintf(stderr,
+	"Usage: %s [options] branch[,RO/RW,weight][:branch...] mountpoint\n"
+	"The first argement is a colon separated list of client directories\n"
+	"\n"
+	"general options:\n"
+	"	-o opt,[opt...]		Mount options\n"
+	"	-h --help			print help\n"
+	"	-V --version		print version\n"
+	"\n"
+	"Mount options:\n"
+	"	-o log_file_dir		Directory where log files are stored\n"
+	"	-o dirs=branch[,RO/RW,weight][:branch...]\n"
+	"						alternate way to specify client directories\n"
+	"\n",
+	progname);
+}
+
+// Store chunk paths found in a temporary space before populating db
+// This is to avoid db initialization before arguments are validated
+// Each branch is of type path,RW/RO,weight. Last two parameters are
+// optional with RO and DEFAULT_WEIGHT taken is not specified.
+static int
+sfs_store_branch(char *branch)
+{
+	char *res = NULL;
+	char **ptr = NULL;
+
+	sfs_chunks = realloc(sfs_chunks, (nchunks + 1) * sizeof(sfs_chunk_entry_t));
+	ASSERT((sfs_chunks != NULL), "Memory alocation failed", 0, 1, 0);
+	if (NULL == sfs_chunks)
+		exit(-1);
+	ptr = (char **) &branch;
+	res = strsep(ptr, ",");
+	if (!res)
+		return 0;
+	sfs_chunks[nchunks].chunk_path = strdup(res);
+	sfs_chunks[nchunks].rw = 0;
+	sfs_chunks[nchunks].weight = DEFAULT_WEIGHT;
+
+	res = strsep(ptr, ",");
+	if (res) {
+		if (strcasecmp(res, "rw") == 0) {
+			sfs_chunks[nchunks].rw = 1;
+		}
+	}
+	
+	res = strsep(ptr, ",");
+	if (res) {
+		uint32_t weight = atoi(res);
+
+		if (weight > MINIMUM_WEIGHT && weight < MAXIMUM_WEIGHT)
+			sfs_chunks[nchunks].weight = weight;
+	}
+
+	return 1;
+}
+
+
+static int
+sfs_parse_branches(const char *arg)
+{
+	char *buf = strdup(arg);
+	char **ptr = (char *)&buf;
+	char *branch;
+	int nbranches = 0;
+
+	while((branch = strsep(ptr, ROOT_SEP)) != NULL) {
+		if (strlen(branch) == 0)
+			continue;
+
+		nbranches += sfs_store_branch(branch);
+	}
+
+	free(buf);
+
+	return nbranches;
+}
+	
+
+static int
+sfs_opt_proc(void *data, const char *arg, int key,
+		struct fuse_args *outargs)
+{
+	int res = -1;
+
+	switch(key) {
+		case KEY_BRANCHES:
+			res = sfs_parse_branches(arg + 9);
+			if (res > 0)
+				return 0;
+			else
+				return 1;
+		case KEY_LOG_FILE_DIR:
+			strncpy(sstack_log_directory, get_opt_str(arg, "log_file_dir"),
+				PATH_MAX - 1);
+			return 0;
+		case KEY_HELP:
+			sfs_print_help(outargs->argv[0]);
+			exit(0);
+		case KEY_VERSION:
+			fprintf(stderr, "sfs version: %s\n", SSTACK_VERSION);
+			exit(0);
+		case KEY_LOG_LEVEL:
+			sstack_log_level = atoi(get_opt_str(arg, "log_level"));
+			return 0;
+		default:
+			ASSERT((1 == 0), "Invalid argument specified. Exiting", 0, 0, 0);
+			exit(-1);
+	}
+}
+
+// This structure is pushed to end of the file to avoid function
+// declarations
+static struct fuse_operations sfs_oper = {
+	.getattr		=	sfs_getattr,
+	.readlink		=	sfs_realink,
+	.readdir		=	sfs_readdir,
+	.mknod			=	sfs_mknod,
+	.mkdir			=	sfs_mkdir,
+	.unlink			=	sfs_unlink,
+	.rmdir			=	sfs_rmdir,
+	.symlink		=	sfs_symlink,
+	.rename			=	sfs_rename,
+	.link			=	sfs_link,
+	.chmod			=	sfs_chmod,
+	.chown			=	sfs_chown,
+	.truncate		=	sfs_truncate,
+	.open			=	sfs_open,
+	.read			=	sfs_read,
+	.write			=	sfs_write,
+	.statfs			=	sfs_statfs,
+	.flush			=	sfs_flush,
+	.release		=	sfs_release,
+	.fsync			=	sfs_fsync,
+	.setxattr		=	sfs_setxattr,
+	.getxattr		=	sfs_getxattr,
+	.listxattr		=	sfs_listxattr,
+	.removexattr	=	sfs_removexattr,
+	.opendir		=	sfs_opendir,
+	.releasedir		=	sfs_releasedir,
+	.fsyncdir		=	sfs_fsyncdir,
+	.init			=	sfs_init,
+	.destroy		=	sfs_destroy,
+	.access			=	sfs_access,
+	.create			=	sfs_create,
+	.ftruncate		=	sfs_ftruncate,
+	.fgetattr		=	sfs_fgetattr,
+	.lock			=	sfs_lock,
+	.utimens		=	sfs_utimens,
+	.bmap			=	sfs_bmap,		// Required?? Similar to FIBMAP
+	.ioctl			=	sfs_ioctl,
+	.poll			=	sfs_poll,
+	.write_buf		=	sfs_write_buf, 	// Similar to write
+	.read_buf		=	sfs_read_buf,	// Similar to read
+	.flock			=	sfs_flock,
+};
+
+int
+main(int argc, char *argv[])
+{
+	struct fuse_args args = FUSE_ARGS_INIT(argc, argv);
+	int uid = getuid();
+	int gid = getgid();
+	int ret = -1;
+
+	// Check if root is mounting the file system.
+	// If so, return error
+	if (uid == 0 && gid == 0) {
+		fprintf(stderr, "SFS: Mounting SFS by root opens security holes."
+			" Please try mounting as a normal user\n");
+		return -1;
+	}
+
+	ret = fuse_opt_parse(&args, NULL, sfs_opts, sfs_opt_proc);
+	ASSERT((ret != -1), "Parsing arguments failed. Exiting ...", 0, 1, -1);
+	// Initialize logging
+	sfs_ctx = sfs_create_log_ctx();
+	if (NULL == sfs_ctx) {
+		fprintf(stderr, "%s: Log ctx creation failed. Logging disable",
+			__FUNCTION__);
+	} else {
+		ret = sfs_log_init(sfs_ctx, sstack_log_level, "sfs");
+		ASSERT((ret != 0), "Log initialization failed. Logging disabled",
+			0, 0, 0);
+	}	
+
+	ret = fuse_opt_add_arg(&args, "-obig_writes");
+	ASSERT((ret != -1), "Enabling big writes failed.", 0, 0, 0);
+
+	return fuse_main(args.argc, args.argv, &sfs_oper, NULL);
+}
+
