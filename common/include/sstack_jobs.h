@@ -42,15 +42,6 @@ typedef enum {
 } sfsd_job_status_t;
 
 
-typedef struct job {
-	int version; 
-	sfsd_job_type_t job_type;
-	int num_clients; // Number of valid clients
-	sfsd_t sfsd_t[MAX_SFSD_CLIENTS];
-	sfsd_job_status_t job_status[MAX_SFSD_CLIENTS]; // Status of each client
-	int payload_len;
-	sfsd_payload_t	payload[0];
-};
 
 typedef enum {
 	TCPIP		= 1,
@@ -69,7 +60,7 @@ typedef struct sfsd_transport {
 				char ipv6_addr[IPV6_ADDR_MAX];
 			};
 			int port;
-		};
+		} tcp;
 	};
 } sfsd_transport_t;
 
@@ -80,7 +71,7 @@ typedef struct sfsd_transport {
 typedef struct sfsd_transport_ops {
 	int (*init) (sfsd_transport_t *);
 	int (*tx) (sfsd_client_handle_t , int , char *); 
-	int (*rx) (sfsd_cleint_handle_t , int, char *);
+	int (*rx) (sfsd_client_handle_t , int, char *);
 } sfsd_transport_ops_t;
 
 typedef struct sfsd {
@@ -89,6 +80,15 @@ typedef struct sfsd {
 	sfsd_client_handle_t sfsd_handle;
 } sfsd_t;
 
+typedef struct job {
+	int version; 
+	sfsd_job_type_t job_type;
+	int num_clients; // Number of valid clients
+	sfsd_t sfsd_t[MAX_SFSD_CLIENTS];
+	sfsd_job_status_t job_status[MAX_SFSD_CLIENTS]; // Status of each client
+	int payload_len;
+	sfsd_payload_t	payload[0];
+} job_t;
 
 
 // Different types of payloads to be defined here
