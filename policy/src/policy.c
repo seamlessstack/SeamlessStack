@@ -9,8 +9,6 @@
 #include "policy.h"
 #include <pthread.h>
 
-#define _GNU_SOURCE
-
 #define POLICY_TEST
 #define NUM_BUCKETS 16
 #define MAX_POLICIES 64
