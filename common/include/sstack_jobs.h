@@ -91,6 +91,15 @@ typedef struct job {
 } job_t;
 
 
+typedef enum {
+	INITIALIZING 	= 1, // sfs sent a request to spawn sfsd
+	RUNNING			= 2, // Handshake between sfs and sfsd is up
+	REACHABLE		= 3, // Heartbeat successful
+	UNREACHABLE		= 4, // Heartbeat dead. Could be n/w or sfsd
+	DECOMMISSIONED	= 5, // Node running sfsd is decommissioned. A temp state
+} sfsd_state_t;
+
+
 // Different types of payloads to be defined here
 // TBD
 
