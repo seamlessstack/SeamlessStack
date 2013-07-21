@@ -50,15 +50,15 @@ extern char sstack_log_directory[];
  */
  
 #define ASSERT(p, q, r, s, t)	do { \
-							if (!(p))  \
-								fprintf(stderr, "%s: %s\n", __FUNCTION__, (q));\
-							if ((r) == 1) \
-								assert((p)); \
-							else { \
-								if ((s) != 0) \
-									return (t); \
-							} \
-						} while(0);
+	if (!(p))  \
+	fprintf(stderr, "%s: %s\n", __FUNCTION__, (q));\
+	if ((r) == 1) \
+	assert((p)); \
+	else { \
+		if ((s) != 0) \
+		return (t); \
+	} \
+} while(0);
 
 typedef enum {
 	SFS_EMERG	= 1,
