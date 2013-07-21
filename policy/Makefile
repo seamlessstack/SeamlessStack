@@ -14,4 +14,4 @@ policy: $(POLICY_OBJS)
 	$(CC) $(LDFLAGS) -o $@ $(POLICY_OBJS) $(LIB)
 
 clean:
-	rm -f policy *.o
+	rm -f policy src/*.o
