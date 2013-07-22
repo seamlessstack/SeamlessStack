@@ -29,6 +29,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <time.h>
+#include <pthread.h>
 
 
 #define SFS_LOG_DIRECTORY "/home/shubhro/sfsd_dir"
@@ -86,7 +87,7 @@ typedef struct log_context
 
 typedef struct log_entry
 {
-	int	 log_entry_version;
+	int	 version;
 	char time[SFS_TIME_FORMAT_LEN];
 	char level[SFS_LOGLEVEL_LEN];
 	char log[SFS_LOG_ENTRY_LEN];
@@ -291,11 +292,11 @@ sfs_log(log_ctx_t *ctx, sfs_log_level_t level, char *format, ...)
 	}
 
 	memset(&log_entry, '\0', sizeof(log_entry_t));
+	log_entry.version = LOG_ENTRY_VERSION;
 	lt = localtime(&t);
 	strftime((char * __restrict__) &(log_entry.time), SFS_TIME_FORMAT_LEN,
 			"%Y-%m-%d %H:%M:%S", lt);
 
-	pthread_mutex_lock(&ctx->log_mutex);
 
 	switch(level) {
 		case SFS_EMERG:
@@ -328,14 +329,16 @@ sfs_log(log_ctx_t *ctx, sfs_log_level_t level, char *format, ...)
 	res = vsprintf((char * __restrict__) &log_entry.log,
 			(char * __restrict__) format, list);
 	va_end(list);
-#if 0
+	pthread_mutex_lock(&ctx->log_mutex);
+#if 1
 	// Go ahead and write to the log file
 	res = write(ctx->log_fd, &log_entry, sizeof(log_entry_t));
-#endif
+#else
 	/* Till the time decoding utility is done,
 	   dump raw text */
 	res = fprintf(ctx->log_fp, "%s == %s == %s \n", log_entry.time,
 			log_entry.level, log_entry.log);
+#endif // if 1
 	pthread_mutex_unlock(&ctx->log_mutex);
 	// Not sure whether fclose(out) will cause close(ctx->log_fd)
 	// TBD
