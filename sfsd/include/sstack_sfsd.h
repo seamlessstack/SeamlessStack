@@ -16,3 +16,25 @@
  * is strictly forbidden unless prior written permission is obtained
  * from SeamlessStack Incorporated.
  */
+#ifndef _SSTACK_SFSD_H_
+#define _SSTACK_SFSD_H_
+
+/**
+ * Register all the relevant 
+ * signals in this funtion
+ **/
+int32_t register_signals(void);
+
+/** 
+ * Create the thread pool
+ **/
+
+int32_t init_thread_pool(void);
+
+/**
+ * Run the actual SFS daemon
+ **/
+void run_daemon_sfsd(void);
+
+
+#endif /* _STACK_SFSD_H_ */

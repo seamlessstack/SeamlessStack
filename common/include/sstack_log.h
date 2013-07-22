@@ -31,7 +31,7 @@
 #include <time.h>
 
 
-#define SFS_LOG_DIRECTORY "/var/log/sfs"
+#define SFS_LOG_DIRECTORY "/home/shubhro/sfsd_dir"
 #define SFS_LOGFILE_LEN 32
 #define SFS_TIME_FORMAT_LEN 64
 #define SFS_LOGLEVEL_LEN 16
@@ -55,7 +55,7 @@ extern char sstack_log_directory[];
 	if ((r) == 1) \
 	assert((p)); \
 	else { \
-		if ((s) != 0) \
+		if ((s) != 0 && !p) \
 		return (t); \
 	} \
 } while(0);
@@ -74,6 +74,7 @@ typedef struct log_context
 {
 	pthread_mutex_t log_mutex; // For synchronization
 	int log_fd;  // FD of the currently used log file
+	FILE *log_fp;
 	char *log_file_name; // log file name current being used
 	// TODO
 	// Place holder for older log files.
@@ -101,7 +102,6 @@ static inline log_ctx_t *
 sfs_create_log_ctx(void)
 {
 	log_ctx_t *ctx = NULL;
-
 	ctx = malloc(sizeof(log_ctx_t));
 	ASSERT((ctx != NULL), "Unable to allocate memory for ctx", 0, 1, NULL);
 	pthread_mutex_init(&ctx->log_mutex, NULL);
@@ -206,7 +206,6 @@ sfs_log_init(log_ctx_t *ctx, sfs_log_level_t level, char *compname)
 	char log_file_abspath[PATH_MAX] = { '\0' };
 	char file_name[SFS_LOGFILE_LEN] = { '\0' };
 	int fd = -1;
-	
 
 	ASSERT((ctx != NULL), "Context not allocated.", 0, 1, -1);
 	ASSERT((level > 0 && level < MAX_SFS_LOG_LEVELS),
@@ -216,11 +215,11 @@ sfs_log_init(log_ctx_t *ctx, sfs_log_level_t level, char *compname)
 	// Since this operation is not done often, 
 	pthread_mutex_lock(&ctx->log_mutex);
 	strncpy(file_name, compname, 27);
-	strcat(file_name, ".log");
 	// Check if user specified a log directory
 	// Check if that directory exists and writable
 	if (access(sstack_log_directory, W_OK) == 0) {
-		sprintf(log_file_abspath, "%s/%s", sstack_log_directory, file_name);
+		sprintf(log_file_abspath, "%s/%s_%ld%s", sstack_log_directory,
+				file_name, time(NULL), ".log");
 	} else {
 		// Go ahead and use default SFS directory
 		// Check if SFS_LOG_DIRECTORY exists
@@ -228,13 +227,15 @@ sfs_log_init(log_ctx_t *ctx, sfs_log_level_t level, char *compname)
 			ASSERT((1 == 0), "Log directory not created. Logging disabled",
 				0, 1, -1);
 	 	}
-		sprintf(log_file_abspath, "%s/%s", SFS_LOG_DIRECTORY, file_name);
+		sprintf(log_file_abspath, "%s/%s_%ld%s", SFS_LOG_DIRECTORY,
+				file_name, time(NULL), ".log");
 	}
 
 	// TODO
 	// Need to study the effect of O_DIRECT|O_SYNC
 	// They are desired in worst case scenario(system down)
-	fd = open(log_file_abspath, O_CREAT|O_RDWR|O_LARGEFILE);
+	fd = open(log_file_abspath, O_CREAT|O_RDWR|O_LARGEFILE,
+			S_IRUSR|S_IWUSR);
 	if (fd == -1) {
 		// Failed to open log file 
 		fprintf(stderr, "%s: Failed to open log file %s."
@@ -249,8 +250,11 @@ sfs_log_init(log_ctx_t *ctx, sfs_log_level_t level, char *compname)
 		ctx->log_initialized = 1;
 		ctx->log_level = level;
 		strcpy(ctx->log_file_name, log_file_abspath);
+		/* TODO: Remove after log decode utility is done */
+		ctx->log_fp = fdopen(fd,"a");
 		pthread_mutex_unlock(&ctx->log_mutex);
 	}
+
 
 	return 0;	
 }
@@ -324,13 +328,18 @@ sfs_log(log_ctx_t *ctx, sfs_log_level_t level, char *format, ...)
 	res = vsprintf((char * __restrict__) &log_entry.log,
 			(char * __restrict__) format, list);
 	va_end(list);
-
+#if 0
 	// Go ahead and write to the log file
 	res = write(ctx->log_fd, &log_entry, sizeof(log_entry_t));
+#endif
+	/* Till the time decoding utility is done,
+	   dump raw text */
+	res = fprintf(ctx->log_fp, "%s == %s == %s \n", log_entry.time,
+			log_entry.level, log_entry.log);
 	pthread_mutex_unlock(&ctx->log_mutex);
 	// Not sure whether fclose(out) will cause close(ctx->log_fd)
 	// TBD
-	ASSERT((res == sizeof(log_entry_t)),
+	ASSERT((res != 0),
 		"Failed to write to log file", 0, 1, -1);
 
 	return 0;
@@ -341,8 +350,7 @@ sfs_log(log_ctx_t *ctx, sfs_log_level_t level, char *format, ...)
  * TBD
  */
 
-/*
- * sfs_print_logs_by_time - Print logs between two times given in localtime 
+ /* sfs_print_logs_by_time - Print logs between two times given in localtime 
  * format and by priority(6 for all logs)
  * TBD
  */

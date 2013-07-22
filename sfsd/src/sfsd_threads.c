@@ -16,3 +16,10 @@
  * is strictly forbidden unless prior written permission is obtained
  * from SeamlessStack Incorporated.
  */
+#include <pthread.h>
+#include <stdint.h>
+
+int32_t init_thread_pool(void)
+{
+	return 0;
+}

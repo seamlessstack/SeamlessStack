@@ -94,8 +94,9 @@ add_inodes(const char *path)
 	buffer = calloc((sizeof(inode_t) + sizeof(extent_t)), 1);
 	if (NULL == buffer) {
 		// TBD
-		sfs_log(sfs_ctx,SFS_CRIT, "Out of memory at line %d function %s \n",
-			__LINE__, __FUNCTION__);
+		sfs_log(sfs_ctx,SFS_CRIT,
+				"Out of memory at line %d function %s \n",
+				__LINE__, __FUNCTION__);
 		return -1;
 	}
 
@@ -147,7 +148,8 @@ add_inodes(const char *path)
 	inode->i_numextents = 1;
 	inode->i_links = status.st_nlink;
 	sfs_log(sfs_ctx, SFS_INFO,
-		"%s: nlinks for %s are %d\n", __FUNCTION__, path, inode->i_links);
+		"%s: nlinks for %s are %d\n", __FUNCTION__, path,
+		inode->i_links);
 	// Populate size of each extent
 	policy = get_policy(path);
 	if (NULL == policy) {
@@ -160,8 +162,9 @@ add_inodes(const char *path)
 		sfs_log(sfs_ctx, SFS_INFO,
 			"%s: Got policy for file %s\n", __FUNCTION__, path);
 		sfs_log(sfs_ctx, SFS_INFO, "%s: %s %d %d %d %"PRId64" \n",
-			__FUNCTION__, path, policy->p_qoslevel, policy->p_ishidden,
-			policy->p_isstriped, policy->p_extentsize);
+			__FUNCTION__, path, policy->p_qoslevel,
+			policy->p_ishidden, policy->p_isstriped,
+			policy->p_extentsize);
 		memcpy(&inode->i_policy, policy, sizeof(policy_t));
 	}
 	// Populate the extent
@@ -186,7 +189,8 @@ add_inodes(const char *path)
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to add inode to db . \n",
 			__FUNCTION__);
 		free(buffer);
-		return 0; // Though the operation failed. nothing much can be done.
+		/* Though the operation failed. nothing much can be done. */
+		return 0; 
 	}
 
 	// Insert into reverse lookup db
@@ -217,14 +221,16 @@ populate_db(const char *dir_name)
 	DIR *d = NULL;
 
     /* Open the directory specified by "dir_name". */
-	sfs_log(sfs_ctx, SFS_ERR, "%s: dir_name = %s \n", __FUNCTION__, dir_name);
+	sfs_log(sfs_ctx, SFS_ERR, "%s: dir_name = %s \n", __FUNCTION__,
+			dir_name);
 
 	d = opendir (dir_name);
 
 	// Check it was opened
 	if (! d) {
-		sfs_log (sfs_ctx, SFS_ERR,  "%s: Cannot open directory '%s': %s\n",
-			__FUNCTION__, dir_name, strerror (errno));
+		sfs_log (sfs_ctx,SFS_ERR,
+				"%s: Cannot open directory '%s': %s\n",
+				__FUNCTION__, dir_name, strerror (errno));
 		exit (-1);
 	}
 
@@ -250,8 +256,9 @@ populate_db(const char *dir_name)
 				return ;
 #if 0
 			sprintf(path, "%s%s", dir_name, d_name);
-			sfs_log(sfs_ctx, SFS_ERR, "%s: dir_name = %s, d_name = %s \n",
-				__FUNCTION__, dir_name, d_name);  
+			sfs_log(sfs_ctx, SFS_ERR, "%s: dir_name = %s,
+					d_name = %s \n", __FUNCTION__,
+					dir_name, d_name);  
 #endif
 			p = rep(path, '/');
 			add_inodes(p);
@@ -266,11 +273,12 @@ populate_db(const char *dir_name)
 				int path_length;
 				char path[PATH_MAX];
 
-				path_length = snprintf (path, PATH_MAX,
-								"%s/%s", dir_name, d_name);
+				path_length = snprintf (path, PATH_MAX, "%s/%s",
+						dir_name, d_name);
 				if (path_length >= PATH_MAX) {
 					sfs_log (sfs_ctx, SFS_ERR,
-						"%s: Path length has got too long.\n", __FUNCTION__);
+						"%s: Path length has got too long.\n",
+						__FUNCTION__);
 					exit (-1);
 				}
 				// Recursively call populate_db with the new path
@@ -303,14 +311,15 @@ sfs_init(struct fuse_conn_info *conn)
 		ret = pthread_create(&thread, &attr, handle_requests, NULL);
 	}
 
-	ASSERT((ret == 0), "Unable to create thread to handle cli requests",0, 0, 0);
+	ASSERT((ret == 0),"Unable to create thread to handle cli requests",
+			0, 0, 0);
 	(void) conn->max_readahead;
 	// Create db instance
 	db = create_db();
 	ASSERT((db != NULL), "Unable to create db. FATAL ERROR", 0, 1, NULL);
 	db_register(db, mongo_db_init, mongo_db_open, mongo_db_close,
-		mongo_db_insert, mongo_db_get, mongo_db_seekread, mongo_db_update,
-		mongo_db_delete, mongo_db_cleanup);
+		mongo_db_insert, mongo_db_get, mongo_db_seekread,
+		mongo_db_update, mongo_db_delete, mongo_db_cleanup);
 	if (db->db_ops.db_init() != 0) {
 		sfs_log(sfs_ctx, SFS_CRIT, "%s: DB init faled with error %d\n",
 			__FUNCTION__, errno);
@@ -355,7 +364,7 @@ sfs_print_help(const char *progname)
 	"Mount options:\n"
 	"	-o log_file_dir		Directory where log files are stored\n"
 	"	-o dirs=branch[,RO/RW,weight][:branch...]\n"
-	"						alternate way to specify client directories\n"
+	"	alternate way to specify client directories\n"
 	"\n",
 	progname);
 }
@@ -370,7 +379,8 @@ sfs_store_branch(char *branch)
 	char *res = NULL;
 	char **ptr = NULL;
 
-	sfs_chunks = realloc(sfs_chunks, (nchunks + 1) * sizeof(sfs_chunk_entry_t));
+	sfs_chunks = realloc(sfs_chunks,
+			(nchunks + 1) * sizeof(sfs_chunk_entry_t));
 	ASSERT((sfs_chunks != NULL), "Memory alocation failed", 0, 1, 0);
 	if (NULL == sfs_chunks)
 		exit(-1);
@@ -436,7 +446,8 @@ sfs_opt_proc(void *data, const char *arg, int key,
 			else
 				return 1;
 		case KEY_LOG_FILE_DIR:
-			strncpy(sstack_log_directory, get_opt_str(arg, "log_file_dir"),
+			strncpy(sstack_log_directory,
+					get_opt_str(arg, "log_file_dir"),
 				PATH_MAX - 1);
 			return 0;
 		case KEY_HELP:
@@ -449,7 +460,8 @@ sfs_opt_proc(void *data, const char *arg, int key,
 			sstack_log_level = atoi(get_opt_str(arg, "log_level"));
 			return 0;
 		default:
-			ASSERT((1 == 0), "Invalid argument specified. Exiting", 0, 0, 0);
+			ASSERT((1 == 0), "Invalid argument specified. Exiting",
+					0, 0, 0);
 			exit(-1);
 	}
 }
@@ -480,7 +492,7 @@ static struct fuse_operations sfs_oper = {
 	.setxattr		=	sfs_setxattr,
 	.getxattr		=	sfs_getxattr,
 	.listxattr		=	sfs_listxattr,
-	.removexattr	=	sfs_removexattr,
+	.removexattr		=	sfs_removexattr,
 	.opendir		=	sfs_opendir,
 	.releasedir		=	sfs_releasedir,
 	.fsyncdir		=	sfs_fsyncdir,
@@ -492,7 +504,7 @@ static struct fuse_operations sfs_oper = {
 	.fgetattr		=	sfs_fgetattr,
 	.lock			=	sfs_lock,
 	.utimens		=	sfs_utimens,
-	.bmap			=	sfs_bmap,		// Required?? Similar to FIBMAP
+	.bmap			=	sfs_bmap,	// Required?? Similar to FIBMAP
 	.ioctl			=	sfs_ioctl,
 	.poll			=	sfs_poll,
 	.write_buf		=	sfs_write_buf, 	// Similar to write

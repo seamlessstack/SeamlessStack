@@ -16,3 +16,14 @@
  * is strictly forbidden unless prior written permission is obtained
  * from SeamlessStack Incorporated.
  */
+
+#include <stdint.h>
+#include <pthread.h>
+#include <sstack_log.h>
+#include <sstack_sfsd.h>
+
+extern log_ctx_t *sfsd_ctx;
+void run_daemon_sfsd(void)
+{
+	sfs_log(sfsd_ctx, SFS_INFO, "%s", "Daemon started");
+}

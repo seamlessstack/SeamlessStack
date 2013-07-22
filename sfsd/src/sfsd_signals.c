@@ -16,3 +16,26 @@
  * is strictly forbidden unless prior written permission is obtained
  * from SeamlessStack Incorporated.
  */
+#include <signal.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <sstack_sfsd.h>
+
+/* PRIVATE DEFINITIONS */
+static void handle_sighup(int);
+
+
+/* PUBLIC FUNCTIONS */
+int32_t register_signals(void)
+{
+	int ret = 0;
+
+	signal(SIGHUP, handle_sighup);
+
+	return ret;
+}
+
+static void handle_sighup(int signum)
+{
+	fprintf(stderr, "Signal no. %d\n", signum);
+}
