@@ -16,6 +16,7 @@
  * is strictly forbidden unless prior written permission is obtained
  * from SeamlessStack Incorporated.
  */
+
 #include <signal.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -37,5 +38,5 @@ int32_t register_signals(void)
 
 static void handle_sighup(int signum)
 {
-	fprintf(stderr, "Signal no. %d\n", signum);
+	fprintf(stdout, "Signal no. %d\n", signum);
 }

@@ -6,7 +6,8 @@ CFLAGS += -D_GNU_SOURCE
 CFLAGS += -Wall
 LIB = -lpthread
 
-SFSD_OBJS = src/main.o src/sfsd.o src/sfsd_signals.o src/sfsd_threads.o src/sfsd_ops.o
+SFSD_OBJS = src/main.o src/sfsd.o src/sfsd_signals.o \
+	    src/sfsd_threads.o src/sfsd_ops.o \
 
 all:: sfsd
 
