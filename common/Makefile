@@ -7,11 +7,11 @@ CFLAGS += -fPIC
 LIB = -lpthread 
 LDFLAGS = -shared -Wl,-soname 
 
-COMMON_OBJS = src/sstack_threads.o
+COMMON_OBJS = src/sstack_thread_pool.o
 
-all:: sstack_threads 
+all:: sstack_thread_pool
 
-sstack_threads: $(COMMON_OBJS)
+sstack_thread_pool: $(COMMON_OBJS)
 	$(CC) $(COMMON_OBJS) $(LIB) $(LDFLAGS) -o libsstack_common.so 
 
 clean:
