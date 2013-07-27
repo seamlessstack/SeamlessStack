@@ -21,6 +21,7 @@
 #define __SSTACK_TRANSPORT_H_
 
 #include <sstack_log.h>
+#include <sstack_types.h>
 
 #define IPV4_ADDR_MAX 16
 #define IPV6_ADDR_MAX 40
@@ -31,6 +32,8 @@ typedef enum {
 	UDP = 3,
 	UNIX    = 4,
 } sstack_transport_type_t;
+
+typedef struct sstack_transport sstack_transport_t; // Forward decl
 
 /*
  *  init() is supposed to establish a connection and retrun client handle
@@ -63,7 +66,7 @@ typedef struct sstack_transport_hdr {
 typedef struct sstack_transport {
 	sstack_transport_type_t  transport_type;
 	sstack_transport_hdr_t transport_hdr;
-	sstack_transport_ops_t ops;
+	sstack_transport_ops_t transport_ops;
 	log_ctx_t *ctx;
 } sstack_transport_t;
 
@@ -93,7 +96,7 @@ free_transport(sstack_transport_t *transport)
 
 static inline int
 sstack_transport_register(sstack_transport_type_t type,
-					sstack_sstack_transport_t *transport,
+					sstack_transport_t *transport,
 					sstack_transport_ops_t ops)
 {
 	transport->transport_ops.client_init = ops.client_init;

@@ -20,6 +20,7 @@
 #ifndef __SSTACK_JOBS_H_
 #define __SSTACK_JOBS_H_
 
+#include <sstack_types.h>
 #include <sstack_transport.h>
 
 #define SFSD_MAGIC 0x11101974
@@ -27,9 +28,6 @@
 #define IPV4_ADDR_MAX 16
 #define IPV6_ADDR_MAX 40
 #define MAX_QUEUE_SIZE 1024
-
-typedef uint64_t sfsd_client_handle_t;
-typedef uint8_t sfsd_payload_t;
 
 typedef enum {
 	SFSD_HANDSHAKE	= 1,
@@ -53,7 +51,7 @@ typedef enum {
 
 typedef struct sfsd {
 	sstack_transport_t sfsd_transport;
-	sfsd_client_handle_t sfsd_handle;
+	sstack_client_handle_t sfsd_handle;
 } sfsd_t;
 
 typedef struct job {
@@ -64,7 +62,7 @@ typedef struct job {
 	sfsd_job_status_t job_status[MAX_SFSD_CLIENTS]; // Status of each client
 	int payload_len;
 	int priority; /* Priority of the job */
-	sfsd_payload_t	payload[0];
+	sstack_payload_t	payload[0];
 } job_t;
 
 /* 
@@ -74,8 +72,8 @@ typedef struct job {
  */
 typedef struct job_queue {
 	int priority; /* Priority of job queue */
-	sfsd_payload_t *payload[MAX_QUEUE_SIZE]; /* The array of payloads */
-}
+	sstack_payload_t *payload[MAX_QUEUE_SIZE]; /* The array of payloads */
+} job_queue_t;
 
 typedef enum {
 	INITIALIZING 	= 1, // sfs sent a request to spawn sfsd
