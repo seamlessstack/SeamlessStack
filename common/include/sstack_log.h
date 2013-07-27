@@ -285,6 +285,7 @@ sfs_log(log_ctx_t *ctx, sfs_log_level_t level, char *format, ...)
 	ASSERT((level > 0 && level < MAX_SFS_LOG_LEVELS),
 		"Invalid log level specified", 0, 1, -1);
 	ASSERT((format != NULL), "Format string is NULL.", 0, 1, -1);
+	ASSERT((ctx->log_initialized != 0), "Logging not initoalized", 0, 1, -1);
 	if (level > ctx->log_level) {
 		// Cuurent log level is set higher.
 		// This message is ignored.

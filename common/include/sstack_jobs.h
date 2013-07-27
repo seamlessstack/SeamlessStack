@@ -20,8 +20,9 @@
 #ifndef __SSTACK_JOBS_H_
 #define __SSTACK_JOBS_H_
 
+#include <sstack_transport.h>
+
 #define SFSD_MAGIC 0x11101974
-#include <stdint.h>
 #define MAX_SFSD_CLIENTS 8
 #define IPV4_ADDR_MAX 16
 #define IPV6_ADDR_MAX 40
@@ -42,15 +43,6 @@ typedef enum {
 	JOB_FAILED	= 4,
 } sfsd_job_status_t;
 
-
-
-typedef enum {
-	TCPIP	= 1,
-	IB	= 2,
-	UDP	= 3,
-	UNIX	= 4,
-} sfsd_transport_type_t;
-
 typedef enum {
 	HIGH_PRIORITY = 1,
 	MEDIUM_PRIORITY = 2,
@@ -58,33 +50,9 @@ typedef enum {
 	NUM_PRIORITY_MAX,
 } sfs_prio_t;
 
-typedef struct sfsd_transport {
-	sfsd_transport_type_t  transport_type;
-	union {
-		struct tcp {
-			int ipv4;		// 1 for ipv4 and 0 for ipv6
-			union {
-				char ipv4_addr[IPV4_ADDR_MAX];
-				char ipv6_addr[IPV6_ADDR_MAX];
-			};
-			int port;
-		} tcp;
-	};
-} sfsd_transport_t;
-
-/*
- *  init() is supposed to establish a connection and retrun client handle
- *  Client handle is socket fd i case of TCPIP
- */
-typedef struct sfsd_transport_ops {
-	int (*init) (sfsd_transport_t *);
-	int (*tx) (sfsd_client_handle_t , int , char *); 
-	int (*rx) (sfsd_client_handle_t , int, char *);
-} sfsd_transport_ops_t;
 
 typedef struct sfsd {
-	sfsd_transport_t sfsd_transport;
-	sfsd_transport_ops_t sfsd_transport_ops;
+	sstack_transport_t sfsd_transport;
 	sfsd_client_handle_t sfsd_handle;
 } sfsd_t;
 
