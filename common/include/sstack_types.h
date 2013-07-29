@@ -17,7 +17,12 @@
  * from SeamlessStack Incorporated.
  */
 
-#ifndef __SSTACK_VERSION_H_
-#define __SSTACK_VERSION_H_
-#define SSTACK_VERSION "0.04"
-#endif // __SSTACK_VERSION_H_
+#ifndef __SSTACK_TYPES_H_
+#define __SSTACK_TYPES_H_
+
+// All sstack specific types should be in this file
+
+typedef uint64_t sstack_client_handle_t;
+typedef uint8_t sstack_payload_t;
+
+#endif // __SSTACK_TYPES_H_
