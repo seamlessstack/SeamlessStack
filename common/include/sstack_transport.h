@@ -26,6 +26,9 @@
 #define IPV4_ADDR_MAX 16
 #define IPV6_ADDR_MAX 40
 
+#define SSTACK_BACKLOG 5
+typedef uint32_t sstack_handle_t;
+
 typedef enum {
 	TCPIP   = 1,
 	IB  = 2,

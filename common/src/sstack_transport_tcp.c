@@ -53,8 +53,8 @@ tcp_client_init(sstack_transport_t *transport)
 
 	addr.sin_family = AF_INET;
 	addr.sin_addr.s_addr =
-		inet_addr(transport.transport_hdr.tcp.ipv4_addr);
-	addr.sin_port = transport.transport_hdr.tcp.port;
+		inet_addr(transport->transport_hdr.tcp.ipv4_addr);
+	addr.sin_port = transport->transport_hdr.tcp.port;
 
 	if (connect(sockfd, (struct sockaddr *) &addr, sizeof(addr)) < 0) {
 		sfs_log(transport->ctx, SFS_ERR, "%s: Connect failed with"
@@ -110,8 +110,8 @@ tcp_server_setup(sstack_transport_t *transport)
 
 	addr.sin_family = AF_INET;
 	addr.sin_addr.s_addr =
-		inet_addr(transport.transport_hdr.tcp.ipv4_addr);
-	addr.sin_port = transport.transport_hdr.tcp.port;
+		inet_addr(transport->transport_hdr.tcp.ipv4_addr);
+	addr.sin_port = transport->transport_hdr.tcp.port;
 
 	if (bind(sockfd, (const struct sockaddr *) &addr, sizeof(addr)) == -1) {
 		sfs_log(transport->ctx, SFS_ERR, "%s: bind failed with"
@@ -125,7 +125,7 @@ tcp_server_setup(sstack_transport_t *transport)
 			"error %d\n", __FUNCTION__, errno); 
 		close(sockfd);
 
-		return NULL;
+		return -1;
 	}
 
 	sa.sa_handler = sigchld_handler;
