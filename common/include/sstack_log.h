@@ -42,7 +42,7 @@
 extern char sstack_log_directory[];
 
 /*
- * ASSERT takes three arguments:
+ * ASSERT takes five arguments:
  * p - a condition 
  * q - a string
  * r - assert or not
@@ -59,6 +59,21 @@ extern char sstack_log_directory[];
 		if ((s) != 0 && !p) \
 		return (t); \
 	} \
+} while(0);
+
+/*
+ * SFS_LOG_EXIT takes five arguments:
+ * p - a condition 
+ * q - a string
+ * r - return value 
+ * s - pointer to log_ctx_t structure
+ * t - sfs log level
+ */
+#define SFS_LOG_EXIT(p, q, r, s, t) do { \
+	if (!(p))  \
+	sfs_log(s, t, q); \
+	if ((s) != 0 && !p) \
+		return (r); \
 } while(0);
 
 typedef enum {
