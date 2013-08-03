@@ -141,3 +141,27 @@ tcp_server_setup(sstack_transport_t *transport)
 
 	return  (sstack_handle_t) sockfd;
 }
+
+
+sstack_transport_t *get_tcp_transport(char *addr)
+{
+	sstack_transport_t *transport = NULL;
+	
+	transport = alloc_transport();
+
+	ASSERT((transport != NULL), "Failed to allocate tcp transport", 1, 1, 0);
+
+	transport->transport_type = TCPIP;
+	transport->transport_hdr.tcp.ipv4 = 1;
+	strcpy(transport->transport_hdr.tcp.ipv4_addr, addr);
+	transport->transport_hdr.tcp.port = PORT;
+	transport->ctx = NULL;
+
+	transport->transport_ops.client_init = tcp_client_init;
+	transport->transport_ops.tx = tcp_tx;
+	transport->transport_ops.rx = tcp_rx;
+	transport->transport_ops.server_setup = tcp_server_setup;
+
+	return transport;
+
+}

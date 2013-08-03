@@ -20,10 +20,11 @@
 #include <stdint.h>
 #include <pthread.h>
 #include <sstack_log.h>
+#include <sstack_transport.h>
 #include <sstack_sfsd.h>
 
 extern log_ctx_t *sfsd_ctx;
-void run_daemon_sfsd(void)
+void run_daemon_sfsd(sfsd_local_t *sfsd)
 {
-	sfs_log(sfsd_ctx, SFS_INFO, "%s", "Daemon started");
+	sfs_log(sfsd->log_ctx, SFS_INFO, "%s", "Daemon started");
 }

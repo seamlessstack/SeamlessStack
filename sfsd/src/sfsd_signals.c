@@ -20,6 +20,7 @@
 #include <signal.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <sstack_transport.h>
 #include <sstack_sfsd.h>
 
 /* PRIVATE DEFINITIONS */
@@ -27,7 +28,7 @@ static void handle_sighup(int);
 
 
 /* PUBLIC FUNCTIONS */
-int32_t register_signals(void)
+int32_t register_signals(sfsd_local_t *sfsd)
 {
 	int ret = 0;
 

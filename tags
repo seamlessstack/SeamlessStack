@@ -1,0 +1,1667 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+A	oss/mongo-c-driver/src/bcon.h	/^    union bcon *A;   \/**< 04  e_name  document            Macro BA(v)  - Array interpolation *\/$/;"	m	union:bcon	typeref:union:bcon::bcon
+ALLOW_AND_REQUIRE_FREE_BEGIN	oss/mongo-c-driver/test/bson_alloc_test.c	14;"	d	file:
+ALLOW_AND_REQUIRE_FREE_END	oss/mongo-c-driver/test/bson_alloc_test.c	15;"	d	file:
+ALLOW_AND_REQUIRE_MALLOC_BEGIN	oss/mongo-c-driver/test/bson_alloc_test.c	9;"	d	file:
+ALLOW_AND_REQUIRE_MALLOC_END	oss/mongo-c-driver/test/bson_alloc_test.c	10;"	d	file:
+ALLSPHINXOPTS	oss/mongo-c-driver/docs/source/sphinx/Makefile	/^ALLSPHINXOPTS   = -d $(BUILDDIR)\/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source$/;"	m
+ALLSPHINXOPTS	oss/mongo-c-driver/docs/source/sphinx/make.bat	/^	set ALLSPHINXOPTS=-D latex_paper_size=%PAPER% %ALLSPHINXOPTS%$/;"	v
+ALLSPHINXOPTS	oss/mongo-c-driver/docs/source/sphinx/make.bat	/^set ALLSPHINXOPTS=-d %BUILDDIR%\/doctrees %SPHINXOPTS% source$/;"	v
+ALL_CFLAGS	oss/mongo-c-driver/Makefile	/^ALL_CFLAGS=-std=$(STD) $(PEDANTIC) $(CFLAGS) $(OPTIMIZATION) $(WARNINGS) $(DEBUG) $(ALL_DEFINES)$/;"	m
+ALL_DEFINES	oss/mongo-c-driver/Makefile	/^ALL_DEFINES=$(DEFINES)$/;"	m
+ALL_LDFLAGS	oss/mongo-c-driver/Makefile	/^ALL_LDFLAGS=$(LDFLAGS)$/;"	m
+ARRAY_INDEX_BUFFER_SIZE	oss/mongo-c-driver/src/bcon.c	28;"	d	file:
+ARRAY_INDEX_STACK_SIZE	oss/mongo-c-driver/src/bcon.c	152;"	d	file:
+ARRAY_KEY_STRING	oss/mongo-c-driver/src/bcon.c	159;"	d	file:
+ARRAY_POP_INDEX_STATE	oss/mongo-c-driver/src/bcon.c	157;"	d	file:
+ARRAY_PUSH_RESET_INDEX_STATE	oss/mongo-c-driver/src/bcon.c	156;"	d	file:
+ASSERT	common/include/sstack_log.h	53;"	d
+ASSERT	oss/mongo-c-driver/test/test.h	4;"	d
+ASSERT_EQUAL_STRINGS	oss/mongo-c-driver/test/test.h	12;"	d
+BA	oss/mongo-c-driver/src/bcon.h	154;"	d
+BATCH_SIZE	oss/mongo-c-driver/test/benchmark_test.c	24;"	d	file:
+BATCH_SIZE	oss/mongo-c-driver/test/validate_test.c	10;"	d	file:
+BB	oss/mongo-c-driver/src/bcon.h	158;"	d
+BCON_BSON_ERROR	oss/mongo-c-driver/src/bcon.h	/^    BCON_BSON_ERROR \/**< bson finish error *\/$/;"	e	enum:bcon_error_t
+BCON_DOCUMENT_INCOMPLETE	oss/mongo-c-driver/src/bcon.h	/^    BCON_DOCUMENT_INCOMPLETE, \/**< bcon document or nesting incomplete *\/$/;"	e	enum:bcon_error_t
+BCON_ERROR	oss/mongo-c-driver/src/bcon.h	/^    BCON_ERROR,  \/**< ERROR return code *\/$/;"	e	enum:bcon_error_t
+BCON_H_	oss/mongo-c-driver/src/bcon.h	22;"	d
+BCON_OK	oss/mongo-c-driver/src/bcon.h	/^    BCON_OK = 0, \/**< OK return code *\/$/;"	e	enum:bcon_error_t
+BD	oss/mongo-c-driver/src/bcon.h	152;"	d
+BEND	oss/mongo-c-driver/src/bcon.h	80;"	d
+BF	oss/mongo-c-driver/src/bcon.h	148;"	d
+BI	oss/mongo-c-driver/src/bcon.h	166;"	d
+BL	oss/mongo-c-driver/src/bcon.h	168;"	d
+BLOCKDEV	common/include/sstack_md.h	/^	BLOCKDEV,$/;"	e	enum:type
+BNULL	oss/mongo-c-driver/src/bcon.h	162;"	d
+BO	oss/mongo-c-driver/src/bcon.h	156;"	d
+BPA	oss/mongo-c-driver/src/bcon.h	198;"	d
+BPB	oss/mongo-c-driver/src/bcon.h	202;"	d
+BPD	oss/mongo-c-driver/src/bcon.h	196;"	d
+BPF	oss/mongo-c-driver/src/bcon.h	192;"	d
+BPI	oss/mongo-c-driver/src/bcon.h	208;"	d
+BPL	oss/mongo-c-driver/src/bcon.h	210;"	d
+BPO	oss/mongo-c-driver/src/bcon.h	200;"	d
+BPS	oss/mongo-c-driver/src/bcon.h	194;"	d
+BPT	oss/mongo-c-driver/src/bcon.h	204;"	d
+BPX	oss/mongo-c-driver/src/bcon.h	206;"	d
+BRA	oss/mongo-c-driver/src/bcon.h	177;"	d
+BRB	oss/mongo-c-driver/src/bcon.h	181;"	d
+BRD	oss/mongo-c-driver/src/bcon.h	175;"	d
+BRF	oss/mongo-c-driver/src/bcon.h	171;"	d
+BRI	oss/mongo-c-driver/src/bcon.h	187;"	d
+BRL	oss/mongo-c-driver/src/bcon.h	189;"	d
+BRO	oss/mongo-c-driver/src/bcon.h	179;"	d
+BRS	oss/mongo-c-driver/src/bcon.h	173;"	d
+BRT	oss/mongo-c-driver/src/bcon.h	183;"	d
+BRX	oss/mongo-c-driver/src/bcon.h	185;"	d
+BS	oss/mongo-c-driver/src/bcon.h	150;"	d
+BSON_ALREADY_FINISHED	oss/mongo-c-driver/src/bson.h	/^    BSON_ALREADY_FINISHED =  (1 << 4),  \/**< Trying to modify a finished BSON object. *\/$/;"	e	enum:bson_error_t
+BSON_ARRAY	oss/mongo-c-driver/src/bson.h	/^    BSON_ARRAY = 4,$/;"	e	enum:__anon8
+BSON_BINDATA	oss/mongo-c-driver/src/bson.h	/^    BSON_BINDATA = 5,$/;"	e	enum:__anon8
+BSON_BIN_BINARY	oss/mongo-c-driver/src/bson.h	/^    BSON_BIN_BINARY = 0,$/;"	e	enum:bson_binary_subtype_t
+BSON_BIN_BINARY_OLD	oss/mongo-c-driver/src/bson.h	/^    BSON_BIN_BINARY_OLD = 2,$/;"	e	enum:bson_binary_subtype_t
+BSON_BIN_FUNC	oss/mongo-c-driver/src/bson.h	/^    BSON_BIN_FUNC = 1,$/;"	e	enum:bson_binary_subtype_t
+BSON_BIN_MD5	oss/mongo-c-driver/src/bson.h	/^    BSON_BIN_MD5 = 5,$/;"	e	enum:bson_binary_subtype_t
+BSON_BIN_USER	oss/mongo-c-driver/src/bson.h	/^    BSON_BIN_USER = 128$/;"	e	enum:bson_binary_subtype_t
+BSON_BIN_UUID	oss/mongo-c-driver/src/bson.h	/^    BSON_BIN_UUID = 3,$/;"	e	enum:bson_binary_subtype_t
+BSON_BOOL	oss/mongo-c-driver/src/bson.h	/^    BSON_BOOL = 8,$/;"	e	enum:__anon8
+BSON_CODE	oss/mongo-c-driver/src/bson.h	/^    BSON_CODE = 13,$/;"	e	enum:__anon8
+BSON_CODEWSCOPE	oss/mongo-c-driver/src/bson.h	/^    BSON_CODEWSCOPE = 15,$/;"	e	enum:__anon8
+BSON_DATE	oss/mongo-c-driver/src/bson.h	/^    BSON_DATE = 9,$/;"	e	enum:__anon8
+BSON_DBREF	oss/mongo-c-driver/src/bson.h	/^    BSON_DBREF = 12, \/**< Deprecated. *\/$/;"	e	enum:__anon8
+BSON_DOES_NOT_OWN_DATA	oss/mongo-c-driver/src/bson.h	/^    BSON_DOES_NOT_OWN_DATA = (1 << 6)   \/**< Trying to expand a BSON object which does not own its data block. *\/$/;"	e	enum:bson_error_t
+BSON_DOUBLE	oss/mongo-c-driver/src/bson.h	/^    BSON_DOUBLE = 1,$/;"	e	enum:__anon8
+BSON_DYLIBNAME	oss/mongo-c-driver/Makefile	/^BSON_DYLIBNAME=$(BSON_LIBNAME).$(DYLIBSUFFIX)$/;"	m
+BSON_DYLIB_MAJOR_NAME	oss/mongo-c-driver/Makefile	/^    BSON_DYLIB_MAJOR_NAME=$(BSON_LIBNAME).$(DYLIBSUFFIX).$(BSON_MAJOR)$/;"	m
+BSON_DYLIB_MAJOR_NAME	oss/mongo-c-driver/Makefile	/^BSON_DYLIB_MAJOR_NAME=$(BSON_DYLIBNAME).$(BSON_MAJOR)$/;"	m
+BSON_DYLIB_MAKE_CMD	oss/mongo-c-driver/Makefile	/^    BSON_DYLIB_MAKE_CMD=$(CC) -G -o $(BSON_DYLIBNAME) -h $(BSON_DYLIB_MINOR_NAME) $(ALL_LDFLAGS)$/;"	m
+BSON_DYLIB_MAKE_CMD	oss/mongo-c-driver/Makefile	/^    BSON_DYLIB_MAKE_CMD=$(CC) -shared -Wl,-install_name,$(BSON_DYLIB_MINOR_NAME) -o $(BSON_DYLIBNAME) $(ALL_LDFLAGS) $(DYN_BSON_OBJECTS)$/;"	m
+BSON_DYLIB_MAKE_CMD	oss/mongo-c-driver/Makefile	/^BSON_DYLIB_MAKE_CMD=$(CC) -shared -Wl,-soname,$(BSON_DYLIB_MINOR_NAME) -o $(BSON_DYLIBNAME) $(ALL_LDFLAGS) $(DYN_BSON_OBJECTS)$/;"	m
+BSON_DYLIB_MINOR_NAME	oss/mongo-c-driver/Makefile	/^    BSON_DYLIB_MINOR_NAME=$(BSON_LIBNAME).$(DYLIBSUFFIX).$(BSON_MAJOR).$(BSON_MINOR)$/;"	m
+BSON_DYLIB_MINOR_NAME	oss/mongo-c-driver/Makefile	/^BSON_DYLIB_MINOR_NAME=$(BSON_DYLIB_MAJOR_NAME).$(BSON_MINOR)$/;"	m
+BSON_DYLIB_PATCH_NAME	oss/mongo-c-driver/Makefile	/^BSON_DYLIB_PATCH_NAME=$(BSON_DYLIB_MINOR_NAME).$(BSON_PATCH)$/;"	m
+BSON_ENCODING_H_	oss/mongo-c-driver/src/encoding.h	18;"	d
+BSON_EOO	oss/mongo-c-driver/src/bson.h	/^    BSON_EOO = 0,$/;"	e	enum:__anon8
+BSON_ERROR	oss/mongo-c-driver/src/bson.h	82;"	d
+BSON_FIELD_HAS_DOT	oss/mongo-c-driver/src/bson.h	/^    BSON_FIELD_HAS_DOT =     (1 << 2),  \/**< Warning: key contains '.' character. *\/$/;"	e	enum:bson_validity_t
+BSON_FIELD_INIT_DOLLAR	oss/mongo-c-driver/src/bson.h	/^    BSON_FIELD_INIT_DOLLAR = (1 << 3)   \/**< Warning: key starts with '$' character. *\/$/;"	e	enum:bson_validity_t
+BSON_H_	oss/mongo-c-driver/src/bson.h	22;"	d
+BSON_INT	oss/mongo-c-driver/src/bson.h	/^    BSON_INT = 16,$/;"	e	enum:__anon8
+BSON_LIBNAME	oss/mongo-c-driver/Makefile	/^BSON_LIBNAME=libbson$/;"	m
+BSON_LONG	oss/mongo-c-driver/src/bson.h	/^    BSON_LONG = 18,$/;"	e	enum:__anon8
+BSON_MAJOR	oss/mongo-c-driver/Makefile	/^BSON_MAJOR=$(MONGO_MAJOR)$/;"	m
+BSON_MAXKEY	oss/mongo-c-driver/src/bson.h	/^    BSON_MAXKEY = 127,$/;"	e	enum:__anon8
+BSON_MINKEY	oss/mongo-c-driver/src/bson.h	/^    BSON_MINKEY = 255$/;"	e	enum:__anon8
+BSON_MINOR	oss/mongo-c-driver/Makefile	/^BSON_MINOR=$(MONGO_MINOR)$/;"	m
+BSON_NOT_IN_SUBOBJECT	oss/mongo-c-driver/src/bson.h	/^    BSON_NOT_IN_SUBOBJECT =  (1 << 5),  \/**< Trying bson_append_finish_object() and not in sub *\/$/;"	e	enum:bson_error_t
+BSON_NOT_UTF8	oss/mongo-c-driver/src/bson.h	/^    BSON_NOT_UTF8 =          (1 << 1),  \/**< A key or a string is not valid UTF-8. *\/$/;"	e	enum:bson_validity_t
+BSON_NULL	oss/mongo-c-driver/src/bson.h	/^    BSON_NULL = 10,$/;"	e	enum:__anon8
+BSON_OBJECT	oss/mongo-c-driver/src/bson.h	/^    BSON_OBJECT = 3,$/;"	e	enum:__anon8
+BSON_OBJECTS	oss/mongo-c-driver/Makefile	/^BSON_OBJECTS=src\/bcon.o src\/bson.o src\/numbers.o src\/encoding.o$/;"	m
+BSON_OID	oss/mongo-c-driver/src/bson.h	/^    BSON_OID = 7,$/;"	e	enum:__anon8
+BSON_OK	oss/mongo-c-driver/src/bson.h	81;"	d
+BSON_PATCH	oss/mongo-c-driver/Makefile	/^BSON_PATCH=$(MONGO_PATCH)$/;"	m
+BSON_REGEX	oss/mongo-c-driver/src/bson.h	/^    BSON_REGEX = 11,$/;"	e	enum:__anon8
+BSON_SIZE_OVERFLOW	oss/mongo-c-driver/src/bson.h	/^    BSON_SIZE_OVERFLOW =     (1 << 0),  \/**< Trying to create a BSON object larger than INT_MAX. *\/$/;"	e	enum:bson_error_t
+BSON_STLIBNAME	oss/mongo-c-driver/Makefile	/^BSON_STLIBNAME=$(BSON_LIBNAME).$(STLIBSUFFIX)$/;"	m
+BSON_STRING	oss/mongo-c-driver/src/bson.h	/^    BSON_STRING = 2,$/;"	e	enum:__anon8
+BSON_SYMBOL	oss/mongo-c-driver/src/bson.h	/^    BSON_SYMBOL = 14,$/;"	e	enum:__anon8
+BSON_TIMESTAMP	oss/mongo-c-driver/src/bson.h	/^    BSON_TIMESTAMP = 17,$/;"	e	enum:__anon8
+BSON_UNDEFINED	oss/mongo-c-driver/src/bson.h	/^    BSON_UNDEFINED = 6,$/;"	e	enum:__anon8
+BSON_VALID	oss/mongo-c-driver/src/bson.h	/^    BSON_VALID =             0,         \/**< BSON is valid and UTF-8 compliant. *\/$/;"	e	enum:bson_validity_t
+BT	oss/mongo-c-driver/src/bcon.h	160;"	d
+BTA	oss/mongo-c-driver/src/bcon.h	89;"	d
+BTB	oss/mongo-c-driver/src/bcon.h	93;"	d
+BTD	oss/mongo-c-driver/src/bcon.h	87;"	d
+BTF	oss/mongo-c-driver/src/bcon.h	83;"	d
+BTI	oss/mongo-c-driver/src/bcon.h	101;"	d
+BTL	oss/mongo-c-driver/src/bcon.h	103;"	d
+BTN	oss/mongo-c-driver/src/bcon.h	97;"	d
+BTO	oss/mongo-c-driver/src/bcon.h	91;"	d
+BTPA	oss/mongo-c-driver/src/bcon.h	133;"	d
+BTPB	oss/mongo-c-driver/src/bcon.h	137;"	d
+BTPD	oss/mongo-c-driver/src/bcon.h	131;"	d
+BTPF	oss/mongo-c-driver/src/bcon.h	127;"	d
+BTPI	oss/mongo-c-driver/src/bcon.h	143;"	d
+BTPL	oss/mongo-c-driver/src/bcon.h	145;"	d
+BTPO	oss/mongo-c-driver/src/bcon.h	135;"	d
+BTPS	oss/mongo-c-driver/src/bcon.h	129;"	d
+BTPT	oss/mongo-c-driver/src/bcon.h	139;"	d
+BTPX	oss/mongo-c-driver/src/bcon.h	141;"	d
+BTRA	oss/mongo-c-driver/src/bcon.h	112;"	d
+BTRB	oss/mongo-c-driver/src/bcon.h	116;"	d
+BTRD	oss/mongo-c-driver/src/bcon.h	110;"	d
+BTRF	oss/mongo-c-driver/src/bcon.h	106;"	d
+BTRI	oss/mongo-c-driver/src/bcon.h	122;"	d
+BTRL	oss/mongo-c-driver/src/bcon.h	124;"	d
+BTRO	oss/mongo-c-driver/src/bcon.h	114;"	d
+BTRS	oss/mongo-c-driver/src/bcon.h	108;"	d
+BTRT	oss/mongo-c-driver/src/bcon.h	118;"	d
+BTRX	oss/mongo-c-driver/src/bcon.h	120;"	d
+BTS	oss/mongo-c-driver/src/bcon.h	85;"	d
+BTT	oss/mongo-c-driver/src/bcon.h	95;"	d
+BTX	oss/mongo-c-driver/src/bcon.h	99;"	d
+BUILDDIR	oss/mongo-c-driver/docs/source/sphinx/Makefile	/^BUILDDIR      = build$/;"	m
+BUILDDIR	oss/mongo-c-driver/docs/source/sphinx/make.bat	/^set BUILDDIR=build$/;"	v
+BX	oss/mongo-c-driver/src/bcon.h	164;"	d
+BYTE_ORDER	oss/mongo-c-driver/src/md5.c	57;"	d	file:
+BYTE_ORDER	oss/mongo-c-driver/src/md5.c	59;"	d	file:
+BYTE_ORDER	oss/mongo-c-driver/src/md5.c	61;"	d	file:
+CC	db/mongo/Makefile	/^CC = gcc$/;"	m
+CC	oss/mongo-c-driver/Makefile	/^CC:=$(shell sh -c 'type $(CC) >\/dev\/null 2>\/dev\/null && echo $(CC) || echo gcc')$/;"	m
+CHARDEV	common/include/sstack_md.h	/^	CHARDEV,$/;"	e	enum:type
+CHECK_VALUE	oss/crc/crc.h	39;"	d
+CHECK_VALUE	oss/crc/crc.h	51;"	d
+CHECK_VALUE	oss/crc/crc.h	63;"	d
+CIFS	common/include/sstack_chunk.h	/^	CIFS	= 2,  \/\/ Bidozzz clients$/;"	e	enum:__anon25
+CLIDIR	Makefile	/^CLIDIR	= cli$/;"	m
+COMMONDIR	Makefile	/^COMMONDIR = common$/;"	m
+COMMON_OBJS	common/Makefile	/^COMMON_OBJS = src\/sstack_thread_pool.o src\/sstack_transport_tcp.o$/;"	m
+CONFIG_COLLECTION	db/mongo/include/mongo_db.h	30;"	d
+CONFIG_TYPE	common/include/sstack_db.h	/^	CONFIG_TYPE = 4,	\/\/ Fot storing config records$/;"	e	enum:__anon19
+CONN_CLIENT_TEST	oss/mongo-c-driver/test/test.h	30;"	d
+COUCHDB_LOG	db/couchbase/src/couchdb.c	32;"	d	file:
+CRC32	oss/crc/crc.h	26;"	d
+CRC_NAME	oss/crc/crc.h	33;"	d
+CRC_NAME	oss/crc/crc.h	45;"	d
+CRC_NAME	oss/crc/crc.h	57;"	d
+D	oss/mongo-c-driver/src/bcon.h	/^    union bcon *D;   \/**< 03  e_name  document            Macro BD(v)  - Embedded document interpolation *\/$/;"	m	union:bcon	typeref:union:bcon::bcon
+DATA_SIZE	db/couchbase/src/couchdb.c	30;"	d	file:
+DB	oss/mongo-c-driver/test/benchmark_test.c	14;"	d	file:
+DB_DIR	db/filesdb/src/files_db.c	30;"	d	file:
+DB_NAME	db/mongo/include/mongo_db.h	26;"	d
+DEBUG	oss/mongo-c-driver/Makefile	/^DEBUG?=-ggdb$/;"	m
+DECOMMISSIONED	common/include/sstack_jobs.h	/^	DECOMMISSIONED	= 5, \/\/ Node running sfsd is decommissioned. A temp state$/;"	e	enum:__anon23
+DEFAULT_CHUNK_SIZE	oss/mongo-c-driver/src/gridfs.h	/^enum {DEFAULT_CHUNK_SIZE = 256 * 1024};$/;"	e	enum:__anon13
+DEFAULT_WEIGHT	sfs/include/sfs.h	26;"	d
+DELTA	oss/mongo-c-driver/test/gridfs_test.c	18;"	d	file:
+DESTDIR	oss/mongo-c-driver/Makefile	/^DESTDIR?=\/$/;"	m
+DIRECTORY	common/include/sstack_md.h	/^	DIRECTORY,$/;"	e	enum:type
+DOC_POP_STATE	oss/mongo-c-driver/src/bcon.c	155;"	d	file:
+DOC_PUSH_STATE	oss/mongo-c-driver/src/bcon.c	154;"	d	file:
+DOC_STACK_SIZE	oss/mongo-c-driver/src/bcon.c	151;"	d	file:
+DO_SLOW_TESTS	oss/mongo-c-driver/test/benchmark_test.c	17;"	d	file:
+DWC1	oss/mongo-c-driver/test/write_concern_test.c	/^static mongo_write_concern DWC1 = { 1, 0, 0, 0, 0, 0 }; \/* w = 1 *\/ \/* do not reference &WC1_cmd for this test *\/$/;"	v	file:
+DYLIBSUFFIX	oss/mongo-c-driver/Makefile	/^    DYLIBSUFFIX=dylib$/;"	m
+DYLIBSUFFIX	oss/mongo-c-driver/Makefile	/^DYLIBSUFFIX=so$/;"	m
+DYN_BSON_OBJECTS	oss/mongo-c-driver/Makefile	/^DYN_BSON_OBJECTS=$(foreach i,$(BSON_OBJECTS),$(patsubst %.o,%.os,$(i)))$/;"	m
+DYN_FLAGS	oss/mongo-c-driver/Makefile	/^DYN_FLAGS:=-fPIC -DMONGO_DLL_BUILD$/;"	m
+DYN_MONGO_OBJECTS	oss/mongo-c-driver/Makefile	/^DYN_MONGO_OBJECTS=$(foreach i,$(MONGO_OBJECTS),$(patsubst %.o,%.os,$(i)))$/;"	m
+ENV	oss/mongo-c-driver/Makefile	/^ENV?=posix$/;"	m
+F	oss/mongo-c-driver/src/md5.c	202;"	d	file:
+FALSE	oss/crc/crc.h	20;"	d
+FALSE	policy/include/policy.h	/^	FALSE,$/;"	e	enum:ret_code
+FIFO	common/include/sstack_md.h	/^	FIFO,$/;"	e	enum:type
+FINAL_XOR_VALUE	oss/crc/crc.h	36;"	d
+FINAL_XOR_VALUE	oss/crc/crc.h	48;"	d
+FINAL_XOR_VALUE	oss/crc/crc.h	60;"	d
+FNAME_LEN	db/filesdb/src/files_db.c	32;"	d	file:
+G	oss/mongo-c-driver/src/md5.c	228;"	d	file:
+GFS_INIT	oss/mongo-c-driver/test/gridfs_test.c	29;"	d	file:
+GRIDFILE_COMPRESS	oss/mongo-c-driver/test/gridfs_test.c	21;"	d	file:
+GRIDFILE_DEFAULT	oss/mongo-c-driver/src/gridfs.h	/^    GRIDFILE_DEFAULT = 0,$/;"	e	enum:gridfile_storage_type
+GRIDFILE_NOMD5	oss/mongo-c-driver/src/gridfs.h	/^    GRIDFILE_NOMD5 = ( 1<<0 )$/;"	e	enum:gridfile_storage_type
+H	oss/mongo-c-driver/src/md5.c	254;"	d	file:
+HARDLINK	common/include/sstack_md.h	/^	HARDLINK,$/;"	e	enum:type
+HIGH_PRIORITY	common/include/sstack_jobs.h	/^	HIGH_PRIORITY = 1,$/;"	e	enum:__anon22
+I	oss/mongo-c-driver/src/md5.c	280;"	d	file:
+IB	common/include/sstack_transport.h	/^	IB  = 2,$/;"	e	enum:__anon16
+INDEX_NAME_BUFFER_SIZE	oss/mongo-c-driver/src/mongo.c	1453;"	d	file:
+INDEX_NAME_MAX_LENGTH	oss/mongo-c-driver/src/mongo.c	1454;"	d	file:
+INITIALIZING	common/include/sstack_jobs.h	/^	INITIALIZING 	= 1, \/\/ sfs sent a request to spawn sfsd$/;"	e	enum:__anon23
+INITIAL_REMAINDER	oss/crc/crc.h	35;"	d
+INITIAL_REMAINDER	oss/crc/crc.h	47;"	d
+INITIAL_REMAINDER	oss/crc/crc.h	59;"	d
+INIT_SOCKETS_FOR_WINDOWS	oss/mongo-c-driver/test/test.h	21;"	d
+INIT_SOCKETS_FOR_WINDOWS	oss/mongo-c-driver/test/test.h	23;"	d
+INODE_COLLECTION	db/mongo/include/mongo_db.h	28;"	d
+INODE_NUM_START	common/include/sstack_md.h	39;"	d
+INODE_TYPE	common/include/sstack_db.h	/^	INODE_TYPE  = 2,	\/\/ For storing inodes$/;"	e	enum:__anon19
+INSTALL	oss/mongo-c-driver/Makefile	/^    INSTALL?=cp -r$/;"	m
+INSTALL	oss/mongo-c-driver/Makefile	/^INSTALL?= cp -a$/;"	m
+INSTALL_CMD	oss/mongo-c-driver/Makefile	/^    INSTALL_CMD=cp -r$/;"	m
+INSTALL_INCLUDE_PATH	oss/mongo-c-driver/Makefile	/^INSTALL_INCLUDE_PATH?=$(DESTDIR)$(PREFIX)\/include$/;"	m
+INSTALL_LIBRARY_PATH	oss/mongo-c-driver/Makefile	/^INSTALL_LIBRARY_PATH?=$(DESTDIR)$(PREFIX)\/lib$/;"	m
+INT32_MAX	oss/mongo-c-driver/src/bson.h	59;"	d
+INVALID_SOCKET	oss/mongo-c-driver/src/env.h	27;"	d
+IPV4_ADDR_MAX	common/include/sstack_jobs.h	28;"	d
+IPV4_ADDR_MAX	common/include/sstack_transport.h	26;"	d
+IPV6_ADDR_MAX	common/include/sstack_jobs.h	29;"	d
+IPV6_ADDR_MAX	common/include/sstack_transport.h	27;"	d
+ISCSI	common/include/sstack_chunk.h	/^	ISCSI	= 3,  \/\/ iSCSI targets$/;"	e	enum:__anon25
+JOB_ABORTED	common/include/sstack_jobs.h	/^	JOB_ABORTED	= 3,$/;"	e	enum:__anon21
+JOB_COMPLETE	common/include/sstack_jobs.h	/^	JOB_COMPLETE	= 2,$/;"	e	enum:__anon21
+JOB_FAILED	common/include/sstack_jobs.h	/^	JOB_FAILED	= 4,$/;"	e	enum:__anon21
+JOB_STARTED	common/include/sstack_jobs.h	/^	JOB_STARTED	= 1,$/;"	e	enum:__anon21
+JOURNAL_COLLECTION	db/mongo/include/mongo_db.h	29;"	d
+JOURNAL_TYPE	common/include/sstack_db.h	/^	JOURNAL_TYPE = 3,	\/\/ For storing journal$/;"	e	enum:__anon19
+JSONBSONTEST	oss/mongo-c-driver/test/json_test.c	149;"	d	file:
+KEY_BRANCHES	sfs/include/sfs.h	/^	KEY_BRANCHES,$/;"	e	enum:__anon1
+KEY_HELP	sfs/include/sfs.h	/^	KEY_HELP,$/;"	e	enum:__anon1
+KEY_LOG_FILE_DIR	sfs/include/sfs.h	/^	KEY_LOG_FILE_DIR,$/;"	e	enum:__anon1
+KEY_LOG_LEVEL	sfs/include/sfs.h	/^	KEY_LOG_LEVEL$/;"	e	enum:__anon1
+KEY_VERSION	sfs/include/sfs.h	/^	KEY_VERSION,$/;"	e	enum:__anon1
+K_table	arch/x86_64/crc_pcl.S	/^K_table:$/;"	l
+LARGE	oss/mongo-c-driver/test/gridfs_test.c	14;"	d	file:
+LDFLAGS	common/Makefile	/^LDFLAGS = -shared -lc -Wl,-soname$/;"	m
+LDFLAGS	db/mongo/Makefile	/^LDFLAGS = -shared -o$/;"	m
+LDFLAGS	sfsd/Makefile	/^LDFLAGS = -L ..\/common\/$/;"	m
+LIB	common/Makefile	/^LIB = -lpthread -lrt$/;"	m
+LIB	policy/Makefile	/^LIB = $(shell pkg-config --libs fuse) -lpthread -lJudy $/;"	m
+LIB	sfs/Makefile	/^LIB = $(shell pkg-config --libs fuse) -lpthread -L..\/db\/mongo -lmongo_db$/;"	m
+LIB	sfsd/Makefile	/^LIB = -lpthread -lsstack_common$/;"	m
+LIBS	cli/Makefile	/^LIBS = -lpthread$/;"	m
+LOG_DECODE_OBJS	cli/Makefile	/^LOG_DECODE_OBJS = src\/sstack_log_decode.o$/;"	m
+LOG_ENTRY_VERSION	common/include/sstack_log.h	40;"	d
+LOWER	oss/mongo-c-driver/test/gridfs_test.c	17;"	d	file:
+LOW_PRIORITY	common/include/sstack_jobs.h	/^	LOW_PRIORITY = 3,$/;"	e	enum:__anon22
+MAX	oss/mongo-c-driver/src/gridfs.c	24;"	d	file:
+MAXHOSTNAMELEN	oss/mongo-c-driver/src/mongo.h	49;"	d
+MAXIMUM_WEIGHT	sfs/include/sfs.h	27;"	d
+MAX_KEY_SIZE	db/couchbase/src/couchdb.c	31;"	d	file:
+MAX_POLICIES	policy/src/policy.c	14;"	d	file:
+MAX_QUEUE_SIZE	common/include/sstack_jobs.h	30;"	d
+MAX_REPLICAS	common/include/sstack_md.h	38;"	d
+MAX_SFSD_CLIENTS	common/include/sstack_jobs.h	27;"	d
+MAX_SFS_LOG_LEVELS	common/include/sstack_log.h	/^	MAX_SFS_LOG_LEVELS = 6,$/;"	e	enum:__anon24
+MAX_TYPE	common/include/sstack_db.h	/^	MAX_TYPE = 5$/;"	e	enum:__anon19
+MEDIUM	oss/mongo-c-driver/test/gridfs_test.c	16;"	d	file:
+MEDIUM_PRIORITY	common/include/sstack_jobs.h	/^	MEDIUM_PRIORITY = 2,$/;"	e	enum:__anon22
+MIN	oss/mongo-c-driver/src/gridfs.c	27;"	d	file:
+MINIMUM_WEIGHT	sfs/include/sfs.h	25;"	d
+MONGODIR	Makefile	/^MONGODIR = db\/mongo$/;"	m
+MONGODRV	Makefile	/^MONGODRV = oss\/mongo-c-driver$/;"	m
+MONGO_AWAIT_DATA	oss/mongo-c-driver/src/mongo.h	/^    MONGO_AWAIT_DATA = ( 1<<5 ),      \/**< Momentarily block for more data. *\/$/;"	e	enum:mongo_cursor_opts
+MONGO_BSON_INVALID	oss/mongo-c-driver/src/mongo.h	/^    MONGO_BSON_INVALID,      \/**< BSON not valid for the specified op. *\/$/;"	e	enum:mongo_error_t
+MONGO_BSON_NOT_FINISHED	oss/mongo-c-driver/src/mongo.h	/^    MONGO_BSON_NOT_FINISHED, \/**< BSON object has not been finished. *\/$/;"	e	enum:mongo_error_t
+MONGO_BSON_TOO_LARGE	oss/mongo-c-driver/src/mongo.h	/^    MONGO_BSON_TOO_LARGE,    \/**< BSON object exceeds max BSON size. *\/$/;"	e	enum:mongo_error_t
+MONGO_COMMAND_FAILED	oss/mongo-c-driver/src/mongo.h	/^    MONGO_COMMAND_FAILED,    \/**< The command returned with 'ok' value of 0. *\/$/;"	e	enum:mongo_error_t
+MONGO_CONN_ADDR_FAIL	oss/mongo-c-driver/src/mongo.h	/^    MONGO_CONN_ADDR_FAIL,    \/**< An error occured while calling getaddrinfo(). *\/$/;"	e	enum:mongo_error_t
+MONGO_CONN_BAD_SET_NAME	oss/mongo-c-driver/src/mongo.h	/^    MONGO_CONN_BAD_SET_NAME, \/**< Given rs name doesn't match this replica set. *\/$/;"	e	enum:mongo_error_t
+MONGO_CONN_FAIL	oss/mongo-c-driver/src/mongo.h	/^    MONGO_CONN_FAIL,         \/**< An error occured while calling connect(). *\/$/;"	e	enum:mongo_error_t
+MONGO_CONN_NOT_MASTER	oss/mongo-c-driver/src/mongo.h	/^    MONGO_CONN_NOT_MASTER,   \/**< Warning: connected to a non-master node (read-only). *\/$/;"	e	enum:mongo_error_t
+MONGO_CONN_NO_PRIMARY	oss/mongo-c-driver/src/mongo.h	/^    MONGO_CONN_NO_PRIMARY,   \/**< Can't find primary in replica set. Connection closed. *\/$/;"	e	enum:mongo_error_t
+MONGO_CONN_NO_SOCKET	oss/mongo-c-driver/src/mongo.h	/^    MONGO_CONN_NO_SOCKET,    \/**< Could not create a socket. *\/$/;"	e	enum:mongo_error_t
+MONGO_CONN_SUCCESS	oss/mongo-c-driver/src/mongo.h	/^    MONGO_CONN_SUCCESS = 0,  \/**< Connection success! *\/$/;"	e	enum:mongo_error_t
+MONGO_CONTINUE_ON_ERROR	oss/mongo-c-driver/src/mongo.h	/^    MONGO_CONTINUE_ON_ERROR = 0x1$/;"	e	enum:mongo_insert_opts
+MONGO_CURSOR_BSON_ERROR	oss/mongo-c-driver/src/mongo.h	/^    MONGO_CURSOR_BSON_ERROR  \/**< Something is wrong with the BSON provided. See conn->err$/;"	e	enum:mongo_cursor_error_t
+MONGO_CURSOR_EXHAUSTED	oss/mongo-c-driver/src/mongo.h	/^    MONGO_CURSOR_EXHAUSTED,  \/**< The cursor has no more results. *\/$/;"	e	enum:mongo_cursor_error_t
+MONGO_CURSOR_INVALID	oss/mongo-c-driver/src/mongo.h	/^    MONGO_CURSOR_INVALID,    \/**< The cursor has timed out or is not recognized. *\/$/;"	e	enum:mongo_cursor_error_t
+MONGO_CURSOR_MUST_FREE	oss/mongo-c-driver/src/mongo.h	/^    MONGO_CURSOR_MUST_FREE = 1,      \/**< mongo_cursor_destroy should free cursor. *\/$/;"	e	enum:mongo_cursor_flags
+MONGO_CURSOR_PENDING	oss/mongo-c-driver/src/mongo.h	/^    MONGO_CURSOR_PENDING,    \/**< Tailable cursor still alive but no data. *\/$/;"	e	enum:mongo_cursor_error_t
+MONGO_CURSOR_QUERY_FAIL	oss/mongo-c-driver/src/mongo.h	/^    MONGO_CURSOR_QUERY_FAIL, \/**< The server returned an '$err' object, indicating query failure.$/;"	e	enum:mongo_cursor_error_t
+MONGO_CURSOR_QUERY_SENT	oss/mongo-c-driver/src/mongo.h	/^    MONGO_CURSOR_QUERY_SENT = ( 1<<1 ) \/**< Initial query has been sent. *\/$/;"	e	enum:mongo_cursor_flags
+MONGO_DB_LIBNAME	db/mongo/Makefile	/^MONGO_DB_LIBNAME = libmongo_db.so$/;"	m
+MONGO_DEFAULT_MAX_BSON_SIZE	oss/mongo-c-driver/src/mongo.h	44;"	d
+MONGO_DEFAULT_PORT	oss/mongo-c-driver/src/mongo.h	42;"	d
+MONGO_DYLIBNAME	oss/mongo-c-driver/Makefile	/^MONGO_DYLIBNAME=$(MONGO_LIBNAME).$(DYLIBSUFFIX)$/;"	m
+MONGO_DYLIB_MAJOR_NAME	oss/mongo-c-driver/Makefile	/^    MONGO_DYLIB_MAJOR_NAME=$(MONGO_LIBNAME).$(DYLIBSUFFIX).$(MONGO_MAJOR)$/;"	m
+MONGO_DYLIB_MAJOR_NAME	oss/mongo-c-driver/Makefile	/^MONGO_DYLIB_MAJOR_NAME=$(MONGO_DYLIBNAME).$(MONGO_MAJOR)$/;"	m
+MONGO_DYLIB_MAKE_CMD	oss/mongo-c-driver/Makefile	/^    MONGO_DYLIB_MAKE_CMD=$(CC) -G -o $(MONGO_DYLIBNAME) -h $(MONGO_DYLIB_MINOR_NAME) $(ALL_LDFLAGS)$/;"	m
+MONGO_DYLIB_MAKE_CMD	oss/mongo-c-driver/Makefile	/^    MONGO_DYLIB_MAKE_CMD=$(CC) -shared -Wl,-install_name,$(MONGO_DYLIB_MINOR_NAME) -o $(MONGO_DYLIBNAME) $(ALL_LDFLAGS) $(DYN_MONGO_OBJECTS)$/;"	m
+MONGO_DYLIB_MAKE_CMD	oss/mongo-c-driver/Makefile	/^MONGO_DYLIB_MAKE_CMD=$(CC) -shared -Wl,-soname,$(MONGO_DYLIB_MINOR_NAME) -o $(MONGO_DYLIBNAME) $(ALL_LDFLAGS) $(DYN_MONGO_OBJECTS)$/;"	m
+MONGO_DYLIB_MINOR_NAME	oss/mongo-c-driver/Makefile	/^    MONGO_DYLIB_MINOR_NAME=$(MONGO_LIBNAME).$(DYLIBSUFFIX).$(MONGO_MAJOR).$(MONGO_MINOR)$/;"	m
+MONGO_DYLIB_MINOR_NAME	oss/mongo-c-driver/Makefile	/^MONGO_DYLIB_MINOR_NAME=$(MONGO_DYLIB_MAJOR_NAME).$(MONGO_MINOR)$/;"	m
+MONGO_DYLIB_PATCH_NAME	oss/mongo-c-driver/Makefile	/^MONGO_DYLIB_PATCH_NAME=$(MONGO_DYLIB_MINOR_NAME).$(MONGO_PATCH)$/;"	m
+MONGO_ENV_H_	oss/mongo-c-driver/src/env.h	20;"	d
+MONGO_ERROR	oss/mongo-c-driver/src/mongo.h	40;"	d
+MONGO_ERR_LEN	oss/mongo-c-driver/src/mongo.h	46;"	d
+MONGO_EXHAUST	oss/mongo-c-driver/src/mongo.h	/^    MONGO_EXHAUST = ( 1<<6 ),         \/**< Stream in multiple 'more' packages. *\/$/;"	e	enum:mongo_cursor_opts
+MONGO_EXPORT	oss/mongo-c-driver/src/bson.h	32;"	d
+MONGO_EXPORT	oss/mongo-c-driver/src/bson.h	36;"	d
+MONGO_EXPORT	oss/mongo-c-driver/src/bson.h	38;"	d
+MONGO_EXPORT	oss/mongo-c-driver/src/bson.h	40;"	d
+MONGO_EXTERN_C_END	oss/mongo-c-driver/src/bson.h	46;"	d
+MONGO_EXTERN_C_END	oss/mongo-c-driver/src/bson.h	49;"	d
+MONGO_EXTERN_C_START	oss/mongo-c-driver/src/bson.h	45;"	d
+MONGO_EXTERN_C_START	oss/mongo-c-driver/src/bson.h	48;"	d
+MONGO_GRIDFS_H_	oss/mongo-c-driver/src/gridfs.h	25;"	d
+MONGO_H_	oss/mongo-c-driver/src/mongo.h	22;"	d
+MONGO_INDEX_BACKGROUND	oss/mongo-c-driver/src/mongo.h	/^    MONGO_INDEX_BACKGROUND = ( 1<<3 ),$/;"	e	enum:mongo_index_opts
+MONGO_INDEX_DROP_DUPS	oss/mongo-c-driver/src/mongo.h	/^    MONGO_INDEX_DROP_DUPS = ( 1<<2 ),$/;"	e	enum:mongo_index_opts
+MONGO_INDEX_SPARSE	oss/mongo-c-driver/src/mongo.h	/^    MONGO_INDEX_SPARSE = ( 1<<4 )$/;"	e	enum:mongo_index_opts
+MONGO_INDEX_UNIQUE	oss/mongo-c-driver/src/mongo.h	/^    MONGO_INDEX_UNIQUE = ( 1<<0 ),$/;"	e	enum:mongo_index_opts
+MONGO_INLINE	oss/mongo-c-driver/src/bson.h	31;"	d
+MONGO_INLINE	oss/mongo-c-driver/src/bson.h	34;"	d
+MONGO_IO_ERROR	oss/mongo-c-driver/src/mongo.h	/^    MONGO_IO_ERROR,          \/**< An error occurred while reading or writing on the socket. *\/$/;"	e	enum:mongo_error_t
+MONGO_IP	db/mongo/include/mongo_db.h	31;"	d
+MONGO_LIBNAME	oss/mongo-c-driver/Makefile	/^MONGO_LIBNAME=libmongoc$/;"	m
+MONGO_MAJOR	oss/mongo-c-driver/Makefile	/^MONGO_MAJOR=0$/;"	m
+MONGO_MAJOR	oss/mongo-c-driver/src/mongo.h	35;"	d
+MONGO_MD5_H_	oss/mongo-c-driver/src/md5.h	51;"	d
+MONGO_MINOR	oss/mongo-c-driver/Makefile	/^MONGO_MINOR=7$/;"	m
+MONGO_MINOR	oss/mongo-c-driver/src/mongo.h	36;"	d
+MONGO_NO_CURSOR_TIMEOUT	oss/mongo-c-driver/src/mongo.h	/^    MONGO_NO_CURSOR_TIMEOUT = ( 1<<4 ), \/**< Disable cursor timeouts. *\/$/;"	e	enum:mongo_cursor_opts
+MONGO_NS_INVALID	oss/mongo-c-driver/src/mongo.h	/^    MONGO_NS_INVALID,        \/**< The name for the ns (database or collection) is invalid. *\/$/;"	e	enum:mongo_error_t
+MONGO_OBJECTS	db/mongo/Makefile	/^MONGO_OBJECTS = src\/mongo_db.o$/;"	m
+MONGO_OBJECTS	oss/mongo-c-driver/Makefile	/^MONGO_OBJECTS=src\/bcon.o src\/bson.o src\/encoding.o src\/gridfs.o src\/md5.o src\/mongo.o \\$/;"	m
+MONGO_OK	oss/mongo-c-driver/src/mongo.h	39;"	d
+MONGO_OP_DELETE	oss/mongo-c-driver/src/mongo.h	/^    MONGO_OP_DELETE = 2006,$/;"	e	enum:mongo_operations
+MONGO_OP_GET_MORE	oss/mongo-c-driver/src/mongo.h	/^    MONGO_OP_GET_MORE = 2005,$/;"	e	enum:mongo_operations
+MONGO_OP_INSERT	oss/mongo-c-driver/src/mongo.h	/^    MONGO_OP_INSERT = 2002,$/;"	e	enum:mongo_operations
+MONGO_OP_KILL_CURSORS	oss/mongo-c-driver/src/mongo.h	/^    MONGO_OP_KILL_CURSORS = 2007$/;"	e	enum:mongo_operations
+MONGO_OP_MSG	oss/mongo-c-driver/src/mongo.h	/^    MONGO_OP_MSG = 1000,$/;"	e	enum:mongo_operations
+MONGO_OP_QUERY	oss/mongo-c-driver/src/mongo.h	/^    MONGO_OP_QUERY = 2004,$/;"	e	enum:mongo_operations
+MONGO_OP_UPDATE	oss/mongo-c-driver/src/mongo.h	/^    MONGO_OP_UPDATE = 2001,$/;"	e	enum:mongo_operations
+MONGO_PARTIAL	oss/mongo-c-driver/src/mongo.h	/^    MONGO_PARTIAL = ( 1<<7 )          \/**< Allow reads even if a shard is down. *\/$/;"	e	enum:mongo_cursor_opts
+MONGO_PATCH	oss/mongo-c-driver/Makefile	/^MONGO_PATCH=1$/;"	m
+MONGO_PATCH	oss/mongo-c-driver/src/mongo.h	37;"	d
+MONGO_PORT	db/mongo/include/mongo_db.h	32;"	d
+MONGO_READ_SIZE_ERROR	oss/mongo-c-driver/src/mongo.h	/^    MONGO_READ_SIZE_ERROR,   \/**< The response is not the expected length. *\/$/;"	e	enum:mongo_error_t
+MONGO_SLAVE_OK	oss/mongo-c-driver/src/mongo.h	/^    MONGO_SLAVE_OK = ( 1<<2 ),        \/**< Allow queries on a non-primary node. *\/$/;"	e	enum:mongo_cursor_opts
+MONGO_SOCKET_ERROR	oss/mongo-c-driver/src/mongo.h	/^    MONGO_SOCKET_ERROR,      \/**< Other socket error. *\/$/;"	e	enum:mongo_error_t
+MONGO_STLIBNAME	oss/mongo-c-driver/Makefile	/^MONGO_STLIBNAME=$(MONGO_LIBNAME).$(STLIBSUFFIX)$/;"	m
+MONGO_TAILABLE	oss/mongo-c-driver/src/mongo.h	/^    MONGO_TAILABLE = ( 1<<1 ),        \/**< Create a tailable cursor. *\/$/;"	e	enum:mongo_cursor_opts
+MONGO_UPDATE_BASIC	oss/mongo-c-driver/src/mongo.h	/^    MONGO_UPDATE_BASIC = 0x4$/;"	e	enum:mongo_update_opts
+MONGO_UPDATE_MULTI	oss/mongo-c-driver/src/mongo.h	/^    MONGO_UPDATE_MULTI = 0x2,$/;"	e	enum:mongo_update_opts
+MONGO_UPDATE_UPSERT	oss/mongo-c-driver/src/mongo.h	/^    MONGO_UPDATE_UPSERT = 0x1,$/;"	e	enum:mongo_update_opts
+MONGO_WRITE_CONCERN_INVALID	oss/mongo-c-driver/src/mongo.h	/^    MONGO_WRITE_CONCERN_INVALID \/**< Supplied write concern object is invalid. *\/$/;"	e	enum:mongo_error_t
+MONGO_WRITE_ERROR	oss/mongo-c-driver/src/mongo.h	/^    MONGO_WRITE_ERROR,       \/**< Write with given write_concern returned an error. *\/$/;"	e	enum:mongo_error_t
+NAME_SIZE	db/mongo/include/mongo_db.h	33;"	d
+NAME_VALUE	oss/mongo-c-driver/test/bcon_test.c	400;"	d	file:
+NATIVE	common/include/sstack_chunk.h	/^	NATIVE	= 4,  \/\/ Native protocol to support faster storage access$/;"	e	enum:__anon25
+NFS	common/include/sstack_chunk.h	/^	NFS		= 1,  \/\/ *nix clients$/;"	e	enum:__anon25
+NI_MAXSERV	oss/mongo-c-driver/src/env.c	217;"	d	file:
+NI_MAXSERV	oss/mongo-c-driver/src/env.c	34;"	d	file:
+NI_MAXSERV	oss/mongo-c-driver/src/env.c	433;"	d	file:
+NOT_REACHED	oss/mongo-c-driver/src/bcon.c	25;"	d	file:
+NUM_BUCKETS	policy/include/policy.h	4;"	d
+NUM_BUCKETS	policy/src/policy.c	13;"	d	file:
+NUM_DIRS	db/filesdb/src/files_db.c	31;"	d	file:
+NUM_PLUGIN	policy/src/policy.c	393;"	d	file:
+NUM_PRIORITY_MAX	common/include/sstack_jobs.h	/^	NUM_PRIORITY_MAX,$/;"	e	enum:__anon22
+OFFSET	common/include/sstack_md.h	/^	OFFSET = 1$/;"	e	enum:attr_type
+ONE	oss/mongo-c-driver/src/mongo.c	/^static const int ONE = 1;$/;"	v	file:
+OPTIMIZATION	oss/mongo-c-driver/Makefile	/^OPTIMIZATION?=-O3$/;"	m
+PA	oss/mongo-c-driver/src/bcon.h	/^    union bcon **PA; \/**< 04  e_name  document            Macro BPA(v) - Array pointer interpolation *\/$/;"	m	union:bcon	typeref:union:bcon::bcon
+PAPER	oss/mongo-c-driver/docs/source/sphinx/Makefile	/^PAPER         =$/;"	m
+PAPER	oss/mongo-c-driver/docs/source/sphinx/make.bat	/^	echo.  latex      to make LaTeX files, you can set PAPER=a4 or PAPER=letter$/;"	v
+PAPEROPT_a4	oss/mongo-c-driver/docs/source/sphinx/Makefile	/^PAPEROPT_a4     = -D latex_paper_size=a4$/;"	m
+PAPEROPT_letter	oss/mongo-c-driver/docs/source/sphinx/Makefile	/^PAPEROPT_letter = -D latex_paper_size=letter$/;"	m
+PD	oss/mongo-c-driver/src/bcon.h	/^    union bcon **PD; \/**< 03  e_name  document            Macro BPD(v) - Embedded document pointer interpolation *\/$/;"	m	union:bcon	typeref:union:bcon::bcon
+PEDANTIC	oss/mongo-c-driver/Makefile	/^PEDANTIC?=-pedantic$/;"	m
+PER_TRIAL	oss/mongo-c-driver/test/benchmark_test.c	23;"	d	file:
+POLICYDIR	Makefile	/^POLICYDIR = policy$/;"	m
+POLICY_COLLECTION	db/mongo/include/mongo_db.h	27;"	d
+POLICY_FILE	policy/src/policy.c	17;"	d	file:
+POLICY_OBJS	policy/Makefile	/^POLICY_OBJS = src\/policy.o$/;"	m
+POLICY_TAG_LEN	policy/include/policy.h	5;"	d
+POLICY_TEST	policy/src/policy.c	12;"	d	file:
+POLICY_TYPE	common/include/sstack_db.h	/^	POLICY_TYPE = 1,	\/\/ For storing policy records$/;"	e	enum:__anon19
+POLYNOMIAL	oss/crc/crc.h	34;"	d
+POLYNOMIAL	oss/crc/crc.h	46;"	d
+POLYNOMIAL	oss/crc/crc.h	58;"	d
+POOL_DESTROY	common/src/sstack_thread_pool.c	57;"	d	file:
+POOL_WAIT	common/src/sstack_thread_pool.c	56;"	d	file:
+PORT	common/src/sstack_transport_tcp.c	37;"	d	file:
+PREFIX	oss/mongo-c-driver/Makefile	/^PREFIX?=\/usr\/local$/;"	m
+Pb	oss/mongo-c-driver/src/bcon.h	/^    bson_bool_t **Pb;\/**< 08  e_name  01                  Macro BPB(v) - Boolean pointer interpolation *\/$/;"	m	union:bcon
+Pf	oss/mongo-c-driver/src/bcon.h	/^    double **Pf;     \/**< 01  e_name  double              Macro BPF(v) - Floating point pointer interpolation *\/$/;"	m	union:bcon
+Pi	oss/mongo-c-driver/src/bcon.h	/^    int **Pi;        \/**< 10  e_name  int32               Macro BPI(v) - 32-bit Integer pointer interpolation *\/$/;"	m	union:bcon
+Pl	oss/mongo-c-driver/src/bcon.h	/^    long **Pl;       \/**< 12  e_name  int64               Macro BPL(v) - 64-bit Integer pointer interpolation *\/$/;"	m	union:bcon
+Po	oss/mongo-c-driver/src/bcon.h	/^    char **Po;       \/**< 07  e_name  (byte*12)           Macro BPO(v) - ObjectId pointer interpolation *\/$/;"	m	union:bcon
+Ps	oss/mongo-c-driver/src/bcon.h	/^    char **Ps;       \/**< 02  e_name  string              Macro BPS(v) - UTF-8 string pointer interpolation *\/$/;"	m	union:bcon
+Pt	oss/mongo-c-driver/src/bcon.h	/^    time_t **Pt;     \/**< 09  e_name  int64               Macro BPT(v) - UTC datetime pointer interpolation *\/$/;"	m	union:bcon
+Pv	oss/mongo-c-driver/src/bcon.h	/^    void **Pv;       \/*                                   generic pointer internal *\/$/;"	m	union:bcon
+Px	oss/mongo-c-driver/src/bcon.h	/^    char **Px;       \/**< 0E  e_name  string              Macro BPX(v) - Symbol pointer interpolation *\/$/;"	m	union:bcon
+RA	oss/mongo-c-driver/src/bcon.h	/^    union bcon *RA;  \/**< 04  e_name  document            Macro BRA(v) - Array reference interpolation *\/$/;"	m	union:bcon	typeref:union:bcon::bcon
+RD	oss/mongo-c-driver/src/bcon.h	/^    union bcon *RD;  \/**< 03  e_name  document            Macro BRD(v) - Embedded document reference interpolation *\/$/;"	m	union:bcon	typeref:union:bcon::bcon
+REACHABLE	common/include/sstack_jobs.h	/^	REACHABLE	= 3, \/\/ Heartbeat successful$/;"	e	enum:__anon23
+READ_WRITE_BUF_SIZE	oss/mongo-c-driver/test/gridfs_test.c	19;"	d	file:
+REC_NAME_SIZE	db/mongo/include/mongo_db.h	34;"	d
+REFLECT_DATA	oss/crc/crc.c	28;"	d	file:
+REFLECT_DATA	oss/crc/crc.c	29;"	d	file:
+REFLECT_DATA	oss/crc/crc.c	31;"	d	file:
+REFLECT_DATA	oss/crc/crc.c	32;"	d	file:
+REFLECT_DATA	oss/crc/crc.h	37;"	d
+REFLECT_DATA	oss/crc/crc.h	49;"	d
+REFLECT_DATA	oss/crc/crc.h	61;"	d
+REFLECT_REMAINDER	oss/crc/crc.c	36;"	d	file:
+REFLECT_REMAINDER	oss/crc/crc.c	37;"	d	file:
+REFLECT_REMAINDER	oss/crc/crc.c	39;"	d	file:
+REFLECT_REMAINDER	oss/crc/crc.c	40;"	d	file:
+REFLECT_REMAINDER	oss/crc/crc.h	38;"	d
+REFLECT_REMAINDER	oss/crc/crc.h	50;"	d
+REFLECT_REMAINDER	oss/crc/crc.h	62;"	d
+REGFILE	common/include/sstack_md.h	/^	REGFILE = 1,$/;"	e	enum:type
+REPLICA_SET_NAME	oss/mongo-c-driver/test/replica_set_test.c	15;"	d	file:
+REPLICA_SET_NAME	oss/mongo-c-driver/test/replset_test.c	15;"	d	file:
+ROOT_SEP	sfs/include/sfs.h	24;"	d
+ROTATE_LEFT	oss/mongo-c-driver/src/md5.c	197;"	d	file:
+RUNNING	common/include/sstack_jobs.h	/^	RUNNING		= 2, \/\/ Handshake between sfs and sfsd is up$/;"	e	enum:__anon23
+Rb	oss/mongo-c-driver/src/bcon.h	/^    bson_bool_t *Rb; \/**< 08  e_name  01                  Macro BRB(v) - Boolean reference interpolation *\/$/;"	m	union:bcon
+Rf	oss/mongo-c-driver/src/bcon.h	/^    double *Rf;      \/**< 01  e_name  double              Macro BRF(v) - Floating point reference interpolation *\/$/;"	m	union:bcon
+Ri	oss/mongo-c-driver/src/bcon.h	/^    int *Ri;         \/**< 10  e_name  int32               Macro BRI(v) - 32-bit Integer reference interpolation *\/$/;"	m	union:bcon
+Rl	oss/mongo-c-driver/src/bcon.h	/^    long *Rl;        \/**< 12  e_name  int64               Macro BRL(v) - 64-bit Integer reference interpolation *\/$/;"	m	union:bcon
+Ro	oss/mongo-c-driver/src/bcon.h	/^    char *Ro;        \/**< 07  e_name  (byte*12)           Macro BRO(v) - ObjectId reference interpolation *\/$/;"	m	union:bcon
+Rs	oss/mongo-c-driver/src/bcon.h	/^    char *Rs;        \/**< 02  e_name  string              Macro BRS(v) - UTF-8 string reference interpolation *\/$/;"	m	union:bcon
+Rt	oss/mongo-c-driver/src/bcon.h	/^    time_t *Rt;      \/**< 09  e_name  int64               Macro BRT(v) - UTC datetime reference interpolation *\/$/;"	m	union:bcon
+Rx	oss/mongo-c-driver/src/bcon.h	/^    char *Rx;        \/**< 0E  e_name  string              Macro BRX(v) - Symbol reference interpolation *\/$/;"	m	union:bcon
+SEED_START_PORT	oss/mongo-c-driver/test/replica_set_test.c	11;"	d	file:
+SEED_START_PORT	oss/mongo-c-driver/test/replset_test.c	11;"	d	file:
+SET	oss/mongo-c-driver/src/md5.c	203;"	d	file:
+SET	oss/mongo-c-driver/src/md5.c	223;"	d	file:
+SET	oss/mongo-c-driver/src/md5.c	229;"	d	file:
+SET	oss/mongo-c-driver/src/md5.c	249;"	d	file:
+SET	oss/mongo-c-driver/src/md5.c	255;"	d	file:
+SET	oss/mongo-c-driver/src/md5.c	275;"	d	file:
+SET	oss/mongo-c-driver/src/md5.c	281;"	d	file:
+SET	oss/mongo-c-driver/src/md5.c	301;"	d	file:
+SFSDDIR	Makefile	/^SFSDDIR = sfsd$/;"	m
+SFSDIR	Makefile	/^SFSDIR = sfs$/;"	m
+SFSD_HANDSHAKE	common/include/sstack_jobs.h	/^	SFSD_HANDSHAKE	= 1,$/;"	e	enum:__anon20
+SFSD_MAGIC	common/include/sstack_jobs.h	26;"	d
+SFSD_NFS	common/include/sstack_jobs.h	/^	SFSD_NFS	= 2,$/;"	e	enum:__anon20
+SFSD_OBJS	sfsd/Makefile	/^SFSD_OBJS = src\/main.o src\/sfsd.o src\/sfsd_signals.o \\$/;"	m
+SFS_CRIT	common/include/sstack_log.h	/^	SFS_CRIT	= 2,$/;"	e	enum:__anon24
+SFS_DEBUG	common/include/sstack_log.h	/^	SFS_DEBUG	= 6,$/;"	e	enum:__anon24
+SFS_EMERG	common/include/sstack_log.h	/^	SFS_EMERG	= 1,$/;"	e	enum:__anon24
+SFS_ERR	common/include/sstack_log.h	/^	SFS_ERR		= 3,$/;"	e	enum:__anon24
+SFS_INFO	common/include/sstack_log.h	/^	SFS_INFO	= 5,$/;"	e	enum:__anon24
+SFS_LOGFILE_LEN	common/include/sstack_log.h	36;"	d
+SFS_LOGLEVEL_LEN	common/include/sstack_log.h	38;"	d
+SFS_LOG_DIRECTORY	common/include/sstack_log.h	35;"	d
+SFS_LOG_ENTRY_LEN	common/include/sstack_log.h	39;"	d
+SFS_LOG_EXIT	common/include/sstack_log.h	72;"	d
+SFS_OBJS	sfs/Makefile	/^SFS_OBJS = src\/sfs.o$/;"	m
+SFS_TIME_FORMAT_LEN	common/include/sstack_log.h	37;"	d
+SFS_WARNING	common/include/sstack_log.h	/^	SFS_WARNING = 4,$/;"	e	enum:__anon24
+SOCKET	oss/mongo-c-driver/src/mongo.h	/^  typedef int SOCKET; $/;"	t
+SOCKET_TYPE	common/include/sstack_md.h	/^	SOCKET_TYPE,$/;"	e	enum:type
+SONAME	common/Makefile	/^SONAME = libsstack_common.so$/;"	m
+SPHINXBUILD	oss/mongo-c-driver/docs/source/sphinx/Makefile	/^SPHINXBUILD   = sphinx-build$/;"	m
+SPHINXBUILD	oss/mongo-c-driver/docs/source/sphinx/make.bat	/^	set SPHINXBUILD=sphinx-build$/;"	v
+SPHINXOPTS	oss/mongo-c-driver/docs/source/sphinx/Makefile	/^SPHINXOPTS    =$/;"	m
+SSTACK_BACKLOG	common/include/sstack_transport.h	29;"	d
+SSTACK_VERSION	common/include/sstack_version.h	22;"	d
+STD	oss/mongo-c-driver/Makefile	/^STD?=c99$/;"	m
+STLIBSUFFIX	oss/mongo-c-driver/Makefile	/^STLIBSUFFIX=a$/;"	m
+SYMLINK	common/include/sstack_md.h	/^	SYMLINK,$/;"	e	enum:type
+State_ArraySpecValue	oss/mongo-c-driver/src/bcon.c	/^    State_ArraySpecValue, State_ArrayValue$/;"	e	enum:bcon_state_t	file:
+State_ArrayValue	oss/mongo-c-driver/src/bcon.c	/^    State_ArraySpecValue, State_ArrayValue$/;"	e	enum:bcon_state_t	file:
+State_DocSpecValue	oss/mongo-c-driver/src/bcon.c	/^    State_Element, State_DocSpecValue, State_DocValue,$/;"	e	enum:bcon_state_t	file:
+State_DocValue	oss/mongo-c-driver/src/bcon.c	/^    State_Element, State_DocSpecValue, State_DocValue,$/;"	e	enum:bcon_state_t	file:
+State_Element	oss/mongo-c-driver/src/bcon.c	/^    State_Element, State_DocSpecValue, State_DocValue,$/;"	e	enum:bcon_state_t	file:
+T1	oss/mongo-c-driver/src/md5.c	65;"	d	file:
+T10	oss/mongo-c-driver/src/md5.c	74;"	d	file:
+T11	oss/mongo-c-driver/src/md5.c	75;"	d	file:
+T12	oss/mongo-c-driver/src/md5.c	76;"	d	file:
+T13	oss/mongo-c-driver/src/md5.c	77;"	d	file:
+T14	oss/mongo-c-driver/src/md5.c	78;"	d	file:
+T15	oss/mongo-c-driver/src/md5.c	79;"	d	file:
+T16	oss/mongo-c-driver/src/md5.c	80;"	d	file:
+T17	oss/mongo-c-driver/src/md5.c	81;"	d	file:
+T18	oss/mongo-c-driver/src/md5.c	82;"	d	file:
+T19	oss/mongo-c-driver/src/md5.c	83;"	d	file:
+T2	oss/mongo-c-driver/src/md5.c	66;"	d	file:
+T20	oss/mongo-c-driver/src/md5.c	84;"	d	file:
+T21	oss/mongo-c-driver/src/md5.c	85;"	d	file:
+T22	oss/mongo-c-driver/src/md5.c	86;"	d	file:
+T23	oss/mongo-c-driver/src/md5.c	87;"	d	file:
+T24	oss/mongo-c-driver/src/md5.c	88;"	d	file:
+T25	oss/mongo-c-driver/src/md5.c	89;"	d	file:
+T26	oss/mongo-c-driver/src/md5.c	90;"	d	file:
+T27	oss/mongo-c-driver/src/md5.c	91;"	d	file:
+T28	oss/mongo-c-driver/src/md5.c	92;"	d	file:
+T29	oss/mongo-c-driver/src/md5.c	93;"	d	file:
+T3	oss/mongo-c-driver/src/md5.c	67;"	d	file:
+T30	oss/mongo-c-driver/src/md5.c	94;"	d	file:
+T31	oss/mongo-c-driver/src/md5.c	95;"	d	file:
+T32	oss/mongo-c-driver/src/md5.c	96;"	d	file:
+T33	oss/mongo-c-driver/src/md5.c	97;"	d	file:
+T34	oss/mongo-c-driver/src/md5.c	98;"	d	file:
+T35	oss/mongo-c-driver/src/md5.c	99;"	d	file:
+T36	oss/mongo-c-driver/src/md5.c	100;"	d	file:
+T37	oss/mongo-c-driver/src/md5.c	101;"	d	file:
+T38	oss/mongo-c-driver/src/md5.c	102;"	d	file:
+T39	oss/mongo-c-driver/src/md5.c	103;"	d	file:
+T4	oss/mongo-c-driver/src/md5.c	68;"	d	file:
+T40	oss/mongo-c-driver/src/md5.c	104;"	d	file:
+T41	oss/mongo-c-driver/src/md5.c	105;"	d	file:
+T42	oss/mongo-c-driver/src/md5.c	106;"	d	file:
+T43	oss/mongo-c-driver/src/md5.c	107;"	d	file:
+T44	oss/mongo-c-driver/src/md5.c	108;"	d	file:
+T45	oss/mongo-c-driver/src/md5.c	109;"	d	file:
+T46	oss/mongo-c-driver/src/md5.c	110;"	d	file:
+T47	oss/mongo-c-driver/src/md5.c	111;"	d	file:
+T48	oss/mongo-c-driver/src/md5.c	112;"	d	file:
+T49	oss/mongo-c-driver/src/md5.c	113;"	d	file:
+T5	oss/mongo-c-driver/src/md5.c	69;"	d	file:
+T50	oss/mongo-c-driver/src/md5.c	114;"	d	file:
+T51	oss/mongo-c-driver/src/md5.c	115;"	d	file:
+T52	oss/mongo-c-driver/src/md5.c	116;"	d	file:
+T53	oss/mongo-c-driver/src/md5.c	117;"	d	file:
+T54	oss/mongo-c-driver/src/md5.c	118;"	d	file:
+T55	oss/mongo-c-driver/src/md5.c	119;"	d	file:
+T56	oss/mongo-c-driver/src/md5.c	120;"	d	file:
+T57	oss/mongo-c-driver/src/md5.c	121;"	d	file:
+T58	oss/mongo-c-driver/src/md5.c	122;"	d	file:
+T59	oss/mongo-c-driver/src/md5.c	123;"	d	file:
+T6	oss/mongo-c-driver/src/md5.c	70;"	d	file:
+T60	oss/mongo-c-driver/src/md5.c	124;"	d	file:
+T61	oss/mongo-c-driver/src/md5.c	125;"	d	file:
+T62	oss/mongo-c-driver/src/md5.c	126;"	d	file:
+T63	oss/mongo-c-driver/src/md5.c	127;"	d	file:
+T64	oss/mongo-c-driver/src/md5.c	128;"	d	file:
+T7	oss/mongo-c-driver/src/md5.c	71;"	d	file:
+T8	oss/mongo-c-driver/src/md5.c	72;"	d	file:
+T9	oss/mongo-c-driver/src/md5.c	73;"	d	file:
+TCPIP	common/include/sstack_transport.h	/^	TCPIP   = 1,$/;"	e	enum:__anon16
+TESTS	oss/mongo-c-driver/Makefile	/^TESTS=test_auth test_bcon test_bson test_bson_subobject test_connect test_count_delete \\$/;"	m
+TEST_COL	oss/mongo-c-driver/test/test.h	/^const char *TEST_COL = "foo";$/;"	v
+TEST_DB	oss/mongo-c-driver/test/test.h	/^const char *TEST_DB = "test";$/;"	v
+TEST_DEFINES	oss/mongo-c-driver/Makefile	/^TEST_DEFINES=$(ALL_DEFINES)$/;"	m
+TEST_NS	oss/mongo-c-driver/test/test.h	/^const char *TEST_NS = "test.foo";$/;"	v
+TEST_SERVER	oss/mongo-c-driver/test/benchmark_test.c	20;"	d	file:
+TIME	oss/mongo-c-driver/test/benchmark_test.c	377;"	d	file:
+TOPBIT	oss/crc/crc.c	25;"	d	file:
+TRUE	oss/crc/crc.h	21;"	d
+TRUE	policy/include/policy.h	/^	TRUE,$/;"	e	enum:ret_code
+TYPE_LEN	policy/src/policy.c	15;"	d	file:
+T_MASK	oss/mongo-c-driver/src/md5.c	64;"	d	file:
+Token_CloseBrace	oss/mongo-c-driver/src/bcon.h	/^    Token_OpenBrace, Token_CloseBrace, Token_OpenBracket, Token_CloseBracket,$/;"	e	enum:bcon_token_t
+Token_CloseBracket	oss/mongo-c-driver/src/bcon.h	/^    Token_OpenBrace, Token_CloseBrace, Token_OpenBracket, Token_CloseBracket,$/;"	e	enum:bcon_token_t
+Token_Default	oss/mongo-c-driver/src/bcon.h	/^    Token_Default, Token_End, Token_Typespec,$/;"	e	enum:bcon_token_t
+Token_EOD	oss/mongo-c-driver/src/bcon.h	/^    Token_EOD$/;"	e	enum:bcon_token_t
+Token_End	oss/mongo-c-driver/src/bcon.h	/^    Token_Default, Token_End, Token_Typespec,$/;"	e	enum:bcon_token_t
+Token_OpenBrace	oss/mongo-c-driver/src/bcon.h	/^    Token_OpenBrace, Token_CloseBrace, Token_OpenBracket, Token_CloseBracket,$/;"	e	enum:bcon_token_t
+Token_OpenBracket	oss/mongo-c-driver/src/bcon.h	/^    Token_OpenBrace, Token_CloseBrace, Token_OpenBracket, Token_CloseBracket,$/;"	e	enum:bcon_token_t
+Token_Typespec	oss/mongo-c-driver/src/bcon.h	/^    Token_Default, Token_End, Token_Typespec,$/;"	e	enum:bcon_token_t
+UDP	common/include/sstack_transport.h	/^	UDP = 3,$/;"	e	enum:__anon16
+UNIX	common/include/sstack_transport.h	/^	UNIX    = 4,$/;"	e	enum:__anon16
+UNKNOWN	common/include/sstack_md.h	/^	UNKNOWN$/;"	e	enum:type
+UNREACHABLE	common/include/sstack_jobs.h	/^	UNREACHABLE	= 4, \/\/ Heartbeat dead. Could be n\/w or sfsd$/;"	e	enum:__anon23
+UPPER	oss/mongo-c-driver/test/gridfs_test.c	15;"	d	file:
+WARNINGS	oss/mongo-c-driver/Makefile	/^WARNINGS?=-Wall$/;"	m
+WC1	oss/mongo-c-driver/src/mongo.c	/^static mongo_write_concern WC1 = { 1, 0, 0, 0, 0, &WC1_cmd }; \/* w = 1 *\/$/;"	v	file:
+WC1_cmd	oss/mongo-c-driver/src/mongo.c	/^static bson WC1_cmd = {$/;"	v	file:
+WC1_cmd	oss/mongo-c-driver/test/write_concern_test.c	/^static bson WC1_cmd = { WC1_data, WC1_data, 128, 1, 0 };$/;"	v	file:
+WC1_data	oss/mongo-c-driver/src/mongo.c	/^static char WC1_data[] = {23,0,0,0,16,103,101,116,108,97,115,116,101,114,114,111,114,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0};$/;"	v	file:
+WC1_data	oss/mongo-c-driver/test/write_concern_test.c	/^static char WC1_data[] = {23,0,0,0,16,103,101,116,108,97,115,116,101,114,114,111,114,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0};$/;"	v	file:
+WIDTH	oss/crc/crc.c	24;"	d	file:
+ZERO	oss/mongo-c-driver/src/mongo.c	/^static const int ZERO = 0;$/;"	v	file:
+_BSD_SOURCE	sfs/src/sfs.c	21;"	d	file:
+_CRT_SECURE_NO_WARNINGS	oss/mongo-c-driver/src/bson.c	19;"	d	file:
+_CRT_SECURE_NO_WARNINGS	oss/mongo-c-driver/src/gridfs.c	20;"	d	file:
+_CRT_SECURE_NO_WARNINGS	oss/mongo-c-driver/src/mongo.c	19;"	d	file:
+_REENTRANT	common/src/sstack_thread_pool.c	7;"	d	file:
+_SSTACK_SFSD_H_	sfsd/include/sstack_sfsd.h	20;"	d
+_XOPEN_SOURCE	sfs/src/sfs.c	20;"	d	file:
+__COUCHDB_H__	db/couchbase/include/couchdb.h	21;"	d
+__FILES_DB__	db/filesdb/include/files_db.h	21;"	d
+__IDP_H_	lib/idp/include/idp.h	22;"	d
+__MONGO_DB_H__	db/mongo/include/mongo_db.h	21;"	d
+__POLICY_H__	policy/include/policy.h	2;"	d
+__SFS_H_	sfs/include/sfs.h	21;"	d
+__SSTACK_BITOPS_H__	common/include/sstack_bitops.h	21;"	d
+__SSTACK_CHUNK_H_	common/include/sstack_chunk.h	21;"	d
+__SSTACK_DB_H__	common/include/sstack_db.h	21;"	d
+__SSTACK_HELPER_H_	common/include/sstack_helper.h	21;"	d
+__SSTACK_JOBS_H_	common/include/sstack_jobs.h	21;"	d
+__SSTACK_LOG_H_	common/include/sstack_log.h	21;"	d
+__SSTACK_MD_H_	common/include/sstack_md.h	21;"	d
+__SSTACK_POLICY_H_	common/include/sstack_policy.h	21;"	d
+__SSTACK_TRANSPORT_H_	common/include/sstack_transport.h	21;"	d
+__SSTACK_TYPES_H_	common/include/sstack_types.h	21;"	d
+__SSTACK_VERSION_H_	common/include/sstack_version.h	21;"	d
+__mongo_set_error	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT void __mongo_set_error( mongo *conn, mongo_error_t err, const char *str,$/;"	f
+_bson_append_grow_stack	oss/mongo-c-driver/src/bson.c	/^static int _bson_append_grow_stack( bson * b ) {$/;"	f	file:
+_bson_errprintf	oss/mongo-c-driver/src/bson.c	/^int _bson_errprintf( const char *format, ... ) {$/;"	f
+_bson_position	oss/mongo-c-driver/src/bson.c	/^static size_t _bson_position( const bson *b ) {$/;"	f	file:
+_bson_zero	oss/mongo-c-driver/src/bson.c	/^static void _bson_zero( bson *b ) {$/;"	f	file:
+_crc_h	oss/crc/crc.h	17;"	d
+_get_host_port	oss/mongo-c-driver/src/mongo.c	/^static const char* _get_host_port(mongo_host_port* hp) {$/;"	f	file:
+_strlwr	oss/mongo-c-driver/src/gridfs.c	/^char *_strlwr(char *str)$/;"	f
+_strupr	oss/mongo-c-driver/src/gridfs.c	/^char *_strupr(char *str)$/;"	f
+a_ishidden	policy/include/policy.h	/^	uint8_t	a_ishidden:1;$/;"	m	struct:attribute
+a_isstriped	policy/include/policy.h	/^	uint8_t	a_isstriped:1;$/;"	m	struct:attribute
+a_qoslevel	policy/include/policy.h	/^	uint8_t a_qoslevel;$/;"	m	struct:attribute
+abcd	oss/mongo-c-driver/src/md5.h	/^    mongo_md5_word_t abcd[4];       \/* digest buffer *\/$/;"	m	struct:mongo_md5_state_s
+activate_plugin	policy/src/policy.c	/^uint32_t activate_plugin(uint32_t plugin_id)$/;"	f
+active	common/src/sstack_thread_pool.c	/^typedef struct active {$/;"	s	file:
+active_next	common/src/sstack_thread_pool.c	/^    struct active    *active_next;    \/* linked list of threads *\/$/;"	m	struct:active	typeref:struct:active::active	file:
+active_t	common/src/sstack_thread_pool.c	/^} active_t;$/;"	t	typeref:struct:active	file:
+active_tid	common/src/sstack_thread_pool.c	/^    pthread_t    active_tid;    \/* active thread id *\/$/;"	m	struct:active	file:
+add_inodes	sfs/src/sfs.c	/^add_inodes(const char *path)$/;"	f	file:
+add_policy	policy/src/policy.c	/^static uint32_t add_policy(struct policy_input *pi)$/;"	f	file:
+align_loop	arch/x86_64/crc_pcl.S	/^align_loop:$/;"	l
+alloc_transport	common/include/sstack_transport.h	/^alloc_transport(void)$/;"	f
+apply_policy	policy/include/policy.h	/^	uint32_t (*apply_policy)(const char *path);$/;"	m	struct:policy_plugin
+attr_type	common/include/sstack_md.h	/^typedef enum attr_type {$/;"	g
+attr_type_t	common/include/sstack_md.h	/^} attr_type_t;$/;"	t	typeref:enum:attr_type
+attribute	policy/include/policy.h	/^struct attribute$/;"	s
+b	oss/mongo-c-driver/src/bcon.h	/^    bson_bool_t b;   \/**< 08  e_name  00                  Macro BB(v)  - Boolean "false"$/;"	m	union:bcon
+batch_insert_large_test	oss/mongo-c-driver/test/benchmark_test.c	/^static void batch_insert_large_test( void ) {$/;"	f	file:
+batch_insert_medium_test	oss/mongo-c-driver/test/benchmark_test.c	/^static void batch_insert_medium_test( void ) {$/;"	f	file:
+batch_insert_small_test	oss/mongo-c-driver/test/benchmark_test.c	/^static void batch_insert_small_test( void ) {$/;"	f	file:
+bcon	oss/mongo-c-driver/src/bcon.h	/^typedef union bcon {$/;"	u
+bcon	oss/mongo-c-driver/src/bcon.h	/^} bcon;$/;"	t	typeref:union:bcon
+bcon_error_t	oss/mongo-c-driver/src/bcon.h	/^typedef enum bcon_error_t {$/;"	g
+bcon_error_t	oss/mongo-c-driver/src/bcon.h	/^} bcon_error_t;$/;"	t	typeref:enum:bcon_error_t
+bcon_errstr	oss/mongo-c-driver/src/bcon.c	/^char *bcon_errstr[] = {$/;"	v
+bcon_print	oss/mongo-c-driver/src/bcon.c	/^void bcon_print(const bcon *bc) { \/* prints internal representation, not JSON *\/$/;"	f
+bcon_state_t	oss/mongo-c-driver/src/bcon.c	/^typedef enum bcon_state_t {$/;"	g	file:
+bcon_state_t	oss/mongo-c-driver/src/bcon.c	/^} bcon_state_t;$/;"	t	typeref:enum:bcon_state_t	file:
+bcon_token	oss/mongo-c-driver/src/bcon.c	/^bcon_token_t bcon_token(char *s) {$/;"	f
+bcon_token_t	oss/mongo-c-driver/src/bcon.h	/^typedef enum bcon_token_t {$/;"	g
+bcon_token_t	oss/mongo-c-driver/src/bcon.h	/^} bcon_token_t;$/;"	t	typeref:enum:bcon_token_t
+bigstring	oss/mongo-c-driver/test/resize_test.c	/^const char *bigstring = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";$/;"	v
+bson	oss/mongo-c-driver/src/bson.h	/^} bson;$/;"	t	typeref:struct:__anon10
+bson_alloc	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT bson* bson_alloc( void ) {$/;"	f
+bson_append	oss/mongo-c-driver/src/bson.c	/^static void bson_append( bson *b, const void *data, size_t len ) {$/;"	f	file:
+bson_append32	oss/mongo-c-driver/src/bson.c	/^static void bson_append32( bson *b, const void *data ) {$/;"	f	file:
+bson_append32_as_int	oss/mongo-c-driver/src/bson.c	/^static void bson_append32_as_int( bson *b, int data ) {$/;"	f	file:
+bson_append64	oss/mongo-c-driver/src/bson.c	/^static void bson_append64( bson *b, const void *data ) {$/;"	f	file:
+bson_append_bcon	oss/mongo-c-driver/src/bcon.c	/^bcon_error_t bson_append_bcon(bson *b, const bcon *bc) {$/;"	f
+bson_append_bcon_array	oss/mongo-c-driver/src/bcon.c	/^bcon_error_t bson_append_bcon_array(bson *b, const bcon *bc) {$/;"	f
+bson_append_bcon_with_state	oss/mongo-c-driver/src/bcon.c	/^static bcon_error_t bson_append_bcon_with_state(bson *b, const bcon *bc, bcon_state_t start_state) {$/;"	f	file:
+bson_append_binary	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT int bson_append_binary( bson *b, const char *name, char type, const char *str, size_t len ) {$/;"	f
+bson_append_bool	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT int bson_append_bool( bson *b, const char *name, const bson_bool_t i ) {$/;"	f
+bson_append_bson	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT int bson_append_bson( bson *b, const char *name, const bson *bson ) {$/;"	f
+bson_append_byte	oss/mongo-c-driver/src/bson.c	/^static void bson_append_byte( bson *b, char c ) {$/;"	f	file:
+bson_append_code	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT int bson_append_code( bson *b, const char *name, const char *value ) {$/;"	f
+bson_append_code_n	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT int bson_append_code_n( bson *b, const char *name, const char *value, size_t len ) {$/;"	f
+bson_append_code_w_scope	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT int bson_append_code_w_scope( bson *b, const char *name, const char *code, const bson *scope ) {$/;"	f
+bson_append_code_w_scope_n	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT int bson_append_code_w_scope_n( bson *b, const char *name,$/;"	f
+bson_append_date	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT int bson_append_date( bson *b, const char *name, bson_date_t millis ) {$/;"	f
+bson_append_double	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT int bson_append_double( bson *b, const char *name, const double d ) {$/;"	f
+bson_append_element	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT int bson_append_element( bson *b, const char *name_or_null, const bson_iterator *elem ) {$/;"	f
+bson_append_estart	oss/mongo-c-driver/src/bson.c	/^static int bson_append_estart( bson *b, int type, const char *name, const size_t dataSize ) {$/;"	f	file:
+bson_append_finish_array	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT int bson_append_finish_array( bson *b ) {$/;"	f
+bson_append_finish_object	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT int bson_append_finish_object( bson *b ) {$/;"	f
+bson_append_int	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT int bson_append_int( bson *b, const char *name, const int i ) {$/;"	f
+bson_append_long	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT int bson_append_long( bson *b, const char *name, const int64_t i ) {$/;"	f
+bson_append_maxkey	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT int bson_append_maxkey( bson *b, const char *name ) {$/;"	f
+bson_append_minkey	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT int bson_append_minkey( bson *b, const char *name ) {$/;"	f
+bson_append_new_oid	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT int bson_append_new_oid( bson *b, const char *name ) {$/;"	f
+bson_append_null	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT int bson_append_null( bson *b, const char *name ) {$/;"	f
+bson_append_oid	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT int bson_append_oid( bson *b, const char *name, const bson_oid_t *oid ) {$/;"	f
+bson_append_regex	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT int bson_append_regex( bson *b, const char *name, const char *pattern, const char *opts ) {$/;"	f
+bson_append_start_array	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT int bson_append_start_array( bson *b, const char *name ) {$/;"	f
+bson_append_start_object	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT int bson_append_start_object( bson *b, const char *name ) {$/;"	f
+bson_append_string	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT int bson_append_string( bson *b, const char *name, const char *value ) {$/;"	f
+bson_append_string_base	oss/mongo-c-driver/src/bson.c	/^static int bson_append_string_base( bson *b, const char *name,$/;"	f	file:
+bson_append_string_n	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT int bson_append_string_n( bson *b, const char *name, const char *value, size_t len ) {$/;"	f
+bson_append_string_uppercase	oss/mongo-c-driver/src/gridfs.c	/^static int bson_append_string_uppercase( bson *b, const char *name, const char *str, bson_bool_t upperCase ) {$/;"	f	file:
+bson_append_symbol	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT int bson_append_symbol( bson *b, const char *name, const char *value ) {$/;"	f
+bson_append_symbol_n	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT int bson_append_symbol_n( bson *b, const char *name, const char *value, size_t len ) {$/;"	f
+bson_append_time_t	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT int bson_append_time_t( bson *b, const char *name, time_t secs ) {$/;"	f
+bson_append_timestamp	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT int bson_append_timestamp( bson *b, const char *name, bson_timestamp_t *ts ) {$/;"	f
+bson_append_timestamp2	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT int bson_append_timestamp2( bson *b, const char *name, int time, int increment ) {$/;"	f
+bson_append_undefined	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT int bson_append_undefined( bson *b, const char *name ) {$/;"	f
+bson_bcon_key_value	oss/mongo-c-driver/src/bcon.c	/^static bcon_error_t bson_bcon_key_value(bson *b, const char *key, const char *typespec, const bcon bci) {$/;"	f	file:
+bson_big_endian32	oss/mongo-c-driver/src/bson.h	71;"	d
+bson_big_endian32	oss/mongo-c-driver/src/bson.h	76;"	d
+bson_big_endian64	oss/mongo-c-driver/src/bson.h	70;"	d
+bson_big_endian64	oss/mongo-c-driver/src/bson.h	75;"	d
+bson_binary_subtype_t	oss/mongo-c-driver/src/bson.h	/^enum bson_binary_subtype_t {$/;"	g
+bson_bool_t	oss/mongo-c-driver/src/bson.h	/^typedef int bson_bool_t;$/;"	t
+bson_buffer_size	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT size_t bson_buffer_size( const bson *b ) {$/;"	f
+bson_builder_error	oss/mongo-c-driver/src/bson.c	/^void bson_builder_error( bson *b ) {$/;"	f
+bson_check_field_name	oss/mongo-c-driver/src/encoding.c	/^int bson_check_field_name( bson *b, const char *string,$/;"	f
+bson_check_string	oss/mongo-c-driver/src/encoding.c	/^int bson_check_string( bson *b, const char *string,$/;"	f
+bson_copy	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT int bson_copy( bson *out, const bson *in ) {$/;"	f
+bson_data	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT const char *bson_data( const bson *b ) {$/;"	f
+bson_date_t	oss/mongo-c-driver/src/bson.h	/^typedef int64_t bson_date_t; \/* milliseconds since epoch UTC *\/$/;"	t
+bson_dealloc	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT void bson_dealloc( bson* b ) {$/;"	f
+bson_destroy	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT void bson_destroy( bson *b ) {$/;"	f
+bson_dump	oss/mongo-c-driver/test/write_concern_test.c	/^void bson_dump( bson * b ) {$/;"	f
+bson_ensure_space	oss/mongo-c-driver/src/bson.c	/^int bson_ensure_space( bson *b, const size_t bytesNeeded ) {$/;"	f
+bson_err_handler	oss/mongo-c-driver/src/bson.h	/^typedef void( *bson_err_handler )( const char *errmsg );$/;"	t
+bson_error_t	oss/mongo-c-driver/src/bson.h	/^enum bson_error_t {$/;"	g
+bson_errprintf	oss/mongo-c-driver/src/bson.c	/^bson_printf_func bson_errprintf = _bson_errprintf;$/;"	v
+bson_fatal	oss/mongo-c-driver/src/bson.c	/^void bson_fatal( int ok ) {$/;"	f
+bson_fatal_msg	oss/mongo-c-driver/src/bson.c	/^void bson_fatal_msg( int ok , const char *msg ) {$/;"	f
+bson_find	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT bson_type bson_find( bson_iterator *it, const bson *obj, const char *name ) {$/;"	f
+bson_finish	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT int bson_finish( bson *b ) {$/;"	f
+bson_finished_data_size	oss/mongo-c-driver/src/bson.c	/^static int bson_finished_data_size( const char *data ) {$/;"	f	file:
+bson_fprintf	oss/mongo-c-driver/src/bson.c	/^bson_fprintf_func bson_fprintf = fprintf;$/;"	v
+bson_fprintf_func	oss/mongo-c-driver/src/bson.h	/^typedef int (*bson_fprintf_func)( FILE *, const char *, ... );$/;"	t
+bson_free	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT void bson_free( void *ptr ) {$/;"	f
+bson_free_allowed	oss/mongo-c-driver/test/bson_alloc_test.c	/^static int bson_free_allowed = 0;$/;"	v	file:
+bson_free_func	oss/mongo-c-driver/src/bson.c	/^void  ( *bson_free_func )( void * ) = free;$/;"	v
+bson_free_was_called	oss/mongo-c-driver/test/bson_alloc_test.c	/^static int bson_free_was_called = 0;$/;"	v	file:
+bson_from_bcon	oss/mongo-c-driver/src/bcon.c	/^bcon_error_t bson_from_bcon(bson *b, const bcon *bc) {$/;"	f
+bson_init	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT int bson_init( bson *b ) {$/;"	f
+bson_init_empty	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT bson_bool_t bson_init_empty( bson *obj ) {$/;"	f
+bson_init_finished_data	oss/mongo-c-driver/src/bson.c	/^int bson_init_finished_data( bson *b, char *data, bson_bool_t ownsData ) {$/;"	f
+bson_init_finished_data_with_copy	oss/mongo-c-driver/src/bson.c	/^int bson_init_finished_data_with_copy( bson *b, const char *data ) {$/;"	f
+bson_init_size	oss/mongo-c-driver/src/bson.c	/^int bson_init_size( bson *b, int size ) {$/;"	f
+bson_init_unfinished_data	oss/mongo-c-driver/src/bson.c	/^int bson_init_unfinished_data( bson *b, char *data, int dataSize, bson_bool_t ownsData ) {$/;"	f
+bson_init_zero	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT void bson_init_zero(bson* b) {$/;"	f
+bson_int64_to_double	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT double bson_int64_to_double( int64_t i64 ) {$/;"	f
+bson_iterator	oss/mongo-c-driver/src/bson.h	/^} bson_iterator;$/;"	t	typeref:struct:__anon9
+bson_iterator_alloc	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT bson_iterator* bson_iterator_alloc( void ) {$/;"	f
+bson_iterator_bin_data	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT const char *bson_iterator_bin_data( const bson_iterator *i ) {$/;"	f
+bson_iterator_bin_len	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT int bson_iterator_bin_len( const bson_iterator *i ) {$/;"	f
+bson_iterator_bin_type	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT char bson_iterator_bin_type( const bson_iterator *i ) {$/;"	f
+bson_iterator_bool	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT bson_bool_t bson_iterator_bool( const bson_iterator *i ) {$/;"	f
+bson_iterator_bool_raw	oss/mongo-c-driver/src/bson.c	/^bson_bool_t bson_iterator_bool_raw( const bson_iterator *i ) {$/;"	f
+bson_iterator_code	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT const char *bson_iterator_code( const bson_iterator *i ) {$/;"	f
+bson_iterator_code_scope_init	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT void bson_iterator_code_scope_init( const bson_iterator *i, bson *scope, bson_bool_t copyData ) {$/;"	f
+bson_iterator_date	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT bson_date_t bson_iterator_date( const bson_iterator *i ) {$/;"	f
+bson_iterator_dealloc	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT void bson_iterator_dealloc( bson_iterator* i ) {$/;"	f
+bson_iterator_double	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT double bson_iterator_double( const bson_iterator *i ) {$/;"	f
+bson_iterator_double_raw	oss/mongo-c-driver/src/bson.c	/^double bson_iterator_double_raw( const bson_iterator *i ) {$/;"	f
+bson_iterator_from_buffer	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT void bson_iterator_from_buffer( bson_iterator *i, const char *buffer ) {$/;"	f
+bson_iterator_init	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT void bson_iterator_init( bson_iterator *i, const bson *b ) {$/;"	f
+bson_iterator_int	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT int bson_iterator_int( const bson_iterator *i ) {$/;"	f
+bson_iterator_int_raw	oss/mongo-c-driver/src/bson.c	/^int bson_iterator_int_raw( const bson_iterator *i ) {$/;"	f
+bson_iterator_key	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT const char *bson_iterator_key( const bson_iterator *i ) {$/;"	f
+bson_iterator_long	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT int64_t bson_iterator_long( const bson_iterator *i ) {$/;"	f
+bson_iterator_long_raw	oss/mongo-c-driver/src/bson.c	/^int64_t bson_iterator_long_raw( const bson_iterator *i ) {$/;"	f
+bson_iterator_more	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT bson_bool_t bson_iterator_more( const bson_iterator *i ) {$/;"	f
+bson_iterator_next	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT bson_type bson_iterator_next( bson_iterator *i ) {$/;"	f
+bson_iterator_oid	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT bson_oid_t *bson_iterator_oid( const bson_iterator *i ) {$/;"	f
+bson_iterator_regex	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT const char *bson_iterator_regex( const bson_iterator *i ) {$/;"	f
+bson_iterator_regex_opts	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT const char *bson_iterator_regex_opts( const bson_iterator *i ) {$/;"	f
+bson_iterator_string	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT const char *bson_iterator_string( const bson_iterator *i ) {$/;"	f
+bson_iterator_string_len	oss/mongo-c-driver/src/bson.c	/^int bson_iterator_string_len( const bson_iterator *i ) {$/;"	f
+bson_iterator_subiterator	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT void bson_iterator_subiterator( const bson_iterator *i, bson_iterator *sub ) {$/;"	f
+bson_iterator_subobject_init	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT void bson_iterator_subobject_init( const bson_iterator *i, bson *sub, bson_bool_t copyData ) {$/;"	f
+bson_iterator_time_t	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT time_t bson_iterator_time_t( const bson_iterator *i ) {$/;"	f
+bson_iterator_timestamp	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT bson_timestamp_t bson_iterator_timestamp( const bson_iterator *i ) {$/;"	f
+bson_iterator_timestamp_increment	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT int bson_iterator_timestamp_increment( const bson_iterator *i ) {$/;"	f
+bson_iterator_timestamp_time	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT int bson_iterator_timestamp_time( const bson_iterator *i ) {$/;"	f
+bson_iterator_type	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT bson_type bson_iterator_type( const bson_iterator *i ) {$/;"	f
+bson_iterator_value	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT const char *bson_iterator_value( const bson_iterator *i ) {$/;"	f
+bson_little_endian32	oss/mongo-c-driver/src/bson.h	69;"	d
+bson_little_endian32	oss/mongo-c-driver/src/bson.h	74;"	d
+bson_little_endian64	oss/mongo-c-driver/src/bson.h	68;"	d
+bson_little_endian64	oss/mongo-c-driver/src/bson.h	73;"	d
+bson_malloc	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT void *bson_malloc( size_t size ) {$/;"	f
+bson_malloc_allowed	oss/mongo-c-driver/test/bson_alloc_test.c	/^static int bson_malloc_allowed = 0;$/;"	v	file:
+bson_malloc_func	oss/mongo-c-driver/src/bson.c	/^void *( *bson_malloc_func )( size_t ) = malloc;$/;"	v
+bson_malloc_was_called	oss/mongo-c-driver/test/bson_alloc_test.c	/^static int bson_malloc_was_called = 0;$/;"	v	file:
+bson_numstr	oss/mongo-c-driver/src/bson.c	/^void bson_numstr( char *str, int i ) {$/;"	f
+bson_numstrs	oss/mongo-c-driver/src/numbers.c	/^const char bson_numstrs[1000][4] = {$/;"	v
+bson_oid_from_string	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT void bson_oid_from_string( bson_oid_t *oid, const char *str ) {$/;"	f
+bson_oid_gen	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT void bson_oid_gen( bson_oid_t *oid ) {$/;"	f
+bson_oid_generated_time	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT time_t bson_oid_generated_time( bson_oid_t *oid ) {$/;"	f
+bson_oid_t	oss/mongo-c-driver/src/bson.h	/^} bson_oid_t;$/;"	t	typeref:union:__anon11
+bson_oid_to_string	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT void bson_oid_to_string( const bson_oid_t *oid, char *str ) {$/;"	f
+bson_print	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT void bson_print( const bson *b ) {$/;"	f
+bson_print_raw	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT void bson_print_raw( const char *data , int depth ) {$/;"	f
+bson_printf	oss/mongo-c-driver/src/bson.c	/^bson_printf_func bson_printf = printf;$/;"	v
+bson_printf	oss/mongo-c-driver/src/bson.c	/^bson_printf_func bson_printf;$/;"	v
+bson_printf_func	oss/mongo-c-driver/src/bson.h	/^typedef int (*bson_printf_func)( const char *, ... );$/;"	t
+bson_realloc	oss/mongo-c-driver/src/bson.c	/^void *bson_realloc( void *ptr, size_t size ) {$/;"	f
+bson_realloc_func	oss/mongo-c-driver/src/bson.c	/^void *( *bson_realloc_func )( void *, size_t ) = realloc;$/;"	v
+bson_set_oid_fuzz	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT void bson_set_oid_fuzz( int ( *func )( void ) ) {$/;"	f
+bson_set_oid_inc	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT void bson_set_oid_inc( int ( *func )( void ) ) {$/;"	f
+bson_shared_empty	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT const bson *bson_shared_empty( void ) {$/;"	f
+bson_shared_empty_data	oss/mongo-c-driver/src/bson.c	/^static char bson_shared_empty_data[] = {5,0,0,0,0};$/;"	v	file:
+bson_size	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT int bson_size( const bson *b ) {$/;"	f
+bson_sprintf	oss/mongo-c-driver/src/bson.c	/^bson_sprintf_func bson_sprintf = sprintf;$/;"	v
+bson_sprintf_func	oss/mongo-c-driver/src/bson.h	/^typedef int (*bson_sprintf_func)( char *, const char *, ... );$/;"	t
+bson_string_is_db_ref	oss/mongo-c-driver/src/encoding.c	/^static int bson_string_is_db_ref( const unsigned char *string, const size_t length ) {$/;"	f	file:
+bson_swap_endian32	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT void bson_swap_endian32( void *outp, const void *inp ) {$/;"	f
+bson_swap_endian64	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT void bson_swap_endian64( void *outp, const void *inp ) {$/;"	f
+bson_timestamp_t	oss/mongo-c-driver/src/bson.h	/^} bson_timestamp_t;$/;"	t	typeref:struct:__anon12
+bson_type	oss/mongo-c-driver/src/bson.h	/^} bson_type;$/;"	t	typeref:enum:__anon8
+bson_validate_string	oss/mongo-c-driver/src/encoding.c	/^static int bson_validate_string( bson *b, const unsigned char *string,$/;"	f	file:
+bson_validity_t	oss/mongo-c-driver/src/bson.h	/^enum bson_validity_t {$/;"	g
+buf	oss/mongo-c-driver/src/md5.h	/^    mongo_md5_byte_t buf[64];       \/* accumulate block *\/$/;"	m	struct:mongo_md5_state_s
+build_attribute_structure	policy/src/policy.c	/^static void build_attribute_structure(char *string,$/;"	f	file:
+build_policy_structure	policy/src/policy.c	/^static void build_policy_structure(char *string,$/;"	f	file:
+bytes	oss/mongo-c-driver/src/bson.h	/^    char bytes[12];$/;"	m	union:__anon11
+caseInsensitive	oss/mongo-c-driver/src/gridfs.h	/^    bson_bool_t caseInsensitive; \/**. If true then files are matched in case insensitive fashion *\/$/;"	m	struct:__anon14
+chunkSize	oss/mongo-c-driver/src/gridfs.h	/^    int chunkSize;   \/**> Let's cache here the cache size to avoid accesing it on the Meta mongo object every time is needed *\/$/;"	m	struct:__anon15
+chunk_fd	sfs/include/sfs.h	/^	int chunk_fd;$/;"	m	struct:sfs_chunk_entry
+chunk_free	oss/mongo-c-driver/src/gridfs.c	/^static void chunk_free(bson *oChunk) {$/;"	f	file:
+chunk_new	oss/mongo-c-driver/src/gridfs.c	/^static bson *chunk_new(bson_oid_t id, int chunkNumber, char** dataBuf, const char* srcData, size_t len, int flags ) {$/;"	f	file:
+chunk_num	oss/mongo-c-driver/src/gridfs.h	/^    int chunk_num;      \/**> The number of the current chunk being written to *\/$/;"	m	struct:__anon15
+chunk_path	sfs/include/sfs.h	/^	char *chunk_path;$/;"	m	struct:sfs_chunk_entry
+chunk_path_len	sfs/include/sfs.h	/^	int chunk_path_len;$/;"	m	struct:sfs_chunk_entry
+chunks_ns	oss/mongo-c-driver/src/gridfs.h	/^    const char *chunks_ns; \/**. The namespace where the files's data is stored in chunks *\/$/;"	m	struct:__anon14
+clean	oss/mongo-c-driver/test/benchmark_test.c	/^static void clean( void ) {$/;"	f	file:
+clean_dir	oss/mongo-c-driver/docs/buildscripts/docs.py	/^def clean_dir(dir):$/;"	f
+client	oss/mongo-c-driver/src/gridfs.h	/^    mongo *client; \/**> The client to db-connection. *\/$/;"	m	struct:__anon14
+client_init	common/include/sstack_transport.h	/^	sstack_client_handle_t (*client_init) (sstack_transport_t *);$/;"	m	struct:sstack_transport_ops
+clone_attributes	common/src/sstack_thread_pool.c	/^clone_attributes(pthread_attr_t *new_attr, pthread_attr_t *old_attr)$/;"	f	file:
+cmd	oss/mongo-c-driver/src/mongo.h	/^    bson *cmd; \/**< The BSON object representing the getlasterror command. *\/$/;"	m	struct:mongo_write_concern
+conn	db/mongo/src/mongo_db.c	/^mongo conn[1];$/;"	v
+conn	oss/mongo-c-driver/src/mongo.h	/^    mongo *conn;       \/**< connection is *not* owned by cursor *\/$/;"	m	struct:__anon7
+conn	oss/mongo-c-driver/test/benchmark_test.c	/^static mongo conn[1];$/;"	v	file:
+conn_timeout_ms	oss/mongo-c-driver/src/mongo.h	/^    int conn_timeout_ms;       \/**< Connection timeout in milliseconds. *\/$/;"	m	struct:mongo
+connected	oss/mongo-c-driver/src/mongo.h	/^    bson_bool_t connected;     \/**< Connection status. *\/$/;"	m	struct:mongo
+construct_db_name	db/mongo/include/mongo_db.h	/^int construct_db_name(char *name, db_type_t type)$/;"	f
+construct_record_name	db/mongo/include/mongo_db.h	/^int construct_record_name(char *name, db_type_t type)$/;"	f
+content_type	oss/mongo-c-driver/src/gridfs.h	/^    char *content_type; \/**> The gridfile's content type *\/$/;"	m	struct:__anon15
+continue_block	arch/x86_64/crc_pcl.S	/^continue_block:$/;"	l
+copyright	oss/mongo-c-driver/docs/source/sphinx/source/conf.py	/^copyright = u'2011, 10gen'$/;"	v
+couchdb_create	db/couchbase/src/couchdb.c	/^couchdb_create(void)$/;"	f
+couchdb_delete	db/couchbase/src/couchdb.c	/^couchdb_delete(uint64_t key)$/;"	f
+couchdb_destroy	db/couchbase/src/couchdb.c	/^couchdb_destroy(void)$/;"	f
+couchdb_flush	db/couchbase/src/couchdb.c	/^couchdb_flush(void)$/;"	f
+couchdb_get	db/couchbase/src/couchdb.c	/^couchdb_get(uint64_t key, char *data, size_t len)$/;"	f
+couchdb_handle	db/couchbase/src/couchdb.c	/^lcb_t couchdb_handle = NULL;$/;"	v
+couchdb_insert	db/couchbase/src/couchdb.c	/^couchdb_insert(uint64_t key, char *data, size_t len)$/;"	f
+couchdb_seekread	db/couchbase/src/couchdb.c	/^couchdb_seekread(uint64_t key, char *data, size_t len, off_t offset,$/;"	f
+couchdb_update	db/couchbase/src/couchdb.c	/^couchdb_update(uint64_t key, char *data, size_t len)$/;"	f
+count	oss/mongo-c-driver/src/md5.h	/^    mongo_md5_word_t count[2];  \/* message length in bits, lsw first *\/$/;"	m	struct:mongo_md5_state_s
+crc	oss/crc/crc.h	/^typedef unsigned long  crc;$/;"	t
+crc	oss/crc/crc.h	/^typedef unsigned short  crc;$/;"	t
+crcSlow	oss/crc/crc.c	/^crcSlow(unsigned char const message[], int nBytes)$/;"	f
+crcTable	oss/crc/crc.c	/^crc  crcTable[256];$/;"	v
+crc_array	arch/x86_64/crc_pcl.S	/^crc_array:$/;"	l
+crc_pcl	arch/x86_64/crc_pcl.S	/^crc_pcl:$/;"	l
+crcfast	oss/crc/crc.c	/^crcfast(unsigned char const message[], int nBytes)$/;"	f
+crcinit	oss/crc/crc.c	/^crcinit(void)$/;"	f
+create_capped_collection	oss/mongo-c-driver/test/cursors_test.c	/^void create_capped_collection( mongo *conn ) {$/;"	f
+create_capped_collection	oss/mongo-c-driver/test/write_concern_test.c	/^void create_capped_collection( mongo *conn ) {$/;"	f
+create_db	common/include/sstack_db.h	/^create_db(void)$/;"	f
+create_worker	common/src/sstack_thread_pool.c	/^create_worker(sstack_thread_pool_t *pool)$/;"	f	file:
+ctx	common/include/sstack_transport.h	/^	log_ctx_t *ctx;$/;"	m	struct:sstack_transport
+cur	oss/mongo-c-driver/src/bson.h	/^    char *cur;            \/**< Pointer to the current position. *\/$/;"	m	struct:__anon10
+cur	oss/mongo-c-driver/src/bson.h	/^    const char *cur;$/;"	m	struct:__anon9
+current	oss/mongo-c-driver/src/mongo.h	/^    bson current;      \/**< This cursor's current bson object. *\/$/;"	m	struct:__anon7
+cursorID	oss/mongo-c-driver/src/mongo.h	/^    int64_t cursorID;$/;"	m	struct:__anon4
+data	oss/mongo-c-driver/src/bson.h	/^    char *data;           \/**< Pointer to a block of data in this BSON object. *\/$/;"	m	struct:__anon10
+data	oss/mongo-c-driver/src/mongo.h	/^    char data;$/;"	m	struct:__anon3
+dataSize	oss/mongo-c-driver/src/bson.h	/^    int dataSize;         \/**< The number of bytes allocated to char *data. *\/$/;"	m	struct:__anon10
+db	common/include/sstack_db.h	/^typedef struct db {$/;"	s
+db	oss/mongo-c-driver/test/auth_test.c	/^static const char *db = "test";$/;"	v	file:
+db	oss/mongo-c-driver/test/errors_test.c	/^static const char *db = "test";$/;"	v	file:
+db	sfs/src/sfs.c	/^db_t *db = NULL;$/;"	v
+db_cleanup	common/include/sstack_db.h	/^	db_cleanup_t db_cleanup;$/;"	m	struct:db_operations
+db_cleanup_t	common/include/sstack_db.h	/^typedef int (*db_cleanup_t)(void);$/;"	t
+db_close	common/include/sstack_db.h	/^	db_close_t db_close;$/;"	m	struct:db_operations
+db_close_t	common/include/sstack_db.h	/^typedef int (*db_close_t)(void);$/;"	t
+db_delete	common/include/sstack_db.h	/^	db_delete_t db_delete;$/;"	m	struct:db_operations
+db_delete_t	common/include/sstack_db.h	/^typedef int (*db_delete_t)(uint64_t);$/;"	t
+db_get	common/include/sstack_db.h	/^	db_get_t db_get;$/;"	m	struct:db_operations
+db_get_t	common/include/sstack_db.h	/^typedef int (*db_get_t)(uint64_t , char * , size_t , db_type_t);$/;"	t
+db_init	common/include/sstack_db.h	/^	db_init_t db_init;$/;"	m	struct:db_operations
+db_init_t	common/include/sstack_db.h	/^typedef int (*db_init_t)(void);$/;"	t
+db_insert	common/include/sstack_db.h	/^	db_insert_t db_insert;$/;"	m	struct:db_operations
+db_insert_t	common/include/sstack_db.h	/^typedef int (*db_insert_t)(uint64_t , char * , size_t, db_type_t);$/;"	t
+db_open	common/include/sstack_db.h	/^	db_open_t db_open;$/;"	m	struct:db_operations
+db_open_t	common/include/sstack_db.h	/^typedef int (*db_open_t)(void);$/;"	t
+db_operations	common/include/sstack_db.h	/^typedef struct db_operations {$/;"	s
+db_ops	common/include/sstack_db.h	/^	db_ops_t db_ops;$/;"	m	struct:db
+db_ops_t	common/include/sstack_db.h	/^} db_ops_t;$/;"	t	typeref:struct:db_operations
+db_register	common/include/sstack_db.h	/^db_register(db_t *db, db_init_t db_init, db_open_t db_open, db_close_t db_close,$/;"	f
+db_rwlock	db/couchbase/src/couchdb.c	/^pthread_rwlock_t db_rwlock;$/;"	v
+db_seekread	common/include/sstack_db.h	/^	db_seekread_t db_seekread;$/;"	m	struct:db_operations
+db_seekread_t	common/include/sstack_db.h	/^typedef int (*db_seekread_t)(uint64_t , char * , size_t , off_t ,$/;"	t
+db_t	common/include/sstack_db.h	/^} db_t;$/;"	t	typeref:struct:db
+db_type_t	common/include/sstack_db.h	/^} db_type_t;$/;"	t	typeref:enum:__anon19
+db_update	common/include/sstack_db.h	/^	db_update_t db_update;$/;"	m	struct:db_operations
+db_update_t	common/include/sstack_db.h	/^typedef int (*db_update_t)(uint64_t , char * , size_t , db_type_t);$/;"	t
+dbname	oss/mongo-c-driver/src/gridfs.h	/^    const char *dbname; \/**> The root database name *\/$/;"	m	struct:__anon14
+default_policy	common/include/sstack_policy.h	/^static policy_t default_policy = { 1, 0, 0, 0, NULL};$/;"	v
+deinit_policy	policy/include/policy.h	/^	void (*deinit_policy)(void);$/;"	m	struct:policy_plugin
+destroy_db	common/include/sstack_db.h	/^destroy_db(db_t * db)$/;"	f
+digest2hex	oss/mongo-c-driver/src/mongo.c	/^static void digest2hex( mongo_md5_byte_t digest[16], char hex_digest[33] ) {$/;"	f	file:
+digest2hex	oss/mongo-c-driver/test/gridfs_test.c	/^static void digest2hex( mongo_md5_byte_t digest[16], char hex_digest[33] ) {$/;"	f	file:
+do_align	arch/x86_64/crc_pcl.S	/^do_align:$/;"	l
+do_receive_thread	sfsd/src/sfsd_threads.c	/^static void* do_receive_thread (void *params)$/;"	f	file:
+do_return	arch/x86_64/crc_pcl.S	/^do_return:$/;"	l
+e_cksum	common/include/sstack_md.h	/^	unsigned long e_cksum; \/\/ Checksum of the chunk$/;"	m	struct:extent
+e_path	common/include/sstack_md.h	/^	char e_path[MAX_REPLICAS][PATH_MAX]; \/\/ File name on the distributed FS$/;"	m	struct:extent
+e_replica_valid	common/include/sstack_md.h	/^	uint8_t e_replica_valid; \/\/ Validity of replicas. For self healing or migrating chunks to other storage	$/;"	m	struct:extent
+e_size	common/include/sstack_md.h	/^	uint64_t e_size; \/\/ in bytes. So max chunk size is 16 exa bytes$/;"	m	struct:extent
+e_type	common/include/sstack_md.h	/^	attr_type_t e_type;$/;"	m	struct:extent
+e_value	common/include/sstack_md.h	/^	uint64_t e_value; \/\/ Like offset in file system blocks. Max value is 2^76 or 65536 exa bytes$/;"	m	struct:extent
+end	oss/mongo-c-driver/docs/source/sphinx/make.bat	/^:end$/;"	l
+endian	oss/mongo-c-driver/Makefile	/^endian := $(shell sh -c 'echo "ab" | od -x | grep "6261" >\/dev\/null && echo little || echo big')$/;"	m
+err	oss/mongo-c-driver/src/bson.h	/^    int err;              \/**< Bitfield representing errors or warnings on this buffer *\/$/;"	m	struct:__anon10
+err	oss/mongo-c-driver/src/mongo.h	/^    mongo_cursor_error_t err; \/**< Errors on this cursor. *\/$/;"	m	struct:__anon7
+err	oss/mongo-c-driver/src/mongo.h	/^    mongo_error_t err;          \/**< Most recent driver error code. *\/$/;"	m	struct:mongo
+err_handler	oss/mongo-c-driver/src/bson.c	/^static bson_err_handler err_handler = NULL;$/;"	v	file:
+errcode	oss/mongo-c-driver/src/mongo.h	/^    int errcode;                \/**< Most recent errno or WSAGetLastError(). *\/$/;"	m	struct:mongo
+error_cb	db/couchbase/src/couchdb.c	/^error_cb(lcb_t instance, lcb_error_t error,$/;"	f	file:
+errstr	oss/mongo-c-driver/src/mongo.h	/^    char errstr[MONGO_ERR_LEN]; \/**< String version of error. *\/$/;"	m	struct:mongo
+exclude_patterns	oss/mongo-c-driver/docs/source/sphinx/source/conf.py	/^exclude_patterns = []$/;"	v
+extensions	oss/mongo-c-driver/docs/source/sphinx/source/conf.py	/^extensions = []$/;"	v
+extent	common/include/sstack_md.h	/^typedef struct extent {$/;"	s
+extent_t	common/include/sstack_md.h	/^} extent_t;$/;"	t	typeref:struct:extent
+f	oss/mongo-c-driver/src/bcon.h	/^    double f;        \/**< 01  e_name  double              Macro BF(v)  - Floating point *\/$/;"	m	union:bcon
+fails	oss/mongo-c-driver/test/json_test.c	/^int fails = 0;$/;"	v
+fields	oss/mongo-c-driver/src/mongo.h	/^    const bson *fields;\/**< Bitfield containing cursor options. *\/$/;"	m	struct:__anon7
+fields	oss/mongo-c-driver/src/mongo.h	/^    mongo_reply_fields fields;$/;"	m	struct:__anon5
+files_db_cleanup	db/filesdb/src/files_db.c	/^files_db_cleanup(void)$/;"	f
+files_db_close	db/filesdb/src/files_db.c	/^files_db_close(void)$/;"	f
+files_db_delete	db/filesdb/src/files_db.c	/^files_db_delete(uint64_t key)$/;"	f
+files_db_get	db/filesdb/src/files_db.c	/^files_db_get(uint64_t key, char *data, size_t len, db_type_t type)$/;"	f
+files_db_init	db/filesdb/src/files_db.c	/^files_db_init(void)$/;"	f
+files_db_insert	db/filesdb/src/files_db.c	/^files_db_insert(uint64_t key, char *data, size_t len, db_type_t type)$/;"	f
+files_db_mutex	db/filesdb/src/files_db.c	/^pthread_mutex_t files_db_mutex = PTHREAD_MUTEX_INITIALIZER;$/;"	v
+files_db_open	db/filesdb/src/files_db.c	/^files_db_open(void)$/;"	f
+files_db_seekread	db/filesdb/src/files_db.c	/^files_db_seekread(uint64_t key, char *data, size_t len, off_t offset,$/;"	f
+files_db_update	db/filesdb/src/files_db.c	/^files_db_update(uint64_t key, char *data, size_t len, db_type_t type)$/;"	f
+files_ns	oss/mongo-c-driver/src/gridfs.h	/^    const char *files_ns; \/**> The namespace where the file's metadata is stored *\/$/;"	m	struct:__anon14
+fill_buffer_randomly	oss/mongo-c-driver/test/gridfs_test.c	/^void fill_buffer_randomly( char *data, int64_t length ) {$/;"	f
+fillset	common/src/sstack_thread_pool.c	/^static sigset_t fillset;$/;"	v	file:
+find	oss/mongo-c-driver/test/benchmark_test.c	/^static void find( const char *ns ) {$/;"	f	file:
+find_index_large_test	oss/mongo-c-driver/test/benchmark_test.c	/^static void find_index_large_test( void )  {$/;"	f	file:
+find_index_medium_test	oss/mongo-c-driver/test/benchmark_test.c	/^static void find_index_medium_test( void ) {$/;"	f	file:
+find_index_small_test	oss/mongo-c-driver/test/benchmark_test.c	/^static void find_index_small_test( void )  {$/;"	f	file:
+find_noindex_large_test	oss/mongo-c-driver/test/benchmark_test.c	/^static void find_noindex_large_test( void )  {$/;"	f	file:
+find_noindex_medium_test	oss/mongo-c-driver/test/benchmark_test.c	/^static void find_noindex_medium_test( void ) {$/;"	f	file:
+find_noindex_small_test	oss/mongo-c-driver/test/benchmark_test.c	/^static void find_noindex_small_test( void )  {$/;"	f	file:
+find_one	oss/mongo-c-driver/test/benchmark_test.c	/^static void find_one( const char *ns ) {$/;"	f	file:
+find_one_index_large_test	oss/mongo-c-driver/test/benchmark_test.c	/^static void find_one_index_large_test( void )  {$/;"	f	file:
+find_one_index_medium_test	oss/mongo-c-driver/test/benchmark_test.c	/^static void find_one_index_medium_test( void ) {$/;"	f	file:
+find_one_index_small_test	oss/mongo-c-driver/test/benchmark_test.c	/^static void find_one_index_small_test( void )  {$/;"	f	file:
+find_one_noindex_large_test	oss/mongo-c-driver/test/benchmark_test.c	/^static void find_one_noindex_large_test( void )  {$/;"	f	file:
+find_one_noindex_medium_test	oss/mongo-c-driver/test/benchmark_test.c	/^static void find_one_noindex_medium_test( void ) {$/;"	f	file:
+find_one_noindex_small_test	oss/mongo-c-driver/test/benchmark_test.c	/^static void find_one_noindex_small_test( void )  {$/;"	f	file:
+find_range	oss/mongo-c-driver/test/benchmark_test.c	/^static void find_range( const char *ns ) {$/;"	f	file:
+find_range_large_test	oss/mongo-c-driver/test/benchmark_test.c	/^static void find_range_large_test( void )  {$/;"	f	file:
+find_range_medium_test	oss/mongo-c-driver/test/benchmark_test.c	/^static void find_range_medium_test( void ) {$/;"	f	file:
+find_range_small_test	oss/mongo-c-driver/test/benchmark_test.c	/^static void find_range_small_test( void )  {$/;"	f	file:
+finished	oss/mongo-c-driver/src/bson.h	/^    bson_bool_t finished; \/**< When finished, the BSON object can no longer be modified. *\/$/;"	m	struct:__anon10
+first	oss/mongo-c-driver/src/bson.h	/^    bson_bool_t first;$/;"	m	struct:__anon9
+flag	oss/mongo-c-driver/src/mongo.h	/^    int flag; \/* FIX THIS COMMENT non-zero on failure *\/$/;"	m	struct:__anon4
+flags	oss/mongo-c-driver/src/gridfs.h	/^    int flags;          \/**> Store here special flags such as: No MD5 calculation and Zlib Compression enabled*\/$/;"	m	struct:__anon15
+flags	oss/mongo-c-driver/src/mongo.h	/^    int flags;                 \/**< Flags on this connection object. *\/$/;"	m	struct:mongo
+flags	oss/mongo-c-driver/src/mongo.h	/^    int flags;         \/**< Flags used internally by this drivers. *\/$/;"	m	struct:__anon7
+flush_cb	db/couchbase/src/couchdb.c	/^flush_cb(lcb_t instance, const void *cookie,$/;"	f	file:
+fn	oss/mongo-c-driver/test/bcon_test.c	/^    void (*fn)( void );$/;"	m	struct:test_suite	file:
+free_for_tests	oss/mongo-c-driver/test/bson_alloc_test.c	/^void free_for_tests( void * ptr ) {$/;"	f
+free_transport	common/include/sstack_transport.h	/^free_transport(sstack_transport_t *transport)$/;"	f
+fsync	oss/mongo-c-driver/src/mongo.h	/^    int fsync;        \/**< Same a j with journaling enabled; otherwise, call fsync. *\/$/;"	m	struct:mongo_write_concern
+full_block	arch/x86_64/crc_pcl.S	/^full_block:$/;"	l
+fuzz	oss/mongo-c-driver/test/oid_test.c	/^int fuzz( void ) {$/;"	f
+gen_api	oss/mongo-c-driver/docs/buildscripts/docs.py	/^def gen_api(dir):$/;"	f
+gen_sphinx	oss/mongo-c-driver/docs/buildscripts/docs.py	/^def gen_sphinx(dir):$/;"	f
+get_cb	db/couchbase/src/couchdb.c	/^static void get_cb(lcb_t instance, const void *cookie,$/;"	f	file:
+get_file_type	policy/src/policy.c	/^static char *get_file_type(const char *fpath)$/;"	f	file:
+get_free_inode	common/include/sstack_md.h	/^get_free_inode(void)$/;"	f
+get_inode_size	common/include/sstack_md.h	/^get_inode_size(uint64_t inode_num, db_t *db)$/;"	f
+get_opt_str	common/include/sstack_helper.h	/^get_opt_str(const char *arg, char *opt_name)$/;"	f
+get_path_name	lib/idp/include/idp.h	/^get_path_name(char *path_name, char *dir_name, char *d_name)$/;"	f
+get_policy	common/include/sstack_policy.h	/^get_policy(const char * path)$/;"	f
+get_policy	policy/src/policy.c	/^struct policy_entry* get_policy(const char* path)$/;"	f
+get_tcp_transport	common/src/sstack_transport_tcp.c	/^sstack_transport_t *get_tcp_transport(char *addr)$/;"	f
+gfs	oss/mongo-c-driver/src/gridfs.h	/^    gridfs *gfs;        \/**> The GridFS where the GridFile is located *\/$/;"	m	struct:__anon15
+global	arch/x86_64/crc_pcl.S	/^global  crc_pcl:function$/;"	l
+gridfile	oss/mongo-c-driver/src/gridfs.h	/^} gridfile;$/;"	t	typeref:struct:__anon15
+gridfile_create	oss/mongo-c-driver/src/gridfs.c	/^MONGO_EXPORT gridfile *gridfile_create( void ) {$/;"	f
+gridfile_dealloc	oss/mongo-c-driver/src/gridfs.c	/^MONGO_EXPORT void gridfile_dealloc( gridfile *gf ) {$/;"	f
+gridfile_destroy	oss/mongo-c-driver/src/gridfs.c	/^MONGO_EXPORT void gridfile_destroy(gridfile *gfile) {$/;"	f
+gridfile_exists	oss/mongo-c-driver/src/gridfs.c	/^MONGO_EXPORT bson_bool_t gridfile_exists( const gridfile *gfile ) {$/;"	f
+gridfile_expand	oss/mongo-c-driver/src/gridfs.c	/^MONGO_EXPORT gridfs_offset gridfile_expand(gridfile *gfile, gridfs_offset bytesToExpand) {$/;"	f
+gridfile_fill_buf_from_chunk	oss/mongo-c-driver/src/gridfs.c	/^static gridfs_offset gridfile_fill_buf_from_chunk(gridfile *gfile, const bson *chunk, gridfs_offset chunksize, char **buf, int *allocatedMem, char **targetBuf, $/;"	f	file:
+gridfile_flush_pendingchunk	oss/mongo-c-driver/src/gridfs.c	/^static int gridfile_flush_pendingchunk(gridfile *gfile) {$/;"	f	file:
+gridfile_get_boolean	oss/mongo-c-driver/src/gridfs.c	/^MONGO_EXPORT bson_bool_t gridfile_get_boolean( const gridfile *gfile, const char *name ) {$/;"	f
+gridfile_get_chunk	oss/mongo-c-driver/src/gridfs.c	/^MONGO_EXPORT void gridfile_get_chunk(gridfile *gfile, int n, bson *out) {$/;"	f
+gridfile_get_chunks	oss/mongo-c-driver/src/gridfs.c	/^MONGO_EXPORT mongo_cursor *gridfile_get_chunks(gridfile *gfile, size_t start, size_t size) {$/;"	f
+gridfile_get_chunksize	oss/mongo-c-driver/src/gridfs.c	/^MONGO_EXPORT int gridfile_get_chunksize( const gridfile *gfile ) {$/;"	f
+gridfile_get_contentlength	oss/mongo-c-driver/src/gridfs.c	/^MONGO_EXPORT gridfs_offset gridfile_get_contentlength( const gridfile *gfile ) {$/;"	f
+gridfile_get_contenttype	oss/mongo-c-driver/src/gridfs.c	/^MONGO_EXPORT const char *gridfile_get_contenttype( const gridfile *gfile ) {$/;"	f
+gridfile_get_descriptor	oss/mongo-c-driver/src/gridfs.c	/^MONGO_EXPORT void gridfile_get_descriptor(gridfile *gf, bson *out) {$/;"	f
+gridfile_get_field	oss/mongo-c-driver/src/gridfs.c	/^MONGO_EXPORT const char *gridfile_get_field(gridfile *gfile, const char *name) {$/;"	f
+gridfile_get_filename	oss/mongo-c-driver/src/gridfs.c	/^MONGO_EXPORT const char *gridfile_get_filename( const gridfile *gfile ) {$/;"	f
+gridfile_get_flags	oss/mongo-c-driver/src/gridfs.c	/^MONGO_EXPORT int gridfile_get_flags( const gridfile *gfile ) {$/;"	f
+gridfile_get_id	oss/mongo-c-driver/src/gridfs.c	/^MONGO_EXPORT bson_oid_t gridfile_get_id( const gridfile *gfile ) {$/;"	f
+gridfile_get_md5	oss/mongo-c-driver/src/gridfs.c	/^MONGO_EXPORT const char *gridfile_get_md5( const gridfile *gfile ) {$/;"	f
+gridfile_get_metadata	oss/mongo-c-driver/src/gridfs.c	/^MONGO_EXPORT void gridfile_get_metadata( const gridfile *gfile, bson *out, bson_bool_t copyData ) {$/;"	f
+gridfile_get_numchunks	oss/mongo-c-driver/src/gridfs.c	/^MONGO_EXPORT int gridfile_get_numchunks( const gridfile *gfile ) {$/;"	f
+gridfile_get_uploaddate	oss/mongo-c-driver/src/gridfs.c	/^MONGO_EXPORT bson_date_t gridfile_get_uploaddate( const gridfile *gfile ) {$/;"	f
+gridfile_init	oss/mongo-c-driver/src/gridfs.c	/^MONGO_EXPORT int gridfile_init( gridfs *gfs, const bson *meta, gridfile *gfile ) {$/;"	f
+gridfile_init_chunkSize	oss/mongo-c-driver/src/gridfs.c	/^static void gridfile_init_chunkSize(gridfile *gfile){$/;"	f	file:
+gridfile_init_flags	oss/mongo-c-driver/src/gridfs.c	/^static void gridfile_init_flags(gridfile *gfile) {$/;"	f	file:
+gridfile_init_length	oss/mongo-c-driver/src/gridfs.c	/^static void gridfile_init_length(gridfile *gfile) {$/;"	f	file:
+gridfile_load_from_chunks	oss/mongo-c-driver/src/gridfs.c	/^static gridfs_offset gridfile_load_from_chunks(gridfile *gfile, int total_chunks, gridfs_offset chunksize, mongo_cursor *chunks, char* buf, $/;"	f	file:
+gridfile_load_pending_data_with_pos_chunk	oss/mongo-c-driver/src/gridfs.c	/^static int gridfile_load_pending_data_with_pos_chunk(gridfile *gfile) {$/;"	f	file:
+gridfile_prepare_chunk_key_bson	oss/mongo-c-driver/src/gridfs.c	/^static void gridfile_prepare_chunk_key_bson(bson *q, bson_oid_t *id, int chunk_num) {$/;"	f	file:
+gridfile_read_buffer	oss/mongo-c-driver/src/gridfs.c	/^MONGO_EXPORT gridfs_offset gridfile_read_buffer( gridfile *gfile, char *buf, gridfs_offset size ) {$/;"	f
+gridfile_read_from_pending_buffer	oss/mongo-c-driver/src/gridfs.c	/^static gridfs_offset gridfile_read_from_pending_buffer(gridfile *gfile, gridfs_offset totalBytesToRead, char* buf, $/;"	f	file:
+gridfile_remove_chunks	oss/mongo-c-driver/src/gridfs.c	/^static int gridfile_remove_chunks( gridfile *gfile, int deleteFromChunk){$/;"	f	file:
+gridfile_seek	oss/mongo-c-driver/src/gridfs.c	/^MONGO_EXPORT gridfs_offset gridfile_seek(gridfile *gfile, gridfs_offset offset) {$/;"	f
+gridfile_set_flags	oss/mongo-c-driver/src/gridfs.c	/^MONGO_EXPORT void gridfile_set_flags(gridfile *gfile, int flags) {$/;"	f
+gridfile_set_size	oss/mongo-c-driver/src/gridfs.c	/^MONGO_EXPORT gridfs_offset gridfile_set_size(gridfile *gfile, gridfs_offset newSize) {$/;"	f
+gridfile_storage_type	oss/mongo-c-driver/src/gridfs.h	/^enum gridfile_storage_type {$/;"	g
+gridfile_truncate	oss/mongo-c-driver/src/gridfs.c	/^MONGO_EXPORT gridfs_offset gridfile_truncate(gridfile *gfile, gridfs_offset newSize) {$/;"	f
+gridfile_write_buffer	oss/mongo-c-driver/src/gridfs.c	/^MONGO_EXPORT gridfs_offset gridfile_write_buffer(gridfile *gfile, const char *data, gridfs_offset length) {$/;"	f
+gridfile_write_file	oss/mongo-c-driver/src/gridfs.c	/^MONGO_EXPORT gridfs_offset gridfile_write_file(gridfile *gfile, FILE *stream) {$/;"	f
+gridfile_writer_done	oss/mongo-c-driver/src/gridfs.c	/^MONGO_EXPORT int gridfile_writer_done(gridfile *gfile) {$/;"	f
+gridfile_writer_init	oss/mongo-c-driver/src/gridfs.c	/^MONGO_EXPORT int gridfile_writer_init(gridfile *gfile, gridfs *gfs, const char *remote_name, const char *content_type, int flags ) {$/;"	f
+gridfs	oss/mongo-c-driver/src/gridfs.h	/^} gridfs;$/;"	t	typeref:struct:__anon14
+gridfs_alloc	oss/mongo-c-driver/src/gridfs.c	/^MONGO_EXPORT gridfs *gridfs_alloc( void ) {$/;"	f
+gridfs_chunk_filter_func	oss/mongo-c-driver/src/gridfs.h	/^typedef int ( *gridfs_chunk_filter_func )( char** targetBuf, size_t* targetLen, const char* srcBuf, size_t srcLen, int flags );$/;"	t
+gridfs_dealloc	oss/mongo-c-driver/src/gridfs.c	/^MONGO_EXPORT void gridfs_dealloc( gridfs *gfs ) {$/;"	f
+gridfs_default_chunk_filter	oss/mongo-c-driver/src/gridfs.c	/^static int gridfs_default_chunk_filter(char** targetBuf, size_t* targetLen, const char* srcData, size_t srcLen, int flags) {$/;"	f	file:
+gridfs_default_pending_data_size	oss/mongo-c-driver/src/gridfs.c	/^static size_t gridfs_default_pending_data_size (int flags) {$/;"	f	file:
+gridfs_destroy	oss/mongo-c-driver/src/gridfs.c	/^MONGO_EXPORT void gridfs_destroy(gridfs *gfs) {$/;"	f
+gridfs_find_filename	oss/mongo-c-driver/src/gridfs.c	/^MONGO_EXPORT int gridfs_find_filename(gridfs *gfs, const char *filename, gridfile *gfile){$/;"	f
+gridfs_find_query	oss/mongo-c-driver/src/gridfs.c	/^MONGO_EXPORT int gridfs_find_query( gridfs *gfs, const bson *query, gridfile *gfile ) {$/;"	f
+gridfs_get_caseInsensitive	oss/mongo-c-driver/src/gridfs.c	/^MONGO_EXPORT bson_bool_t gridfs_get_caseInsensitive( const gridfs *gfs ) {$/;"	f
+gridfs_init	oss/mongo-c-driver/src/gridfs.c	/^MONGO_EXPORT int gridfs_init(mongo *client, const char *dbname, const char *prefix, gridfs *gfs) {$/;"	f
+gridfs_insert_file	oss/mongo-c-driver/src/gridfs.c	/^static int gridfs_insert_file(gridfs *gfs, const char *name, const bson_oid_t id, gridfs_offset length, const char *contenttype, int flags, int chunkSize) {$/;"	f	file:
+gridfs_offset	oss/mongo-c-driver/src/gridfs.h	/^typedef uint64_t gridfs_offset;$/;"	t
+gridfs_pending_data_size	oss/mongo-c-driver/src/gridfs.c	/^static gridfs_pending_data_size_func gridfs_pending_data_size = gridfs_default_pending_data_size;$/;"	v	file:
+gridfs_pending_data_size_func	oss/mongo-c-driver/src/gridfs.h	/^typedef size_t ( *gridfs_pending_data_size_func ) (int flags);$/;"	t
+gridfs_read_filter	oss/mongo-c-driver/src/gridfs.c	/^static gridfs_chunk_filter_func gridfs_read_filter = gridfs_default_chunk_filter;$/;"	v	file:
+gridfs_remove_filename	oss/mongo-c-driver/src/gridfs.c	/^MONGO_EXPORT int gridfs_remove_filename(gridfs *gfs, const char *filename) {$/;"	f
+gridfs_set_caseInsensitive	oss/mongo-c-driver/src/gridfs.c	/^MONGO_EXPORT void gridfs_set_caseInsensitive(gridfs *gfs, bson_bool_t newValue){$/;"	f
+gridfs_set_chunk_filter_funcs	oss/mongo-c-driver/src/gridfs.c	/^MONGO_EXPORT void gridfs_set_chunk_filter_funcs(gridfs_chunk_filter_func writeFilter, gridfs_chunk_filter_func readFilter, gridfs_pending_data_size_func pendingDataNeededSize) {$/;"	f
+gridfs_store_buffer	oss/mongo-c-driver/src/gridfs.c	/^MONGO_EXPORT int gridfs_store_buffer(gridfs *gfs, const char *data, gridfs_offset length, const char *remotename, const char *contenttype, int flags ) {$/;"	f
+gridfs_store_file	oss/mongo-c-driver/src/gridfs.c	/^MONGO_EXPORT int gridfs_store_file(gridfs *gfs, const char *filename, const char *remotename, const char *contenttype, int flags ) {$/;"	f
+gridfs_test_unlink	oss/mongo-c-driver/test/gridfs_test.c	24;"	d	file:
+gridfs_test_unlink	oss/mongo-c-driver/test/gridfs_test.c	26;"	d	file:
+gridfs_write_filter	oss/mongo-c-driver/src/gridfs.c	/^static gridfs_chunk_filter_func gridfs_write_filter = gridfs_default_chunk_filter;$/;"	v	file:
+handle_sighup	sfsd/src/sfsd_signals.c	/^static void handle_sighup(int signum)$/;"	f	file:
+hashfn	db/filesdb/src/files_db.c	/^hashfn(uint64_t key)$/;"	f
+head	oss/mongo-c-driver/src/mongo.h	/^    mongo_header head;$/;"	m	struct:__anon3
+head	oss/mongo-c-driver/src/mongo.h	/^    mongo_header head;$/;"	m	struct:__anon5
+hexbyte	oss/mongo-c-driver/src/bson.c	/^static char hexbyte( char hex ) {$/;"	f	file:
+host	oss/mongo-c-driver/src/mongo.h	/^    char host[MAXHOSTNAMELEN];$/;"	m	struct:mongo_host_port
+hosts	oss/mongo-c-driver/src/mongo.h	/^    mongo_host_port *hosts;        \/**< List of host\/ports given by the replica set *\/$/;"	m	struct:__anon6
+html_static_path	oss/mongo-c-driver/docs/source/sphinx/source/conf.py	/^html_static_path = ['_static']$/;"	v
+htmlhelp_basename	oss/mongo-c-driver/docs/source/sphinx/source/conf.py	/^htmlhelp_basename = 'MongoDBCDriverdoc'$/;"	v
+i	oss/mongo-c-driver/src/bcon.h	/^    int i;           \/**< 10  e_name  int32               Macro BI(v)  - 32-bit Integer *\/$/;"	m	union:bcon
+i	oss/mongo-c-driver/src/bson.h	/^    int i; \/* increment *\/$/;"	m	struct:__anon12
+i_atime	common/include/sstack_md.h	/^	struct timespec i_atime; \/\/ Last access time$/;"	m	struct:inode	typeref:struct:inode::timespec
+i_ctime	common/include/sstack_md.h	/^	struct timespec i_ctime; \/\/ Creation time$/;"	m	struct:inode	typeref:struct:inode::timespec
+i_erasure_code_path	common/include/sstack_md.h	/^	char i_erasure_code_path[PATH_MAX]; \/\/ Erasure code for the file$/;"	m	struct:inode
+i_extent	common/include/sstack_md.h	/^	extent_t i_extent[0]; \/\/ extents $/;"	m	struct:inode
+i_gid	common/include/sstack_md.h	/^	gid_t	i_gid; \/\/ Owner gid$/;"	m	struct:inode
+i_links	common/include/sstack_md.h	/^	int		i_links; \/\/ Number of references. Used for unlink()$/;"	m	struct:inode
+i_lock	common/include/sstack_md.h	/^	pthread_mutex_t	i_lock; \/\/ We could use futex $/;"	m	struct:inode
+i_mode	common/include/sstack_md.h	/^	mode_t	i_mode; \/\/ Permissions$/;"	m	struct:inode
+i_mtime	common/include/sstack_md.h	/^	struct timespec i_mtime; \/\/ Modification time$/;"	m	struct:inode	typeref:struct:inode::timespec
+i_name	common/include/sstack_md.h	/^	char i_name[PATH_MAX]; $/;"	m	struct:inode
+i_num	common/include/sstack_md.h	/^	uint64_t i_num; \/\/ Inode number . max number of files possible is 2^64$/;"	m	struct:inode
+i_numextents	common/include/sstack_md.h	/^	int i_numextents; \/\/ Number of extents$/;"	m	struct:inode
+i_numreplicas	common/include/sstack_md.h	/^	int i_numreplicas; \/\/ Number of replicas$/;"	m	struct:inode
+i_policy	common/include/sstack_md.h	/^	policy_t i_policy; $/;"	m	struct:inode
+i_size	common/include/sstack_md.h	/^	uint64_t	i_size; \/\/ Size of the file$/;"	m	struct:inode
+i_type	common/include/sstack_md.h	/^	type_t	i_type; \/\/ Type of file	$/;"	m	struct:inode
+i_uid	common/include/sstack_md.h	/^	uid_t	i_uid; \/\/ Owner uid$/;"	m	struct:inode
+id	oss/mongo-c-driver/src/gridfs.h	/^    bson_oid_t id;      \/**> The files_id of the gridfile *\/$/;"	m	struct:__anon15
+id	oss/mongo-c-driver/src/mongo.h	/^    int id;$/;"	m	struct:__anon2
+increment	oss/mongo-c-driver/test/oid_test.c	/^int increment( void ) {$/;"	f
+index_insert_large_test	oss/mongo-c-driver/test/benchmark_test.c	/^static void index_insert_large_test( void ) {$/;"	f	file:
+index_insert_medium_test	oss/mongo-c-driver/test/benchmark_test.c	/^static void index_insert_medium_test( void ) {$/;"	f	file:
+index_insert_small_test	oss/mongo-c-driver/test/benchmark_test.c	/^static void index_insert_small_test( void ) {$/;"	f	file:
+init_policy	policy/include/policy.h	/^	uint32_t (*init_policy)(void);$/;"	m	struct:policy_plugin
+init_policy	policy/src/policy.c	/^void init_policy(void)$/;"	f
+init_thread_pool	sfsd/src/sfsd_threads.c	/^int32_t init_thread_pool(sfsd_local_t *sfsd)$/;"	f
+init_transport	sfsd/src/sfsd_transport.c	/^void init_transport (sfsd_local_t *sfsd)$/;"	f
+initialBufferSize	oss/mongo-c-driver/src/bson.c	/^const int initialBufferSize = 128;$/;"	v
+inode	common/include/sstack_md.h	/^typedef struct inode {$/;"	s
+inode_t	common/include/sstack_md.h	/^} inode_t;$/;"	t	typeref:struct:inode
+insert_sample_data	oss/mongo-c-driver/test/cursors_test.c	/^void insert_sample_data( mongo *conn, int n ) {$/;"	f
+int64	oss/mongo-c-driver/Makefile	/^    int64:=$(shell .\/check_int64.sh $(CC) unistd.h && echo unistd)$/;"	m
+int64	oss/mongo-c-driver/Makefile	/^int64:=$(shell .\/check_int64.sh $(CC) stdint.h && echo stdint)$/;"	m
+int64_t	oss/mongo-c-driver/src/bson.h	/^typedef __int64 int64_t;$/;"	t
+int64_t	oss/mongo-c-driver/src/bson.h	/^typedef long long int int64_t;$/;"	t
+ints	oss/mongo-c-driver/src/bson.h	/^    int ints[3];$/;"	m	union:__anon11
+ipv4	common/include/sstack_transport.h	/^			int ipv4;       \/\/ 1 for ipv4 and 0 for ipv6$/;"	m	struct:sstack_transport_hdr::__anon17::tcp
+ipv4_addr	common/include/sstack_chunk.h	/^		char ipv4_addr[IPV4_ADDR_MAX];$/;"	m	union:sfsd_storage::__anon26
+ipv4_addr	common/include/sstack_transport.h	/^				char ipv4_addr[IPV4_ADDR_MAX];$/;"	m	union:sstack_transport_hdr::__anon17::tcp::__anon18
+ipv6_addr	common/include/sstack_chunk.h	/^		char ipv6_addr[IPV6_ADDR_MAX];$/;"	m	union:sfsd_storage::__anon26
+ipv6_addr	common/include/sstack_transport.h	/^				char ipv6_addr[IPV6_ADDR_MAX];$/;"	m	union:sstack_transport_hdr::__anon17::tcp::__anon18
+isLegalUTF8	oss/mongo-c-driver/src/encoding.c	/^static int isLegalUTF8( const unsigned char *source, int length ) {$/;"	f	file:
+is_activated	policy/include/policy.h	/^	uint8_t  is_activated;$/;"	m	struct:policy_plugin
+j	oss/mongo-c-driver/src/mongo.h	/^    int j;            \/**< If non-zero, block until the journal sync. *\/$/;"	m	struct:mongo_write_concern
+job	common/include/sstack_jobs.h	/^typedef struct job {$/;"	s
+job	common/src/sstack_thread_pool.c	/^typedef struct job {$/;"	s	file:
+job_arg	common/src/sstack_thread_pool.c	/^    void    *job_arg;        \/* its argument *\/$/;"	m	struct:job	file:
+job_cleanup	common/src/sstack_thread_pool.c	/^job_cleanup(sstack_thread_pool_t *pool)$/;"	f	file:
+job_func	common/src/sstack_thread_pool.c	/^    void    *(*job_func)(void *);    \/* function to call *\/$/;"	m	struct:job	file:
+job_next	common/src/sstack_thread_pool.c	/^    struct job    *job_next;        \/* linked list of jobs *\/$/;"	m	struct:job	typeref:struct:job::job	file:
+job_queue	common/include/sstack_jobs.h	/^typedef struct job_queue {$/;"	s
+job_queue_t	common/include/sstack_jobs.h	/^} job_queue_t;$/;"	t	typeref:struct:job_queue
+job_status	common/include/sstack_jobs.h	/^	sfsd_job_status_t job_status[MAX_SFSD_CLIENTS]; \/\/ Status of each client$/;"	m	struct:job
+job_t	common/include/sstack_jobs.h	/^} job_t;$/;"	t	typeref:struct:job
+job_t	common/src/sstack_thread_pool.c	/^} job_t;$/;"	t	typeref:struct:job	file:
+job_type	common/include/sstack_jobs.h	/^	sfsd_job_type_t job_type;$/;"	m	struct:job
+json_to_bson	oss/mongo-c-driver/test/json_test.c	/^char *json_to_bson( char *js ) {$/;"	f
+json_to_bson_append	oss/mongo-c-driver/test/json_test.c	/^void json_to_bson_append( bson_buffer *bb , struct json_object *o ) {$/;"	f
+json_to_bson_append_array	oss/mongo-c-driver/test/json_test.c	/^void json_to_bson_append_array( bson_buffer *bb , struct json_object *a ) {$/;"	f
+json_to_bson_append_element	oss/mongo-c-driver/test/json_test.c	/^void json_to_bson_append_element( bson_buffer *bb , const char *k , struct json_object *v ) {$/;"	f
+json_to_bson_test	oss/mongo-c-driver/test/json_test.c	/^int json_to_bson_test( char *js , int size , const char *hash ) {$/;"	f
+jump_table	arch/x86_64/crc_pcl.S	/^jump_table:$/;"	l
+kernel_name	oss/mongo-c-driver/Makefile	/^kernel_name := $(shell sh -c 'uname -s 2>\/dev\/null || echo not')$/;"	m
+key_type_t	sfs/include/sfs.h	/^} key_type_t;$/;"	t	typeref:enum:__anon1
+l	oss/mongo-c-driver/src/bcon.h	/^    long l;          \/**< 12  e_name  int64               Macro BL(v)  - 64-bit Integer *\/$/;"	m	union:bcon
+lasterrcode	oss/mongo-c-driver/src/mongo.h	/^    int lasterrcode;            \/**< getlasterror code from the server. *\/$/;"	m	struct:mongo
+lasterrstr	oss/mongo-c-driver/src/mongo.h	/^    char lasterrstr[MONGO_ERR_LEN]; \/**< getlasterror string from the server. *\/$/;"	m	struct:mongo
+latex_documents	oss/mongo-c-driver/docs/source/sphinx/source/conf.py	/^latex_documents = [$/;"	v
+len	oss/mongo-c-driver/src/mongo.h	/^    int len;$/;"	m	struct:__anon2
+length	oss/mongo-c-driver/src/gridfs.h	/^    gridfs_offset length; \/**> The length of this gridfile *\/$/;"	m	struct:__anon15
+less_than_1	arch/x86_64/crc_pcl.S	/^less_than_1:                                 ; Length should be zero$/;"	l
+less_than_2	arch/x86_64/crc_pcl.S	/^less_than_2:                                 ; Length should be stored in the MSB of len_dw$/;"	l
+less_than_24	arch/x86_64/crc_pcl.S	/^less_than_24:$/;"	l
+less_than_4	arch/x86_64/crc_pcl.S	/^less_than_4:                                 ; Length should be stored in upper 2 bits of len_dw$/;"	l
+less_than_8	arch/x86_64/crc_pcl.S	/^less_than_8:                                 ; Length should be stored in upper 3 bits of len_dw$/;"	l
+less_than_8_post_shl1	arch/x86_64/crc_pcl.S	/^less_than_8_post_shl1:$/;"	l
+level	common/include/sstack_log.h	/^	char level[SFS_LOGLEVEL_LEN];$/;"	m	struct:log_entry
+limit	oss/mongo-c-driver/src/mongo.h	/^    int limit;         \/**< Bitfield containing cursor options. *\/$/;"	m	struct:__anon7
+log	common/include/sstack_log.h	/^	char log[SFS_LOG_ENTRY_LEN];$/;"	m	struct:log_entry
+log_context	common/include/sstack_log.h	/^typedef struct log_context$/;"	s
+log_ctx	sfsd/include/sstack_sfsd.h	/^	log_ctx_t *log_ctx;$/;"	m	struct:sfsd_local
+log_ctx_t	common/include/sstack_log.h	/^} log_ctx_t;$/;"	t	typeref:struct:log_context
+log_entry	common/include/sstack_log.h	/^typedef struct log_entry$/;"	s
+log_entry_t	common/include/sstack_log.h	/^} log_entry_t;$/;"	t	typeref:struct:log_entry
+log_fd	common/include/sstack_log.h	/^	int log_fd;  \/\/ FD of the currently used log file$/;"	m	struct:log_context
+log_file_name	common/include/sstack_log.h	/^	char *log_file_name; \/\/ log file name current being used$/;"	m	struct:log_context
+log_fp	common/include/sstack_log.h	/^	FILE *log_fp;$/;"	m	struct:log_context
+log_initialized	common/include/sstack_log.h	/^	int log_initialized; \/\/ self explanatory$/;"	m	struct:log_context
+log_level	common/include/sstack_log.h	/^	sfs_log_level_t log_level; \/\/ Current logging level$/;"	m	struct:log_context
+log_mutex	common/include/sstack_log.h	/^	pthread_mutex_t log_mutex; \/\/ For synchronization$/;"	m	struct:log_context
+main	cli/src/sstack_log_decode.c	/^main(int argc, char *argv[])$/;"	f
+main	oss/mongo-c-driver/docs/buildscripts/docs.py	/^def main():$/;"	f
+main	oss/mongo-c-driver/docs/examples/example.c	/^int main() {$/;"	f
+main	oss/mongo-c-driver/test/auth_test.c	/^int main() {$/;"	f
+main	oss/mongo-c-driver/test/bcon_test.c	/^int main(int argc, char **argv) {$/;"	f
+main	oss/mongo-c-driver/test/benchmark_test.c	/^int main() {$/;"	f
+main	oss/mongo-c-driver/test/bson_alloc_test.c	/^int main() {$/;"	f
+main	oss/mongo-c-driver/test/bson_subobject_test.c	/^int main() {$/;"	f
+main	oss/mongo-c-driver/test/bson_test.c	/^int main() {$/;"	f
+main	oss/mongo-c-driver/test/commands_test.c	/^int main() {$/;"	f
+main	oss/mongo-c-driver/test/connect_test.c	/^int main() {$/;"	f
+main	oss/mongo-c-driver/test/count_delete_test.c	/^int main() {$/;"	f
+main	oss/mongo-c-driver/test/cpptest.cpp	/^int main(){$/;"	f
+main	oss/mongo-c-driver/test/cursors_test.c	/^int main() {$/;"	f
+main	oss/mongo-c-driver/test/endian_swap_test.c	/^int main() {$/;"	f
+main	oss/mongo-c-driver/test/env_posix_test.c	/^int main() {$/;"	f
+main	oss/mongo-c-driver/test/env_win32_test.c	/^int main() {$/;"	f
+main	oss/mongo-c-driver/test/errors_test.c	/^int main() {$/;"	f
+main	oss/mongo-c-driver/test/examples_test.c	/^int main() {$/;"	f
+main	oss/mongo-c-driver/test/functions_test.c	/^int main() {$/;"	f
+main	oss/mongo-c-driver/test/gridfs_test.c	/^int main( void ) {$/;"	f
+main	oss/mongo-c-driver/test/helpers_test.c	/^int main() {$/;"	f
+main	oss/mongo-c-driver/test/json_test.c	/^int main() {$/;"	f
+main	oss/mongo-c-driver/test/oid_test.c	/^int main() {$/;"	f
+main	oss/mongo-c-driver/test/platform/linux/timeouts.c	/^int main() {$/;"	f
+main	oss/mongo-c-driver/test/replica_set_test.c	/^int main() {$/;"	f
+main	oss/mongo-c-driver/test/replset_test.c	/^int main() {$/;"	f
+main	oss/mongo-c-driver/test/resize_test.c	/^int main() {$/;"	f
+main	oss/mongo-c-driver/test/simple_test.c	/^int main() {$/;"	f
+main	oss/mongo-c-driver/test/sizes_test.c	/^int main() {$/;"	f
+main	oss/mongo-c-driver/test/unix_socket_test.c	/^int main() {$/;"	f
+main	oss/mongo-c-driver/test/update_test.c	/^int main() {$/;"	f
+main	oss/mongo-c-driver/test/validate_test.c	/^int main() {$/;"	f
+main	oss/mongo-c-driver/test/write_concern_test.c	/^int main() {$/;"	f
+main	policy/src/policy.c	/^int main(void)$/;"	f
+main	sfs/src/sfs.c	/^main(int argc, char *argv[])$/;"	f
+main	sfsd/src/main.c	/^int main(int argc, char **argv)$/;"	f
+make_large	oss/mongo-c-driver/test/benchmark_test.c	/^static void make_large( bson *out, int i ) {$/;"	f	file:
+make_medium	oss/mongo-c-driver/test/benchmark_test.c	/^static void make_medium( bson *out, int i ) {$/;"	f	file:
+make_query	oss/mongo-c-driver/test/benchmark_test.c	/^static void make_query( bson *b ) {$/;"	f	file:
+make_small	oss/mongo-c-driver/test/benchmark_test.c	/^static void make_small( bson *out, int i ) {$/;"	f	file:
+make_small_invalid	oss/mongo-c-driver/test/validate_test.c	/^static void make_small_invalid( bson *out, int i ) {$/;"	f	file:
+malloc_for_tests	oss/mongo-c-driver/test/bson_alloc_test.c	/^void * malloc_for_tests( size_t size ) {$/;"	f
+master_doc	oss/mongo-c-driver/docs/source/sphinx/source/conf.py	/^master_doc = 'index'$/;"	v
+max_bson_size	oss/mongo-c-driver/src/mongo.h	/^    int max_bson_size;         \/**< Largest BSON object allowed on this connection. *\/$/;"	m	struct:mongo
+meta	oss/mongo-c-driver/src/gridfs.h	/^    bson *meta;         \/**> The GridFile's bson object where all its metadata is located *\/$/;"	m	struct:__anon15
+mode	oss/mongo-c-driver/src/mongo.h	/^    const char *mode; \/**< Either "majority" or a getlasterrormode. Overrides w value. *\/$/;"	m	struct:mongo_write_concern
+mongo	oss/mongo-c-driver/src/mongo.h	/^typedef struct mongo {$/;"	s
+mongo	oss/mongo-c-driver/src/mongo.h	/^} mongo;$/;"	t	typeref:struct:mongo
+mongo_alloc	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT mongo* mongo_alloc( void ) {$/;"	f
+mongo_bson_valid	oss/mongo-c-driver/src/mongo.c	/^static int mongo_bson_valid( mongo *conn, const bson *bson, int write ) {$/;"	f	file:
+mongo_check_connection	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT int mongo_check_connection( mongo *conn ) {$/;"	f
+mongo_check_is_master	oss/mongo-c-driver/src/mongo.c	/^static int mongo_check_is_master( mongo *conn ) {$/;"	f	file:
+mongo_check_last_error	oss/mongo-c-driver/src/mongo.c	/^static int mongo_check_last_error( mongo *conn, const char *ns,$/;"	f	file:
+mongo_choose_write_concern	oss/mongo-c-driver/src/mongo.c	/^static int mongo_choose_write_concern( mongo *conn,$/;"	f	file:
+mongo_clear_errors	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT void mongo_clear_errors( mongo *conn ) {$/;"	f
+mongo_client	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT int mongo_client( mongo *conn , const char *host, int port ) {$/;"	f
+mongo_cmd_add_user	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT int mongo_cmd_add_user( mongo *conn, const char *db, const char *user, const char *pass ) {$/;"	f
+mongo_cmd_authenticate	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT bson_bool_t mongo_cmd_authenticate( mongo *conn, const char *db, const char *user, const char *pass ) {$/;"	f
+mongo_cmd_drop_collection	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT int mongo_cmd_drop_collection( mongo *conn, const char *db, const char *collection, bson *out ) {$/;"	f
+mongo_cmd_drop_db	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT int mongo_cmd_drop_db( mongo *conn, const char *db ) {$/;"	f
+mongo_cmd_get_error_helper	oss/mongo-c-driver/src/mongo.c	/^static int mongo_cmd_get_error_helper( mongo *conn, const char *db,$/;"	f	file:
+mongo_cmd_get_last_error	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT int mongo_cmd_get_last_error( mongo *conn, const char *db, bson *out ) {$/;"	f
+mongo_cmd_get_prev_error	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT int mongo_cmd_get_prev_error( mongo *conn, const char *db, bson *out ) {$/;"	f
+mongo_cmd_ismaster	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT bson_bool_t mongo_cmd_ismaster( mongo *conn, bson *realout ) {$/;"	f
+mongo_cmd_reset_error	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT void mongo_cmd_reset_error( mongo *conn, const char *db ) {$/;"	f
+mongo_connect	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT int mongo_connect( mongo *conn , const char *host, int port ) {$/;"	f
+mongo_count	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT double mongo_count( mongo *conn, const char *db, const char *coll, const bson *query ) {$/;"	f
+mongo_create_capped_collection	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT int mongo_create_capped_collection( mongo *conn, const char *db,$/;"	f
+mongo_create_collection	db/mongo/include/mongo_db.h	/^int mongo_create_collection( mongo *conn, const char *db,$/;"	f
+mongo_create_index	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT int mongo_create_index( mongo *conn, const char *ns, const bson *key, const char *name, int options, bson *out ) {$/;"	f
+mongo_create_simple_index	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT bson_bool_t mongo_create_simple_index( mongo *conn, const char *ns, const char *field, int options, bson *out ) {$/;"	f
+mongo_cursor	oss/mongo-c-driver/src/mongo.h	/^} mongo_cursor;$/;"	t	typeref:struct:__anon7
+mongo_cursor_alloc	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT mongo_cursor* mongo_cursor_alloc( void ) {$/;"	f
+mongo_cursor_bson	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT const bson *mongo_cursor_bson( mongo_cursor *cursor ) {$/;"	f
+mongo_cursor_bson_valid	oss/mongo-c-driver/src/mongo.c	/^static int mongo_cursor_bson_valid( mongo_cursor *cursor, const bson *bson ) {$/;"	f	file:
+mongo_cursor_data	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT const char *mongo_cursor_data( mongo_cursor *cursor ) {$/;"	f
+mongo_cursor_dealloc	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT void mongo_cursor_dealloc( mongo_cursor* cursor ) {$/;"	f
+mongo_cursor_destroy	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT int mongo_cursor_destroy( mongo_cursor *cursor ) {$/;"	f
+mongo_cursor_error_t	oss/mongo-c-driver/src/mongo.h	/^typedef enum mongo_cursor_error_t {$/;"	g
+mongo_cursor_error_t	oss/mongo-c-driver/src/mongo.h	/^} mongo_cursor_error_t;$/;"	t	typeref:enum:mongo_cursor_error_t
+mongo_cursor_flags	oss/mongo-c-driver/src/mongo.h	/^enum mongo_cursor_flags {$/;"	g
+mongo_cursor_get_more	oss/mongo-c-driver/src/mongo.c	/^static int mongo_cursor_get_more( mongo_cursor *cursor ) {$/;"	f	file:
+mongo_cursor_init	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT void mongo_cursor_init( mongo_cursor *cursor, mongo *conn, const char *ns ) {$/;"	f
+mongo_cursor_next	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT int mongo_cursor_next( mongo_cursor *cursor ) {$/;"	f
+mongo_cursor_op_query	oss/mongo-c-driver/src/mongo.c	/^static int mongo_cursor_op_query( mongo_cursor *cursor ) {$/;"	f	file:
+mongo_cursor_opts	oss/mongo-c-driver/src/mongo.h	/^enum mongo_cursor_opts {$/;"	g
+mongo_cursor_set_fields	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT void mongo_cursor_set_fields( mongo_cursor *cursor, const bson *fields ) {$/;"	f
+mongo_cursor_set_limit	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT void mongo_cursor_set_limit( mongo_cursor *cursor, int limit ) {$/;"	f
+mongo_cursor_set_options	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT void mongo_cursor_set_options( mongo_cursor *cursor, int options ) {$/;"	f
+mongo_cursor_set_query	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT void mongo_cursor_set_query( mongo_cursor *cursor, const bson *query ) {$/;"	f
+mongo_cursor_set_skip	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT void mongo_cursor_set_skip( mongo_cursor *cursor, int skip ) {$/;"	f
+mongo_data_append	oss/mongo-c-driver/src/mongo.c	/^static char *mongo_data_append( char *start , const void *data , size_t len ) {$/;"	f	file:
+mongo_data_append32	oss/mongo-c-driver/src/mongo.c	/^static char *mongo_data_append32( char *start , const void *data ) {$/;"	f	file:
+mongo_data_append64	oss/mongo-c-driver/src/mongo.c	/^static char *mongo_data_append64( char *start , const void *data ) {$/;"	f	file:
+mongo_db_cleanup	db/mongo/src/mongo_db.c	/^mongo_db_cleanup(void)$/;"	f
+mongo_db_close	db/mongo/src/mongo_db.c	/^mongo_db_close(void)$/;"	f
+mongo_db_delete	db/mongo/src/mongo_db.c	/^mongo_db_delete(uint64_t key)$/;"	f
+mongo_db_get	db/mongo/src/mongo_db.c	/^mongo_db_get(uint64_t key, char *data, size_t len, db_type_t type)$/;"	f
+mongo_db_init	db/mongo/src/mongo_db.c	/^mongo_db_init(void)$/;"	f
+mongo_db_insert	db/mongo/src/mongo_db.c	/^mongo_db_insert(uint64_t key, char *data, size_t len, db_type_t type)$/;"	f
+mongo_db_mutex	db/mongo/src/mongo_db.c	/^pthread_mutex_t mongo_db_mutex = PTHREAD_MUTEX_INITIALIZER;$/;"	v
+mongo_db_open	db/mongo/src/mongo_db.c	/^mongo_db_open(void)$/;"	f
+mongo_db_seekread	db/mongo/src/mongo_db.c	/^mongo_db_seekread(uint64_t key, char *data, size_t len, off_t offset,$/;"	f
+mongo_db_update	db/mongo/src/mongo_db.c	/^mongo_db_update(uint64_t key, char *data, size_t len, db_type_t type)$/;"	f
+mongo_dealloc	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT void mongo_dealloc(mongo* conn) {$/;"	f
+mongo_destroy	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT void mongo_destroy( mongo *conn ) {$/;"	f
+mongo_disconnect	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT void mongo_disconnect( mongo *conn ) {$/;"	f
+mongo_env_close_socket	oss/mongo-c-driver/src/env.c	/^int mongo_env_close_socket( SOCKET socket ) {$/;"	f
+mongo_env_read_socket	oss/mongo-c-driver/src/env.c	/^int mongo_env_read_socket( mongo *conn, void *buf, size_t len ) {$/;"	f
+mongo_env_set_socket_op_timeout	oss/mongo-c-driver/src/env.c	/^int mongo_env_set_socket_op_timeout( mongo *conn, int millis ) {$/;"	f
+mongo_env_sock_init	oss/mongo-c-driver/src/env.c	/^MONGO_EXPORT int mongo_env_sock_init( void ) {$/;"	f
+mongo_env_sock_init	oss/mongo-c-driver/src/env.c	/^int mongo_env_sock_init( void ) {$/;"	f
+mongo_env_socket_connect	oss/mongo-c-driver/src/env.c	/^int mongo_env_socket_connect( mongo *conn, const char *host, int port ) {$/;"	f
+mongo_env_unix_socket_connect	oss/mongo-c-driver/src/env.c	/^static int mongo_env_unix_socket_connect( mongo *conn, const char *sock_path ) {$/;"	f	file:
+mongo_env_write_socket	oss/mongo-c-driver/src/env.c	/^int mongo_env_write_socket( mongo *conn, const void *buf, size_t len ) {$/;"	f
+mongo_error_t	oss/mongo-c-driver/src/mongo.h	/^typedef enum mongo_error_t {$/;"	g
+mongo_error_t	oss/mongo-c-driver/src/mongo.h	/^} mongo_error_t;$/;"	t	typeref:enum:mongo_error_t
+mongo_find	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT mongo_cursor *mongo_find( mongo *conn, const char *ns, const bson *query,$/;"	f
+mongo_find_one	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT int mongo_find_one( mongo *conn, const char *ns, const bson *query,$/;"	f
+mongo_get_err	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT int mongo_get_err(mongo* conn) {$/;"	f
+mongo_get_host	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT const char* mongo_get_host(mongo* conn, int i) {$/;"	f
+mongo_get_host_count	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT int mongo_get_host_count(mongo* conn) {$/;"	f
+mongo_get_op_timeout	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT int mongo_get_op_timeout(mongo* conn) {$/;"	f
+mongo_get_primary	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT const char* mongo_get_primary(mongo* conn) {$/;"	f
+mongo_get_server_err	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT int  mongo_get_server_err(mongo* conn) {$/;"	f
+mongo_get_server_err_string	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT const char*  mongo_get_server_err_string(mongo* conn) {$/;"	f
+mongo_get_server_version	oss/mongo-c-driver/test/test.h	/^int mongo_get_server_version( char *version ) {$/;"	f
+mongo_get_socket	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT SOCKET mongo_get_socket(mongo* conn) {$/;"	f
+mongo_header	oss/mongo-c-driver/src/mongo.h	/^} mongo_header;$/;"	t	typeref:struct:__anon2
+mongo_host_port	oss/mongo-c-driver/src/mongo.h	/^typedef struct mongo_host_port {$/;"	s
+mongo_host_port	oss/mongo-c-driver/src/mongo.h	/^} mongo_host_port;$/;"	t	typeref:struct:mongo_host_port
+mongo_index_opts	oss/mongo-c-driver/src/mongo.h	/^enum mongo_index_opts {$/;"	g
+mongo_init	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT void mongo_init( mongo *conn ) {$/;"	f
+mongo_init_sockets	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT void mongo_init_sockets( void ) {$/;"	f
+mongo_insert	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT int mongo_insert( mongo *conn, const char *ns,$/;"	f
+mongo_insert_batch	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT int mongo_insert_batch( mongo *conn, const char *ns,$/;"	f
+mongo_insert_opts	oss/mongo-c-driver/src/mongo.h	/^enum mongo_insert_opts {$/;"	g
+mongo_is_connected	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT int mongo_is_connected(mongo* conn) {$/;"	f
+mongo_md5_append	oss/mongo-c-driver/src/md5.c	/^mongo_md5_append(mongo_md5_state_t *pms, const mongo_md5_byte_t *data, int nbytes) {$/;"	f
+mongo_md5_byte_t	oss/mongo-c-driver/src/md5.h	/^typedef unsigned char mongo_md5_byte_t; \/* 8-bit byte *\/$/;"	t
+mongo_md5_finish	oss/mongo-c-driver/src/md5.c	/^mongo_md5_finish(mongo_md5_state_t *pms, mongo_md5_byte_t digest[16]) {$/;"	f
+mongo_md5_init	oss/mongo-c-driver/src/md5.c	/^mongo_md5_init(mongo_md5_state_t *pms) {$/;"	f
+mongo_md5_process	oss/mongo-c-driver/src/md5.c	/^mongo_md5_process(mongo_md5_state_t *pms, const mongo_md5_byte_t *data \/*[64]*\/) {$/;"	f	file:
+mongo_md5_state_s	oss/mongo-c-driver/src/md5.h	/^typedef struct mongo_md5_state_s {$/;"	s
+mongo_md5_state_t	oss/mongo-c-driver/src/md5.h	/^} mongo_md5_state_t;$/;"	t	typeref:struct:mongo_md5_state_s
+mongo_md5_word_t	oss/mongo-c-driver/src/md5.h	/^typedef unsigned int mongo_md5_word_t; \/* 32-bit word *\/$/;"	t
+mongo_message	oss/mongo-c-driver/src/mongo.h	/^} mongo_message;$/;"	t	typeref:struct:__anon3
+mongo_message_create	oss/mongo-c-driver/src/mongo.c	/^static mongo_message *mongo_message_create( size_t len , int id , int responseTo , int op ) {$/;"	f	file:
+mongo_message_send	oss/mongo-c-driver/src/mongo.c	/^static int mongo_message_send( mongo *conn, mongo_message *mm ) {$/;"	f	file:
+mongo_message_send_and_check_write_concern	oss/mongo-c-driver/src/mongo.c	/^static int mongo_message_send_and_check_write_concern( mongo *conn, const char *ns, mongo_message *mm, mongo_write_concern *write_concern ) {$/;"	f	file:
+mongo_ns_to_cmd_db	oss/mongo-c-driver/src/mongo.c	/^static char *mongo_ns_to_cmd_db( const char *ns ) {$/;"	f	file:
+mongo_operations	oss/mongo-c-driver/src/mongo.h	/^enum mongo_operations {$/;"	g
+mongo_parse_host	oss/mongo-c-driver/src/mongo.c	/^void mongo_parse_host( const char *host_string, mongo_host_port *host_port ) {$/;"	f
+mongo_pass_digest	oss/mongo-c-driver/src/mongo.c	/^static int mongo_pass_digest( mongo *conn, const char *user, const char *pass, char hex_digest[33] ) {$/;"	f	file:
+mongo_read_response	oss/mongo-c-driver/src/mongo.c	/^static int mongo_read_response( mongo *conn, mongo_reply **reply ) {$/;"	f	file:
+mongo_reconnect	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT int mongo_reconnect( mongo *conn ) {$/;"	f
+mongo_remove	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT int mongo_remove( mongo *conn, const char *ns, const bson *cond,$/;"	f
+mongo_replica_set	oss/mongo-c-driver/src/mongo.h	/^} mongo_replica_set;$/;"	t	typeref:struct:__anon6
+mongo_replica_set_add_node	oss/mongo-c-driver/src/mongo.c	/^static void mongo_replica_set_add_node( mongo_host_port **list, const char *host, int port ) {$/;"	f	file:
+mongo_replica_set_add_seed	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT void mongo_replica_set_add_seed( mongo *conn, const char *host, int port ) {$/;"	f
+mongo_replica_set_check_host	oss/mongo-c-driver/src/mongo.c	/^static int mongo_replica_set_check_host( mongo *conn ) {$/;"	f	file:
+mongo_replica_set_check_seed	oss/mongo-c-driver/src/mongo.c	/^static void mongo_replica_set_check_seed( mongo *conn ) {$/;"	f	file:
+mongo_replica_set_client	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT int mongo_replica_set_client( mongo *conn ) {$/;"	f
+mongo_replica_set_free_list	oss/mongo-c-driver/src/mongo.c	/^static void mongo_replica_set_free_list( mongo_host_port **list ) {$/;"	f	file:
+mongo_replica_set_init	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT void mongo_replica_set_init( mongo *conn, const char *name ) {$/;"	f
+mongo_replset_add_seed	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT void mongo_replset_add_seed( mongo *conn, const char *host, int port ) {$/;"	f
+mongo_replset_connect	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT int mongo_replset_connect( mongo *conn ) {$/;"	f
+mongo_replset_init	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT void mongo_replset_init( mongo *conn, const char *name ) {$/;"	f
+mongo_reply	oss/mongo-c-driver/src/mongo.h	/^} mongo_reply;$/;"	t	typeref:struct:__anon5
+mongo_reply_fields	oss/mongo-c-driver/src/mongo.h	/^} mongo_reply_fields;$/;"	t	typeref:struct:__anon4
+mongo_run_command	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT int mongo_run_command( mongo *conn, const char *db, const bson *command,$/;"	f
+mongo_set_last_error	oss/mongo-c-driver/src/mongo.c	/^static void mongo_set_last_error( mongo *conn, bson_iterator *it, bson *obj ) {$/;"	f	file:
+mongo_set_op_timeout	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT int mongo_set_op_timeout( mongo *conn, int millis ) {$/;"	f
+mongo_set_write_concern	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT void mongo_set_write_concern( mongo *conn,$/;"	f
+mongo_simple_int_command	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT int mongo_simple_int_command( mongo *conn, const char *db,$/;"	f
+mongo_simple_str_command	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT int mongo_simple_str_command( mongo *conn, const char *db,$/;"	f
+mongo_update	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT int mongo_update( mongo *conn, const char *ns, const bson *cond,$/;"	f
+mongo_update_opts	oss/mongo-c-driver/src/mongo.h	/^enum mongo_update_opts {$/;"	g
+mongo_validate_ns	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT int mongo_validate_ns( mongo *conn, const char *ns ) {$/;"	f
+mongo_write_concern	oss/mongo-c-driver/src/mongo.h	/^typedef struct mongo_write_concern {$/;"	s
+mongo_write_concern	oss/mongo-c-driver/src/mongo.h	/^} mongo_write_concern;$/;"	t	typeref:struct:mongo_write_concern
+mongo_write_concern_alloc	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT mongo_write_concern* mongo_write_concern_alloc( void ) {$/;"	f
+mongo_write_concern_dealloc	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT void mongo_write_concern_dealloc( mongo_write_concern* write_concern ) {$/;"	f
+mongo_write_concern_destroy	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT void mongo_write_concern_destroy( mongo_write_concern *write_concern ) {$/;"	f
+mongo_write_concern_finish	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT int mongo_write_concern_finish( mongo_write_concern *write_concern ) {$/;"	f
+mongo_write_concern_get_cmd	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT bson* mongo_write_concern_get_cmd( mongo_write_concern *write_concern ){    $/;"	f
+mongo_write_concern_get_fsync	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT int mongo_write_concern_get_fsync( mongo_write_concern *write_concern ){    $/;"	f
+mongo_write_concern_get_j	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT int mongo_write_concern_get_j( mongo_write_concern *write_concern ){    $/;"	f
+mongo_write_concern_get_mode	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT const char* mongo_write_concern_get_mode( mongo_write_concern *write_concern ){    $/;"	f
+mongo_write_concern_get_w	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT int mongo_write_concern_get_w( mongo_write_concern *write_concern ){    $/;"	f
+mongo_write_concern_get_wtimeout	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT int mongo_write_concern_get_wtimeout( mongo_write_concern *write_concern ){    $/;"	f
+mongo_write_concern_init	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT void mongo_write_concern_init( mongo_write_concern *write_concern ) {$/;"	f
+mongo_write_concern_set_fsync	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT void mongo_write_concern_set_fsync( mongo_write_concern *write_concern, int fsync ){    $/;"	f
+mongo_write_concern_set_j	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT void mongo_write_concern_set_j( mongo_write_concern *write_concern, int j ){    $/;"	f
+mongo_write_concern_set_mode	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT void mongo_write_concern_set_mode( mongo_write_concern *write_concern, const char* mode ){    $/;"	f
+mongo_write_concern_set_w	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT void mongo_write_concern_set_w( mongo_write_concern *write_concern, int w ){    $/;"	f
+mongo_write_concern_set_wtimeout	oss/mongo-c-driver/src/mongo.c	/^MONGO_EXPORT void mongo_write_concern_set_wtimeout( mongo_write_concern *write_concern, int wtimeout ){    $/;"	f
+my_errprintf	oss/mongo-c-driver/test/functions_test.c	/^int my_errprintf( const char *format, ... ) {$/;"	f
+my_fprintf	oss/mongo-c-driver/test/functions_test.c	/^int my_fprintf( FILE *fp, const char *format, ... ) {$/;"	f
+my_free	oss/mongo-c-driver/test/functions_test.c	/^void my_free( void *ptr ) {$/;"	f
+my_malloc	oss/mongo-c-driver/test/functions_test.c	/^void *my_malloc( size_t size ) {$/;"	f
+my_printf	oss/mongo-c-driver/test/functions_test.c	/^int my_printf( const char *format, ... ) {$/;"	f
+my_realloc	oss/mongo-c-driver/test/functions_test.c	/^void *my_realloc( void *ptr, size_t size ) {$/;"	f
+my_sprintf	oss/mongo-c-driver/test/functions_test.c	/^int my_sprintf( char *s, const char *format, ... ) {$/;"	f
+name	oss/mongo-c-driver/src/mongo.h	/^    char *name;                    \/**< Name of the replica set. *\/$/;"	m	struct:__anon6
+name	oss/mongo-c-driver/test/bcon_test.c	/^    char *name;$/;"	m	struct:test_suite	file:
+nchunks	sfs/src/sfs.c	/^uint64_t nchunks = 0;$/;"	v
+next	common/include/sstack_policy.h	/^	struct policy *next;$/;"	m	struct:policy	typeref:struct:policy::policy
+next	oss/mongo-c-driver/src/mongo.h	/^    struct mongo_host_port *next;$/;"	m	struct:mongo_host_port	typeref:struct:mongo_host_port::mongo_host_port
+notify_waiters	common/src/sstack_thread_pool.c	/^notify_waiters(sstack_thread_pool_t *pool)$/;"	f	file:
+ns	oss/mongo-c-driver/src/mongo.h	/^    const char *ns;    \/**< owned by cursor *\/$/;"	m	struct:__anon7
+ns	oss/mongo-c-driver/test/errors_test.c	/^static const char *ns = "test.c.error";$/;"	v	file:
+nullary	oss/mongo-c-driver/test/benchmark_test.c	/^typedef void( *nullary )( void );$/;"	t	file:
+num	oss/mongo-c-driver/src/mongo.h	/^    int num;$/;"	m	struct:__anon4
+num_bytes	db/couchbase/src/couchdb.c	/^int num_bytes = 0;$/;"	v
+num_chunks	common/include/sstack_chunk.h	/^	int num_chunks;$/;"	m	struct:sfs_chunk_domain
+num_clients	common/include/sstack_jobs.h	/^	int num_clients; \/\/ Number of valid clients$/;"	m	struct:job
+o	oss/mongo-c-driver/src/bcon.h	/^    char *o;         \/**< 07  e_name  (byte*12)           Macro BO(v)  - ObjectId *\/$/;"	m	union:bcon
+objs	oss/mongo-c-driver/src/mongo.h	/^    char objs;$/;"	m	struct:__anon5
+oid_fuzz_func	oss/mongo-c-driver/src/bson.c	/^static int ( *oid_fuzz_func )( void ) = NULL;$/;"	v	file:
+oid_inc_func	oss/mongo-c-driver/src/bson.c	/^static int ( *oid_inc_func )( void )  = NULL;$/;"	v	file:
+op	oss/mongo-c-driver/src/mongo.h	/^    int op;$/;"	m	struct:__anon2
+op_timeout_ms	oss/mongo-c-driver/src/mongo.h	/^    int op_timeout_ms;         \/**< Read and write timeout in milliseconds. *\/$/;"	m	struct:mongo
+options	oss/mongo-c-driver/src/mongo.h	/^    int options;       \/**< Bitfield containing cursor options. *\/$/;"	m	struct:__anon7
+ownsData	oss/mongo-c-driver/src/bson.h	/^    bson_bool_t ownsData; \/**< Whether destroying this object will deallocate its data block *\/$/;"	m	struct:__anon10
+p_extentsize	common/include/sstack_policy.h	/^	uint64_t p_extentsize; \/\/ Size of each extent if striped in 4KiB blocks$/;"	m	struct:policy
+p_ishidden	common/include/sstack_policy.h	/^	uint8_t p_ishidden:1; \/\/ Not shown upon readdir()$/;"	m	struct:policy
+p_isstriped	common/include/sstack_policy.h	/^	uint8_t p_isstriped:1; \/\/ If 0, lies as a whole file.$/;"	m	struct:policy
+p_qoslevel	common/include/sstack_policy.h	/^	uint8_t p_qoslevel; \/\/  self explanatory $/;"	m	struct:policy
+parse_line	policy/src/policy.c	/^static void parse_line(char *line, struct policy_input **policy_input)$/;"	f	file:
+path	common/include/sstack_chunk.h	/^	char path[PATH_MAX];$/;"	m	struct:sfsd_storage
+payload	common/include/sstack_jobs.h	/^	sstack_payload_t	payload[0];$/;"	m	struct:job
+payload	common/include/sstack_jobs.h	/^	sstack_payload_t *payload[MAX_QUEUE_SIZE]; \/* The array of payloads *\/$/;"	m	struct:job_queue
+payload_len	common/include/sstack_jobs.h	/^	int payload_len;$/;"	m	struct:job
+pe_attr	policy/include/policy.h	/^	struct attribute *pe_attr;$/;"	m	struct:policy_entry	typeref:struct:policy_entry::attribute
+pe_lock	policy/include/policy.h	/^	pthread_spinlock_t pe_lock;$/;"	m	struct:policy_entry
+pe_num_plugins	policy/include/policy.h	/^	size_t pe_num_plugins;$/;"	m	struct:policy_entry
+pe_policy	policy/include/policy.h	/^	struct policy_plugin *pe_policy[0];$/;"	m	struct:policy_entry	typeref:struct:policy_entry::policy_plugin
+pe_refcount	policy/include/policy.h	/^	uint32_t pe_refcount;$/;"	m	struct:policy_entry
+pending_data	oss/mongo-c-driver/src/gridfs.h	/^    char *pending_data; \/**> A buffer storing data still to be written to chunks *\/$/;"	m	struct:__anon15
+pending_len	oss/mongo-c-driver/src/gridfs.h	/^    size_t pending_len;    \/**> Length of pending_data buffer *\/$/;"	m	struct:__anon15
+pi_attr	policy/src/policy.c	/^	struct attribute *pi_attr;$/;"	m	struct:policy_input	typeref:struct:policy_input::attribute	file:
+pi_fname	policy/src/policy.c	/^	char	pi_fname[PATH_MAX];$/;"	m	struct:policy_input	file:
+pi_ftype	policy/src/policy.c	/^	char	pi_ftype [TYPE_LEN];$/;"	m	struct:policy_input	file:
+pi_gid	policy/src/policy.c	/^	gid_t	pi_gid;$/;"	m	struct:policy_input	file:
+pi_num_policy	policy/src/policy.c	/^	size_t	pi_num_policy;$/;"	m	struct:policy_input	file:
+pi_policy_tag	policy/src/policy.c	/^	char	pi_policy_tag[MAX_POLICIES][POLICY_TAG_LEN];$/;"	m	struct:policy_input	file:
+pi_uid	policy/src/policy.c	/^	uid_t	pi_uid;$/;"	m	struct:policy_input	file:
+policy	common/include/sstack_policy.h	/^typedef struct policy {$/;"	s
+policy_entry	policy/include/policy.h	/^struct policy_entry$/;"	s
+policy_input	policy/src/policy.c	/^struct policy_input$/;"	s	file:
+policy_plugin	policy/include/policy.h	/^struct policy_plugin$/;"	s
+policy_search_table	policy/include/policy.h	/^struct policy_search_table$/;"	s
+policy_slots	policy/include/policy.h	/^	uint64_t policy_slots;$/;"	m	struct:policy_table
+policy_t	common/include/sstack_policy.h	/^} policy_t;$/;"	t	typeref:struct:policy
+policy_tab	policy/src/policy.c	/^static struct policy_table policy_tab;$/;"	v	typeref:struct:policy_table	file:
+policy_table	policy/include/policy.h	/^struct policy_table$/;"	s
+pool_active	common/src/sstack_thread_pool.c	/^    active_t		*pool_active;    \/* list of threads performing work *\/$/;"	m	struct:sstack_thread_pool	file:
+pool_attr	common/src/sstack_thread_pool.c	/^    pthread_attr_t	pool_attr;    \/* attributes of the workers *\/$/;"	m	struct:sstack_thread_pool	file:
+pool_back	common/src/sstack_thread_pool.c	/^    sstack_thread_pool_t		*pool_back;    \/* of all thread pools *\/$/;"	m	struct:sstack_thread_pool	file:
+pool_busycv	common/src/sstack_thread_pool.c	/^    pthread_cond_t	pool_busycv;    \/* synchronization in pool_queue *\/$/;"	m	struct:sstack_thread_pool	file:
+pool_flags	common/src/sstack_thread_pool.c	/^    int			pool_flags;    \/* see below *\/$/;"	m	struct:sstack_thread_pool	file:
+pool_forw	common/src/sstack_thread_pool.c	/^    sstack_thread_pool_t		*pool_forw;    \/* circular linked list *\/$/;"	m	struct:sstack_thread_pool	file:
+pool_head	common/src/sstack_thread_pool.c	/^    job_t		*pool_head;    \/* head of FIFO job queue *\/$/;"	m	struct:sstack_thread_pool	file:
+pool_idle	common/src/sstack_thread_pool.c	/^    int			pool_idle;    \/* number of idle workers *\/$/;"	m	struct:sstack_thread_pool	file:
+pool_linger	common/src/sstack_thread_pool.c	/^    int			pool_linger;    \/* seconds before idle workers exit *\/$/;"	m	struct:sstack_thread_pool	file:
+pool_maximum	common/src/sstack_thread_pool.c	/^    int			pool_maximum;    \/* maximum number of worker threads *\/$/;"	m	struct:sstack_thread_pool	file:
+pool_minimum	common/src/sstack_thread_pool.c	/^    int			pool_minimum;    \/* minimum number of worker threads *\/$/;"	m	struct:sstack_thread_pool	file:
+pool_mutex	common/src/sstack_thread_pool.c	/^    pthread_mutex_t	pool_mutex;    \/* protects the pool data *\/$/;"	m	struct:sstack_thread_pool	file:
+pool_nthreads	common/src/sstack_thread_pool.c	/^    int			pool_nthreads;    \/* current number of worker threads *\/$/;"	m	struct:sstack_thread_pool	file:
+pool_tail	common/src/sstack_thread_pool.c	/^    job_t		*pool_tail;    \/* tail of FIFO job queue *\/$/;"	m	struct:sstack_thread_pool	file:
+pool_waitcv	common/src/sstack_thread_pool.c	/^    pthread_cond_t	pool_waitcv;    \/* synchronization in pool_wait() *\/$/;"	m	struct:sstack_thread_pool	file:
+pool_workcv	common/src/sstack_thread_pool.c	/^    pthread_cond_t	pool_workcv;    \/* synchronization with workers *\/$/;"	m	struct:sstack_thread_pool	file:
+populate_db	sfs/src/sfs.c	/^populate_db(const char *dir_name)$/;"	f	file:
+port	common/include/sstack_transport.h	/^			int port;$/;"	m	struct:sstack_transport_hdr::__anon17::tcp
+port	oss/mongo-c-driver/src/mongo.h	/^    int port;$/;"	m	struct:mongo_host_port
+pos	oss/mongo-c-driver/src/gridfs.h	/^    gridfs_offset pos;  \/**> The position is the offset in the file *\/$/;"	m	struct:__anon15
+pp_lock	policy/include/policy.h	/^	pthread_spinlock_t pp_lock;$/;"	m	struct:policy_plugin
+pp_policy_tag	policy/include/policy.h	/^	char	 pp_policy_tag[POLICY_TAG_LEN];	$/;"	m	struct:policy_plugin
+pp_refcount	policy/include/policy.h	/^	uint32_t pp_refcount;$/;"	m	struct:policy_plugin
+prefix	oss/mongo-c-driver/src/gridfs.h	/^    const char *prefix; \/**> The prefix of the GridFS's collections, default is NULL *\/$/;"	m	struct:__anon14
+primary	oss/mongo-c-driver/src/mongo.h	/^    mongo_host_port *primary;  \/**< Primary connection info. *\/$/;"	m	struct:mongo
+primary_connected	oss/mongo-c-driver/src/mongo.h	/^    bson_bool_t primary_connected; \/**< Primary node connection status. *\/$/;"	m	struct:__anon6
+priority	common/include/sstack_jobs.h	/^	int priority; \/* Priority of job queue *\/$/;"	m	struct:job_queue
+priority	common/include/sstack_jobs.h	/^	int priority; \/* Priority of the job *\/$/;"	m	struct:job
+proc_block	arch/x86_64/crc_pcl.S	/^proc_block:$/;"	l
+project	oss/mongo-c-driver/docs/source/sphinx/source/conf.py	/^project = u'MongoDB C Driver'$/;"	v
+protocol	common/include/sstack_chunk.h	/^	sfs_protocol_t  protocol;$/;"	m	struct:sfsd_storage
+pst	policy/src/policy.c	/^static struct policy_search_table pst;$/;"	v	typeref:struct:policy_search_table	file:
+pst_head	policy/include/policy.h	/^	Pvoid_t pst_head[NUM_BUCKETS];$/;"	m	struct:policy_search_table
+pst_lock	policy/include/policy.h	/^	pthread_rwlock_t pst_lock[NUM_BUCKETS];$/;"	m	struct:policy_search_table
+pt_table	policy/include/policy.h	/^	struct policy_plugin *pt_table[64];$/;"	m	struct:policy_table	typeref:struct:policy_table::policy_plugin
+pt_table_lock	policy/include/policy.h	/^	pthread_rwlock_t pt_table_lock;$/;"	m	struct:policy_table
+pygments_style	oss/mongo-c-driver/docs/source/sphinx/source/conf.py	/^pygments_style = 'sphinx'$/;"	v
+query	oss/mongo-c-driver/src/mongo.h	/^    const bson *query; \/**< Bitfield containing cursor options. *\/$/;"	m	struct:__anon7
+read_policy_configuration	policy/src/policy.c	/^static uint32_t read_policy_configuration(void)$/;"	f	file:
+realloc_for_tests	oss/mongo-c-driver/test/bson_alloc_test.c	/^void * realloc_for_tests( void * ptr, size_t size ) {$/;"	f
+receiver_params	sfsd/include/sstack_sfsd.h	/^	void *receiver_params;$/;"	m	struct:sfsd_local
+receiver_thread	sfsd/include/sstack_sfsd.h	/^	pthread_t receiver_thread;$/;"	m	struct:sfsd_local
+reflect	oss/crc/crc.c	/^reflect(unsigned long data, unsigned char nBits)$/;"	f	file:
+register_plugin	policy/src/policy.c	/^uint32_t register_plugin(struct policy_plugin *policy,$/;"	f
+register_signals	sfsd/src/sfsd_signals.c	/^int32_t register_signals(sfsd_local_t *sfsd)$/;"	f
+release	oss/mongo-c-driver/docs/source/sphinx/source/conf.py	/^release = '0.7.1'$/;"	v
+release_inode	common/include/sstack_md.h	/^release_inode(uint64_t inode_num)$/;"	f
+remote_name	oss/mongo-c-driver/src/gridfs.h	/^    char *remote_name;  \/**> The name of the gridfile as a string *\/$/;"	m	struct:__anon15
+remove_cb	db/couchbase/src/couchdb.c	/^remove_cb(lcb_t instance, const void *cookie, lcb_error_t error,$/;"	f	file:
+remove_policy	policy/include/policy.h	/^	uint32_t (*remove_policy)(const char *path);$/;"	m	struct:policy_plugin
+remove_sample_data	oss/mongo-c-driver/test/cursors_test.c	/^void remove_sample_data( mongo *conn ) {$/;"	f
+replica_set	oss/mongo-c-driver/src/mongo.h	/^    mongo_replica_set *replica_set;    \/**< replica_set object if connected to a replica set. *\/$/;"	m	struct:mongo
+reply	oss/mongo-c-driver/src/mongo.h	/^    mongo_reply *reply;  \/**< reply is owned by cursor *\/$/;"	m	struct:__anon7
+responseTo	oss/mongo-c-driver/src/mongo.h	/^    int responseTo;$/;"	m	struct:__anon2
+ret_code	policy/include/policy.h	/^enum ret_code$/;"	g
+run_daemon_sfsd	sfsd/src/sfsd.c	/^void run_daemon_sfsd(sfsd_local_t *sfsd)$/;"	f
+run_json_to_bson_test	oss/mongo-c-driver/test/json_test.c	/^int run_json_to_bson_test( char *js , int size , const char *hash ) {$/;"	f
+rw	sfs/include/sfs.h	/^	unsigned char rw;$/;"	m	struct:sfs_chunk_entry
+rx	common/include/sstack_transport.h	/^	int (*rx) (sstack_client_handle_t , size_t , void *);$/;"	m	struct:sstack_transport_ops
+s	oss/mongo-c-driver/src/bcon.h	/^    char *s;         \/**< 02  e_name  string              Macro BS(v)  - UTF-8 string *\/ \/* must be first to be default *\/$/;"	m	union:bcon
+section	arch/x86_64/crc_pcl.S	/^section .data$/;"	l
+seeds	oss/mongo-c-driver/src/mongo.h	/^    mongo_host_port *seeds;        \/**< List of seeds provided by the user. *\/$/;"	m	struct:__anon6
+seen	oss/mongo-c-driver/src/mongo.h	/^    int seen;          \/**< Number returned so far. *\/$/;"	m	struct:__anon7
+serialize_large_test	oss/mongo-c-driver/test/benchmark_test.c	/^static void serialize_large_test( void ) {$/;"	f	file:
+serialize_medium_test	oss/mongo-c-driver/test/benchmark_test.c	/^static void serialize_medium_test( void ) {$/;"	f	file:
+serialize_small_test	oss/mongo-c-driver/test/benchmark_test.c	/^static void serialize_small_test( void ) {$/;"	f	file:
+server_setup	common/include/sstack_transport.h	/^	sstack_client_handle_t  (*server_setup) (sstack_transport_t *);$/;"	m	struct:sstack_transport_ops
+set_bit	common/include/sstack_bitops.h	/^static inline void set_bit(uint8_t number , int position)$/;"	f
+set_bson_err_handler	oss/mongo-c-driver/src/bson.c	/^MONGO_EXPORT bson_err_handler set_bson_err_handler( bson_err_handler func ) {$/;"	f
+set_cb	db/couchbase/src/couchdb.c	/^set_cb(lcb_t instance, const void *cookie, lcb_storage_t operation,$/;"	f	file:
+sfs_addr	sfsd/include/sstack_sfsd.h	/^	char sfs_addr[IPV4_ADDR_MAX];$/;"	m	struct:sfsd_local
+sfs_change_loglevel	common/include/sstack_log.h	/^sfs_change_loglevel(log_ctx_t *ctx, sfs_log_level_t level)$/;"	f
+sfs_chunk_domain	common/include/sstack_chunk.h	/^typedef struct sfs_chunk_domain {$/;"	s
+sfs_chunk_domain_t	common/include/sstack_chunk.h	/^} sfs_chunk_domain_t;$/;"	t	typeref:struct:sfs_chunk_domain
+sfs_chunk_entry	sfs/include/sfs.h	/^typedef struct sfs_chunk_entry {$/;"	s
+sfs_chunk_entry_t	sfs/include/sfs.h	/^} sfs_chunk_entry_t;$/;"	t	typeref:struct:sfs_chunk_entry
+sfs_chunks	sfs/src/sfs.c	/^sfs_chunk_entry_t	*sfs_chunks = NULL;$/;"	v
+sfs_create_log_ctx	common/include/sstack_log.h	/^sfs_create_log_ctx(void)$/;"	f
+sfs_ctx	sfs/src/sfs.c	/^log_ctx_t *sfs_ctx = NULL;$/;"	v
+sfs_destroy_log_ctx	common/include/sstack_log.h	/^sfs_destroy_log_ctx(log_ctx_t *ctx)$/;"	f
+sfs_init	sfs/src/sfs.c	/^sfs_init(struct fuse_conn_info *conn)$/;"	f	file:
+sfs_log	common/include/sstack_log.h	/^sfs_log(log_ctx_t *ctx, sfs_log_level_t level, char *format, ...)$/;"	f
+sfs_log_close	common/include/sstack_log.h	/^sfs_log_close(log_ctx_t *ctx)$/;"	f
+sfs_log_init	common/include/sstack_log.h	/^sfs_log_init(log_ctx_t *ctx, sfs_log_level_t level, char *compname)$/;"	f
+sfs_log_level_t	common/include/sstack_log.h	/^} sfs_log_level_t;$/;"	t	typeref:enum:__anon24
+sfs_oper	sfs/src/sfs.c	/^static struct fuse_operations sfs_oper = {$/;"	v	typeref:struct:fuse_operations	file:
+sfs_opt_proc	sfs/src/sfs.c	/^sfs_opt_proc(void *data, const char *arg, int key,$/;"	f	file:
+sfs_opts	sfs/src/sfs.c	/^static struct fuse_opt sfs_opts[] = {$/;"	v	typeref:struct:fuse_opt	file:
+sfs_parse_branches	sfs/src/sfs.c	/^sfs_parse_branches(const char *arg)$/;"	f	file:
+sfs_print_help	sfs/src/sfs.c	/^sfs_print_help(const char *progname)$/;"	f	file:
+sfs_prio_t	common/include/sstack_jobs.h	/^} sfs_prio_t;$/;"	t	typeref:enum:__anon22
+sfs_protocol_t	common/include/sstack_chunk.h	/^} sfs_protocol_t;$/;"	t	typeref:enum:__anon25
+sfs_store_branch	sfs/src/sfs.c	/^sfs_store_branch(char *branch)$/;"	f	file:
+sfsd	common/include/sstack_chunk.h	/^	sfsd_t *sfsd; \/\/ sfsd representing this chunk domain$/;"	m	struct:sfs_chunk_domain
+sfsd	common/include/sstack_jobs.h	/^typedef struct sfsd {$/;"	s
+sfsd	sfsd/src/main.c	/^static sfsd_local_t sfsd;$/;"	v	file:
+sfsd_create_receiver_thread	sfsd/src/sfsd_threads.c	/^static int32_t sfsd_create_receiver_thread(sfsd_local_t *sfsd)$/;"	f	file:
+sfsd_handle	common/include/sstack_jobs.h	/^	sstack_client_handle_t sfsd_handle;$/;"	m	struct:sfsd
+sfsd_job_status_t	common/include/sstack_jobs.h	/^} sfsd_job_status_t;$/;"	t	typeref:enum:__anon21
+sfsd_job_type_t	common/include/sstack_jobs.h	/^} sfsd_job_type_t;$/;"	t	typeref:enum:__anon20
+sfsd_local	sfsd/include/sstack_sfsd.h	/^typedef struct sfsd_local$/;"	s
+sfsd_local_t	sfsd/include/sstack_sfsd.h	/^} sfsd_local_t;$/;"	t	typeref:struct:sfsd_local
+sfsd_state_t	common/include/sstack_jobs.h	/^} sfsd_state_t;$/;"	t	typeref:enum:__anon23
+sfsd_storage	common/include/sstack_chunk.h	/^typedef struct sfsd_storage {$/;"	s
+sfsd_storage_t	common/include/sstack_chunk.h	/^} sfsd_storage_t;$/;"	t	typeref:struct:sfsd_storage
+sfsd_t	common/include/sstack_jobs.h	/^	sfsd_t sfsd_t[MAX_SFSD_CLIENTS];$/;"	m	struct:job
+sfsd_t	common/include/sstack_jobs.h	/^} sfsd_t;$/;"	t	typeref:struct:sfsd
+sfsd_transport	common/include/sstack_jobs.h	/^	sstack_transport_t sfsd_transport;$/;"	m	struct:sfsd
+sigchld_handler	common/src/sstack_transport_tcp.c	/^sigchld_handler(int signal)$/;"	f	file:
+single_insert_large_test	oss/mongo-c-driver/test/benchmark_test.c	/^static void single_insert_large_test( void ) {$/;"	f	file:
+single_insert_medium_test	oss/mongo-c-driver/test/benchmark_test.c	/^static void single_insert_medium_test( void ) {$/;"	f	file:
+single_insert_small_test	oss/mongo-c-driver/test/benchmark_test.c	/^static void single_insert_small_test( void ) {$/;"	f	file:
+skip	oss/mongo-c-driver/src/mongo.h	/^    int skip;          \/**< Bitfield containing cursor options. *\/$/;"	m	struct:__anon7
+small	arch/x86_64/crc_pcl.S	/^small:$/;"	l
+sock	oss/mongo-c-driver/src/mongo.h	/^    SOCKET sock;                  \/**< Socket file descriptor. *\/$/;"	m	struct:mongo
+socklen_t	oss/mongo-c-driver/src/env.c	/^  typedef int socklen_t;$/;"	t	file:
+socklen_t	oss/mongo-c-driver/src/env.c	/^typedef int socklen_t;$/;"	t	file:
+socklen_t	oss/mongo-c-driver/test/env_win32_test.c	/^typedef int socklen_t;$/;"	t	file:
+source_suffix	oss/mongo-c-driver/docs/source/sphinx/source/conf.py	/^source_suffix = '.rst'$/;"	v
+sstack_client_handle_t	common/include/sstack_types.h	/^typedef uint64_t sstack_client_handle_t;$/;"	t
+sstack_handle_t	common/include/sstack_transport.h	/^typedef uint32_t sstack_handle_t;$/;"	t
+sstack_log_directory	sfs/src/sfs.c	/^char sstack_log_directory[PATH_MAX] = { '\\0' };$/;"	v
+sstack_log_directory	sfsd/src/main.c	/^char sstack_log_directory[PATH_MAX];$/;"	v
+sstack_log_level	sfs/src/sfs.c	/^sfs_log_level_t sstack_log_level = SFS_DEBUG;$/;"	v
+sstack_payload_t	common/include/sstack_types.h	/^typedef uint8_t sstack_payload_t;$/;"	t
+sstack_thread_pool	common/src/sstack_thread_pool.c	/^struct sstack_thread_pool {$/;"	s	file:
+sstack_thread_pool_create	common/src/sstack_thread_pool.c	/^sstack_thread_pool_create(uint32_t min_threads, uint32_t max_threads,$/;"	f
+sstack_thread_pool_destroy	common/src/sstack_thread_pool.c	/^sstack_thread_pool_destroy(sstack_thread_pool_t *pool)$/;"	f
+sstack_thread_pool_queue	common/src/sstack_thread_pool.c	/^sstack_thread_pool_queue(sstack_thread_pool_t *pool,$/;"	f
+sstack_thread_pool_t	common/include/sstack_thread_pool.h	/^typedef struct sstack_thread_pool sstack_thread_pool_t;$/;"	t	typeref:struct:sstack_thread_pool
+sstack_thread_pool_wait	common/src/sstack_thread_pool.c	/^sstack_thread_pool_wait(sstack_thread_pool_t *pool)$/;"	f
+sstack_transport	common/include/sstack_transport.h	/^struct sstack_transport {$/;"	s
+sstack_transport_hdr	common/include/sstack_transport.h	/^typedef struct sstack_transport_hdr {$/;"	s
+sstack_transport_hdr_t	common/include/sstack_transport.h	/^} sstack_transport_hdr_t;$/;"	t	typeref:struct:sstack_transport_hdr
+sstack_transport_ops	common/include/sstack_transport.h	/^typedef struct sstack_transport_ops {$/;"	s
+sstack_transport_ops_t	common/include/sstack_transport.h	/^} sstack_transport_ops_t;$/;"	t	typeref:struct:sstack_transport_ops
+sstack_transport_register	common/src/sstack_transport.c	/^sstack_transport_register(sstack_transport_type_t type,$/;"	f	file:
+sstack_transport_t	common/include/sstack_transport.h	/^typedef struct sstack_transport sstack_transport_t; \/\/ Forward decl$/;"	t	typeref:struct:sstack_transport
+sstack_transport_type_t	common/include/sstack_transport.h	/^} sstack_transport_type_t;$/;"	t	typeref:enum:__anon16
+stack	oss/mongo-c-driver/src/bson.h	/^    size_t stack[32];     \/**< A stack used to keep track of nested BSON elements.$/;"	m	struct:__anon10
+stackPos	oss/mongo-c-driver/src/bson.h	/^    int stackPos;         \/**< Index of current stack position. *\/$/;"	m	struct:__anon10
+stackPtr	oss/mongo-c-driver/src/bson.h	/^    size_t* stackPtr;     \/**< Pointer to the current stack *\/$/;"	m	struct:__anon10
+stackSize	oss/mongo-c-driver/src/bson.h	/^    int stackSize;        \/**< Number of elements in the current stack *\/$/;"	m	struct:__anon10
+start	oss/mongo-c-driver/src/mongo.h	/^    int start;$/;"	m	struct:__anon4
+state	common/include/sstack_chunk.h	/^	sfsd_state_t state; \/\/ Is current sfsd reachable?$/;"	m	struct:sfs_chunk_domain
+storage	common/include/sstack_chunk.h	/^	sfsd_storage_t storage[0];$/;"	m	struct:sfs_chunk_domain
+t	oss/mongo-c-driver/src/bcon.h	/^    time_t t;        \/**< 09  e_name  int64               Macro BT(v)  - UTC datetime *\/$/;"	m	union:bcon
+t	oss/mongo-c-driver/src/bson.h	/^    int t; \/* time in seconds *\/$/;"	m	struct:__anon12
+tcp	common/include/sstack_transport.h	/^		struct tcp {$/;"	s	union:sstack_transport_hdr::__anon17
+tcp	common/include/sstack_transport.h	/^		} tcp;$/;"	m	union:sstack_transport_hdr::__anon17	typeref:struct:sstack_transport_hdr::__anon17::tcp
+tcp_client_init	common/src/sstack_transport_tcp.c	/^tcp_client_init(sstack_transport_t *transport)$/;"	f
+tcp_rx	common/src/sstack_transport_tcp.c	/^tcp_rx(sstack_client_handle_t handle, size_t payload_len, void *payload)$/;"	f
+tcp_server_setup	common/src/sstack_transport_tcp.c	/^tcp_server_setup(sstack_transport_t *transport)$/;"	f
+tcp_tx	common/src/sstack_transport_tcp.c	/^tcp_tx(sstack_client_handle_t handle, size_t payload_len, void *payload)$/;"	f
+templates_path	oss/mongo-c-driver/docs/source/sphinx/source/conf.py	/^templates_path = ['_templates']$/;"	v
+test_additional_notes_example	oss/mongo-c-driver/test/bcon_test.c	/^void test_additional_notes_example( void ) {$/;"	f
+test_bad_query	oss/mongo-c-driver/test/cursors_test.c	/^int test_bad_query( mongo *conn ) {$/;"	f
+test_basic	oss/mongo-c-driver/test/gridfs_test.c	/^void test_basic( void ) {$/;"	f
+test_basic_types	oss/mongo-c-driver/test/bcon_test.c	/^void test_basic_types( void ) {$/;"	f
+test_batch_insert_with_continue	oss/mongo-c-driver/test/write_concern_test.c	/^void test_batch_insert_with_continue( mongo *conn ) {$/;"	f
+test_bcon_token	oss/mongo-c-driver/test/bcon_test.c	/^void test_bcon_token( void ) {$/;"	f
+test_bson_deep_nesting	oss/mongo-c-driver/test/bson_test.c	/^int test_bson_deep_nesting( void ) {$/;"	f
+test_bson_empty	oss/mongo-c-driver/test/bson_alloc_test.c	/^int test_bson_empty( void ) {$/;"	f
+test_bson_from_bcon	oss/mongo-c-driver/test/bcon_test.c	/^void test_bson_from_bcon( const bcon *bc, bcon_error_t bc_err, int bv_err ) {$/;"	f
+test_bson_generic	oss/mongo-c-driver/test/bson_test.c	/^int test_bson_generic( void ) {$/;"	f
+test_bson_init_finished	oss/mongo-c-driver/test/bson_alloc_test.c	/^int test_bson_init_finished( void ) {$/;"	f
+test_bson_iterator	oss/mongo-c-driver/test/bson_test.c	/^int test_bson_iterator( void ) {$/;"	f
+test_bson_oid_generated_time	oss/mongo-c-driver/test/bson_test.c	/^int test_bson_oid_generated_time( void ) {$/;"	f
+test_bson_size	oss/mongo-c-driver/test/bson_test.c	/^int test_bson_size( void ) {$/;"	f
+test_builder_api	oss/mongo-c-driver/test/cursors_test.c	/^int test_builder_api( mongo *conn ) {$/;"	f
+test_connect	oss/mongo-c-driver/test/replica_set_test.c	/^int test_connect( const char *set_name ) {$/;"	f
+test_connect	oss/mongo-c-driver/test/replset_test.c	/^int test_connect( const char *set_name ) {$/;"	f
+test_connect_deprecated	oss/mongo-c-driver/test/replica_set_test.c	/^int test_connect_deprecated( const char *set_name ) {$/;"	f
+test_connect_deprecated	oss/mongo-c-driver/test/replset_test.c	/^int test_connect_deprecated( const char *set_name ) {$/;"	f
+test_copy_cursor_data	oss/mongo-c-driver/test/cursors_test.c	/^int test_copy_cursor_data( mongo *conn ) {$/;"	f
+test_delete	oss/mongo-c-driver/test/gridfs_test.c	/^void test_delete( void ) {$/;"	f
+test_error_messages	oss/mongo-c-driver/test/env_posix_test.c	/^int test_error_messages( void ) {$/;"	f
+test_error_messages	oss/mongo-c-driver/test/env_win32_test.c	/^int test_error_messages( void ) {$/;"	f
+test_example_awesome	oss/mongo-c-driver/test/bcon_test.c	/^void test_example_awesome( void ) {$/;"	f
+test_example_hello_world	oss/mongo-c-driver/test/bcon_test.c	/^void test_example_hello_world( void ) {$/;"	f
+test_example_wikipedia	oss/mongo-c-driver/test/bcon_test.c	/^void test_example_wikipedia( void ) {$/;"	f
+test_example_wikipedia_bcon	oss/mongo-c-driver/test/bcon_test.c	/^void test_example_wikipedia_bcon(size_t iterations) {$/;"	f
+test_example_wikipedia_bson	oss/mongo-c-driver/test/bcon_test.c	/^void test_example_wikipedia_bson(size_t iterations) {$/;"	f
+test_get_last_error_commands	oss/mongo-c-driver/test/errors_test.c	/^int test_get_last_error_commands( void ) {$/;"	f
+test_getaddrinfo	oss/mongo-c-driver/test/env_posix_test.c	/^int test_getaddrinfo( void ) {$/;"	f
+test_getaddrinfo	oss/mongo-c-driver/test/env_win32_test.c	/^int test_getaddrinfo( void ) {$/;"	f
+test_gridfile	oss/mongo-c-driver/test/gridfs_test.c	/^void test_gridfile( gridfs *gfs, char *data_before, int64_t length, char *filename, char *content_type ) {$/;"	f
+test_index_helper	oss/mongo-c-driver/test/helpers_test.c	/^void test_index_helper( mongo *conn ) {$/;"	f
+test_index_helper_invalid	oss/mongo-c-driver/test/helpers_test.c	/^void test_index_helper_invalid( mongo *conn ) {$/;"	f
+test_insert	oss/mongo-c-driver/test/write_concern_test.c	/^void test_insert( mongo *conn ) {$/;"	f
+test_insert_limits	oss/mongo-c-driver/test/errors_test.c	/^int test_insert_limits( void ) {$/;"	f
+test_insert_limits	oss/mongo-c-driver/test/replica_set_test.c	/^int test_insert_limits( const char *set_name ) {$/;"	f
+test_insert_limits	oss/mongo-c-driver/test/replset_test.c	/^int test_insert_limits( const char *set_name ) {$/;"	f
+test_invalid_structure	oss/mongo-c-driver/test/bcon_test.c	/^void test_invalid_structure( void ) {$/;"	f
+test_large	oss/mongo-c-driver/test/gridfs_test.c	/^void test_large( void ) {$/;"	f
+test_multiple_getmore	oss/mongo-c-driver/test/cursors_test.c	/^int test_multiple_getmore( mongo *conn ) {$/;"	f
+test_namespace_validation	oss/mongo-c-driver/test/errors_test.c	/^int test_namespace_validation( void ) {$/;"	f
+test_namespace_validation_on_insert	oss/mongo-c-driver/test/errors_test.c	/^int test_namespace_validation_on_insert( void ) {$/;"	f
+test_oid_generation	oss/mongo-c-driver/test/bcon_test.c	/^void test_oid_generation( void ) {$/;"	f
+test_pointer_interpolation	oss/mongo-c-driver/test/bcon_test.c	/^void test_pointer_interpolation( void ) {$/;"	f
+test_pointer_interpolation_example	oss/mongo-c-driver/test/bcon_test.c	/^void test_pointer_interpolation_example( void ) {$/;"	f
+test_problematic_structure	oss/mongo-c-driver/test/bcon_test.c	/^void test_problematic_structure( void ) {$/;"	f
+test_random_write	oss/mongo-c-driver/test/gridfs_test.c	/^void test_random_write() {$/;"	f
+test_random_write2	oss/mongo-c-driver/test/gridfs_test.c	/^void test_random_write2( void ) {$/;"	f
+test_read_timeout	oss/mongo-c-driver/test/env_posix_test.c	/^int test_read_timeout( void ) {$/;"	f
+test_read_timeout	oss/mongo-c-driver/test/env_win32_test.c	/^int test_read_timeout( void ) {$/;"	f
+test_reconnect	oss/mongo-c-driver/test/replica_set_test.c	/^int test_reconnect( const char *set_name ) {$/;"	f
+test_reconnect	oss/mongo-c-driver/test/replset_test.c	/^int test_reconnect( const char *set_name ) {$/;"	f
+test_reference_interpolation	oss/mongo-c-driver/test/bcon_test.c	/^void test_reference_interpolation( void ) {$/;"	f
+test_reference_interpolation_example	oss/mongo-c-driver/test/bcon_test.c	/^void test_reference_interpolation_example( void ) {$/;"	f
+test_streaming	oss/mongo-c-driver/test/gridfs_test.c	/^void test_streaming( void ) {$/;"	f
+test_suite	oss/mongo-c-driver/test/bcon_test.c	/^struct test_suite {$/;"	s	file:
+test_suite	oss/mongo-c-driver/test/bcon_test.c	/^} test_suite[] = {$/;"	v	typeref:struct:test_suite
+test_tailable	oss/mongo-c-driver/test/cursors_test.c	/^int test_tailable( mongo *conn ) {$/;"	f
+test_update_and_remove	oss/mongo-c-driver/test/write_concern_test.c	/^void test_update_and_remove( mongo *conn ) {$/;"	f
+test_valid_structure	oss/mongo-c-driver/test/bcon_test.c	/^void test_valid_structure( void ) {$/;"	f
+test_value	oss/mongo-c-driver/test/functions_test.c	/^int test_value = 0;$/;"	v
+test_write_concern_api	oss/mongo-c-driver/test/write_concern_test.c	/^void test_write_concern_api( void ){$/;"	f
+test_write_concern_finish	oss/mongo-c-driver/test/write_concern_test.c	/^void test_write_concern_finish( void ) {$/;"	f
+test_write_concern_input	oss/mongo-c-driver/test/write_concern_test.c	/^void test_write_concern_input( mongo *conn ) {$/;"	f
+thr_pool_lock	common/src/sstack_thread_pool.c	/^static pthread_mutex_t thr_pool_lock = PTHREAD_MUTEX_INITIALIZER;$/;"	v	file:
+thr_pools	common/src/sstack_thread_pool.c	/^static sstack_thread_pool_t *thr_pools = NULL;$/;"	v	file:
+time	common/include/sstack_log.h	/^	char time[SFS_TIME_FORMAT_LEN];$/;"	m	struct:log_entry
+time_it	oss/mongo-c-driver/test/benchmark_test.c	/^static void time_it( nullary func, const char *name, bson_bool_t gle ) {$/;"	f	file:
+total	oss/mongo-c-driver/test/json_test.c	/^int total = 0;$/;"	v
+trailingBytesForUTF8	oss/mongo-c-driver/src/encoding.c	/^static const char trailingBytesForUTF8[256] = {$/;"	v	file:
+transport	sfsd/include/sstack_sfsd.h	/^	sstack_transport_t *transport;$/;"	m	struct:sfsd_local
+transport_hdr	common/include/sstack_transport.h	/^	sstack_transport_hdr_t transport_hdr;$/;"	m	struct:sstack_transport
+transport_ops	common/include/sstack_transport.h	/^	sstack_transport_ops_t transport_ops;$/;"	m	struct:sstack_transport
+transport_type	common/include/sstack_transport.h	/^	sstack_transport_type_t  transport_type;$/;"	m	struct:sstack_transport
+tx	common/include/sstack_transport.h	/^	int (*tx) (sstack_client_handle_t , size_t  , void *);$/;"	m	struct:sstack_transport_ops
+type	common/include/sstack_md.h	/^typedef enum type {$/;"	g
+type_t	common/include/sstack_md.h	/^} type_t;$/;"	t	typeref:enum:type
+uint64_t	oss/mongo-c-driver/src/bson.h	/^typedef unsigned __int64 uint64_t;$/;"	t
+uint64_t	oss/mongo-c-driver/src/bson.h	/^typedef unsigned long long int uint64_t;$/;"	t
+unregister_plugin	policy/src/policy.c	/^uint32_t unregister_plugin(uint32_t plugin_id)$/;"	f
+usage	cli/src/sstack_log_decode.c	/^usage(char *progname)$/;"	f
+usage	oss/mongo-c-driver/runtests.sh	/^usage()$/;"	f
+v	oss/mongo-c-driver/src/bcon.h	/^    char *v;         \/**< 0A  e_name                      Macro BNULL  - Null value *\/$/;"	m	union:bcon
+value	db/couchbase/src/couchdb.c	/^void *value;$/;"	v
+ver	policy/include/policy.h	/^	uint32_t ver;$/;"	m	struct:attribute
+ver	policy/include/policy.h	/^	uint32_t ver;$/;"	m	struct:policy_plugin
+verbose	oss/mongo-c-driver/test/bcon_test.c	/^int verbose = 0;$/;"	v
+version	common/include/sstack_jobs.h	/^	int version; $/;"	m	struct:job
+version	common/include/sstack_log.h	/^	int	 version;$/;"	m	struct:log_entry
+version	oss/mongo-c-driver/docs/buildscripts/docs.py	/^def version():$/;"	f
+version	oss/mongo-c-driver/docs/source/sphinx/source/conf.py	/^version = '0.7.1'$/;"	v
+w	oss/mongo-c-driver/src/mongo.h	/^    int w;            \/**< Number of total replica write copies to complete including the primary. *\/$/;"	m	struct:mongo_write_concern
+weight	sfs/include/sfs.h	/^	uint32_t weight; \/\/ weight associated with the branch$/;"	m	struct:sfs_chunk_entry
+words	oss/mongo-c-driver/test/benchmark_test.c	/^static const char *words[14] = {$/;"	v	file:
+worker_cleanup	common/src/sstack_thread_pool.c	/^worker_cleanup(sstack_thread_pool_t *pool)$/;"	f	file:
+worker_thread	common/src/sstack_thread_pool.c	/^worker_thread(void *arg)$/;"	f	file:
+write_concern	oss/mongo-c-driver/src/mongo.h	/^    mongo_write_concern *write_concern; \/**< The default write concern. *\/$/;"	m	struct:mongo
+wtimeout	oss/mongo-c-driver/src/mongo.h	/^    int wtimeout;     \/**< Number of milliseconds before replication timeout. *\/$/;"	m	struct:mongo_write_concern
+x	oss/mongo-c-driver/src/bcon.h	/^    char *x;         \/**< 0E  e_name  string              Macro BX(v)  - Symbol *\/$/;"	m	union:bcon
+zero	oss/mongo-c-driver/src/bson.c	/^static const int zero = 0;$/;"	v	file:

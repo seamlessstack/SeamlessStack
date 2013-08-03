@@ -9,7 +9,7 @@
  * It is created by thr_pool_create() and must be passed
  * unmodified to the remainder of the interfaces.
  */
-typedef struct sstack_thread_pool    sstack_thread_pool_t;
+typedef struct sstack_thread_pool sstack_thread_pool_t;
 /*
  * Create a thread pool.
  *    min_threads:    the minimum number of threads kept in the pool,

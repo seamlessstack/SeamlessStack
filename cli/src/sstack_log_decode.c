@@ -56,7 +56,7 @@ main(int argc, char *argv[])
 
 	while (nbytes == sizeof(log_entry_t)) {
 		// Print the log entry
-		fprintf(stdout,"%d:%s:%s:%s", log_entry.version,
+		fprintf(stdout,"%d:%s:%s:%s\n", log_entry.version,
 			log_entry.time, log_entry.level, log_entry.log);
 		nbytes = read(fd, &log_entry, sizeof(log_entry_t));
 	}

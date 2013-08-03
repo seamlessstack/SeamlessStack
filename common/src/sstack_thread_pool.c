@@ -33,7 +33,7 @@ typedef struct active {
 /*
  * The thread pool, opaque to the clients.
  */
-typedef struct sstack_thread_pool {
+struct sstack_thread_pool {
     sstack_thread_pool_t		*pool_forw;    /* circular linked list */
     sstack_thread_pool_t		*pool_back;    /* of all thread pools */
     pthread_mutex_t	pool_mutex;    /* protects the pool data */
@@ -50,7 +50,7 @@ typedef struct sstack_thread_pool {
     int			pool_maximum;    /* maximum number of worker threads */
     int			pool_nthreads;    /* current number of worker threads */
     int			pool_idle;    /* number of idle workers */
-} sstack_thread_pool_t;
+};
 
 /* pool_flags */
 #define    POOL_WAIT    0x01        /* waiting in thr_pool_wait() */

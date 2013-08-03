@@ -37,7 +37,7 @@ typedef enum {
 } sstack_transport_type_t;
 
 typedef struct sstack_transport sstack_transport_t; // Forward decl
-
+sstack_transport_t* get_tcp_transport(char *addr);
 /*
  *  init() is supposed to establish a connection and retrun client handle
  *  Client handle is socket fd i case of TCPIP
@@ -66,12 +66,12 @@ typedef struct sstack_transport_hdr {
 } sstack_transport_hdr_t;
 	
 
-typedef struct sstack_transport {
+struct sstack_transport {
 	sstack_transport_type_t  transport_type;
 	sstack_transport_hdr_t transport_hdr;
 	sstack_transport_ops_t transport_ops;
 	log_ctx_t *ctx;
-} sstack_transport_t;
+};
 
 static inline sstack_transport_t *
 alloc_transport(void)
@@ -90,24 +90,5 @@ free_transport(sstack_transport_t *transport)
 		free(transport);
 }
 
-/*
- * TBD
- * Need to maintain a list of transports - one for each transport type
- * transport_register should return -1 (failure) is transport type is
- * already registered.
- */
-
-static inline int
-sstack_transport_register(sstack_transport_type_t type,
-					sstack_transport_t *transport,
-					sstack_transport_ops_t ops)
-{
-	transport->transport_ops.client_init = ops.client_init;
-	transport->transport_ops.rx = ops.rx;
-	transport->transport_ops.tx = ops.tx;
-	transport->transport_ops.server_setup = ops.server_setup;
-
-	return 0;
-}
 
 #endif // __SSTACK_TRANSPORT_H_

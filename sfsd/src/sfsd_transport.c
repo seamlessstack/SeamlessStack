@@ -17,12 +17,18 @@
  * from SeamlessStack Incorporated.
  */
 
-#ifndef __SSTACK_TYPES_H_
-#define __SSTACK_TYPES_H_
+#include <stdint.h>
+#include <sstack_sfsd.h>
+#include <sstack_transport.h>
 
-// All sstack specific types should be in this file
+void init_transport (sfsd_local_t *sfsd)
+{
+	sfsd->transport = get_tcp_transport(sfsd->sfs_addr);
+	sfsd->transport->ctx = sfsd->log_ctx;
+	ASSERT((sfsd->transport != NULL), "Failed to fetch transport type TCP",
+			1, 0, 0);
+	sfsd->handle = tcp_client_init(sfsd->transport);
+	ASSERT((sfsd->handle != 0), "Failed to get client transport handle",
+			1, 0, 0);
 
-typedef uint64_t sstack_client_handle_t;
-typedef uint8_t sstack_payload_t;
-
-#endif // __SSTACK_TYPES_H_
+}

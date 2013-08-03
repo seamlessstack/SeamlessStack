@@ -17,12 +17,26 @@
  * from SeamlessStack Incorporated.
  */
 
-#ifndef __SSTACK_TYPES_H_
-#define __SSTACK_TYPES_H_
+#include <stdint.h>
+#include <sstack_log.h>
+#include <sstack_transport.h>
 
-// All sstack specific types should be in this file
+/*
+ * TBD
+ * Need to maintain a list of transports - one for each transport type
+ * transport_register should return -1 (failure) is transport type is
+ * already registered.
+ */
 
-typedef uint64_t sstack_client_handle_t;
-typedef uint8_t sstack_payload_t;
+static inline int
+sstack_transport_register(sstack_transport_type_t type,
+					sstack_transport_t *transport,
+					sstack_transport_ops_t ops)
+{
+	transport->transport_ops.client_init = ops.client_init;
+	transport->transport_ops.rx = ops.rx;
+	transport->transport_ops.tx = ops.tx;
+	transport->transport_ops.server_setup = ops.server_setup;
 
-#endif // __SSTACK_TYPES_H_
+	return 0;
+}

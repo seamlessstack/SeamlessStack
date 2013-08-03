@@ -4,10 +4,12 @@ CFLAGS += -g
 CFLAGS += -I ./include -I ../common/include
 CFLAGS += -D_GNU_SOURCE 
 CFLAGS += -Wall
-LIB = -lpthread
+LIB = -lpthread -lsstack_common
+LDFLAGS = -L ../common/
 
 SFSD_OBJS = src/main.o src/sfsd.o src/sfsd_signals.o \
 	    src/sfsd_threads.o src/sfsd_ops.o \
+	    src/sfsd_transport.o \
 
 all:: sfsd
 
