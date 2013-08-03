@@ -23,6 +23,5 @@
 // All sstack specific types should be in this file
 
 typedef uint64_t sstack_client_handle_t;
-typedef uint8_t sstack_payload_t;
 
 #endif // __SSTACK_TYPES_H_

@@ -27,6 +27,14 @@
 #define IPV6_ADDR_MAX 40
 
 #define SSTACK_BACKLOG 5
+
+#define READ_BLOCK_MASK	1
+#define WRITE_BLOCK_MASK 2
+
+#define IGNORE_NO_BLOCK 0
+#define READ_NO_BLOCK 1
+#define WRITE_NO_BLOCK 2
+
 typedef uint32_t sstack_handle_t;
 
 typedef enum {
@@ -47,6 +55,7 @@ typedef struct sstack_transport_ops {
 	sstack_client_handle_t (*client_init) (sstack_transport_t *);
 	int (*tx) (sstack_client_handle_t , size_t  , void *);
 	int (*rx) (sstack_client_handle_t , size_t , void *);
+	int (*select)(sstack_client_handle_t, uint32_t block_flags);
 	// This one is for server side
 	// Called only by sfs.
 	sstack_client_handle_t  (*server_setup) (sstack_transport_t *);

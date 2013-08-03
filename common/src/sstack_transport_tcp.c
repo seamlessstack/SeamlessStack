@@ -26,6 +26,7 @@
 #include <netdb.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/select.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/types.h>
@@ -35,6 +36,7 @@
 #include <sstack_log.h>
 
 #define PORT "24496"
+#define CONNECT_PORT 24496
 
 sstack_client_handle_t
 tcp_client_init(sstack_transport_t *transport)
@@ -78,6 +80,37 @@ tcp_rx(sstack_client_handle_t handle, size_t payload_len, void *payload)
 	return recv((int) handle, payload, payload_len, 0);
 }
 
+int
+tcp_select(sstack_client_handle_t handle, uint32_t block_flags)
+{
+	fd_set readfds, writefds;
+	struct timeval timeout;
+	int ret;
+	
+	FD_ZERO(&readfds);
+	FD_ZERO(&writefds);
+	FD_SET(handle, &readfds);
+	FD_SET(handle, &writefds);
+
+	timeout.tv_sec = 10;
+	timeout.tv_usec = 0;
+
+	/* Call the select now. */
+	ret = select(handle + 1, &readfds, &writefds, NULL, &timeout);
+
+	ASSERT((ret >= 0), "Select failed",1, 0, 0); 
+	if (ret != 0) {
+		if (FD_ISSET(handle, &readfds) && 
+				(block_flags & READ_BLOCK_MASK)) {
+			return READ_NO_BLOCK;
+		} else if (FD_ISSET(handle, &writefds) &&
+				(block_flags & WRITE_BLOCK_MASK)) {
+			return WRITE_NO_BLOCK;
+		}
+	}
+
+	return IGNORE_NO_BLOCK;
+}
 
 static void
 sigchld_handler(int signal)
@@ -154,12 +187,13 @@ sstack_transport_t *get_tcp_transport(char *addr)
 	transport->transport_type = TCPIP;
 	transport->transport_hdr.tcp.ipv4 = 1;
 	strcpy(transport->transport_hdr.tcp.ipv4_addr, addr);
-	transport->transport_hdr.tcp.port = PORT;
+	transport->transport_hdr.tcp.port = htons(CONNECT_PORT);
 	transport->ctx = NULL;
 
 	transport->transport_ops.client_init = tcp_client_init;
 	transport->transport_ops.tx = tcp_tx;
 	transport->transport_ops.rx = tcp_rx;
+	transport->transport_ops.select = tcp_select;
 	transport->transport_ops.server_setup = tcp_server_setup;
 
 	return transport;

@@ -34,6 +34,7 @@ typedef struct sfsd_local
 	void *receiver_params;
 	char sfs_addr[IPV4_ADDR_MAX];
 	sstack_client_handle_t handle;
+	sstack_thread_pool_t *thread_pool;
 } sfsd_local_t;
 
 /**
@@ -47,6 +48,11 @@ int32_t register_signals(sfsd_local_t *);
  **/
 
 int32_t init_thread_pool(sfsd_local_t *);
+
+/** 
+  * initialize transport
+ **/
+int32_t init_transport(sfsd_local_t *);
 
 /**
  * Run the actual SFS daemon

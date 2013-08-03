@@ -20,11 +20,10 @@
 #include <stdint.h>
 #include <sstack_sfsd.h>
 #include <sstack_log.h>
+#include <sstack_jobs.h>
 
-static void* do_receive_thread (void *params)
-{
-	return 0;
-}
+static void* do_receive_thread (void *params);
+
 static int32_t sfsd_create_receiver_thread(sfsd_local_t *sfsd)
 {
 	int32_t ret = 0;
@@ -34,10 +33,11 @@ static int32_t sfsd_create_receiver_thread(sfsd_local_t *sfsd)
 	pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
 
 	ret = pthread_create(&sfsd->receiver_thread, &attr,
-			do_receive_thread,sfsd->receiver_params);
+			do_receive_thread, sfsd);
 	SFS_LOG_EXIT((ret == 0), "Receiver thread create failed", ret,
 			sfsd->log_ctx, SFS_ERR);
 
+	sfs_log(sfsd->log_ctx, SFS_INFO, "Receive thread creation successful");
 	return 0;
 }
 
@@ -45,7 +45,6 @@ int32_t init_thread_pool(sfsd_local_t *sfsd)
 {
 	int32_t ret = 0;
 	pthread_attr_t attr;
-	sstack_thread_pool_t *thread_pool;
 
 	pthread_attr_init(&attr);
 	pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
@@ -54,13 +53,81 @@ int32_t init_thread_pool(sfsd_local_t *sfsd)
 	SFS_LOG_EXIT((ret == 0), "Could not create receiver thread",
 			ret, sfsd->log_ctx, SFS_ERR);
 
-	thread_pool = sstack_thread_pool_create(1, 5, 30, &attr);
-	SFS_LOG_EXIT((thread_pool != NULL), "Could not create sfsd thread pool",
+	sfsd->thread_pool = sstack_thread_pool_create(1, 5, 30, &attr);
+	SFS_LOG_EXIT((sfsd->thread_pool != NULL),
+			"Could not create sfsd thread pool",
 			ret, sfsd->log_ctx, SFS_ERR);
 
-	/* O.K the thread stuff is done.. Wait for incoming connections */
-
+	sfs_log(sfsd->log_ctx, SFS_INFO, "Thread pool initialized");
 	return 0;
 	
 }
 
+static sstack_payload_t* get_payload(sstack_transport_t *transport,
+		sstack_client_handle_t handle)
+{
+	sstack_payload_t *payload, *data_payload;
+	ssize_t nbytes = 0;
+	size_t data_len;
+	sstack_transport_ops_t *ops = &transport->transport_ops;
+
+	payload = malloc(sizeof(*payload));
+	SFS_LOG_EXIT((payload != NULL), "Allocate payload failed", NULL, 
+			transport->ctx, SFS_ERR);
+	/* Read of the payload header */
+	nbytes = ops->rx(handle, sizeof(*payload), payload);
+	/* Reallocate the payload, depending on the size of data */
+	if (nbytes != 0) {
+		data_len = payload->length;
+		sfs_log(transport->ctx, SFS_DEBUG,
+				"Payload header received, data size = %d",
+				data_len);
+		data_payload = realloc(payload, sizeof(*payload) + data_len);
+		if (data_payload) {
+			/* Read off the data now */
+			nbytes = ops->rx(handle, data_len, data_payload->data);
+			payload = data_payload;
+		} else {
+			sfs_log(transport->ctx, SFS_ERR,
+					"Reallocate payload failed");
+		}
+	}
+	return payload;
+}
+
+static void* do_process_payload(void *param)
+{
+	return 0;
+}
+
+static void* do_receive_thread(void *param)
+{
+	sfsd_local_t *sfsd = (sfsd_local_t *)param;
+	int32_t ret = 0;
+	uint32_t mask = READ_BLOCK_MASK;
+	sstack_payload_t *payload;
+	/* Check for the handle, if it doesn't exist
+	   simply exit */
+	SFS_LOG_EXIT((sfsd->handle != 0), 
+			"Transport handle doesn't exist. Exiting..",
+			NULL, sfsd->log_ctx, SFS_ERR);
+	while (1) {
+		/* Check whether there is some command from the
+		   sfs coming */
+		ret = sfsd->transport->transport_ops.select(sfsd->handle, mask);
+		if (ret != READ_NO_BLOCK) {
+			/*  Nothing to read, we just continue */
+			continue;
+		}
+		payload = get_payload(sfsd->transport, sfsd->handle);
+		/* After getting the payload, assign a thread pool from the
+		   thread pool to do the job */
+		ret = sstack_thread_pool_queue(sfsd->thread_pool,
+				do_process_payload, payload);
+		if (ret == 0) {
+			sfs_log(sfsd->log_ctx, SFS_INFO, "Job %d queued",
+					payload->command);
+		}
+	}
+
+}

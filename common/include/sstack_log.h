@@ -80,10 +80,10 @@ typedef enum {
 	SFS_EMERG	= 1,
 	SFS_CRIT	= 2,
 	SFS_ERR		= 3,
-	SFS_WARNING = 4,
+	SFS_WARNING 	= 4,
 	SFS_INFO	= 5,
 	SFS_DEBUG	= 6,
-	MAX_SFS_LOG_LEVELS = 6,
+	MAX_SFS_LOG_LEVELS = 7,
 } sfs_log_level_t;
 
 typedef struct log_context
@@ -338,6 +338,8 @@ sfs_log(log_ctx_t *ctx, sfs_log_level_t level, char *format, ...)
 		case SFS_DEBUG:
 			snprintf((char * __restrict__) &log_entry.level,
 				SFS_LOGLEVEL_LEN, "%s: ", "debug");
+			break;
+		default:
 			break;
 	}
 

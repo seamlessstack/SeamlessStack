@@ -21,7 +21,7 @@
 #include <sstack_sfsd.h>
 #include <sstack_transport.h>
 
-void init_transport (sfsd_local_t *sfsd)
+int32_t init_transport (sfsd_local_t *sfsd)
 {
 	sfsd->transport = get_tcp_transport(sfsd->sfs_addr);
 	sfsd->transport->ctx = sfsd->log_ctx;
@@ -30,5 +30,6 @@ void init_transport (sfsd_local_t *sfsd)
 	sfsd->handle = tcp_client_init(sfsd->transport);
 	ASSERT((sfsd->handle != 0), "Failed to get client transport handle",
 			1, 0, 0);
+	return 0;
 
 }

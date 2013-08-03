@@ -50,7 +50,7 @@ int main(int argc, char **argv)
 	/* initialize logging */
 	ctx = sfs_create_log_ctx();
 	ASSERT((NULL != ctx), "Log create failed", 1, 1, 0); 
-	log_ret = sfs_log_init(ctx, SFS_INFO, "sfsd");
+	log_ret = sfs_log_init(ctx, SFS_DEBUG, "sfsd");
 	ASSERT((0 == log_ret), "Log init failed", 1, 1, 0);
 
 	sfsd.log_ctx = ctx;
