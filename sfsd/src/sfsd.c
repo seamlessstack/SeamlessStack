@@ -26,6 +26,5 @@
 extern log_ctx_t *sfsd_ctx;
 void run_daemon_sfsd(sfsd_local_t *sfsd)
 {
-	sleep (2);
 	sfs_log(sfsd->log_ctx, SFS_INFO, "%s", "Daemon started");
 }

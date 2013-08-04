@@ -66,37 +66,28 @@ int32_t init_thread_pool(sfsd_local_t *sfsd)
 static sstack_payload_t* get_payload(sstack_transport_t *transport,
 		sstack_client_handle_t handle)
 {
-	sstack_payload_t *payload, *data_payload;
+	sstack_payload_t *payload = NULL;
 	ssize_t nbytes = 0;
-	size_t data_len;
 	sstack_transport_ops_t *ops = &transport->transport_ops;
 
 	payload = malloc(sizeof(*payload));
 	SFS_LOG_EXIT((payload != NULL), "Allocate payload failed", NULL, 
 			transport->ctx, SFS_ERR);
-	/* Read of the payload header */
+	/* Read of the payload */ 
 	nbytes = ops->rx(handle, sizeof(*payload), payload);
-	/* Reallocate the payload, depending on the size of data */
-	if (nbytes != 0) {
-		data_len = payload->length;
-		sfs_log(transport->ctx, SFS_DEBUG,
-				"Payload header received, data size = %d",
-				data_len);
-		data_payload = realloc(payload, sizeof(*payload) + data_len);
-		if (data_payload) {
-			/* Read off the data now */
-			nbytes = ops->rx(handle, data_len, data_payload->data);
-			payload = data_payload;
-		} else {
-			sfs_log(transport->ctx, SFS_ERR,
-					"Reallocate payload failed");
-		}
-	}
+	sfs_log (transport->ctx, ((nbytes == 0) ? SFS_ERR : SFS_DEBUG), 
+			"Payload size: %d\n", nbytes);
+
 	return payload;
 }
 
 static void* do_process_payload(void *param)
 {
+	sstack_payload_t *command = (sstack_payload_t *)param;
+	sstack_payload_t *response = NULL;
+	uint32_t payload_id = command->payload_id;
+
+
 	return 0;
 }
 
@@ -116,18 +107,18 @@ static void* do_receive_thread(void *param)
 		   sfs coming */
 		ret = sfsd->transport->transport_ops.select(sfsd->handle, mask);
 		if (ret != READ_NO_BLOCK) {
-			/*  Nothing to read, we just continue */
-			continue;
+			/* Connection is down, wait for retry */
+			sleep (1);
 		}
 		payload = get_payload(sfsd->transport, sfsd->handle);
 		/* After getting the payload, assign a thread pool from the
 		   thread pool to do the job */
-		ret = sstack_thread_pool_queue(sfsd->thread_pool,
-				do_process_payload, payload);
-		if (ret == 0) {
-			sfs_log(sfsd->log_ctx, SFS_INFO, "Job %d queued",
-					payload->command);
+		if (payload != NULL) {
+			ret = sstack_thread_pool_queue(sfsd->thread_pool,
+					do_process_payload, payload);
+			sfs_log(sfsd->log_ctx,
+					((ret == 0) ? SFS_DEBUG: SFS_ERR),
+					"Job queue status: %d", ret);
 		}
 	}
-
 }

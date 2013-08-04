@@ -20,6 +20,9 @@
 #include <stdint.h>
 #include <sstack_sfsd.h>
 #include <sstack_transport.h>
+/* Temporary TODO: Remove */
+sstack_client_handle_t tcp_client_init(sstack_transport_t *transport);
+
 
 int32_t init_transport (sfsd_local_t *sfsd)
 {

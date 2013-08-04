@@ -28,6 +28,9 @@
 #define IPV4_ADDR_MAX 16
 #define IPV6_ADDR_MAX 40
 #define MAX_QUEUE_SIZE 1024
+#define MAX_EXTENT_SIZE 65536 /* (64 * 1024 bytes) */
+
+#include <sstack_nfs.h>
 
 typedef enum {
 	SFSD_HANDSHAKE	= 1,
@@ -48,45 +51,13 @@ typedef enum {
 	NUM_PRIORITY_MAX,
 } sfs_prio_t;
 
-typedef enum sstack_nfs_command {
-	NFS_GETATTR = 1,
-	NFS_SETATTR,
-	NFS_LOOKUP,
-	NFS_ACCESS,
-	NFS_READLINK,
-	NFS_READ,
-	NFS_WRITE,
-	NFS_CREATE,
-	NFS_MKDIR,
-	NFS_SYMLINK,
-	NFS_MKNOD,
-	NFS_REMOVE,
-	NFS_RMDIR,
-	NFS_RENAME,
-	NFS_LINK,
-	NFS_READDIR,
-	NFS_READDIRPLUS,
-	NFS_FSSTAT,
-	NFS_FSINFO,
-	NFS_PATHCONF,
-	NFS_COMMIT,
-} sstack_nfs_command_t;
-
-/* Need to define this later */
-typedef struct sstack_command_struct 
-{
-	uint32_t params;
-} sstack_nfs_command_struct;
-
 typedef struct sstack_payload {
-	/* This is the header */
-	struct {
-		sstack_nfs_command_t command;
+	uint32_t payload_id;
+	sstack_nfs_command_t command;
+	union {
 		sstack_nfs_command_struct command_struct;
-		size_t length; /* Data length which follows */
+		sstack_nfs_result_struct  result_struct;
 	};
-	/* This is the data */
-	uint8_t data[0];
 } sstack_payload_t;
 	
 typedef struct sfsd {
