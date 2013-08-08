@@ -51,8 +51,13 @@ typedef enum {
 	NUM_PRIORITY_MAX,
 } sfs_prio_t;
 
+typedef struct sstack_payload_hdr {
+	uint32_t sequence;
+	uint32_t payload_len;
+} sstack_payload_hdr_t;
+
 typedef struct sstack_payload {
-	uint32_t payload_id;
+	sstack_payload_hdr_t hdr;
 	sstack_nfs_command_t command;
 	union {
 		sstack_nfs_command_struct command_struct;
