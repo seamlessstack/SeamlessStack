@@ -1,0 +1,20 @@
+This plugin implements LZMA compression. This plugin uses following components:
+
+1> liblzma 
+2> Examples of liblzma usage taken from xz source code (under doc/examples). 
+
+Both of these are public domain software. Here are licenses:
+
+LIBLZMA License
+
+LZMA SDK is placed in the public domain.
+
+
+Examples License
+///////////////////////////////////////////////////////////////////////////////
+//  Author:     Lasse Collin
+//
+//  This file has been put into the public domain.
+//  You can do whatever you want with this file.
+//
+///////////////////////////////////////////////////////////////////////////////

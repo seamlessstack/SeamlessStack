@@ -85,7 +85,7 @@ static void* do_process_payload(void *param)
 {
 	sstack_payload_t *command = (sstack_payload_t *)param;
 	sstack_payload_t *response = NULL;
-	uint32_t payload_id = command->payload_id;
+	uint32_t payload_id = command->hdr.sequence;
 
 
 	return 0;

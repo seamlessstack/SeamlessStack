@@ -4,6 +4,8 @@
 #define NUM_BUCKETS 16
 #define POLICY_TAG_LEN 16
 
+#include <Judy.h>
+
 enum ret_code
 {
 	FALSE,
@@ -26,18 +28,21 @@ struct attribute
   * Represents one plugin. Allocated during 
   * registration.
  **/ 
-struct policy_plugin
+
+typedef struct policy_plugin policy_plugin_t;
+
+typedef struct policy_plugin
 {
 	uint32_t ver;
 	uint8_t  is_activated;
 	uint32_t pp_refcount;
 	char	 pp_policy_tag[POLICY_TAG_LEN];	
 	pthread_spinlock_t pp_lock;
-	uint32_t (*init_policy)(void);
-	void (*deinit_policy)(void);
+	policy_plugin_t * (*init_policy)(void);
+	void (*deinit_policy)(policy_plugin_t *);
 	uint32_t (*apply_policy)(const char *path);
 	uint32_t (*remove_policy)(const char *path);
-};
+} policy_plugin_t;
 
 /** Container to keep attributes and plugins
   * together per file. Result of a get_policy()
