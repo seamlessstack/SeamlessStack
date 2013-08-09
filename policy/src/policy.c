@@ -1,3 +1,22 @@
+/*************************************************************************
+ *
+ * SEAMLESSSTACK CONFIDENTIAL
+ * __________________________
+ *
+ *  [2012] - [2013]  SeamlessStack Inc
+ *  All Rights Reserved.
+ *
+ * NOTICE:  All information contained herein is, and remains
+ * the property of SeamlessStack Incorporated and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to SeamlessStack Incorporated
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ * Dissemination of this information or reproduction of this material
+ * is strictly forbidden unless prior written permission is obtained
+ * from SeamlessStack Incorporated.
+ */
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -5,11 +24,11 @@
 #include <errno.h>
 #include <limits.h>
 #include <unistd.h>
+#include <ctype.h>
 #include <Judy.h>
-#include "policy.h"
 #include <pthread.h>
+#include <policy.h>
 
-#define POLICY_TEST
 #define NUM_BUCKETS 16
 #define MAX_POLICIES 64
 #define TYPE_LEN 8
@@ -116,7 +135,7 @@ static uint32_t read_policy_configuration(void)
 {	
 	FILE *fp = NULL;
 	char *line = NULL;
-	ssize_t len = 0;
+	size_t len = 0;
 	struct policy_input *pi = NULL;
 
 	if ((fp = fopen(POLICY_FILE, "r")) == NULL) {
@@ -124,7 +143,7 @@ static uint32_t read_policy_configuration(void)
 		return -errno;
 	}
 	
-	while (getline(&line, &len, fp) > 0) {
+	while (getline((char **)&line, &len, fp) > 0) {
 		parse_line(line, &pi);
 		if (pi != NULL)
 			add_policy(pi);
@@ -228,9 +247,7 @@ static void build_policy_structure(char *string,
 {
 	char *token = NULL;
 	char *saveptr = NULL;
-	struct policy_input *policy_input = NULL;
 	uint32_t i = 0;	
-	uint32_t j = 0;	
 	
 	token = strtok_r(string, ",\t\n ", &saveptr);
 	while (isspace(*token++));
@@ -338,7 +355,6 @@ struct policy_entry* get_policy(const char* path)
 	/* Actual Judy index holder */
 	char index[PATH_MAX + 16 /* UID + GID */ 
 		+ TYPE_LEN + 4 /* '\0' and guard characters */ ];
-	int reverse_index;
 	
 	/* UID */
 	uid[0] = -1;

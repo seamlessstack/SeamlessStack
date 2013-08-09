@@ -1,17 +1,23 @@
-#CFLAGS += -Wall
+CFLAGS += -Wall
 CFLAGS += -g
 #CFLAGS += -O3
+CFLAGS += -D_GNU_SOURCE -fPIC
 CFLAGS += -I ./include 
-CFLAGS += -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DFUSE_USE_VERSION=26
-CFLAGS += -DMONGO_HAVE_STDINT -Wall
-LIB = $(shell pkg-config --libs fuse) -lpthread -lJudy 
-
+POLICY_LIB_NAME = libpolicy.so
 POLICY_OBJS = src/policy.o
+LDFLAGS = -shared -o
+LIBS = $(shell pkg-config --libs fuse) -lpthread -lJudy 
+CC = gcc
+RM = rm
 
-all:: policy
 
-policy: $(POLICY_OBJS)
-	$(CC) $(LDFLAGS) -o $@ $(POLICY_OBJS) $(LIB)
+all:: $(POLICY_LIB_NAME)
+
+$(POLICY_LIB_NAME): $(POLICY_OBJS)
+	$(CC) $(LDFLAGS) $@ $(POLICY_OBJS) $(LIBS)
+
+%.o:%.c
+	$(CC) $(CFLAGS) -o $@ -c $<
 
 clean:
-	rm -f policy src/*.o
+	$(RM) -f $(POLICY_LIB_NAME) $(POLICY_OBJS)
