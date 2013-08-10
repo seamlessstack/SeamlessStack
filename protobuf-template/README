@@ -1,0 +1,13 @@
+Check https://code.google.com/p/protobuf-c/wiki/Examples and https://developers.google.com/protocol-buffers/docs/proto?csw=1 for examples
+
+NFS structures are converted into protobuf format. More work pending.
+
+To compile:
+
+1> sudo apt-get install protobuf-c-compiler libprotobuf-c0 libprotobuf-c0-dev
+2> ./compile
+
+This builds the .proto file and generates a .c file and a .h file.
+
+There is an example of how to use protocol buffers in pack-unpack.c . This test program creates a NFS read command structure and packs the structure. To verify the packing, unpack is done and one of the fields of the header is printed.
+
