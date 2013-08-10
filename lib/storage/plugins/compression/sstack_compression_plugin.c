@@ -26,6 +26,8 @@
 #include <fcntl.h>
 #include <pthread.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <policy.h>
 #define COMPRESSION_PLUGIN_VERSION 1
 #define TMPNAME_MAX 16
@@ -42,7 +44,7 @@ static bool decompress(lzma_stream *, const char *,
 policy_plugin_t *compression_plugin_init(void);
 void compression_plugin_deinit(policy_plugin_t *);
 uint32_t compression_plugin_compress(const char *);
-uint32_t compression_plugin_decompress(const char *);
+uint32_t compression_plugin_decompress(const char *, char *);
 
 /* Functions */
 
@@ -132,20 +134,23 @@ compression_plugin_compress(const char *path)
  * compression_plugin_compress - apply_policy entry point for compression
  *								plugin
  *
- * path - Full path of the file to be compressed. Final output will also
- * 			be stored in the same file
+ * path - Full path of the file to be compressed.
+ * buffer - Buffer that contains the uncompressed output. This is allocated 
+ *			inside this function. It is caller's responsibility to free
  *
- * Returns 0 on success and negative number on failure.
+ * Returns size of uncompressed data on success and negative number on failure.
  */
 
 uint32_t
-compression_plugin_decompress(const char *path)
+compression_plugin_decompress(const char *path, char *buffer)
 {
 	FILE *input = NULL;
 	FILE *output = NULL;
 	char tmpnam[TMPNAME_MAX] = { '\0' };
 	int fd = -1;
 	int ret = -1;
+	struct stat statbuf = { '\0' };
+	size_t size;
 
 	if (access(path, R_OK))
 		return -1;
@@ -176,11 +181,33 @@ compression_plugin_decompress(const char *path)
 		fprintf(stderr, "Write error: %s\n", strerror(errno));
 		return -2;
 	}
+	close(fd);
 
-	if (rename(tmpnam, path) == -1)
+	// Return size of the decompressed output and return buffer
+	if (stat(tmpnam, &statbuf) == -1) {
+		fprintf(stderr, "Failed to stat: %s\n", strerror(errno));
+		return -3;
+	}
+	buffer = malloc(statbuf.st_size);
+	if (NULL == buffer)
+		return -ENOMEM;
+
+	fd = open(tmpnam, O_RDONLY);
+	if (fd == -1)
 		return -errno;
+	size = read(fd, buffer, statbuf.st_size);
+	// Try once more if read was interrupted
+	if (size == 0 && errno == EINTR) {
+		size = read(fd, buffer, statbuf.st_size);
+	}
 
-	return 0;
+	if (size < statbuf.st_size) {
+		close(fd);
+		return -1;
+	}
+	close(fd);		
+
+	return statbuf.st_size;
 }
 
 static bool
