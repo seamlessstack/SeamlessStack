@@ -207,6 +207,8 @@ compression_plugin_decompress(const char *path, char *buffer)
 	}
 	close(fd);		
 
+	unlink(tmpnam);
+
 	return statbuf.st_size;
 }
 
