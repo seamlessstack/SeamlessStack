@@ -22,6 +22,7 @@
 #include <sstack_log.h>
 #include <sstack_transport.h>
 #include <sstack_thread_pool.h>
+#include <bds_slab.h>
 /**
  * Contains all necessary information
  * for sfsd operation
@@ -35,6 +36,10 @@ typedef struct sfsd_local
 	char sfs_addr[IPV4_ADDR_MAX];
 	sstack_client_handle_t handle;
 	sstack_thread_pool_t *thread_pool;
+#define PAYLOAD_CACHE_OFFSET 0
+#define DATA_CACHE_OFFSET 1
+#define HANDLE_PARAM_OFFSET 2
+	bds_cache_desc_t payload_cache_arr[3];
 } sfsd_local_t;
 
 /**

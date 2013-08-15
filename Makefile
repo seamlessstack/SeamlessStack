@@ -25,7 +25,7 @@ clean:
 	$(MAKE) -C $(POLICYDIR) clean
 	$(MAKE) -C $(CLIDIR) clean
 	$(MAKE) -C $(CACHINGDIR) clean
-	$(MAKE) -C $(COMPRESSION_PLUGIN)
+	$(MAKE) -C $(COMPRESSION_PLUGIN) clean
 	$(MAKE) -C $(SFSDDIR) clean
 	$(MAKE) -C $(SFSDIR) clean
 	$(MAKE) -C $(COMMONDIR) clean

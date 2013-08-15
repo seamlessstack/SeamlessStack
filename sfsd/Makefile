@@ -1,8 +1,8 @@
 CFLAGS += -Wall
 CFLAGS += -g
 #CFLAGS += -O3
-CFLAGS += -I ./include -I ../common/include
-CFLAGS += -D_GNU_SOURCE 
+CFLAGS += -I ./include -I ../common/include -I ../common/include/bds_slab
+CFLAGS += -D_GNU_SOURCE -g
 CFLAGS += -Wall
 LIB = -lpthread -lsstack_common
 LDFLAGS = -L ../common/

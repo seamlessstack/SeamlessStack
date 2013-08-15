@@ -22,6 +22,8 @@
 
 #include <sstack_types.h>
 #include <sstack_transport.h>
+#include <sstack_nfs.h>
+#include <sstack_storage.h>
 
 #define SFSD_MAGIC 0x11101974
 #define MAX_SFSD_CLIENTS 8
@@ -29,8 +31,6 @@
 #define IPV6_ADDR_MAX 40
 #define MAX_QUEUE_SIZE 1024
 #define MAX_EXTENT_SIZE 65536 /* (64 * 1024 bytes) */
-
-#include <sstack_nfs.h>
 
 typedef enum {
 	SFSD_HANDSHAKE	= 1,
@@ -58,10 +58,11 @@ typedef struct sstack_payload_hdr {
 
 typedef struct sstack_payload {
 	sstack_payload_hdr_t hdr;
-	sstack_nfs_command_t command;
+	sstack_command_t command;
 	union {
+		sfsd_storage_t storage;
 		sstack_nfs_command_struct command_struct;
-		sstack_nfs_result_struct  result_struct;
+		sstack_nfs_response_struct response_struct;
 	};
 } sstack_payload_t;
 	
@@ -91,12 +92,5 @@ typedef struct job_queue {
 	sstack_payload_t *payload[MAX_QUEUE_SIZE]; /* The array of payloads */
 } job_queue_t;
 
-typedef enum {
-	INITIALIZING 	= 1, // sfs sent a request to spawn sfsd
-	RUNNING		= 2, // Handshake between sfs and sfsd is up
-	REACHABLE	= 3, // Heartbeat successful
-	UNREACHABLE	= 4, // Heartbeat dead. Could be n/w or sfsd
-	DECOMMISSIONED	= 5, // Node running sfsd is decommissioned. A temp state
-} sfsd_state_t;
 
 #endif // __SSTACK_JOBS_H_

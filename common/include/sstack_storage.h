@@ -17,15 +17,25 @@
  * from SeamlessStack Incorporated.
  */
 
-#include <stdint.h>
-#include <pthread.h>
-#include <sstack_log.h>
-#include <sstack_transport.h>
-#include <sstack_sfsd.h>
+#ifndef __SSTACK_STORAGE_H_
+#define __SSTACK_STORAGE_H_
 
-extern log_ctx_t *sfsd_ctx;
-void run_daemon_sfsd(sfsd_local_t *sfsd)
-{
-	sleep(4);
-	sfs_log(sfsd->log_ctx, SFS_INFO, "%s", "Daemon started");
-}
+/* Supported Protocols */
+typedef enum {
+	NFS	= 1,  // *nix clients
+	CIFS	= 2,  // Bidozzz clients
+	ISCSI	= 3,  // iSCSI targets
+	NATIVE	= 4,  // Native protocol to support faster storage access
+} sfs_protocol_t;
+
+typedef struct sfsd_storage {
+	char path[PATH_MAX];
+	uint32_t weight;
+	sfs_protocol_t  protocol;
+	union {
+		char ipv4_addr[IPV4_ADDR_MAX];
+		char ipv6_addr[IPV6_ADDR_MAX];
+		/* Other protocol addresses */
+	};
+} sfsd_storage_t;
+#endif /*__SSTACK_STORAGE_H_ */

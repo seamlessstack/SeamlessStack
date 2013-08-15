@@ -16,3 +16,115 @@
  * is strictly forbidden unless prior written permission is obtained
  * from SeamlessStack Incorporated.
  */
+
+#ifndef __SFSD_OPS_H_
+#define __SFSD_OPS_H_
+
+#include <bds_slab.h>
+
+sstack_payload_t* sstack_getattr(
+		sstack_payload_t *payload,
+		bds_cache_desc_t payload_data_cache[2],
+		log_ctx_t *ctx);
+
+sstack_payload_t* sstack_setattr(
+		sstack_payload_t *payload,
+		bds_cache_desc_t payload_data_cache[2],
+		log_ctx_t *ctx);
+
+sstack_payload_t* sstack_lookup(
+		sstack_payload_t *payload,
+		bds_cache_desc_t payload_data_cache[2],
+		log_ctx_t *ctx);
+
+sstack_payload_t* sstack_access(
+		sstack_payload_t *payload,
+		bds_cache_desc_t payload_data_cache[2],
+		log_ctx_t *ctx);
+
+sstack_payload_t* sstack_readlink(
+		sstack_payload_t *payload,
+		bds_cache_desc_t payload_data_cache[2],
+		log_ctx_t *ctx);
+
+sstack_payload_t* sstack_read(
+		sstack_payload_t *payload,
+		bds_cache_desc_t payload_data_cache[2],
+		log_ctx_t *ctx);
+
+sstack_payload_t* sstack_write(
+		sstack_payload_t *payload,
+		bds_cache_desc_t payload_data_cache[2],
+		log_ctx_t *ctx);
+
+sstack_payload_t* sstack_create(
+		sstack_payload_t *payload,
+		bds_cache_desc_t payload_data_cache[2],
+		log_ctx_t *ctx);
+
+sstack_payload_t* sstack_mkdir(
+		sstack_payload_t *payload,
+		bds_cache_desc_t payload_data_cache[2],
+		log_ctx_t *ctx);
+
+sstack_payload_t* sstack_symlink(
+		sstack_payload_t *payload,
+		bds_cache_desc_t payload_data_cache[2],
+		log_ctx_t *ctx);
+
+sstack_payload_t* sstack_mknod(
+		sstack_payload_t *payload,
+		bds_cache_desc_t payload_data_cache[2],
+		log_ctx_t *ctx);
+
+sstack_payload_t* sstack_remove(
+		sstack_payload_t *payload,
+		bds_cache_desc_t payload_data_cache[2],
+		log_ctx_t *ctx);
+
+sstack_payload_t* sstack_rmdir(
+		sstack_payload_t *payload,
+		bds_cache_desc_t payload_data_cache[2],
+		log_ctx_t *ctx);
+
+sstack_payload_t* sstack_rename(
+		sstack_payload_t *payload,
+		bds_cache_desc_t payload_data_cache[2],
+		log_ctx_t *ctx);
+
+sstack_payload_t* sstack_link(
+		sstack_payload_t *payload,
+		bds_cache_desc_t payload_data_cache[2],
+		log_ctx_t *ctx);
+
+sstack_payload_t* sstack_readdir(
+		sstack_payload_t *payload,
+		bds_cache_desc_t payload_data_cache[2],
+		log_ctx_t *ctx);
+
+sstack_payload_t* sstack_readdirplus(
+		sstack_payload_t *payload,
+		bds_cache_desc_t payload_data_cache[2],
+		log_ctx_t *ctx);
+
+sstack_payload_t* sstack_fsstat(
+		sstack_payload_t *payload,
+		bds_cache_desc_t payload_data_cache[2],
+		log_ctx_t *ctx);
+
+sstack_payload_t* sstack_fsinfo(
+		sstack_payload_t *payload,
+		bds_cache_desc_t payload_data_cache[2],
+		log_ctx_t *ctx);
+
+sstack_payload_t* sstack_pathconf(
+		sstack_payload_t *payload,
+		bds_cache_desc_t payload_data_cache[2],
+		log_ctx_t *ctx);
+
+sstack_payload_t* sstack_commit(
+		sstack_payload_t *payload,
+		bds_cache_desc_t payload_data_cache[2],
+		log_ctx_t *ctx);
+
+#endif /* __SFSD_OPS_H_ */

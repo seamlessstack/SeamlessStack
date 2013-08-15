@@ -476,6 +476,7 @@ void bds_cache_init (void)
 	}
 #endif
 	return;
+	printf ("Cache init done..");
 }
 
 /**

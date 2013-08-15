@@ -25,6 +25,7 @@
 #include <sstack_log.h>
 #include <sstack_transport.h>
 #include <sstack_sfsd.h>
+#include <bds_slab.h>
 
 /* sstack log directory */
 char sstack_log_directory[PATH_MAX];
@@ -38,12 +39,13 @@ int main(int argc, char **argv)
 
 	/* Set up the log directory */
 	if (argc == 1) {
-		fprintf (stdout, "Usage: %s <log directory> <sfs address>\n", argv[0]);
+		fprintf (stdout, "Usage: %s <log directory> <sfs address>\n",
+				argv[0]);
 	} else {
 		strncpy(sstack_log_directory, argv[1], PATH_MAX);
 	}
 	memset(&sfsd, 0, sizeof(sfsd));
-
+	
 	/* Get the server address from the command line also */
 	strcpy(sfsd.sfs_addr, argv[2]);
 
@@ -58,6 +60,10 @@ int main(int argc, char **argv)
 	/* Register signals */
 	ASSERT ((0 == register_signals(&sfsd)),
 			"Signal regisration failed", 1, 1, 0);
+
+	/* Mount devices to appropriate mount points */
+	//init_storage_devs(&sfsd);
+
 	/* Initialize transport */
 	init_transport(&sfsd);
 
@@ -67,6 +73,7 @@ int main(int argc, char **argv)
 	/* Daemonize */
 	//daemon(0, 0);
 
+	while(1);
 	/* Run the sfsd daemon */
 	run_daemon_sfsd(&sfsd);
 

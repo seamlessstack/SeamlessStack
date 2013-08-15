@@ -20,28 +20,18 @@
 #ifndef __SSTACK_CHUNK_H_
 #define __SSTACK_CHUNK_H_
 
-#include <sstack_jobs.h>
 #include <limits.h>
-
+#include <sstack_jobs.h>
+#include <sstack_storage.h>
 // Chunk_domain data structure
-
 typedef enum {
-	NFS		= 1,  // *nix clients
-	CIFS	= 2,  // Bidozzz clients
-	ISCSI	= 3,  // iSCSI targets
-	NATIVE	= 4,  // Native protocol to support faster storage access
-} sfs_protocol_t;
+	INITIALIZING 	= 1, // sfs sent a request to spawn sfsd
+	RUNNING		= 2, // Handshake between sfs and sfsd is up
+	REACHABLE	= 3, // Heartbeat successful
+	UNREACHABLE	= 4, // Heartbeat dead. Could be n/w or sfsd
+	DECOMMISSIONED	= 5, // Node running sfsd is decommissioned. A temp state
+} sfsd_state_t;
 
-// Individual storages can be reached by TCP/IP only.
-// No other protocol supported at present.
-typedef struct sfsd_storage {
-	char path[PATH_MAX];
-	sfs_protocol_t  protocol;
-	union {
-		char ipv4_addr[IPV4_ADDR_MAX];
-		char ipv6_addr[IPV6_ADDR_MAX];
-	};
-} sfsd_storage_t;
 
 typedef struct sfs_chunk_domain {
 	sfsd_t *sfsd; // sfsd representing this chunk domain
