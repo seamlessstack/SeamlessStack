@@ -1,6 +1,7 @@
 MONGODIR = db/mongo
 SFSDIR = sfs
 MONGODRV = oss/mongo-c-driver
+OSS = oss
 POLICYDIR = policy
 CLIDIR	= cli
 SFSDDIR = sfsd
@@ -9,6 +10,7 @@ CACHINGDIR = lib/caching
 COMPRESSION_PLUGIN = lib/storage/plugins/compression
 
 all:
+	$(MAKE) -C $(OSS)
 	$(MAKE) -C $(MONGODIR)
 	$(MAKE) -C $(MONGODRV)
 	$(MAKE) -C $(POLICYDIR)
@@ -17,9 +19,10 @@ all:
 	$(MAKE) -C $(COMPRESSION_PLUGIN)
 	$(MAKE) -C $(COMMONDIR)
 	$(MAKE) -C $(SFSDDIR)
-	$(MAKE) -C $(SFSDIR)
+#$(MAKE) -C $(SFSDIR)
 
 clean:
+	$(MAKE) -C $(OSS) clean
 	$(MAKE) -C $(MONGODIR) clean
 	$(MAKE) -C $(MONGODRV) clean
 	$(MAKE) -C $(POLICYDIR) clean

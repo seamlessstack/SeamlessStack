@@ -27,15 +27,17 @@
 # $Revision: 1.0 $
 # $Date: 2007/09/25 15:12:20 $
 
-CC = gcc  
-CFLAGS = -O3 -I$(HOME)/include
+CC = gcc
+LDFLAGS = -shared -lc -Wl,-soname
+CFLAGS = -O3 -I$(HOME)/include -fPIC
 
 ALL =	galois.o jerasure.o reed_sol.o cauchy.o liberation.o
 
 all: $(ALL)
-
+	$(CC)  $(LDFLAGS),$(SONAME) -o libjerasure.so $(ALL)
+	
 clean:
-	rm -f core *.o $(ALL) a.out
+	rm -f core *.o *.so 
 
 .SUFFIXES: .c .o
 .c.o:

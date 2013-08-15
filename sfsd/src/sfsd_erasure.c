@@ -21,7 +21,7 @@
 #include <string.h>
 #include "jerasure.h"
 #include "galois.h"
-#include "sfs_erasure.h"
+#include <sfsd_erasure.h>
 
 #define NUM_PKT_STRIPS	8
 #define PACKET_SIZE(size)	(size/NUM_PKT_STRIPS)
@@ -391,8 +391,10 @@ sfs_esure_decode(void **data, int num_dstripes, void **code,
  return (ESURE_SUCCESS); 	
 }		
 
+#if 0
 int
 main(void)
 {
 return (0);
 }	
+#endif
