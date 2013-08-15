@@ -1,0 +1,162 @@
+message nfs_read_cmd 
+{
+	required uint64 offset = 1;
+	required uint64 count = 2;
+	required nfs_data data = 3;
+}
+
+message nfs_data
+{
+	required uint64 data_len = 1;
+	required bytes data_val = 2;
+}
+
+message nfs_write_cmd
+{
+	required uint64 offset = 1;
+	required uint64 count = 2;
+	required nfs_data data = 3;
+}
+
+message nfs_create_cmd
+{
+	required uint32 mode = 1;
+	required nfs_data data = 2;
+}
+
+message nfs_access_cmd
+{
+	required uint32 mode = 1;
+}
+
+message nfs_rename_cmd
+{
+	required bytes new_path = 1;
+}
+
+message nfs_commit_cmd
+{
+	required uint64 offset = 1;
+	required uint64 count = 2;
+}
+
+
+message sstack_nfs_command_struct
+{
+	optional nfs_read_cmd read_cmd = 1;
+	optional nfs_write_cmd write_cmd = 2;
+	optional nfs_create_cmd create_cmd = 3;
+	optional nfs_access_cmd access_cmd = 4;
+	optional nfs_rename_cmd rename_cmd = 5;
+	optional nfs_commit_cmd commit_cmd = 6;
+} 	
+
+
+message nfs_lookup_resp
+{
+	required bytes lookup_path = 1;
+}
+
+message nfs_access_resp
+{
+	required uint32 access = 1;
+}
+
+message nfs_read_resp
+{
+	required uint64 count = 1;
+	required int32 eof = 2;
+	required nfs_data data = 3;
+}
+
+message nfs_write_resp
+{
+	required uint32 file_write_ok = 1;
+	required uint32 file_wc = 2;
+}
+
+message nfs_create_resp
+{
+	required uint32 file_create_ok = 1;
+	required uint32 file_wc = 2;
+}
+
+message nfs_remove_resp
+{
+	required uint32 file_remove_ok = 1;
+}
+
+message nfs_rename_resp
+{
+	required uint32 file_rename_ok = 1;
+}
+
+message nfs_fsstat_resp
+{
+}
+
+message nfs_fsinfo_resp
+{
+}
+
+message nfs_pathconf_resp
+{
+}
+
+message nfs_commit_resp
+{
+}
+
+message sstack_nfs_result_struct
+{
+	optional nfs_lookup_resp lookup_resp = 1;
+	optional nfs_access_resp access_resp = 2;
+	optional nfs_read_resp read_resp = 3;
+	optional nfs_write_resp write_resp = 4;
+	optional nfs_create_resp create_resp = 5;
+	optional nfs_remove_resp remove_resp = 6;
+	optional nfs_rename_resp rename_resp = 7;
+	optional nfs_fsstat_resp fsstat_resp = 8;
+	optional nfs_fsinfo_resp fsinfo_resp = 9;
+	optional nfs_pathconf_resp pathconf_resp = 10;
+	optional nfs_commit_resp commit_resp = 11;
+}
+
+message sstack_payload_hdr_t
+{
+	required uint32 sequence = 1;
+	required uint32 payload_len = 2;
+}
+
+message sstack_payload_t
+{
+	required sstack_payload_hdr_t hdr = 1;
+	enum sstack_nfs_command_t
+	{
+		NFS_GETATTR = 1;
+		NFS_SETATTR = 2;
+		NFS_LOOKUP = 3;
+		NFS_ACCESS = 4;
+		NFS_READLINK = 5;
+		NFS_READ = 6;
+		NFS_WRITE = 7;
+		NFS_CREATE = 8;
+		NFS_MKDIR = 9;
+		NFS_SYMLINK = 10;
+		NFS_MKNOD = 11;
+		NFS_REMOVE = 12;
+		NFS_RMDIR = 13;
+		NFS_RENAME = 14;
+		NFS_LINK = 15;
+		NFS_READDIR = 16;
+		NFS_READDIRPLUS = 17;
+		NFS_FSSTAT = 18;
+		NFS_FSINFO = 19;
+		NFS_PATHCONF = 20;
+		NFS_COMMIT = 21;
+		NFS_VALID_MAX = 21;
+	}
+	required sstack_nfs_command_t command = 2;
+	optional sstack_nfs_command_struct command_struct = 3;
+	optional sstack_nfs_result_struct result_struct = 4;
+}

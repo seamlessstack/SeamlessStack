@@ -1,0 +1,2 @@
+protoc-c --c_out=. jobs.proto
+cc -g pack-unpack.c jobs.pb-c.c  -o pack-unpack  -lprotobuf-c

@@ -41,7 +41,7 @@ typedef struct policy_plugin
 	policy_plugin_t * (*init_policy)(void);
 	void (*deinit_policy)(policy_plugin_t *);
 	uint32_t (*apply_policy)(const char *path);
-	uint32_t (*remove_policy)(const char *path);
+	uint32_t (*remove_policy)(const char *path, char *buffer);
 } policy_plugin_t;
 
 /** Container to keep attributes and plugins
