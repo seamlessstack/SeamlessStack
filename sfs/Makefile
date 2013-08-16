@@ -4,8 +4,9 @@ CFLAGS += -g
 CFLAGS += -I ../common/include -I include -I ../db/mongo/include
 CFLAGS += -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DFUSE_USE_VERSION=26
 CFLAGS += -DMONGO_HAVE_STDINT
+OSS_LIBSDIR = $(PWD)/../oss_libs/lib
 LIB = $(shell pkg-config --libs fuse) -lpthread -L../db/mongo -lmongo_db
-LIB += -L/usr/local/lib -lmongoc -lbson
+LIB += -L$(OSS_LIBSDIR) -lmongoc -lbson
 
 SFS_OBJS = src/sfs.o
 

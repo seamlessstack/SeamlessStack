@@ -6,7 +6,8 @@ CFLAGS += -D_GNU_SOURCE -fPIC
 CACHING_LIB_NAME = libcache.so
 CACHING_OBJECTS = src/sstack_cache_api.o
 LDFLAGS = -shared -o
-LIBS = -L/usr/local/lib -lmemcached
+OSS_DIR = $(PWD)/../../oss/oss_libs
+LIBS = -L$(OSS_DIR) -lmemcached
 CC = gcc
 RM = rm
 
