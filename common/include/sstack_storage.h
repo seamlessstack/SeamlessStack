@@ -29,12 +29,14 @@ typedef enum {
 } sfs_protocol_t;
 
 typedef struct sfsd_storage {
-	char path[PATH_MAX];
-	uint32_t weight;
-	sfs_protocol_t  protocol;
+	char path[PATH_MAX];		// Path of the source
+	uint32_t weight;			// Storage weight
+	uint64_t nblocks; 		// Number of file system blocks
+	sfs_protocol_t  protocol;	// How this chunk is reached?
+	// Chunk's "address"
 	union {
-		char ipv4_addr[IPV4_ADDR_MAX];
-		char ipv6_addr[IPV6_ADDR_MAX];
+		char ipv4_addr[IPV4_ADDR_MAX]; // NULL terminated address
+		char ipv6_addr[IPV6_ADDR_MAX]; // NULL terminated address
 		/* Other protocol addresses */
 	};
 } sfsd_storage_t;

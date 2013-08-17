@@ -8,6 +8,7 @@ SFSDDIR = sfsd
 COMMONDIR = common
 CACHINGDIR = lib/caching
 COMPRESSION_PLUGIN = lib/storage/plugins/compression
+CHUNKAPIDIR	= lib/chunk-domain
 
 all:
 	$(MAKE) -C $(OSS)
@@ -18,6 +19,7 @@ all:
 	$(MAKE) -C $(CACHINGDIR)
 	$(MAKE) -C $(COMPRESSION_PLUGIN)
 	$(MAKE) -C $(COMMONDIR)
+	$(MAKE) -C $(CHUNKAPIDIR)
 	$(MAKE) -C $(SFSDDIR)
 #$(MAKE) -C $(SFSDIR)
 
@@ -32,3 +34,4 @@ clean:
 	$(MAKE) -C $(SFSDDIR) clean
 	$(MAKE) -C $(SFSDIR) clean
 	$(MAKE) -C $(COMMONDIR) clean
+	$(MAKE) -C $(CHUNKAPIDIR) clean
