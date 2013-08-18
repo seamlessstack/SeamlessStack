@@ -3,7 +3,7 @@ MEMCACHEDDIR = libmemcached-1.0.17
 MONGOCDIR = mongo-c-driver
 CONFIGURE = conf
 OSS_DIR = $(PWD)
-OSS_LIBSDIR = $(OSS_DIR)/oss_libs
+OSS_LIBSDIR = $(OSS_DIR)/oss_libs/lib/
 RM = rm
 CC = gcc
 CP = cp
@@ -15,8 +15,8 @@ all: $(CONFIGURE)
 	$(MAKE) -C $(JERASUREDIR)
 	$(MAKE) -C $(MEMCACHEDDIR)
 	$(MAKE) -C $(MEMCACHEDDIR) install
-	$(CP) $(JERASUREDIR)/*.so $(OSS_LIBSDIR)/lib
-	$(CP) $(MONGOCDIR)/*.so $(OSS_LIBSDIR)/lib
+	$(CP) $(JERASUREDIR)/*.so $(OSS_LIBSDIR)
+	$(CP) $(MONGOCDIR)/*.so $(OSS_LIBSDIR)
 
 $(CONFIGURE):
 	$(CD) $(MEMCACHEDDIR) && ./configure --prefix=$(OSS_LIBSDIR)

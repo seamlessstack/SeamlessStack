@@ -24,4 +24,6 @@
 
 typedef uint64_t sstack_client_handle_t;
 
+
+#define MAX_EXTENT_SIZE 65536 /* 64 * 1024 bytes */
 #endif // __SSTACK_TYPES_H_

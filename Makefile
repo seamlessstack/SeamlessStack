@@ -21,7 +21,7 @@ all:
 	$(MAKE) -C $(COMMONDIR)
 	$(MAKE) -C $(CHUNKAPIDIR)
 	$(MAKE) -C $(SFSDDIR)
-#$(MAKE) -C $(SFSDIR)
+	$(MAKE) -C $(SFSDIR)
 
 clean:
 	$(MAKE) -C $(OSS) clean

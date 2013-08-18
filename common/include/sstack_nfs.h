@@ -19,6 +19,7 @@
 #ifndef __SSTACK_NFS_H_
 #define __SSTACK_NFS_H_
 
+#include <limits.h>
 /**
   * Commands that are sent from SFS to SFSD.
   * The command list includes the following:-
@@ -84,7 +85,7 @@ typedef struct sstack_file_attribute {
 
 typedef struct sstack_file_name {
 	size_t name_len;
-	char *name;
+	char name[PATH_MAX];
 } sstack_file_name_t;
 
 /* =============== COMMAND STRUCTURES ========================*/
@@ -109,7 +110,7 @@ struct sstack_nfs_write_cmd {
 	size_t count;
 	struct {
 		size_t data_len;
-		void *data_val;
+		uint8_t data_val[MAX_EXTENT_SIZE];
 	} data;
 };
 
@@ -117,16 +118,25 @@ struct sstack_nfs_create_cmd {
 	uint32_t mode;
 	struct {
 		size_t data_len;
-		void *data_val;
+		uint8_t data_val[MAX_EXTENT_SIZE];
 	} data;
 };
 
+struct sstack_nfs_mkdir_cmd {
+	/* Name in file handle */
+	uint32_t mode;
+};
 struct sstack_nfs_access_cmd {
 	uint32_t mode;
 };
+
+struct sstack_nfs_symlink_cmd {
+	/* Old name in file handle */
+	sstack_file_name_t new_path;
+};
+
 struct sstack_nfs_rename_cmd {
-	size_t new_path_len;
-	char *new_path;
+	sstack_file_name_t new_path;
 };
 
 struct sstack_nfs_remove_cmd {
@@ -163,6 +173,11 @@ typedef struct sstack_command_struct {
 		/* NFS v3 CREATE command */
 		struct sstack_nfs_create_cmd create_cmd;
 
+		/* NFS v3 MKDIR command */
+		struct sstack_nfs_mkdir_cmd mkdir_cmd;
+
+		struct sstack_nfs_symlink_cmd symlink_cmd;
+
 		/* NFS v3 RENAME command */
 		struct sstack_nfs_rename_cmd rename_cmd;
 
@@ -195,13 +210,17 @@ struct sstack_nfs_read_resp {
 	int32_t eof;
 	struct {
 		size_t data_len;
-		void *data_val;
+		uint8_t data_val[MAX_EXTENT_SIZE];
 	} data;
 };
 
 struct sstack_nfs_write_resp {
 	uint32_t file_create_ok;
 	uint32_t file_wc;
+};
+
+struct sstack_nfs_readlink_resp {
+	sstack_file_name_t real_file;
 };
 
 typedef struct sstack_nfs_response_struct {
@@ -218,6 +237,9 @@ typedef struct sstack_nfs_response_struct {
 
 		/* NFS v3 ACCESS response */
 		struct sstack_nfs_access_resp access_resp;
+		
+		/* NFS v3 READLINK response */
+		struct sstack_nfs_readlink_resp readlink_resp;
 
 		/* NFS v3 READ response */
 		struct sstack_nfs_read_resp read_resp;
