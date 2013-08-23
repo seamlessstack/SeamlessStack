@@ -25,8 +25,7 @@
 #include <sstack_chunk.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#define LOCAL_PATH_MAX 16
-#define MAX_COMMAND ((PATH_MAX) + (LOCAL_PATH_MAX) + 64)
+#define MAX_COMMAND ((PATH_MAX) + (MAX_MOUNT_POINT_LEN) + 64)
 
 /*
  * sfsd_chunk_domain_init - Initialize the chunk domain datastructure
@@ -61,6 +60,7 @@ sfsd_chunk_domain_init(sfsd_t *sfsd, log_ctx_t *ctx)
 	chunk->num_chunks = 0;
 	chunk->size_in_blks = 0; // No chunks added yet	
 	chunk->ctx = ctx;
+	chunk->storage = NULL;
 
 	sfs_log(ctx, SFS_INFO, "%s: Chunk domain for sfsd 0x%llx is successfully "
 		"created. Chunk domain address = 0x%llx \n",
@@ -86,6 +86,9 @@ sfsd_chunk_domain_destroy(sfs_chunk_domain_t *chunk)
 
 	sfs_log(chunk->ctx, SFS_INFO, "%s: Chunk domain for sfsd 0x%llx is"
 		" destroyed \n", __FUNCTION__, (void *) chunk->sfsd);
+	if (chunk->storage)
+		free(chunk->storage);
+
 	free(chunk);
 }
 
@@ -117,7 +120,7 @@ sfsd_add_chunk(sfs_chunk_domain_t *chunk, sfsd_storage_t *storage)
 	if (NULL == chunk || NULL == storage)
 		return NULL;
 
-	path = calloc(1, LOCAL_PATH_MAX);
+	path = calloc(1, MAX_MOUNT_POINT_LEN);
 	if (NULL == path) {
 		sfs_log(chunk->ctx, SFS_ERR, "%s: Failed to add chunk 0x%llx to "
 			"chunk domain 0x%llx of sfsd 0x%llx. Out of memory !!! \n",
@@ -192,6 +195,8 @@ sfsd_add_chunk(sfs_chunk_domain_t *chunk, sfsd_storage_t *storage)
 		chunk->num_chunks ++;
 		chunk->size_in_blks += storage->nblocks;
 		ptr = chunk->storage + chunk->num_chunks;
+		strncpy((void *)storage->mount_point, (void *) path,
+			MAX_MOUNT_POINT_LEN);
 		memcpy(chunk->storage + chunk->num_chunks, storage,
 			sizeof(sfsd_storage_t));
 

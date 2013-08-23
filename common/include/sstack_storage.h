@@ -20,6 +20,8 @@
 #ifndef __SSTACK_STORAGE_H_
 #define __SSTACK_STORAGE_H_
 
+#define MAX_MOUNT_POINT_LEN 16
+
 /* Supported Protocols */
 typedef enum {
 	NFS	= 1,  // *nix clients
@@ -30,6 +32,7 @@ typedef enum {
 
 typedef struct sfsd_storage {
 	char path[PATH_MAX];		// Path of the source
+	char mount_point[MAX_MOUNT_POINT_LEN]; // Local mount point - not persisted
 	uint32_t weight;			// Storage weight
 	uint64_t nblocks; 		// Number of file system blocks
 	sfs_protocol_t  protocol;	// How this chunk is reached?
