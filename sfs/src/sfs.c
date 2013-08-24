@@ -34,6 +34,9 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <dirent.h>
+#include <sys/wait.h>
+#include <signal.h>
+
 
 /* Local headers */
 #include <sstack_md.h>
@@ -252,14 +255,9 @@ populate_db(const char *dir_name)
 		d_name = entry->d_name;
 		// Don't bother for . and ..
 		if (strcmp (d_name, "..") != 0 && strcmp (d_name, ".") != 0) {
-			if (BUILD_PATH(path, dir_name, d_name))
-				return ;
-#if 0
 			sprintf(path, "%s%s", dir_name, d_name);
-			sfs_log(sfs_ctx, SFS_ERR, "%s: dir_name = %s,
-					d_name = %s \n", __FUNCTION__,
-					dir_name, d_name);  
-#endif
+			sfs_log(sfs_ctx, SFS_ERR, "%s: dir_name = %s, d_name = %s \n",
+				__FUNCTION__, dir_name, d_name);  
 			p = rep(path, '/');
 			add_inodes(p);
 			free(p);
@@ -292,6 +290,234 @@ populate_db(const char *dir_name)
 			__FUNCTION__, dir_name, strerror (errno));
 		exit (-1);
 	}
+}
+
+
+#if 0
+static void
+handle(sfs_client_request_t *req)
+{
+	char *buf;
+	char **ptr = (char **) &buf;
+	char *branch = NULL;
+	int existing_branches = uopt.nbranches;
+	int branch_index = -1;
+
+
+	syslog(LOG_INFO, "req_type = %d \n", req->u1.req_type);
+	if (req->u1.req_type == ADD_BRANCH || req->u1.req_type == DEL_BRANCH) {
+		buf = strdup(req->u1.branches);
+		syslog(LOG_INFO, "new branch = %s \n", req->u1.branches);
+		while((branch = strsep(ptr, ROOT_SEP)) != NULL) {
+			if (strlen(branch) == 0) continue;
+			if (req->u1.req_type == ADD_BRANCH)
+				add_branch(branch);
+			else if (req->u1.req_type == DEL_BRANCH)
+				del_branch(branch);
+		}
+		free(buf);
+
+		// Update the branches
+		unionfs_post_opts(existing_branches);
+		// Update inode database for newly added branches
+
+		for (branch_index = existing_branches; branch_index < uopt.nbranches;
+				branch_index++)
+			populate_db(sfs_chunks[chunk_index].chunk_path);
+	} else if (req->u1.req_type == ADD_POLICY ||
+			req->u1.req_type == DEL_POLICY) {
+			//			 TBD
+			// Call add_policy which should add/replace/delete the policy
+			// mentioned in the request to the appropriate policy bucket
+			// and add/replace/delete the binary entry in POLICY_FILE
+	}
+}
+
+static void
+deserialize(sfs_client_request_t *req, char *buf)
+{
+	unsigned int value;
+	size_t size = 0;
+
+	memcpy(&value, buf, sizeof(int));
+	req->u1.req_magic = ntohl(value);
+	size += sizeof(int);
+	memcpy(&value, buf + size, sizeof(int));
+	req->u1.req_type = ntohl(value);
+	size += sizeof(int);
+	if (req->u1.req_type == ADD_BRANCH || req->u1.req_type == DEL_BRANCH) {
+		memcpy(req->u1.branches, buf + size, PATH_MAX);
+		size += PATH_MAX;
+		memcpy(req->u1.login_name, buf + size, LOGIN_NAME_MAX);
+		size += LOGIN_NAME_MAX;
+	} else if (req->u1.req_type == ADD_POLICY ||
+			req->u1.req_type == DEL_POLICY) {
+		uint64_t t = 0;
+		uint8_t *ptr = NULL;
+
+		memcpy(req->u2.req_fname, buf + size, PATH_MAX);
+		size += PATH_MAX;
+		memcpy(req->u2.req_ftype, buf + size, TYPENAME_MAX);
+		size += TYPENAME_MAX;
+		memcpy(&value, buf + size, sizeof(int));
+		req->u2.req_uid = ntohl(value);
+		size += sizeof(int);
+		memcpy(&value, buf + size, sizeof(int));
+		req->u2.req_gid = ntohl(value);
+		size += sizeof(int);
+		req->u2.req_is_hidden = *(buf + size);
+		size += sizeof(uint8_t);
+		req->u2.req_is_striped = *(buf + size);
+		size += sizeof(uint8_t);
+		req->u2.req_qoslevel = *(buf + size);
+		size += sizeof(uint8_t);
+		// Convert the extent_size back to little endian
+		ptr = (uint8_t *) (buf + size);
+		t |= ((uint64_t) (*(ptr)) << (7 * 8));
+		t |= ((uint64_t) (*(ptr + 1)) << (6 * 8));
+		t |= ((uint64_t) (*(ptr + 2)) << (5 * 8));
+		t |= ((uint64_t) (*(ptr + 3)) << (4 * 8));
+		t |= ((uint64_t) (*(ptr + 4)) << (3 * 8));
+		t |= ((uint64_t) (*(ptr + 5)) << (2 * 8));
+		t |= ((uint64_t) (*(ptr + 6)) << (1 * 8));
+		t |= (uint64_t) (*(ptr + 7));
+		req->u2.req_extent_size = t;
+		size += sizeof(uint64_t);
+	}
+
+}
+#endif
+
+static void
+handle(sfs_client_request_t *req)
+{
+
+}
+
+static void
+deserialize(sfs_client_request_t *req, char *buf)
+{
+
+}
+
+static void
+sigchld_handler(int signal)
+{
+	while(waitpid(-1, NULL, WNOHANG) > 0);
+}
+
+static void *
+handle_requests(void * arg)
+{
+	int sockfd, new_fd;
+	socklen_t sin_size;
+	int yes=1;
+	struct sigaction sa;
+	struct addrinfo hints, *servinfo, *p;
+	struct sockaddr_storage client_addr;
+	int rv = -1;
+
+	memset(&hints, 0, sizeof(struct addrinfo));
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_PASSIVE; // use my IP
+
+	if ((rv = getaddrinfo(NULL, CLI_PORT, &hints, &servinfo)) != 0) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: getaddrinfo: %s\n",
+			__FUNCTION__, gai_strerror(rv));
+		return NULL;
+	}
+
+	// loop through all the results and bind to the first we can
+
+	for(p = servinfo; p != NULL; p = p->ai_next) {
+		if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+			sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to create socket \n",
+				__FUNCTION__);
+			continue;
+		}
+
+		if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes,
+				sizeof(int)) == -1) {
+			sfs_log(sfs_ctx, SFS_ERR, "%s: setsockopt failed \n", __FUNCTION__);
+			return NULL;
+		}
+
+		if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+			close(sockfd);
+			continue;
+		}
+		break;
+	}
+
+	if (NULL == p) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to bind \n", __FUNCTION__);
+		return NULL;
+	}
+	freeaddrinfo(servinfo);
+
+	if (listen(sockfd, LISTEN_QUEUE_SIZE) == -1) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Listen failed \n", __FUNCTION__);
+		close(sockfd);
+		return NULL;
+	}
+
+	sa.sa_handler = sigchld_handler;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = SA_RESTART;
+	if (sigaction(SIGCHLD, &sa, NULL) == -1) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: sigaction failed\n", __FUNCTION__);
+		close(sockfd);
+		return NULL;
+	}
+
+	// Start handling connections
+	while(1) {
+		int nbytes = -1;
+		sfs_client_request_t req ;
+		char buf[sizeof(sfs_client_request_t)];
+		char addr[INET6_ADDRSTRLEN];
+
+		sin_size = sizeof(struct sockaddr_storage);
+		new_fd = accept(sockfd, (struct sockaddr *) &client_addr, &sin_size);
+		if (new_fd == -1) {
+			sfs_log(sfs_ctx, SFS_ERR, "%s: Accept failed\n", __FUNCTION__);
+			continue;
+		}
+
+		// Connection is from addr
+		// Store it to check whether request is from local box or the remote
+		inet_ntop(client_addr.ss_family,
+			get_in_addr((struct sockaddr *)&client_addr), addr,
+			INET6_ADDRSTRLEN);
+		// Not a concurrent server.
+		// No ned for a concurrent server as add/del requests should be rare
+		// To convert to concurrent server, create a new thread call handle
+		// from that thread.
+
+		sfs_log(sfs_ctx, SFS_INFO, "%s: Got a connection\n", __FUNCTION__);
+		nbytes = recv(new_fd, buf, sizeof(sfs_client_request_t), 0);
+		if (nbytes < sizeof(sfs_client_request_t)) {
+			sfs_log(sfs_ctx, SFS_ERR, "%s: Incomplete request read \n",
+				__FUNCTION__);
+			close(sockfd);
+			return NULL;
+		}
+
+		// Deserialize
+		deserialize(&req, buf);
+
+		// Get local IP addresses and match it with incoming connection's IP
+		// address. If not a local IP address, use sshfs to mount remote
+		// directory to a local directory. Update req with the local mount
+		// point
+//		if (req.u1.req_type == ADD_BRANCH)
+//			update_request(addr, &req);
+		handle(&req);
+		close(new_fd);
+	}
+
+	return NULL;
 }
 
 

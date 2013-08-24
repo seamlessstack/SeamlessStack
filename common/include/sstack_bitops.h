@@ -17,7 +17,7 @@
  * from SeamlessStack Incorporated.
  */
 
-#ifdef __SSTACK_BITOPS_H__
+#ifndef __SSTACK_BITOPS_H__
 #define __SSTACK_BITOPS_H__
 
 // Needs to pickup a standard implementation
