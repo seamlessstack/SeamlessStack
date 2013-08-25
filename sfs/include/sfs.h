@@ -28,7 +28,7 @@
 #define ROOT_SEP ":"
 #define MINIMUM_WEIGHT 0
 #define DEFAULT_WEIGHT 5
-#define MAXIMUM_WEIGHT 100
+#define MAXIMUM_WEIGHT 65536
 #define ADD_BRANCH 1
 #define DEL_BRANCH 2
 #define ADD_POLICY 3
@@ -37,6 +37,9 @@
 #define SFS_MAGIC 0x11101974
 #define CLI_PORT "24496"
 #define LISTEN_QUEUE_SIZE 128
+#define IPV6_ADDR_LEN 40
+// Form is <ipaddr>,<path>,<[r|rw]>,<weight>
+#define BRANCH_MAX (IPV6_ADDR_LEN + 1 + PATH_MAX + 1 + 2 + 1 + 6)
 
 typedef enum {
 	KEY_BRANCHES,
@@ -47,32 +50,37 @@ typedef enum {
 } key_type_t;
 
 typedef struct sfs_chunk_entry {
+	char ipaddr[IPV6_ADDR_LEN];
 	char *chunk_path;
-	int chunk_path_len;
-	int chunk_fd;
+	int chunk_pathlen;
 	unsigned char rw;
 	uint32_t weight; // weight associated with the branch
+	uint8_t	inuse;
 } sfs_chunk_entry_t;
 
-typedef union sfs_client_request {
-	struct {
-		uint32_t req_magic;
-		int req_type;
-		char branches[PATH_MAX];
-		char login_name[LOGIN_NAME_MAX];
-	} u1;
-	struct {
-		uint32_t req_magic;
-		int req_type;
-		char req_fname[PATH_MAX];
-		char req_ftype[TYPENAME_MAX];
-		uid_t req_uid;
-		gid_t req_gid;
-		uint8_t req_is_hidden;
-		uint8_t req_is_striped;
-		uint8_t req_qoslevel;
-		uint64_t req_extent_size;
-	} u2;
+typedef struct sfs_clinet_request_hdr {
+	uint32_t magic;
+	int type;
+} sfs_clinet_request_hdr_t;
+
+typedef struct sfs_client_request {
+	sfs_clinet_request_hdr_t hdr;
+	union {
+		struct {
+			char branches[PATH_MAX + IPV6_ADDR_LEN + 1];
+			char login_name[LOGIN_NAME_MAX];
+		} u1;
+		struct {
+			char req_fname[PATH_MAX];
+			char req_ftype[TYPENAME_MAX];
+			uid_t req_uid;
+			gid_t req_gid;
+			uint8_t req_is_hidden;
+			uint8_t req_is_striped;
+			uint8_t req_qoslevel;
+			uint64_t req_extent_size;
+		} u2;
+	};
 } sfs_client_request_t;
 
 static inline void *

@@ -34,6 +34,8 @@
 void usage(char *progname)
 {
 	fprintf(stderr, "Usage: %s [add|del] \"path\"  hostname\n", progname);
+	fprintf(stderr, "\t\t where path is in form ipv[46]addr,path,r/w,"
+		"storage_weight\n");
 	fprintf(stderr, "Usage: %s [add|del] \"policy\"  hostname fname ftype uid"
 			"gid is_hidden is_striped qoslevel extent_size\n", progname);
 	exit(-1);
@@ -49,14 +51,14 @@ size_t serialize_branch(sfs_client_request_t *req, char* buf)
 	if (buf) {
 		unsigned int tmp;
 
-		tmp = htonl(req->u1.req_magic);
+		tmp = htonl(req->hdr.magic);
 		memcpy(buf, &tmp, sizeof(int));
 		size += sizeof(int);
-		tmp = htonl(req->u1.req_type);
+		tmp = htonl(req->hdr.type);
 		memcpy(buf + size, &tmp, sizeof(int));
 		size += sizeof(int);
-		memcpy(buf + size, req->u1.branches, PATH_MAX);
-		size += PATH_MAX;
+		memcpy(buf + size, req->u1.branches, BRANCH_MAX);
+		size += BRANCH_MAX;
 		memcpy(buf + size, req->u1.login_name, LOGIN_NAME_MAX);
 		size += LOGIN_NAME_MAX;
 	}
@@ -76,10 +78,10 @@ size_t serialize_policy(sfs_client_request_t *req, char *buf)
 		uint64_t t = 0;
 		uint8_t *ptr = NULL;
 
-		tmp = htonl(req->u2.req_magic);
+		tmp = htonl(req->hdr.magic);
 		memcpy(buf, &tmp, sizeof(int));
 		size += sizeof(int);	
-		tmp = htonl(req->u2.req_type);	
+		tmp = htonl(req->hdr.type);	
 		memcpy(buf + size, &tmp, sizeof(int));
 		size += sizeof(int);
 		memcpy(buf + size, req->u2.req_fname, PATH_MAX);
@@ -130,11 +132,12 @@ int main(int argc, char *argv[])
 		usage(argv[0]);
 
 	memset(&req, '\0', sizeof(sfs_client_request_t));
+	req.hdr.magic = SFS_MAGIC;	
+
 	if (strcmp(argv[2], "policy") == 0) {
 		if (argc < 12)
 			usage(argv[0]);
 
-		req.u2.req_magic = SFS_MAGIC;	
 		strncpy(req.u2.req_fname, argv[4], strlen(argv[4]));
 		strncpy(req.u2.req_ftype, argv[5], strlen(argv[5]));
 		// Following two arguments ca take '*'. So passing string as is
@@ -145,18 +148,17 @@ int main(int argc, char *argv[])
 		req.u2.req_qoslevel = atoi(argv[10]);
 		req.u2.req_extent_size = atoll(argv[11]);
 		if (strcmp(argv[1], "add") == 0)
-			req.u2.req_type = ADD_POLICY;
+			req.hdr.type = ADD_POLICY;
 		else if (strcmp(argv[1], "del") == 0)
-			req.u2.req_type = DEL_POLICY;
+			req.hdr.type = DEL_POLICY;
 	} else {
 		// Only other option is "path"
-		req.u1.req_magic = SFS_MAGIC;	
-		strncpy(req.u1.branches, argv[2], PATH_MAX);
+		strncpy(req.u1.branches, argv[2], BRANCH_MAX);
 		strncpy(req.u1.login_name, getlogin(), LOGIN_NAME_MAX);
 		if (strcmp(argv[1], "add") == 0)
-			req.u1.req_type = ADD_BRANCH;
+			req.hdr.type = ADD_BRANCH;
 		else if (strcmp(argv[1], "del") == 0)
-			req.u1.req_type = DEL_BRANCH;
+			req.hdr.type = DEL_BRANCH;
 	}
 
 	memset(&hints, 0, sizeof(struct addrinfo));
@@ -191,9 +193,9 @@ int main(int argc, char *argv[])
 
 	freeaddrinfo(servinfo);
 
-	if (req.u1.req_type == ADD_BRANCH || req.u1.req_type == DEL_BRANCH)
+	if (req.hdr.type == ADD_BRANCH || req.hdr.type == DEL_BRANCH)
 		serialize_branch(&req, (char *) buf);
-	else if (req.u1.req_type == ADD_POLICY || req.u1.req_type == DEL_POLICY)
+	else if (req.hdr.type == ADD_POLICY || req.hdr.type == DEL_POLICY)
 		serialize_policy(&req, (char *) buf);
 	else
 		usage(argv[0]);

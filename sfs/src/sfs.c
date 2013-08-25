@@ -71,9 +71,12 @@ static struct fuse_opt sfs_opts[] = {
 	FUSE_OPT_END
 };
 
+/* Forward declarations */
+static int sfs_store_branch(char *branch);
+static int sfs_remove_branch(char *branch);
+
 
 /* Functions */
-
 
 static int
 add_inodes(const char *path)
@@ -292,40 +295,35 @@ populate_db(const char *dir_name)
 	}
 }
 
+void
+del_branch(char *path)
+{
+}
 
-#if 0
+
 static void
 handle(sfs_client_request_t *req)
 {
 	char *buf;
 	char **ptr = (char **) &buf;
 	char *branch = NULL;
-	int existing_branches = uopt.nbranches;
-	int branch_index = -1;
 
-
-	syslog(LOG_INFO, "req_type = %d \n", req->u1.req_type);
-	if (req->u1.req_type == ADD_BRANCH || req->u1.req_type == DEL_BRANCH) {
+	syslog(LOG_INFO, "req_type = %d \n", req->hdr.type);
+	if (req->hdr.type == ADD_BRANCH || req->hdr.type == DEL_BRANCH) {
 		buf = strdup(req->u1.branches);
 		syslog(LOG_INFO, "new branch = %s \n", req->u1.branches);
 		while((branch = strsep(ptr, ROOT_SEP)) != NULL) {
 			if (strlen(branch) == 0) continue;
-			if (req->u1.req_type == ADD_BRANCH)
-				add_branch(branch);
-			else if (req->u1.req_type == DEL_BRANCH)
-				del_branch(branch);
+			if (req->hdr.type == ADD_BRANCH)
+				sfs_store_branch(branch);
+			else if (req->hdr.type == DEL_BRANCH)
+				sfs_remove_branch(branch);
 		}
 		free(buf);
 
-		// Update the branches
-		unionfs_post_opts(existing_branches);
-		// Update inode database for newly added branches
-
-		for (branch_index = existing_branches; branch_index < uopt.nbranches;
-				branch_index++)
-			populate_db(sfs_chunks[chunk_index].chunk_path);
-	} else if (req->u1.req_type == ADD_POLICY ||
-			req->u1.req_type == DEL_POLICY) {
+		populate_db(sfs_chunks[nchunks].chunk_path);
+	} else if (req->hdr.type == ADD_POLICY ||
+			req->hdr.type == DEL_POLICY) {
 			//			 TBD
 			// Call add_policy which should add/replace/delete the policy
 			// mentioned in the request to the appropriate policy bucket
@@ -340,18 +338,18 @@ deserialize(sfs_client_request_t *req, char *buf)
 	size_t size = 0;
 
 	memcpy(&value, buf, sizeof(int));
-	req->u1.req_magic = ntohl(value);
+	req->hdr.magic = ntohl(value);
 	size += sizeof(int);
 	memcpy(&value, buf + size, sizeof(int));
-	req->u1.req_type = ntohl(value);
+	req->hdr.type = ntohl(value);
 	size += sizeof(int);
-	if (req->u1.req_type == ADD_BRANCH || req->u1.req_type == DEL_BRANCH) {
-		memcpy(req->u1.branches, buf + size, PATH_MAX);
-		size += PATH_MAX;
+	if (req->hdr.type == ADD_BRANCH || req->hdr.type == DEL_BRANCH) {
+		memcpy(req->u1.branches, buf + size, BRANCH_MAX);
+		size += BRANCH_MAX;
 		memcpy(req->u1.login_name, buf + size, LOGIN_NAME_MAX);
 		size += LOGIN_NAME_MAX;
-	} else if (req->u1.req_type == ADD_POLICY ||
-			req->u1.req_type == DEL_POLICY) {
+	} else if (req->hdr.type == ADD_POLICY ||
+			req->hdr.type == DEL_POLICY) {
 		uint64_t t = 0;
 		uint8_t *ptr = NULL;
 
@@ -384,19 +382,6 @@ deserialize(sfs_client_request_t *req, char *buf)
 		req->u2.req_extent_size = t;
 		size += sizeof(uint64_t);
 	}
-
-}
-#endif
-
-static void
-handle(sfs_client_request_t *req)
-{
-
-}
-
-static void
-deserialize(sfs_client_request_t *req, char *buf)
-{
 
 }
 
@@ -598,23 +583,31 @@ sfs_print_help(const char *progname)
 // Store chunk paths found in a temporary space before populating db
 // This is to avoid db initialization before arguments are validated
 // Each branch is of type path,RW/RO,weight. Last two parameters are
-// optional with RO and DEFAULT_WEIGHT taken is not specified.
+// optional with RO and DEFAULT_WEIGHT taken if not specified.
 static int
 sfs_store_branch(char *branch)
 {
 	char *res = NULL;
 	char **ptr = NULL;
+	char *temp = NULL;
 
-	sfs_chunks = realloc(sfs_chunks,
+	temp = realloc(sfs_chunks,
 			(nchunks + 1) * sizeof(sfs_chunk_entry_t));
 	ASSERT((sfs_chunks != NULL), "Memory alocation failed", 0, 1, 0);
-	if (NULL == sfs_chunks)
+	if (NULL == temp)
 		exit(-1);
+	sfs_chunks = (sfs_chunk_entry_t *) temp;
+	memset((void *) (sfs_chunks + nchunks), '\0', sizeof(sfs_chunk_entry_t));
 	ptr = (char **) &branch;
 	res = strsep(ptr, ",");
 	if (!res)
 		return 0;
-	sfs_chunks[nchunks].chunk_path = strdup(res);
+	strncpy(sfs_chunks[nchunks].ipaddr, res, IPV6_ADDR_LEN - 1);
+	res = strsep(ptr, ",");
+	if (!res)
+		return 0;
+	sfs_chunks[nchunks].chunk_path = strndup(res, PATH_MAX - 1);
+	sfs_chunks[nchunks].chunk_pathlen = strlen(res) + 1;
 	sfs_chunks[nchunks].rw = 0;
 	sfs_chunks[nchunks].weight = DEFAULT_WEIGHT;
 
@@ -636,12 +629,63 @@ sfs_store_branch(char *branch)
 	return 1;
 }
 
+static int
+sfs_remove_branch(char *branch)
+{
+	char *res = NULL;
+	char **ptr = NULL;
+	int i = 0;
+	char ipaddr[IPV6_ADDR_LEN] = { '\0' };
+	char file_path[PATH_MAX] = { '\0' };
+	int found = 0;
+	char *temp = NULL;
 
+	ptr = (char **) &branch;
+	res = strsep(ptr, ",");
+	if (!res)
+		return 0;
+
+	strncpy(ipaddr, res, IPV6_ADDR_LEN - 1);
+	res = strsep(ptr, ",");
+	if (!res)
+		return 0;
+	strncpy(file_path, res, PATH_MAX - 1);
+
+	for (i = 0; i < nchunks; i++) {
+		if (!strcmp(ipaddr, sfs_chunks[i].ipaddr) &&
+			!strcmp(file_path, sfs_chunks[i].chunk_path)) {
+			found = 1;
+			break;
+		}
+	}
+	if (!found)
+		return 0;
+	// Readjust sfs_chunks
+	temp = (char *) ((sfs_chunk_entry_t *) (sfs_chunks + i)) ;
+	// Copy rest of the chunks leaving the current one
+	memcpy((void *)temp , (void *) (sfs_chunks + i + 1), (nchunks -i -1) *
+			sizeof(sfs_chunk_entry_t));
+	// Adjust the sfs_chunks size	
+	// If realloc fails, then we have an issue
+	temp = realloc(sfs_chunks,
+			(nchunks - 1) * sizeof(sfs_chunk_entry_t));
+	if (NULL == temp) {
+		// Realloc failed. Fail the request
+		sfs_chunks[i].inuse = 0;
+		return 0;
+	}
+	// Update number of chunks
+	nchunks -= 1;
+
+	return 1;
+}	
+
+	
 static int
 sfs_parse_branches(const char *arg)
 {
 	char *buf = strdup(arg);
-	char **ptr = (char *)&buf;
+	char **ptr = (char **)&buf;
 	char *branch;
 	int nbranches = 0;
 
@@ -656,7 +700,6 @@ sfs_parse_branches(const char *arg)
 
 	return nbranches;
 }
-	
 
 static int
 sfs_opt_proc(void *data, const char *arg, int key,
