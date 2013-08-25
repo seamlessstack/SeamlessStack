@@ -350,39 +350,24 @@ deserialize(sfs_client_request_t *req, char *buf)
 		size += LOGIN_NAME_MAX;
 	} else if (req->hdr.type == ADD_POLICY ||
 			req->hdr.type == DEL_POLICY) {
-		uint64_t t = 0;
-		uint8_t *ptr = NULL;
 
-		memcpy(req->u2.req_fname, buf + size, PATH_MAX);
+		memcpy(req->u2.fname, buf + size, PATH_MAX);
 		size += PATH_MAX;
-		memcpy(req->u2.req_ftype, buf + size, TYPENAME_MAX);
+		memcpy(req->u2.ftype, buf + size, TYPENAME_MAX);
 		size += TYPENAME_MAX;
 		memcpy(&value, buf + size, sizeof(int));
-		req->u2.req_uid = ntohl(value);
+		req->u2.uid = ntohl(value);
 		size += sizeof(int);
 		memcpy(&value, buf + size, sizeof(int));
-		req->u2.req_gid = ntohl(value);
+		req->u2.gid = ntohl(value);
 		size += sizeof(int);
-		req->u2.req_is_hidden = *(buf + size);
-		size += sizeof(uint8_t);
-		req->u2.req_is_striped = *(buf + size);
-		size += sizeof(uint8_t);
-		req->u2.req_qoslevel = *(buf + size);
-		size += sizeof(uint8_t);
-		// Convert the extent_size back to little endian
-		ptr = (uint8_t *) (buf + size);
-		t |= ((uint64_t) (*(ptr)) << (7 * 8));
-		t |= ((uint64_t) (*(ptr + 1)) << (6 * 8));
-		t |= ((uint64_t) (*(ptr + 2)) << (5 * 8));
-		t |= ((uint64_t) (*(ptr + 3)) << (4 * 8));
-		t |= ((uint64_t) (*(ptr + 4)) << (3 * 8));
-		t |= ((uint64_t) (*(ptr + 5)) << (2 * 8));
-		t |= ((uint64_t) (*(ptr + 6)) << (1 * 8));
-		t |= (uint64_t) (*(ptr + 7));
-		req->u2.req_extent_size = t;
-		size += sizeof(uint64_t);
+		memcpy(&value, buf + size, sizeof(int));
+		req->u2.hidden = ntohl(value);
+		size += sizeof(int);
+		memcpy(&value, buf + size, sizeof(int));
+		req->u2.qoslevel = ntohl(value);
+		size += sizeof(int);
 	}
-
 }
 
 static void

@@ -37,7 +37,7 @@ void usage(char *progname)
 	fprintf(stderr, "\t\t where path is in form ipv[46]addr,path,r/w,"
 		"storage_weight\n");
 	fprintf(stderr, "Usage: %s [add|del] \"policy\"  hostname fname ftype uid"
-			"gid is_hidden is_striped qoslevel extent_size\n", progname);
+			"gid is_hidden qoslevel\n", progname);
 	exit(-1);
 }
 
@@ -75,8 +75,6 @@ size_t serialize_policy(sfs_client_request_t *req, char *buf)
 
 	if (buf) {
 		unsigned int tmp;
-		uint64_t t = 0;
-		uint8_t *ptr = NULL;
 
 		tmp = htonl(req->hdr.magic);
 		memcpy(buf, &tmp, sizeof(int));
@@ -84,34 +82,22 @@ size_t serialize_policy(sfs_client_request_t *req, char *buf)
 		tmp = htonl(req->hdr.type);	
 		memcpy(buf + size, &tmp, sizeof(int));
 		size += sizeof(int);
-		memcpy(buf + size, req->u2.req_fname, PATH_MAX);
+		memcpy(buf + size, req->u2.fname, PATH_MAX);
 		size += PATH_MAX;
-		memcpy(buf + size, req->u2.req_ftype, TYPENAME_MAX);
+		memcpy(buf + size, req->u2.ftype, TYPENAME_MAX);
 		size += TYPENAME_MAX;
-		tmp = htonl((int) req->u2.req_uid);
+		tmp = htonl((int) req->u2.uid);
 		memcpy(buf + size, &tmp, sizeof(int));
 		size += sizeof(int);
-		tmp = htonl((int) req->u2.req_gid);
+		tmp = htonl((int) req->u2.gid);
 		memcpy(buf + size, &tmp, sizeof(int));
 		size += sizeof(int);
-		memcpy(buf + size, &req->u2.req_is_hidden, sizeof(uint8_t));
-		size += sizeof(uint8_t);
-		memcpy(buf + size, &req->u2.req_is_striped, sizeof(uint8_t));
-		size += sizeof(uint8_t);
-		memcpy(buf + size, &req->u2.req_qoslevel, sizeof(uint8_t));
-		size += sizeof(uint8_t);
-		// serialize req_extent_size
-		ptr = (uint8_t *) &req->u2.req_extent_size;
-		t |= ((uint64_t)(*(ptr + 7)) << (7 * 8));
-		t |= ((uint64_t)(*(ptr + 6)) << (6 * 8));
-		t |= ((uint64_t)(*(ptr + 5)) << (5 * 8));
-		t |= ((uint64_t)(*(ptr + 4)) << (4 * 8));
-		t |= ((uint64_t)(*(ptr + 3)) << (3 * 8));
-		t |= ((uint64_t)(*(ptr + 2)) << (2 * 8));
-		t |= ((uint64_t)(*(ptr + 1)) << (1 * 8));
-		t |= (uint64_t) *ptr;
-		memcpy(buf + size, &t, sizeof(uint64_t));
-		size += sizeof(uint64_t);
+		tmp = htonl((int) req->u2.hidden);
+		memcpy(buf + size, &tmp, sizeof(int));
+		size += sizeof(int);
+		tmp = htonl((int) req->u2.qoslevel);
+		memcpy(buf + size, &tmp, sizeof(int));
+		size += sizeof(int);
 	}
 
 	return size;
@@ -138,15 +124,13 @@ int main(int argc, char *argv[])
 		if (argc < 12)
 			usage(argv[0]);
 
-		strncpy(req.u2.req_fname, argv[4], strlen(argv[4]));
-		strncpy(req.u2.req_ftype, argv[5], strlen(argv[5]));
+		strncpy(req.u2.fname, argv[4], strlen(argv[4]));
+		strncpy(req.u2.ftype, argv[5], strlen(argv[5]));
 		// Following two arguments ca take '*'. So passing string as is
-		strncpy((char *) &req.u2.req_uid, argv[6], strlen(argv[6]));
-		strncpy((char *) &req.u2.req_gid, argv[7], strlen(argv[7]));
-		req.u2.req_is_hidden = atoi(argv[8]);
-		req.u2.req_is_striped = atoi(argv[9]);
-		req.u2.req_qoslevel = atoi(argv[10]);
-		req.u2.req_extent_size = atoll(argv[11]);
+		strncpy((char *) &req.u2.uid, argv[6], strlen(argv[6]));
+		strncpy((char *) &req.u2.gid, argv[7], strlen(argv[7]));
+		req.u2.hidden = atoi(argv[8]);
+		req.u2.qoslevel = atoi(argv[9]);
 		if (strcmp(argv[1], "add") == 0)
 			req.hdr.type = ADD_POLICY;
 		else if (strcmp(argv[1], "del") == 0)

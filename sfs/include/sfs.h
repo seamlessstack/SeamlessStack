@@ -66,19 +66,17 @@ typedef struct sfs_clinet_request_hdr {
 typedef struct sfs_client_request {
 	sfs_clinet_request_hdr_t hdr;
 	union {
-		struct {
+		struct branch_struct_cli {
 			char branches[PATH_MAX + IPV6_ADDR_LEN + 1];
 			char login_name[LOGIN_NAME_MAX];
 		} u1;
-		struct {
-			char req_fname[PATH_MAX];
-			char req_ftype[TYPENAME_MAX];
-			uid_t req_uid;
-			gid_t req_gid;
-			uint8_t req_is_hidden;
-			uint8_t req_is_striped;
-			uint8_t req_qoslevel;
-			uint64_t req_extent_size;
+		struct policy_struct_cli {
+			char fname[PATH_MAX];
+			char ftype[TYPENAME_MAX];
+			uid_t uid;
+			gid_t gid;
+			int hidden;
+			int qoslevel;
 		} u2;
 	};
 } sfs_client_request_t;
