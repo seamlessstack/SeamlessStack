@@ -9,8 +9,11 @@ COMMONDIR = common
 CACHINGDIR = lib/caching
 COMPRESSION_PLUGIN = lib/storage/plugins/compression
 CHUNKAPIDIR	= lib/chunk-domain
+OSS_INSTALL_DIR = $(PWD)/oss_install
+MKDIR = mkdir
 
 all:
+	$(MKDIR) -p $(OSS_INSTALL_DIR)
 	$(MAKE) -C $(OSS)
 	$(MAKE) -C $(MONGODIR)
 	$(MAKE) -C $(MONGODRV)
@@ -35,3 +38,4 @@ clean:
 	$(MAKE) -C $(SFSDIR) clean
 	$(MAKE) -C $(COMMONDIR) clean
 	$(MAKE) -C $(CHUNKAPIDIR) clean
+	$(RM) -rf $(OSS_INSTALL_DIR)
