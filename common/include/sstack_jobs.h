@@ -24,6 +24,9 @@
 #include <sstack_transport.h>
 #include <sstack_nfs.h>
 #include <sstack_storage.h>
+#include <sstack_log.h>
+#include <sstack_thread_pool.h>
+#include <bds_slab.h>
 
 #define SFSD_MAGIC 0x11101974
 #define MAX_SFSD_CLIENTS 8
@@ -67,8 +70,20 @@ typedef struct sstack_payload {
 } sstack_payload_t;
 	
 typedef struct sfsd {
-	sstack_transport_t sfsd_transport;
-	sstack_client_handle_t sfsd_handle;
+	/* To be used in sfs and sfsd */
+	log_ctx_t *log_ctx;
+	sstack_transport_t *transport;
+	sstack_client_handle_t handle;
+	/* To be used in sfsd;
+	   Undefined if accessed in sfs */
+	pthread_t receiver_thread;
+	void *receiver_params;
+	char sfs_addr[IPV4_ADDR_MAX];
+	sstack_thread_pool_t *thread_pool;
+#define PAYLOAD_CACHE_OFFSET 0
+#define DATA_CACHE_OFFSET 1
+#define HANDLE_PARAM_OFFSET 2
+	bds_cache_desc_t payload_cache_arr[3];
 } sfsd_t;
 
 typedef struct job {

@@ -39,7 +39,7 @@ static void handle_command(sstack_payload_t *command,
 
 /* ====================+++++++++++++++++++++++++++++++++==================*/
 
-static int32_t sfsd_create_receiver_thread(sfsd_local_t *sfsd)
+static int32_t sfsd_create_receiver_thread(sfsd_t *sfsd)
 {
 	int32_t ret = 0;
 	pthread_attr_t attr;
@@ -56,7 +56,7 @@ static int32_t sfsd_create_receiver_thread(sfsd_local_t *sfsd)
 	return 0;
 }
 
-int32_t init_thread_pool(sfsd_local_t *sfsd)
+int32_t init_thread_pool(sfsd_t *sfsd)
 {
 	int32_t ret = 0;
 	pthread_attr_t attr;
@@ -116,7 +116,7 @@ static void* do_process_payload(void *param)
 
 static void* do_receive_thread(void *param)
 {
-	sfsd_local_t *sfsd = (sfsd_local_t *)param;
+	sfsd_t *sfsd = (sfsd_t *)param;
 	int32_t ret = 0;
 	uint32_t mask = READ_BLOCK_MASK;
 	sstack_payload_t *payload;

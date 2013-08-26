@@ -22,6 +22,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <inttypes.h>
+#include <sstack_sfsd.h>
 #include <sstack_chunk.h>
 #include <sys/stat.h>
 #include <sys/types.h>

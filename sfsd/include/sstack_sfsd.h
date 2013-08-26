@@ -20,49 +20,32 @@
 #define _SSTACK_SFSD_H_
 
 #include <sstack_log.h>
+#include <sstack_jobs.h>
 #include <sstack_transport.h>
 #include <sstack_thread_pool.h>
 #include <bds_slab.h>
-/**
- * Contains all necessary information
- * for sfsd operation
- **/
-typedef struct sfsd_local
-{
-	log_ctx_t *log_ctx;
-	sstack_transport_t *transport;
-	pthread_t receiver_thread;
-	void *receiver_params;
-	char sfs_addr[IPV4_ADDR_MAX];
-	sstack_client_handle_t handle;
-	sstack_thread_pool_t *thread_pool;
-#define PAYLOAD_CACHE_OFFSET 0
-#define DATA_CACHE_OFFSET 1
-#define HANDLE_PARAM_OFFSET 2
-	bds_cache_desc_t payload_cache_arr[3];
-} sfsd_local_t;
 
 /**
  * Register all the relevant 
  * signals in this funtion
  **/
-int32_t register_signals(sfsd_local_t *);
+int32_t register_signals(sfsd_t *);
 
 /** 
  * Create the thread pool
  **/
 
-int32_t init_thread_pool(sfsd_local_t *);
+int32_t init_thread_pool(sfsd_t *);
 
 /** 
   * initialize transport
  **/
-int32_t init_transport(sfsd_local_t *);
+int32_t init_transport(sfsd_t *);
 
 /**
  * Run the actual SFS daemon
  **/
-void run_daemon_sfsd(sfsd_local_t *);
+void run_daemon_sfsd(sfsd_t *);
 
 
 #endif /* _STACK_SFSD_H_ */

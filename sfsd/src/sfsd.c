@@ -24,7 +24,7 @@
 #include <sstack_sfsd.h>
 
 extern log_ctx_t *sfsd_ctx;
-void run_daemon_sfsd(sfsd_local_t *sfsd)
+void run_daemon_sfsd(sfsd_t *sfsd)
 {
 	sleep(4);
 	sfs_log(sfsd->log_ctx, SFS_INFO, "%s", "Daemon started");

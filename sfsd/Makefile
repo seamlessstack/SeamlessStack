@@ -7,9 +7,9 @@ CFLAGS += -I $(TOPDIR)/common/include/bds_slab
 CFLAGS += -I ../oss/jerasure_lib
 CFLAGS += -D_GNU_SOURCE -g
 CFLAGS += -Wall
-OSS_DIR = $(TOPDIR)/oss_install/
-OSS_LIBDIR = $(OSS_DIR)/lib
-LIB = -lpthread -lsstack_common -ljerasure
+OSS_DIR = $(TOPDIR)/oss/
+OSS_LIBDIR = $(OSS_DIR)/oss_libs/lib
+LIB = -lpthread -lsstack_common -ljerasure -lrt
 LDFLAGS = -L $(TOPDIR)/common/ -L $(OSS_LIBDIR)
 
 SFSD_OBJS = src/main.o src/sfsd.o src/sfsd_signals.o src/sfsd_threads.o \

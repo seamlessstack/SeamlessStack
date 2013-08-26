@@ -24,7 +24,7 @@
 sstack_client_handle_t tcp_client_init(sstack_transport_t *transport);
 
 
-int32_t init_transport (sfsd_local_t *sfsd)
+int32_t init_transport (sfsd_t *sfsd)
 {
 	sfsd->transport = get_tcp_transport(sfsd->sfs_addr);
 	sfsd->transport->ctx = sfsd->log_ctx;

@@ -28,7 +28,7 @@ static void handle_sighup(int);
 
 
 /* PUBLIC FUNCTIONS */
-int32_t register_signals(sfsd_local_t *sfsd)
+int32_t register_signals(sfsd_t *sfsd)
 {
 	int ret = 0;
 

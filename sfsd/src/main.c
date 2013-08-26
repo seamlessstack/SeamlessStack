@@ -29,7 +29,7 @@
 
 /* sstack log directory */
 char sstack_log_directory[PATH_MAX];
-static sfsd_local_t sfsd;
+static sfsd_t sfsd;
 
 int main(int argc, char **argv)
 {
