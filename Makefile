@@ -8,7 +8,6 @@ SFSDDIR = sfsd
 COMMONDIR = common
 CACHINGDIR = lib/caching
 COMPRESSION_PLUGIN = lib/storage/plugins/compression
-CHUNKAPIDIR	= lib/chunk-domain
 OSS_INSTALL_DIR = $(PWD)/oss_install
 MKDIR = mkdir
 
@@ -22,7 +21,6 @@ all:
 	$(MAKE) -C $(CACHINGDIR)
 	$(MAKE) -C $(COMPRESSION_PLUGIN)
 	$(MAKE) -C $(COMMONDIR)
-	$(MAKE) -C $(CHUNKAPIDIR)
 	$(MAKE) -C $(SFSDDIR)
 	$(MAKE) -C $(SFSDIR)
 
@@ -37,5 +35,4 @@ clean:
 	$(MAKE) -C $(SFSDDIR) clean
 	$(MAKE) -C $(SFSDIR) clean
 	$(MAKE) -C $(COMMONDIR) clean
-	$(MAKE) -C $(CHUNKAPIDIR) clean
 	$(RM) -rf $(OSS_INSTALL_DIR)
