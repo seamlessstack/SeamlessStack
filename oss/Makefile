@@ -33,6 +33,7 @@ all: $(CONFIGURE)
 	$(MAKE) -C $(JERASUREDIR)
 	$(MAKE) -C $(MEMCACHEDDIR)
 	$(MAKE) -C $(MEMCACHEDDIR) install
+	$(MAKE) -C $(MONGOCDIR)
 	$(CP) $(JERASUREDIR)/*.so $(OSS_LIBSDIR)
 	$(CP) $(MONGOCDIR)/*.so $(OSS_LIBSDIR)
 
@@ -42,3 +43,4 @@ $(CONFIGURE):
 clean:
 	$(MAKE) -C $(JERASUREDIR) clean
 	$(MAKE) -C $(MEMCACHEDDIR) clean
+	$(MAKE) -C $(MONGOCDIR) clean

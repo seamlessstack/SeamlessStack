@@ -245,7 +245,7 @@ message sstack_payload_t
 		SSTACK_REMOVE_STORAGE = 2;
 		SSTACK_ADD_STORAGE_RSP = 3;
 		SSTACK_REMOVE_STORAGE_RSP = 4;
-		NFS_GETATT = 5;
+		NFS_GETATTR = 5;
 		NFS_SETATTR = 6;
 		NFS_LOOKUP = 7;
 		NFS_ACCESS = 8;
@@ -254,7 +254,7 @@ message sstack_payload_t
 		NFS_WRITE = 11;
 		NFS_CREATE = 12;
 		NFS_MKDIR = 13;
-		NFS_SYMLIN = 14;
+		NFS_SYMLINK = 14;
 		NFS_MKNOD = 15;
 		NFS_REMOVE = 16;
 		NFS_RMDIR = 17;
