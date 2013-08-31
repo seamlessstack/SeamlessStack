@@ -1,0 +1,282 @@
+// 
+// SEAMLESSSTACK CONFIDENTIAL
+// __________________________
+// 
+//  [2012] - [2013]  SeamlessStack Inc
+//  All Rights Reserved.
+// 
+// NOTICE:  All information contained herein is, and remains
+// the property of SeamlessStack Incorporated and its suppliers,
+// if any.  The intellectual and technical concepts contained
+// herein are proprietary to SeamlessStack Incorporated
+// and its suppliers and may be covered by U.S. and Foreign Patents,
+// patents in process, and are protected by trade secret or copyright law.
+// Dissemination of this information or reproduction of this material
+// is strictly forbidden unless prior written permission is obtained
+// from SeamlessStack Incorporated.
+//
+
+message timespec
+{
+	required uint32 tv_sec = 1;
+	required uint32 tv_nsec = 2;
+}
+
+message sstack_file_attribute_t
+{
+	enum sstack_file_type_t
+	{
+		NFS_REG = 1;
+		NFS_DIR = 2;
+		NFS_BLK = 3;
+		NFS_CHR = 4;
+		NFS_LNL = 5;
+		NFS_SOCK = 6;
+		NFS_FIFO = 7;
+	}
+	required sstack_file_type_t type = 1;
+	required uint32 mode = 2;
+	required uint32 num_link = 3;
+	required uint32 uid = 4;
+	required uint32 gid = 5;
+	required uint32 size = 6;
+	required uint32 used = 7;
+	required uint64 fsid = 8;
+	required uint32 fileid = 9;
+	required timespec atime = 10;
+	required timespec mtime = 11;
+	required timespec ctime = 12;
+}
+
+message sstack_nfs_setattr_cmd
+{
+	required sstack_file_attribute_t attribute = 1;
+}
+
+message sstack_nfs_lookup_cmd
+{
+	required sstack_file_name_t where = 1;
+	required sstack_file_name_t what = 2;
+}
+
+message sstack_nfs_read_cmd 
+{
+	required uint64 offset = 1;
+	required uint64 count = 2;
+}
+
+message sstack_nfs_data
+{
+	required uint64 data_len = 1;
+	required bytes data_val = 2;
+}
+
+message sstack_nfs_write_cmd
+{
+	required uint64 offset = 1;
+	required uint64 count = 2;
+	required sstack_nfs_data data = 3;
+}
+
+message sstack_nfs_create_cmd
+{
+	required uint32 mode = 1;
+	required sstack_nfs_data data = 2;
+}
+
+message sstack_nfs_mkdir_cmd
+{
+	required uint32 mode = 1;
+}
+
+message sstack_nfs_access_cmd
+{
+	required uint32 mode = 1;
+}
+
+message sstack_file_name_t
+{
+	required uint32 name_len = 1;
+	required bytes name = 2;
+}
+
+message sstack_nfs_symlink_cmd
+{
+	required sstack_file_name_t new_path = 1;
+}
+
+message sstack_nfs_rename_cmd
+{
+	required sstack_file_name_t new_path = 1;
+}
+
+message sstack_nfs_remove_cmd
+{
+	required uint32 path_len = 1;
+	required bytes path = 2;
+}
+
+message sstack_nfs_commit_cmd
+{
+	required uint64 offset = 1;
+	required uint64 count = 2;
+}
+
+message sstack_nfs_command_struct
+{
+	optional sstack_nfs_setattr_cmd setattr_cmd = 1;
+	optional sstack_nfs_lookup_cmd lookup_cmd = 2;
+	optional sstack_nfs_access_cmd access_cmd = 3;
+	optional sstack_nfs_read_cmd read_cmd = 4;
+	optional sstack_nfs_write_cmd write_cmd = 5;
+	optional sstack_nfs_create_cmd create_cmd = 6;
+	optional sstack_nfs_mkdir_cmd mkdir_cmd = 7;
+	optional sstack_nfs_symlink_cmd symlink_cmd = 8;
+	optional sstack_nfs_rename_cmd rename_cmd = 9;
+	optional sstack_nfs_remove_cmd remove_cmd = 10;
+	optional sstack_nfs_commit_cmd commit_cmd = 11;
+} 	
+
+// Not sure how this can be handled 
+// This is a structure inside a header file (struct stat) which needs
+// to be present here.
+
+message stat
+{
+	required uint32 st_dev = 1;
+	required uint32 st_ino = 2;
+	required uint32 st_mode = 3;
+	required uint32 st_nlink = 4;
+	required uint32 st_uid = 5;
+	required uint32 st_gid = 6;
+	required uint32 st_rdev = 7;
+	required uint32 __pad1 = 8;
+	required int32 st_size = 9;
+	required int32 st_blksize = 10;
+	required int32 __pad2 = 11;
+	required int32 st_blocks = 12;
+	required int32 st_atime1 = 13;
+	required uint32 st_atime_nsec = 14;
+	required int32 st_mtime1 = 15;
+	required uint32 st_mtime_nsec = 16;
+	required int32 st_ctime1 = 17;
+	required uint32 st_ctime_nsec = 18;
+	required uint32 __unused4 = 19;
+	required uint32 __unused5 = 20;
+}
+
+message sstack_nfs_getattr_resp
+{
+	required stat stbuf = 1;
+}
+
+message sstack_nfs_lookup_resp
+{
+	required uint32 lookup_path_len = 1;
+	required bytes lookup_path = 2;
+}
+
+message sstack_nfs_access_resp
+{
+	required uint32 access = 1;
+}
+
+message sstack_nfs_read_resp
+{
+	required uint64 count = 1;
+	required int32 eof = 2;
+	required sstack_nfs_data data = 3;
+}
+
+message sstack_nfs_write_resp
+{
+	required uint32 file_write_ok = 1;
+	required uint32 file_wc = 2;
+}
+
+message sstack_nfs_readlink_resp
+{
+	required sstack_file_name_t real_file = 1;
+}
+
+
+message sstack_nfs_result_struct
+{
+	optional sstack_nfs_getattr_resp getattr_resp = 1;
+	optional sstack_nfs_lookup_resp lookup_resp = 2;
+	optional sstack_nfs_access_resp access_resp = 3;
+	optional sstack_nfs_readlink_resp readlink_resp = 4;
+	optional sstack_nfs_read_resp read_resp = 5;
+	optional sstack_nfs_write_resp write_resp = 6;
+	optional sstack_nfs_write_resp create_resp = 7;
+}
+
+message sstack_payload_hdr_t
+{
+	required uint32 sequence = 1;
+	required uint32 payload_len = 2;
+}
+
+
+message sfsd_storage_t
+{
+	required bytes path = 1;
+	required bytes mount_point = 2;
+	required uint32 weight = 3;
+	required uint64 nblocks = 4;
+	enum sfs_protocol_t
+	{
+		NFS = 1;
+		CIFS = 2;
+		ISCSI = 3;
+		NATIVE = 4;
+	}
+	required sfs_protocol_t protocol = 5;
+	optional bytes ipv4_addr = 6;
+	optional bytes ipv6_addr = 7;
+}
+
+message sstack_payload_t
+{
+	required sstack_payload_hdr_t hdr = 1;
+	enum sstack_nfs_command_t
+	{
+		SSTACK_ADD_STORAGE = 1;
+		SSTACK_REMOVE_STORAGE = 2;
+		SSTACK_ADD_STORAGE_RSP = 3;
+		SSTACK_REMOVE_STORAGE_RSP = 4;
+		NFS_GETATTR = 5;
+		NFS_SETATTR = 6;
+		NFS_LOOKUP = 7;
+		NFS_ACCESS = 8;
+		NFS_READLINK = 9;
+		NFS_READ = 10;
+		NFS_WRITE = 11;
+		NFS_CREATE = 12;
+		NFS_MKDIR = 13;
+		NFS_SYMLINK = 14;
+		NFS_MKNOD = 15;
+		NFS_REMOVE = 16;
+		NFS_RMDIR = 17;
+		NFS_RENAME = 18;
+		NFS_LINK = 19;
+		NFS_READDIR = 20;
+		NFS_READDIRPLUS = 21;
+		NFS_FSSTAT = 22;
+		NFS_FSINFO = 23;
+		NFS_PATHCONF = 24;
+		NFS_COMMIT = 25;
+		NFS_GETATT_RSP = 26;
+		NFS_LOOKUP_RSP = 27;
+		NFS_ACCESS_RSP = 28;
+		NFS_READLINK_RSP = 29;
+		NFS_READ_RSP = 30;
+		NFS_WRITE_RSP = 31;
+		NFS_CREATE_RSP = 32;
+		NFS_VALID_MAX = 32;
+	}
+	required sstack_nfs_command_t command = 2;
+	optional sfsd_storage_t storage = 3;
+	optional sstack_nfs_command_struct command_struct = 4;
+	optional sstack_nfs_result_struct result_struct = 5;
+}
