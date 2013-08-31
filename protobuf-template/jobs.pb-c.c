@@ -6,305 +6,649 @@
 #endif
 
 #include "jobs.pb-c.h"
-void   nfs_read_cmd__init
-                     (NfsReadCmd         *message)
+void   timespec__init
+                     (Timespec         *message)
 {
-  static NfsReadCmd init_value = NFS_READ_CMD__INIT;
+  static Timespec init_value = TIMESPEC__INIT;
   *message = init_value;
 }
-size_t nfs_read_cmd__get_packed_size
-                     (const NfsReadCmd *message)
+size_t timespec__get_packed_size
+                     (const Timespec *message)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_read_cmd__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &timespec__descriptor);
   return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
 }
-size_t nfs_read_cmd__pack
-                     (const NfsReadCmd *message,
+size_t timespec__pack
+                     (const Timespec *message,
                       uint8_t       *out)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_read_cmd__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &timespec__descriptor);
   return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
 }
-size_t nfs_read_cmd__pack_to_buffer
-                     (const NfsReadCmd *message,
+size_t timespec__pack_to_buffer
+                     (const Timespec *message,
                       ProtobufCBuffer *buffer)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_read_cmd__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &timespec__descriptor);
   return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
 }
-NfsReadCmd *
-       nfs_read_cmd__unpack
+Timespec *
+       timespec__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data)
 {
-  return (NfsReadCmd *)
-     protobuf_c_message_unpack (&nfs_read_cmd__descriptor,
+  return (Timespec *)
+     protobuf_c_message_unpack (&timespec__descriptor,
                                 allocator, len, data);
 }
-void   nfs_read_cmd__free_unpacked
-                     (NfsReadCmd *message,
+void   timespec__free_unpacked
+                     (Timespec *message,
                       ProtobufCAllocator *allocator)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_read_cmd__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &timespec__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-void   nfs_data__init
-                     (NfsData         *message)
+void   sstack_file_attribute_t__init
+                     (SstackFileAttributeT         *message)
 {
-  static NfsData init_value = NFS_DATA__INIT;
+  static SstackFileAttributeT init_value = SSTACK_FILE_ATTRIBUTE_T__INIT;
   *message = init_value;
 }
-size_t nfs_data__get_packed_size
-                     (const NfsData *message)
+size_t sstack_file_attribute_t__get_packed_size
+                     (const SstackFileAttributeT *message)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_data__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_file_attribute_t__descriptor);
   return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
 }
-size_t nfs_data__pack
-                     (const NfsData *message,
+size_t sstack_file_attribute_t__pack
+                     (const SstackFileAttributeT *message,
                       uint8_t       *out)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_data__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_file_attribute_t__descriptor);
   return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
 }
-size_t nfs_data__pack_to_buffer
-                     (const NfsData *message,
+size_t sstack_file_attribute_t__pack_to_buffer
+                     (const SstackFileAttributeT *message,
                       ProtobufCBuffer *buffer)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_data__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_file_attribute_t__descriptor);
   return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
 }
-NfsData *
-       nfs_data__unpack
+SstackFileAttributeT *
+       sstack_file_attribute_t__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data)
 {
-  return (NfsData *)
-     protobuf_c_message_unpack (&nfs_data__descriptor,
+  return (SstackFileAttributeT *)
+     protobuf_c_message_unpack (&sstack_file_attribute_t__descriptor,
                                 allocator, len, data);
 }
-void   nfs_data__free_unpacked
-                     (NfsData *message,
+void   sstack_file_attribute_t__free_unpacked
+                     (SstackFileAttributeT *message,
                       ProtobufCAllocator *allocator)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_data__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_file_attribute_t__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-void   nfs_write_cmd__init
-                     (NfsWriteCmd         *message)
+void   sstack_nfs_setattr_cmd__init
+                     (SstackNfsSetattrCmd         *message)
 {
-  static NfsWriteCmd init_value = NFS_WRITE_CMD__INIT;
+  static SstackNfsSetattrCmd init_value = SSTACK_NFS_SETATTR_CMD__INIT;
   *message = init_value;
 }
-size_t nfs_write_cmd__get_packed_size
-                     (const NfsWriteCmd *message)
+size_t sstack_nfs_setattr_cmd__get_packed_size
+                     (const SstackNfsSetattrCmd *message)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_write_cmd__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_setattr_cmd__descriptor);
   return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
 }
-size_t nfs_write_cmd__pack
-                     (const NfsWriteCmd *message,
+size_t sstack_nfs_setattr_cmd__pack
+                     (const SstackNfsSetattrCmd *message,
                       uint8_t       *out)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_write_cmd__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_setattr_cmd__descriptor);
   return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
 }
-size_t nfs_write_cmd__pack_to_buffer
-                     (const NfsWriteCmd *message,
+size_t sstack_nfs_setattr_cmd__pack_to_buffer
+                     (const SstackNfsSetattrCmd *message,
                       ProtobufCBuffer *buffer)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_write_cmd__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_setattr_cmd__descriptor);
   return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
 }
-NfsWriteCmd *
-       nfs_write_cmd__unpack
+SstackNfsSetattrCmd *
+       sstack_nfs_setattr_cmd__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data)
 {
-  return (NfsWriteCmd *)
-     protobuf_c_message_unpack (&nfs_write_cmd__descriptor,
+  return (SstackNfsSetattrCmd *)
+     protobuf_c_message_unpack (&sstack_nfs_setattr_cmd__descriptor,
                                 allocator, len, data);
 }
-void   nfs_write_cmd__free_unpacked
-                     (NfsWriteCmd *message,
+void   sstack_nfs_setattr_cmd__free_unpacked
+                     (SstackNfsSetattrCmd *message,
                       ProtobufCAllocator *allocator)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_write_cmd__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_setattr_cmd__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-void   nfs_create_cmd__init
-                     (NfsCreateCmd         *message)
+void   sstack_nfs_lookup_cmd__init
+                     (SstackNfsLookupCmd         *message)
 {
-  static NfsCreateCmd init_value = NFS_CREATE_CMD__INIT;
+  static SstackNfsLookupCmd init_value = SSTACK_NFS_LOOKUP_CMD__INIT;
   *message = init_value;
 }
-size_t nfs_create_cmd__get_packed_size
-                     (const NfsCreateCmd *message)
+size_t sstack_nfs_lookup_cmd__get_packed_size
+                     (const SstackNfsLookupCmd *message)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_create_cmd__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_lookup_cmd__descriptor);
   return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
 }
-size_t nfs_create_cmd__pack
-                     (const NfsCreateCmd *message,
+size_t sstack_nfs_lookup_cmd__pack
+                     (const SstackNfsLookupCmd *message,
                       uint8_t       *out)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_create_cmd__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_lookup_cmd__descriptor);
   return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
 }
-size_t nfs_create_cmd__pack_to_buffer
-                     (const NfsCreateCmd *message,
+size_t sstack_nfs_lookup_cmd__pack_to_buffer
+                     (const SstackNfsLookupCmd *message,
                       ProtobufCBuffer *buffer)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_create_cmd__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_lookup_cmd__descriptor);
   return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
 }
-NfsCreateCmd *
-       nfs_create_cmd__unpack
+SstackNfsLookupCmd *
+       sstack_nfs_lookup_cmd__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data)
 {
-  return (NfsCreateCmd *)
-     protobuf_c_message_unpack (&nfs_create_cmd__descriptor,
+  return (SstackNfsLookupCmd *)
+     protobuf_c_message_unpack (&sstack_nfs_lookup_cmd__descriptor,
                                 allocator, len, data);
 }
-void   nfs_create_cmd__free_unpacked
-                     (NfsCreateCmd *message,
+void   sstack_nfs_lookup_cmd__free_unpacked
+                     (SstackNfsLookupCmd *message,
                       ProtobufCAllocator *allocator)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_create_cmd__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_lookup_cmd__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-void   nfs_access_cmd__init
-                     (NfsAccessCmd         *message)
+void   sstack_nfs_read_cmd__init
+                     (SstackNfsReadCmd         *message)
 {
-  static NfsAccessCmd init_value = NFS_ACCESS_CMD__INIT;
+  static SstackNfsReadCmd init_value = SSTACK_NFS_READ_CMD__INIT;
   *message = init_value;
 }
-size_t nfs_access_cmd__get_packed_size
-                     (const NfsAccessCmd *message)
+size_t sstack_nfs_read_cmd__get_packed_size
+                     (const SstackNfsReadCmd *message)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_access_cmd__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_read_cmd__descriptor);
   return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
 }
-size_t nfs_access_cmd__pack
-                     (const NfsAccessCmd *message,
+size_t sstack_nfs_read_cmd__pack
+                     (const SstackNfsReadCmd *message,
                       uint8_t       *out)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_access_cmd__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_read_cmd__descriptor);
   return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
 }
-size_t nfs_access_cmd__pack_to_buffer
-                     (const NfsAccessCmd *message,
+size_t sstack_nfs_read_cmd__pack_to_buffer
+                     (const SstackNfsReadCmd *message,
                       ProtobufCBuffer *buffer)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_access_cmd__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_read_cmd__descriptor);
   return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
 }
-NfsAccessCmd *
-       nfs_access_cmd__unpack
+SstackNfsReadCmd *
+       sstack_nfs_read_cmd__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data)
 {
-  return (NfsAccessCmd *)
-     protobuf_c_message_unpack (&nfs_access_cmd__descriptor,
+  return (SstackNfsReadCmd *)
+     protobuf_c_message_unpack (&sstack_nfs_read_cmd__descriptor,
                                 allocator, len, data);
 }
-void   nfs_access_cmd__free_unpacked
-                     (NfsAccessCmd *message,
+void   sstack_nfs_read_cmd__free_unpacked
+                     (SstackNfsReadCmd *message,
                       ProtobufCAllocator *allocator)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_access_cmd__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_read_cmd__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-void   nfs_rename_cmd__init
-                     (NfsRenameCmd         *message)
+void   sstack_nfs_data__init
+                     (SstackNfsData         *message)
 {
-  static NfsRenameCmd init_value = NFS_RENAME_CMD__INIT;
+  static SstackNfsData init_value = SSTACK_NFS_DATA__INIT;
   *message = init_value;
 }
-size_t nfs_rename_cmd__get_packed_size
-                     (const NfsRenameCmd *message)
+size_t sstack_nfs_data__get_packed_size
+                     (const SstackNfsData *message)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_rename_cmd__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_data__descriptor);
   return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
 }
-size_t nfs_rename_cmd__pack
-                     (const NfsRenameCmd *message,
+size_t sstack_nfs_data__pack
+                     (const SstackNfsData *message,
                       uint8_t       *out)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_rename_cmd__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_data__descriptor);
   return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
 }
-size_t nfs_rename_cmd__pack_to_buffer
-                     (const NfsRenameCmd *message,
+size_t sstack_nfs_data__pack_to_buffer
+                     (const SstackNfsData *message,
                       ProtobufCBuffer *buffer)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_rename_cmd__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_data__descriptor);
   return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
 }
-NfsRenameCmd *
-       nfs_rename_cmd__unpack
+SstackNfsData *
+       sstack_nfs_data__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data)
 {
-  return (NfsRenameCmd *)
-     protobuf_c_message_unpack (&nfs_rename_cmd__descriptor,
+  return (SstackNfsData *)
+     protobuf_c_message_unpack (&sstack_nfs_data__descriptor,
                                 allocator, len, data);
 }
-void   nfs_rename_cmd__free_unpacked
-                     (NfsRenameCmd *message,
+void   sstack_nfs_data__free_unpacked
+                     (SstackNfsData *message,
                       ProtobufCAllocator *allocator)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_rename_cmd__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_data__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-void   nfs_commit_cmd__init
-                     (NfsCommitCmd         *message)
+void   sstack_nfs_write_cmd__init
+                     (SstackNfsWriteCmd         *message)
 {
-  static NfsCommitCmd init_value = NFS_COMMIT_CMD__INIT;
+  static SstackNfsWriteCmd init_value = SSTACK_NFS_WRITE_CMD__INIT;
   *message = init_value;
 }
-size_t nfs_commit_cmd__get_packed_size
-                     (const NfsCommitCmd *message)
+size_t sstack_nfs_write_cmd__get_packed_size
+                     (const SstackNfsWriteCmd *message)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_commit_cmd__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_write_cmd__descriptor);
   return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
 }
-size_t nfs_commit_cmd__pack
-                     (const NfsCommitCmd *message,
+size_t sstack_nfs_write_cmd__pack
+                     (const SstackNfsWriteCmd *message,
                       uint8_t       *out)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_commit_cmd__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_write_cmd__descriptor);
   return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
 }
-size_t nfs_commit_cmd__pack_to_buffer
-                     (const NfsCommitCmd *message,
+size_t sstack_nfs_write_cmd__pack_to_buffer
+                     (const SstackNfsWriteCmd *message,
                       ProtobufCBuffer *buffer)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_commit_cmd__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_write_cmd__descriptor);
   return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
 }
-NfsCommitCmd *
-       nfs_commit_cmd__unpack
+SstackNfsWriteCmd *
+       sstack_nfs_write_cmd__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data)
 {
-  return (NfsCommitCmd *)
-     protobuf_c_message_unpack (&nfs_commit_cmd__descriptor,
+  return (SstackNfsWriteCmd *)
+     protobuf_c_message_unpack (&sstack_nfs_write_cmd__descriptor,
                                 allocator, len, data);
 }
-void   nfs_commit_cmd__free_unpacked
-                     (NfsCommitCmd *message,
+void   sstack_nfs_write_cmd__free_unpacked
+                     (SstackNfsWriteCmd *message,
                       ProtobufCAllocator *allocator)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_commit_cmd__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_write_cmd__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   sstack_nfs_create_cmd__init
+                     (SstackNfsCreateCmd         *message)
+{
+  static SstackNfsCreateCmd init_value = SSTACK_NFS_CREATE_CMD__INIT;
+  *message = init_value;
+}
+size_t sstack_nfs_create_cmd__get_packed_size
+                     (const SstackNfsCreateCmd *message)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_create_cmd__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t sstack_nfs_create_cmd__pack
+                     (const SstackNfsCreateCmd *message,
+                      uint8_t       *out)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_create_cmd__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t sstack_nfs_create_cmd__pack_to_buffer
+                     (const SstackNfsCreateCmd *message,
+                      ProtobufCBuffer *buffer)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_create_cmd__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+SstackNfsCreateCmd *
+       sstack_nfs_create_cmd__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (SstackNfsCreateCmd *)
+     protobuf_c_message_unpack (&sstack_nfs_create_cmd__descriptor,
+                                allocator, len, data);
+}
+void   sstack_nfs_create_cmd__free_unpacked
+                     (SstackNfsCreateCmd *message,
+                      ProtobufCAllocator *allocator)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_create_cmd__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   sstack_nfs_mkdir_cmd__init
+                     (SstackNfsMkdirCmd         *message)
+{
+  static SstackNfsMkdirCmd init_value = SSTACK_NFS_MKDIR_CMD__INIT;
+  *message = init_value;
+}
+size_t sstack_nfs_mkdir_cmd__get_packed_size
+                     (const SstackNfsMkdirCmd *message)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_mkdir_cmd__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t sstack_nfs_mkdir_cmd__pack
+                     (const SstackNfsMkdirCmd *message,
+                      uint8_t       *out)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_mkdir_cmd__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t sstack_nfs_mkdir_cmd__pack_to_buffer
+                     (const SstackNfsMkdirCmd *message,
+                      ProtobufCBuffer *buffer)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_mkdir_cmd__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+SstackNfsMkdirCmd *
+       sstack_nfs_mkdir_cmd__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (SstackNfsMkdirCmd *)
+     protobuf_c_message_unpack (&sstack_nfs_mkdir_cmd__descriptor,
+                                allocator, len, data);
+}
+void   sstack_nfs_mkdir_cmd__free_unpacked
+                     (SstackNfsMkdirCmd *message,
+                      ProtobufCAllocator *allocator)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_mkdir_cmd__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   sstack_nfs_access_cmd__init
+                     (SstackNfsAccessCmd         *message)
+{
+  static SstackNfsAccessCmd init_value = SSTACK_NFS_ACCESS_CMD__INIT;
+  *message = init_value;
+}
+size_t sstack_nfs_access_cmd__get_packed_size
+                     (const SstackNfsAccessCmd *message)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_access_cmd__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t sstack_nfs_access_cmd__pack
+                     (const SstackNfsAccessCmd *message,
+                      uint8_t       *out)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_access_cmd__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t sstack_nfs_access_cmd__pack_to_buffer
+                     (const SstackNfsAccessCmd *message,
+                      ProtobufCBuffer *buffer)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_access_cmd__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+SstackNfsAccessCmd *
+       sstack_nfs_access_cmd__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (SstackNfsAccessCmd *)
+     protobuf_c_message_unpack (&sstack_nfs_access_cmd__descriptor,
+                                allocator, len, data);
+}
+void   sstack_nfs_access_cmd__free_unpacked
+                     (SstackNfsAccessCmd *message,
+                      ProtobufCAllocator *allocator)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_access_cmd__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   sstack_file_name_t__init
+                     (SstackFileNameT         *message)
+{
+  static SstackFileNameT init_value = SSTACK_FILE_NAME_T__INIT;
+  *message = init_value;
+}
+size_t sstack_file_name_t__get_packed_size
+                     (const SstackFileNameT *message)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_file_name_t__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t sstack_file_name_t__pack
+                     (const SstackFileNameT *message,
+                      uint8_t       *out)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_file_name_t__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t sstack_file_name_t__pack_to_buffer
+                     (const SstackFileNameT *message,
+                      ProtobufCBuffer *buffer)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_file_name_t__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+SstackFileNameT *
+       sstack_file_name_t__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (SstackFileNameT *)
+     protobuf_c_message_unpack (&sstack_file_name_t__descriptor,
+                                allocator, len, data);
+}
+void   sstack_file_name_t__free_unpacked
+                     (SstackFileNameT *message,
+                      ProtobufCAllocator *allocator)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_file_name_t__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   sstack_nfs_symlink_cmd__init
+                     (SstackNfsSymlinkCmd         *message)
+{
+  static SstackNfsSymlinkCmd init_value = SSTACK_NFS_SYMLINK_CMD__INIT;
+  *message = init_value;
+}
+size_t sstack_nfs_symlink_cmd__get_packed_size
+                     (const SstackNfsSymlinkCmd *message)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_symlink_cmd__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t sstack_nfs_symlink_cmd__pack
+                     (const SstackNfsSymlinkCmd *message,
+                      uint8_t       *out)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_symlink_cmd__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t sstack_nfs_symlink_cmd__pack_to_buffer
+                     (const SstackNfsSymlinkCmd *message,
+                      ProtobufCBuffer *buffer)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_symlink_cmd__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+SstackNfsSymlinkCmd *
+       sstack_nfs_symlink_cmd__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (SstackNfsSymlinkCmd *)
+     protobuf_c_message_unpack (&sstack_nfs_symlink_cmd__descriptor,
+                                allocator, len, data);
+}
+void   sstack_nfs_symlink_cmd__free_unpacked
+                     (SstackNfsSymlinkCmd *message,
+                      ProtobufCAllocator *allocator)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_symlink_cmd__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   sstack_nfs_rename_cmd__init
+                     (SstackNfsRenameCmd         *message)
+{
+  static SstackNfsRenameCmd init_value = SSTACK_NFS_RENAME_CMD__INIT;
+  *message = init_value;
+}
+size_t sstack_nfs_rename_cmd__get_packed_size
+                     (const SstackNfsRenameCmd *message)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_rename_cmd__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t sstack_nfs_rename_cmd__pack
+                     (const SstackNfsRenameCmd *message,
+                      uint8_t       *out)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_rename_cmd__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t sstack_nfs_rename_cmd__pack_to_buffer
+                     (const SstackNfsRenameCmd *message,
+                      ProtobufCBuffer *buffer)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_rename_cmd__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+SstackNfsRenameCmd *
+       sstack_nfs_rename_cmd__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (SstackNfsRenameCmd *)
+     protobuf_c_message_unpack (&sstack_nfs_rename_cmd__descriptor,
+                                allocator, len, data);
+}
+void   sstack_nfs_rename_cmd__free_unpacked
+                     (SstackNfsRenameCmd *message,
+                      ProtobufCAllocator *allocator)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_rename_cmd__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   sstack_nfs_remove_cmd__init
+                     (SstackNfsRemoveCmd         *message)
+{
+  static SstackNfsRemoveCmd init_value = SSTACK_NFS_REMOVE_CMD__INIT;
+  *message = init_value;
+}
+size_t sstack_nfs_remove_cmd__get_packed_size
+                     (const SstackNfsRemoveCmd *message)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_remove_cmd__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t sstack_nfs_remove_cmd__pack
+                     (const SstackNfsRemoveCmd *message,
+                      uint8_t       *out)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_remove_cmd__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t sstack_nfs_remove_cmd__pack_to_buffer
+                     (const SstackNfsRemoveCmd *message,
+                      ProtobufCBuffer *buffer)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_remove_cmd__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+SstackNfsRemoveCmd *
+       sstack_nfs_remove_cmd__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (SstackNfsRemoveCmd *)
+     protobuf_c_message_unpack (&sstack_nfs_remove_cmd__descriptor,
+                                allocator, len, data);
+}
+void   sstack_nfs_remove_cmd__free_unpacked
+                     (SstackNfsRemoveCmd *message,
+                      ProtobufCAllocator *allocator)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_remove_cmd__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   sstack_nfs_commit_cmd__init
+                     (SstackNfsCommitCmd         *message)
+{
+  static SstackNfsCommitCmd init_value = SSTACK_NFS_COMMIT_CMD__INIT;
+  *message = init_value;
+}
+size_t sstack_nfs_commit_cmd__get_packed_size
+                     (const SstackNfsCommitCmd *message)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_commit_cmd__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t sstack_nfs_commit_cmd__pack
+                     (const SstackNfsCommitCmd *message,
+                      uint8_t       *out)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_commit_cmd__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t sstack_nfs_commit_cmd__pack_to_buffer
+                     (const SstackNfsCommitCmd *message,
+                      ProtobufCBuffer *buffer)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_commit_cmd__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+SstackNfsCommitCmd *
+       sstack_nfs_commit_cmd__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (SstackNfsCommitCmd *)
+     protobuf_c_message_unpack (&sstack_nfs_commit_cmd__descriptor,
+                                allocator, len, data);
+}
+void   sstack_nfs_commit_cmd__free_unpacked
+                     (SstackNfsCommitCmd *message,
+                      ProtobufCAllocator *allocator)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_commit_cmd__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
 void   sstack_nfs_command_struct__init
@@ -350,477 +694,305 @@ void   sstack_nfs_command_struct__free_unpacked
   PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_command_struct__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-void   nfs_lookup_resp__init
-                     (NfsLookupResp         *message)
+void   stat__init
+                     (Stat         *message)
 {
-  static NfsLookupResp init_value = NFS_LOOKUP_RESP__INIT;
+  static Stat init_value = STAT__INIT;
   *message = init_value;
 }
-size_t nfs_lookup_resp__get_packed_size
-                     (const NfsLookupResp *message)
+size_t stat__get_packed_size
+                     (const Stat *message)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_lookup_resp__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &stat__descriptor);
   return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
 }
-size_t nfs_lookup_resp__pack
-                     (const NfsLookupResp *message,
+size_t stat__pack
+                     (const Stat *message,
                       uint8_t       *out)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_lookup_resp__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &stat__descriptor);
   return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
 }
-size_t nfs_lookup_resp__pack_to_buffer
-                     (const NfsLookupResp *message,
+size_t stat__pack_to_buffer
+                     (const Stat *message,
                       ProtobufCBuffer *buffer)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_lookup_resp__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &stat__descriptor);
   return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
 }
-NfsLookupResp *
-       nfs_lookup_resp__unpack
+Stat *
+       stat__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data)
 {
-  return (NfsLookupResp *)
-     protobuf_c_message_unpack (&nfs_lookup_resp__descriptor,
+  return (Stat *)
+     protobuf_c_message_unpack (&stat__descriptor,
                                 allocator, len, data);
 }
-void   nfs_lookup_resp__free_unpacked
-                     (NfsLookupResp *message,
+void   stat__free_unpacked
+                     (Stat *message,
                       ProtobufCAllocator *allocator)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_lookup_resp__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &stat__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-void   nfs_access_resp__init
-                     (NfsAccessResp         *message)
+void   sstack_nfs_getattr_resp__init
+                     (SstackNfsGetattrResp         *message)
 {
-  static NfsAccessResp init_value = NFS_ACCESS_RESP__INIT;
+  static SstackNfsGetattrResp init_value = SSTACK_NFS_GETATTR_RESP__INIT;
   *message = init_value;
 }
-size_t nfs_access_resp__get_packed_size
-                     (const NfsAccessResp *message)
+size_t sstack_nfs_getattr_resp__get_packed_size
+                     (const SstackNfsGetattrResp *message)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_access_resp__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_getattr_resp__descriptor);
   return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
 }
-size_t nfs_access_resp__pack
-                     (const NfsAccessResp *message,
+size_t sstack_nfs_getattr_resp__pack
+                     (const SstackNfsGetattrResp *message,
                       uint8_t       *out)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_access_resp__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_getattr_resp__descriptor);
   return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
 }
-size_t nfs_access_resp__pack_to_buffer
-                     (const NfsAccessResp *message,
+size_t sstack_nfs_getattr_resp__pack_to_buffer
+                     (const SstackNfsGetattrResp *message,
                       ProtobufCBuffer *buffer)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_access_resp__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_getattr_resp__descriptor);
   return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
 }
-NfsAccessResp *
-       nfs_access_resp__unpack
+SstackNfsGetattrResp *
+       sstack_nfs_getattr_resp__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data)
 {
-  return (NfsAccessResp *)
-     protobuf_c_message_unpack (&nfs_access_resp__descriptor,
+  return (SstackNfsGetattrResp *)
+     protobuf_c_message_unpack (&sstack_nfs_getattr_resp__descriptor,
                                 allocator, len, data);
 }
-void   nfs_access_resp__free_unpacked
-                     (NfsAccessResp *message,
+void   sstack_nfs_getattr_resp__free_unpacked
+                     (SstackNfsGetattrResp *message,
                       ProtobufCAllocator *allocator)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_access_resp__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_getattr_resp__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-void   nfs_read_resp__init
-                     (NfsReadResp         *message)
+void   sstack_nfs_lookup_resp__init
+                     (SstackNfsLookupResp         *message)
 {
-  static NfsReadResp init_value = NFS_READ_RESP__INIT;
+  static SstackNfsLookupResp init_value = SSTACK_NFS_LOOKUP_RESP__INIT;
   *message = init_value;
 }
-size_t nfs_read_resp__get_packed_size
-                     (const NfsReadResp *message)
+size_t sstack_nfs_lookup_resp__get_packed_size
+                     (const SstackNfsLookupResp *message)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_read_resp__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_lookup_resp__descriptor);
   return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
 }
-size_t nfs_read_resp__pack
-                     (const NfsReadResp *message,
+size_t sstack_nfs_lookup_resp__pack
+                     (const SstackNfsLookupResp *message,
                       uint8_t       *out)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_read_resp__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_lookup_resp__descriptor);
   return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
 }
-size_t nfs_read_resp__pack_to_buffer
-                     (const NfsReadResp *message,
+size_t sstack_nfs_lookup_resp__pack_to_buffer
+                     (const SstackNfsLookupResp *message,
                       ProtobufCBuffer *buffer)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_read_resp__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_lookup_resp__descriptor);
   return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
 }
-NfsReadResp *
-       nfs_read_resp__unpack
+SstackNfsLookupResp *
+       sstack_nfs_lookup_resp__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data)
 {
-  return (NfsReadResp *)
-     protobuf_c_message_unpack (&nfs_read_resp__descriptor,
+  return (SstackNfsLookupResp *)
+     protobuf_c_message_unpack (&sstack_nfs_lookup_resp__descriptor,
                                 allocator, len, data);
 }
-void   nfs_read_resp__free_unpacked
-                     (NfsReadResp *message,
+void   sstack_nfs_lookup_resp__free_unpacked
+                     (SstackNfsLookupResp *message,
                       ProtobufCAllocator *allocator)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_read_resp__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_lookup_resp__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-void   nfs_write_resp__init
-                     (NfsWriteResp         *message)
+void   sstack_nfs_access_resp__init
+                     (SstackNfsAccessResp         *message)
 {
-  static NfsWriteResp init_value = NFS_WRITE_RESP__INIT;
+  static SstackNfsAccessResp init_value = SSTACK_NFS_ACCESS_RESP__INIT;
   *message = init_value;
 }
-size_t nfs_write_resp__get_packed_size
-                     (const NfsWriteResp *message)
+size_t sstack_nfs_access_resp__get_packed_size
+                     (const SstackNfsAccessResp *message)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_write_resp__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_access_resp__descriptor);
   return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
 }
-size_t nfs_write_resp__pack
-                     (const NfsWriteResp *message,
+size_t sstack_nfs_access_resp__pack
+                     (const SstackNfsAccessResp *message,
                       uint8_t       *out)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_write_resp__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_access_resp__descriptor);
   return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
 }
-size_t nfs_write_resp__pack_to_buffer
-                     (const NfsWriteResp *message,
+size_t sstack_nfs_access_resp__pack_to_buffer
+                     (const SstackNfsAccessResp *message,
                       ProtobufCBuffer *buffer)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_write_resp__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_access_resp__descriptor);
   return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
 }
-NfsWriteResp *
-       nfs_write_resp__unpack
+SstackNfsAccessResp *
+       sstack_nfs_access_resp__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data)
 {
-  return (NfsWriteResp *)
-     protobuf_c_message_unpack (&nfs_write_resp__descriptor,
+  return (SstackNfsAccessResp *)
+     protobuf_c_message_unpack (&sstack_nfs_access_resp__descriptor,
                                 allocator, len, data);
 }
-void   nfs_write_resp__free_unpacked
-                     (NfsWriteResp *message,
+void   sstack_nfs_access_resp__free_unpacked
+                     (SstackNfsAccessResp *message,
                       ProtobufCAllocator *allocator)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_write_resp__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_access_resp__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-void   nfs_create_resp__init
-                     (NfsCreateResp         *message)
+void   sstack_nfs_read_resp__init
+                     (SstackNfsReadResp         *message)
 {
-  static NfsCreateResp init_value = NFS_CREATE_RESP__INIT;
+  static SstackNfsReadResp init_value = SSTACK_NFS_READ_RESP__INIT;
   *message = init_value;
 }
-size_t nfs_create_resp__get_packed_size
-                     (const NfsCreateResp *message)
+size_t sstack_nfs_read_resp__get_packed_size
+                     (const SstackNfsReadResp *message)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_create_resp__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_read_resp__descriptor);
   return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
 }
-size_t nfs_create_resp__pack
-                     (const NfsCreateResp *message,
+size_t sstack_nfs_read_resp__pack
+                     (const SstackNfsReadResp *message,
                       uint8_t       *out)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_create_resp__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_read_resp__descriptor);
   return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
 }
-size_t nfs_create_resp__pack_to_buffer
-                     (const NfsCreateResp *message,
+size_t sstack_nfs_read_resp__pack_to_buffer
+                     (const SstackNfsReadResp *message,
                       ProtobufCBuffer *buffer)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_create_resp__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_read_resp__descriptor);
   return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
 }
-NfsCreateResp *
-       nfs_create_resp__unpack
+SstackNfsReadResp *
+       sstack_nfs_read_resp__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data)
 {
-  return (NfsCreateResp *)
-     protobuf_c_message_unpack (&nfs_create_resp__descriptor,
+  return (SstackNfsReadResp *)
+     protobuf_c_message_unpack (&sstack_nfs_read_resp__descriptor,
                                 allocator, len, data);
 }
-void   nfs_create_resp__free_unpacked
-                     (NfsCreateResp *message,
+void   sstack_nfs_read_resp__free_unpacked
+                     (SstackNfsReadResp *message,
                       ProtobufCAllocator *allocator)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_create_resp__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_read_resp__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-void   nfs_remove_resp__init
-                     (NfsRemoveResp         *message)
+void   sstack_nfs_write_resp__init
+                     (SstackNfsWriteResp         *message)
 {
-  static NfsRemoveResp init_value = NFS_REMOVE_RESP__INIT;
+  static SstackNfsWriteResp init_value = SSTACK_NFS_WRITE_RESP__INIT;
   *message = init_value;
 }
-size_t nfs_remove_resp__get_packed_size
-                     (const NfsRemoveResp *message)
+size_t sstack_nfs_write_resp__get_packed_size
+                     (const SstackNfsWriteResp *message)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_remove_resp__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_write_resp__descriptor);
   return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
 }
-size_t nfs_remove_resp__pack
-                     (const NfsRemoveResp *message,
+size_t sstack_nfs_write_resp__pack
+                     (const SstackNfsWriteResp *message,
                       uint8_t       *out)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_remove_resp__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_write_resp__descriptor);
   return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
 }
-size_t nfs_remove_resp__pack_to_buffer
-                     (const NfsRemoveResp *message,
+size_t sstack_nfs_write_resp__pack_to_buffer
+                     (const SstackNfsWriteResp *message,
                       ProtobufCBuffer *buffer)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_remove_resp__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_write_resp__descriptor);
   return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
 }
-NfsRemoveResp *
-       nfs_remove_resp__unpack
+SstackNfsWriteResp *
+       sstack_nfs_write_resp__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data)
 {
-  return (NfsRemoveResp *)
-     protobuf_c_message_unpack (&nfs_remove_resp__descriptor,
+  return (SstackNfsWriteResp *)
+     protobuf_c_message_unpack (&sstack_nfs_write_resp__descriptor,
                                 allocator, len, data);
 }
-void   nfs_remove_resp__free_unpacked
-                     (NfsRemoveResp *message,
+void   sstack_nfs_write_resp__free_unpacked
+                     (SstackNfsWriteResp *message,
                       ProtobufCAllocator *allocator)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_remove_resp__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_write_resp__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-void   nfs_rename_resp__init
-                     (NfsRenameResp         *message)
+void   sstack_nfs_readlink_resp__init
+                     (SstackNfsReadlinkResp         *message)
 {
-  static NfsRenameResp init_value = NFS_RENAME_RESP__INIT;
+  static SstackNfsReadlinkResp init_value = SSTACK_NFS_READLINK_RESP__INIT;
   *message = init_value;
 }
-size_t nfs_rename_resp__get_packed_size
-                     (const NfsRenameResp *message)
+size_t sstack_nfs_readlink_resp__get_packed_size
+                     (const SstackNfsReadlinkResp *message)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_rename_resp__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_readlink_resp__descriptor);
   return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
 }
-size_t nfs_rename_resp__pack
-                     (const NfsRenameResp *message,
+size_t sstack_nfs_readlink_resp__pack
+                     (const SstackNfsReadlinkResp *message,
                       uint8_t       *out)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_rename_resp__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_readlink_resp__descriptor);
   return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
 }
-size_t nfs_rename_resp__pack_to_buffer
-                     (const NfsRenameResp *message,
+size_t sstack_nfs_readlink_resp__pack_to_buffer
+                     (const SstackNfsReadlinkResp *message,
                       ProtobufCBuffer *buffer)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_rename_resp__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_readlink_resp__descriptor);
   return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
 }
-NfsRenameResp *
-       nfs_rename_resp__unpack
+SstackNfsReadlinkResp *
+       sstack_nfs_readlink_resp__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data)
 {
-  return (NfsRenameResp *)
-     protobuf_c_message_unpack (&nfs_rename_resp__descriptor,
+  return (SstackNfsReadlinkResp *)
+     protobuf_c_message_unpack (&sstack_nfs_readlink_resp__descriptor,
                                 allocator, len, data);
 }
-void   nfs_rename_resp__free_unpacked
-                     (NfsRenameResp *message,
+void   sstack_nfs_readlink_resp__free_unpacked
+                     (SstackNfsReadlinkResp *message,
                       ProtobufCAllocator *allocator)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_rename_resp__descriptor);
-  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
-}
-void   nfs_fsstat_resp__init
-                     (NfsFsstatResp         *message)
-{
-  static NfsFsstatResp init_value = NFS_FSSTAT_RESP__INIT;
-  *message = init_value;
-}
-size_t nfs_fsstat_resp__get_packed_size
-                     (const NfsFsstatResp *message)
-{
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_fsstat_resp__descriptor);
-  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
-}
-size_t nfs_fsstat_resp__pack
-                     (const NfsFsstatResp *message,
-                      uint8_t       *out)
-{
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_fsstat_resp__descriptor);
-  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
-}
-size_t nfs_fsstat_resp__pack_to_buffer
-                     (const NfsFsstatResp *message,
-                      ProtobufCBuffer *buffer)
-{
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_fsstat_resp__descriptor);
-  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
-}
-NfsFsstatResp *
-       nfs_fsstat_resp__unpack
-                     (ProtobufCAllocator  *allocator,
-                      size_t               len,
-                      const uint8_t       *data)
-{
-  return (NfsFsstatResp *)
-     protobuf_c_message_unpack (&nfs_fsstat_resp__descriptor,
-                                allocator, len, data);
-}
-void   nfs_fsstat_resp__free_unpacked
-                     (NfsFsstatResp *message,
-                      ProtobufCAllocator *allocator)
-{
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_fsstat_resp__descriptor);
-  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
-}
-void   nfs_fsinfo_resp__init
-                     (NfsFsinfoResp         *message)
-{
-  static NfsFsinfoResp init_value = NFS_FSINFO_RESP__INIT;
-  *message = init_value;
-}
-size_t nfs_fsinfo_resp__get_packed_size
-                     (const NfsFsinfoResp *message)
-{
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_fsinfo_resp__descriptor);
-  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
-}
-size_t nfs_fsinfo_resp__pack
-                     (const NfsFsinfoResp *message,
-                      uint8_t       *out)
-{
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_fsinfo_resp__descriptor);
-  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
-}
-size_t nfs_fsinfo_resp__pack_to_buffer
-                     (const NfsFsinfoResp *message,
-                      ProtobufCBuffer *buffer)
-{
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_fsinfo_resp__descriptor);
-  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
-}
-NfsFsinfoResp *
-       nfs_fsinfo_resp__unpack
-                     (ProtobufCAllocator  *allocator,
-                      size_t               len,
-                      const uint8_t       *data)
-{
-  return (NfsFsinfoResp *)
-     protobuf_c_message_unpack (&nfs_fsinfo_resp__descriptor,
-                                allocator, len, data);
-}
-void   nfs_fsinfo_resp__free_unpacked
-                     (NfsFsinfoResp *message,
-                      ProtobufCAllocator *allocator)
-{
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_fsinfo_resp__descriptor);
-  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
-}
-void   nfs_pathconf_resp__init
-                     (NfsPathconfResp         *message)
-{
-  static NfsPathconfResp init_value = NFS_PATHCONF_RESP__INIT;
-  *message = init_value;
-}
-size_t nfs_pathconf_resp__get_packed_size
-                     (const NfsPathconfResp *message)
-{
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_pathconf_resp__descriptor);
-  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
-}
-size_t nfs_pathconf_resp__pack
-                     (const NfsPathconfResp *message,
-                      uint8_t       *out)
-{
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_pathconf_resp__descriptor);
-  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
-}
-size_t nfs_pathconf_resp__pack_to_buffer
-                     (const NfsPathconfResp *message,
-                      ProtobufCBuffer *buffer)
-{
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_pathconf_resp__descriptor);
-  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
-}
-NfsPathconfResp *
-       nfs_pathconf_resp__unpack
-                     (ProtobufCAllocator  *allocator,
-                      size_t               len,
-                      const uint8_t       *data)
-{
-  return (NfsPathconfResp *)
-     protobuf_c_message_unpack (&nfs_pathconf_resp__descriptor,
-                                allocator, len, data);
-}
-void   nfs_pathconf_resp__free_unpacked
-                     (NfsPathconfResp *message,
-                      ProtobufCAllocator *allocator)
-{
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_pathconf_resp__descriptor);
-  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
-}
-void   nfs_commit_resp__init
-                     (NfsCommitResp         *message)
-{
-  static NfsCommitResp init_value = NFS_COMMIT_RESP__INIT;
-  *message = init_value;
-}
-size_t nfs_commit_resp__get_packed_size
-                     (const NfsCommitResp *message)
-{
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_commit_resp__descriptor);
-  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
-}
-size_t nfs_commit_resp__pack
-                     (const NfsCommitResp *message,
-                      uint8_t       *out)
-{
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_commit_resp__descriptor);
-  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
-}
-size_t nfs_commit_resp__pack_to_buffer
-                     (const NfsCommitResp *message,
-                      ProtobufCBuffer *buffer)
-{
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_commit_resp__descriptor);
-  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
-}
-NfsCommitResp *
-       nfs_commit_resp__unpack
-                     (ProtobufCAllocator  *allocator,
-                      size_t               len,
-                      const uint8_t       *data)
-{
-  return (NfsCommitResp *)
-     protobuf_c_message_unpack (&nfs_commit_resp__descriptor,
-                                allocator, len, data);
-}
-void   nfs_commit_resp__free_unpacked
-                     (NfsCommitResp *message,
-                      ProtobufCAllocator *allocator)
-{
-  PROTOBUF_C_ASSERT (message->base.descriptor == &nfs_commit_resp__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_nfs_readlink_resp__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
 void   sstack_nfs_result_struct__init
@@ -909,6 +1081,49 @@ void   sstack_payload_hdr_t__free_unpacked
   PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_payload_hdr_t__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
+void   sfsd_storage_t__init
+                     (SfsdStorageT         *message)
+{
+  static SfsdStorageT init_value = SFSD_STORAGE_T__INIT;
+  *message = init_value;
+}
+size_t sfsd_storage_t__get_packed_size
+                     (const SfsdStorageT *message)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sfsd_storage_t__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t sfsd_storage_t__pack
+                     (const SfsdStorageT *message,
+                      uint8_t       *out)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sfsd_storage_t__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t sfsd_storage_t__pack_to_buffer
+                     (const SfsdStorageT *message,
+                      ProtobufCBuffer *buffer)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sfsd_storage_t__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+SfsdStorageT *
+       sfsd_storage_t__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (SfsdStorageT *)
+     protobuf_c_message_unpack (&sfsd_storage_t__descriptor,
+                                allocator, len, data);
+}
+void   sfsd_storage_t__free_unpacked
+                     (SfsdStorageT *message,
+                      ProtobufCAllocator *allocator)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &sfsd_storage_t__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
 void   sstack_payload_t__init
                      (SstackPayloadT         *message)
 {
@@ -952,7 +1167,366 @@ void   sstack_payload_t__free_unpacked
   PROTOBUF_C_ASSERT (message->base.descriptor == &sstack_payload_t__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-static const ProtobufCFieldDescriptor nfs_read_cmd__field_descriptors[3] =
+static const ProtobufCFieldDescriptor timespec__field_descriptors[2] =
+{
+  {
+    "tv_sec",
+    1,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(Timespec, tv_sec),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "tv_nsec",
+    2,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(Timespec, tv_nsec),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned timespec__field_indices_by_name[] = {
+  1,   /* field[1] = tv_nsec */
+  0,   /* field[0] = tv_sec */
+};
+static const ProtobufCIntRange timespec__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 2 }
+};
+const ProtobufCMessageDescriptor timespec__descriptor =
+{
+  PROTOBUF_C_MESSAGE_DESCRIPTOR_MAGIC,
+  "timespec",
+  "Timespec",
+  "Timespec",
+  "",
+  sizeof(Timespec),
+  2,
+  timespec__field_descriptors,
+  timespec__field_indices_by_name,
+  1,  timespec__number_ranges,
+  (ProtobufCMessageInit) timespec__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+const ProtobufCEnumValue sstack_file_attribute_t__sstack_file_type_t__enum_values_by_number[7] =
+{
+  { "NFS_REG", "SSTACK_FILE_ATTRIBUTE_T__SSTACK_FILE_TYPE_T__NFS_REG", 1 },
+  { "NFS_DIR", "SSTACK_FILE_ATTRIBUTE_T__SSTACK_FILE_TYPE_T__NFS_DIR", 2 },
+  { "NFS_BLK", "SSTACK_FILE_ATTRIBUTE_T__SSTACK_FILE_TYPE_T__NFS_BLK", 3 },
+  { "NFS_CHR", "SSTACK_FILE_ATTRIBUTE_T__SSTACK_FILE_TYPE_T__NFS_CHR", 4 },
+  { "NFS_LNL", "SSTACK_FILE_ATTRIBUTE_T__SSTACK_FILE_TYPE_T__NFS_LNL", 5 },
+  { "NFS_SOCK", "SSTACK_FILE_ATTRIBUTE_T__SSTACK_FILE_TYPE_T__NFS_SOCK", 6 },
+  { "NFS_FIFO", "SSTACK_FILE_ATTRIBUTE_T__SSTACK_FILE_TYPE_T__NFS_FIFO", 7 },
+};
+static const ProtobufCIntRange sstack_file_attribute_t__sstack_file_type_t__value_ranges[] = {
+{1, 0},{0, 7}
+};
+const ProtobufCEnumValueIndex sstack_file_attribute_t__sstack_file_type_t__enum_values_by_name[7] =
+{
+  { "NFS_BLK", 2 },
+  { "NFS_CHR", 3 },
+  { "NFS_DIR", 1 },
+  { "NFS_FIFO", 6 },
+  { "NFS_LNL", 4 },
+  { "NFS_REG", 0 },
+  { "NFS_SOCK", 5 },
+};
+const ProtobufCEnumDescriptor sstack_file_attribute_t__sstack_file_type_t__descriptor =
+{
+  PROTOBUF_C_ENUM_DESCRIPTOR_MAGIC,
+  "sstack_file_attribute_t.sstack_file_type_t",
+  "sstack_file_type_t",
+  "SstackFileAttributeT__SstackFileTypeT",
+  "",
+  7,
+  sstack_file_attribute_t__sstack_file_type_t__enum_values_by_number,
+  7,
+  sstack_file_attribute_t__sstack_file_type_t__enum_values_by_name,
+  1,
+  sstack_file_attribute_t__sstack_file_type_t__value_ranges,
+  NULL,NULL,NULL,NULL   /* reserved[1234] */
+};
+static const ProtobufCFieldDescriptor sstack_file_attribute_t__field_descriptors[12] =
+{
+  {
+    "type",
+    1,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_ENUM,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(SstackFileAttributeT, type),
+    &sstack_file_attribute_t__sstack_file_type_t__descriptor,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "mode",
+    2,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(SstackFileAttributeT, mode),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "num_link",
+    3,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(SstackFileAttributeT, num_link),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "uid",
+    4,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(SstackFileAttributeT, uid),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "gid",
+    5,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(SstackFileAttributeT, gid),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "size",
+    6,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(SstackFileAttributeT, size),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "used",
+    7,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(SstackFileAttributeT, used),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "fsid",
+    8,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT64,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(SstackFileAttributeT, fsid),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "fileid",
+    9,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(SstackFileAttributeT, fileid),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "atime",
+    10,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_MESSAGE,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(SstackFileAttributeT, atime),
+    &timespec__descriptor,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "mtime",
+    11,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_MESSAGE,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(SstackFileAttributeT, mtime),
+    &timespec__descriptor,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "ctime",
+    12,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_MESSAGE,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(SstackFileAttributeT, ctime),
+    &timespec__descriptor,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned sstack_file_attribute_t__field_indices_by_name[] = {
+  9,   /* field[9] = atime */
+  11,   /* field[11] = ctime */
+  8,   /* field[8] = fileid */
+  7,   /* field[7] = fsid */
+  4,   /* field[4] = gid */
+  1,   /* field[1] = mode */
+  10,   /* field[10] = mtime */
+  2,   /* field[2] = num_link */
+  5,   /* field[5] = size */
+  0,   /* field[0] = type */
+  3,   /* field[3] = uid */
+  6,   /* field[6] = used */
+};
+static const ProtobufCIntRange sstack_file_attribute_t__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 12 }
+};
+const ProtobufCMessageDescriptor sstack_file_attribute_t__descriptor =
+{
+  PROTOBUF_C_MESSAGE_DESCRIPTOR_MAGIC,
+  "sstack_file_attribute_t",
+  "SstackFileAttributeT",
+  "SstackFileAttributeT",
+  "",
+  sizeof(SstackFileAttributeT),
+  12,
+  sstack_file_attribute_t__field_descriptors,
+  sstack_file_attribute_t__field_indices_by_name,
+  1,  sstack_file_attribute_t__number_ranges,
+  (ProtobufCMessageInit) sstack_file_attribute_t__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor sstack_nfs_setattr_cmd__field_descriptors[1] =
+{
+  {
+    "attribute",
+    1,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_MESSAGE,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(SstackNfsSetattrCmd, attribute),
+    &sstack_file_attribute_t__descriptor,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned sstack_nfs_setattr_cmd__field_indices_by_name[] = {
+  0,   /* field[0] = attribute */
+};
+static const ProtobufCIntRange sstack_nfs_setattr_cmd__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 1 }
+};
+const ProtobufCMessageDescriptor sstack_nfs_setattr_cmd__descriptor =
+{
+  PROTOBUF_C_MESSAGE_DESCRIPTOR_MAGIC,
+  "sstack_nfs_setattr_cmd",
+  "SstackNfsSetattrCmd",
+  "SstackNfsSetattrCmd",
+  "",
+  sizeof(SstackNfsSetattrCmd),
+  1,
+  sstack_nfs_setattr_cmd__field_descriptors,
+  sstack_nfs_setattr_cmd__field_indices_by_name,
+  1,  sstack_nfs_setattr_cmd__number_ranges,
+  (ProtobufCMessageInit) sstack_nfs_setattr_cmd__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor sstack_nfs_lookup_cmd__field_descriptors[2] =
+{
+  {
+    "where",
+    1,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_MESSAGE,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(SstackNfsLookupCmd, where),
+    &sstack_file_name_t__descriptor,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "what",
+    2,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_MESSAGE,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(SstackNfsLookupCmd, what),
+    &sstack_file_name_t__descriptor,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned sstack_nfs_lookup_cmd__field_indices_by_name[] = {
+  1,   /* field[1] = what */
+  0,   /* field[0] = where */
+};
+static const ProtobufCIntRange sstack_nfs_lookup_cmd__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 2 }
+};
+const ProtobufCMessageDescriptor sstack_nfs_lookup_cmd__descriptor =
+{
+  PROTOBUF_C_MESSAGE_DESCRIPTOR_MAGIC,
+  "sstack_nfs_lookup_cmd",
+  "SstackNfsLookupCmd",
+  "SstackNfsLookupCmd",
+  "",
+  sizeof(SstackNfsLookupCmd),
+  2,
+  sstack_nfs_lookup_cmd__field_descriptors,
+  sstack_nfs_lookup_cmd__field_indices_by_name,
+  1,  sstack_nfs_lookup_cmd__number_ranges,
+  (ProtobufCMessageInit) sstack_nfs_lookup_cmd__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor sstack_nfs_read_cmd__field_descriptors[2] =
 {
   {
     "offset",
@@ -960,7 +1534,7 @@ static const ProtobufCFieldDescriptor nfs_read_cmd__field_descriptors[3] =
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_UINT64,
     0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(NfsReadCmd, offset),
+    PROTOBUF_C_OFFSETOF(SstackNfsReadCmd, offset),
     NULL,
     NULL,
     0,            /* packed */
@@ -972,51 +1546,38 @@ static const ProtobufCFieldDescriptor nfs_read_cmd__field_descriptors[3] =
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_UINT64,
     0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(NfsReadCmd, count),
+    PROTOBUF_C_OFFSETOF(SstackNfsReadCmd, count),
     NULL,
-    NULL,
-    0,            /* packed */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-  {
-    "data",
-    3,
-    PROTOBUF_C_LABEL_REQUIRED,
-    PROTOBUF_C_TYPE_MESSAGE,
-    0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(NfsReadCmd, data),
-    &nfs_data__descriptor,
     NULL,
     0,            /* packed */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
 };
-static const unsigned nfs_read_cmd__field_indices_by_name[] = {
+static const unsigned sstack_nfs_read_cmd__field_indices_by_name[] = {
   1,   /* field[1] = count */
-  2,   /* field[2] = data */
   0,   /* field[0] = offset */
 };
-static const ProtobufCIntRange nfs_read_cmd__number_ranges[1 + 1] =
+static const ProtobufCIntRange sstack_nfs_read_cmd__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 3 }
+  { 0, 2 }
 };
-const ProtobufCMessageDescriptor nfs_read_cmd__descriptor =
+const ProtobufCMessageDescriptor sstack_nfs_read_cmd__descriptor =
 {
   PROTOBUF_C_MESSAGE_DESCRIPTOR_MAGIC,
-  "nfs_read_cmd",
-  "NfsReadCmd",
-  "NfsReadCmd",
+  "sstack_nfs_read_cmd",
+  "SstackNfsReadCmd",
+  "SstackNfsReadCmd",
   "",
-  sizeof(NfsReadCmd),
-  3,
-  nfs_read_cmd__field_descriptors,
-  nfs_read_cmd__field_indices_by_name,
-  1,  nfs_read_cmd__number_ranges,
-  (ProtobufCMessageInit) nfs_read_cmd__init,
+  sizeof(SstackNfsReadCmd),
+  2,
+  sstack_nfs_read_cmd__field_descriptors,
+  sstack_nfs_read_cmd__field_indices_by_name,
+  1,  sstack_nfs_read_cmd__number_ranges,
+  (ProtobufCMessageInit) sstack_nfs_read_cmd__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor nfs_data__field_descriptors[2] =
+static const ProtobufCFieldDescriptor sstack_nfs_data__field_descriptors[2] =
 {
   {
     "data_len",
@@ -1024,7 +1585,7 @@ static const ProtobufCFieldDescriptor nfs_data__field_descriptors[2] =
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_UINT64,
     0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(NfsData, data_len),
+    PROTOBUF_C_OFFSETOF(SstackNfsData, data_len),
     NULL,
     NULL,
     0,            /* packed */
@@ -1036,38 +1597,38 @@ static const ProtobufCFieldDescriptor nfs_data__field_descriptors[2] =
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_BYTES,
     0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(NfsData, data_val),
+    PROTOBUF_C_OFFSETOF(SstackNfsData, data_val),
     NULL,
     NULL,
     0,            /* packed */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
 };
-static const unsigned nfs_data__field_indices_by_name[] = {
+static const unsigned sstack_nfs_data__field_indices_by_name[] = {
   0,   /* field[0] = data_len */
   1,   /* field[1] = data_val */
 };
-static const ProtobufCIntRange nfs_data__number_ranges[1 + 1] =
+static const ProtobufCIntRange sstack_nfs_data__number_ranges[1 + 1] =
 {
   { 1, 0 },
   { 0, 2 }
 };
-const ProtobufCMessageDescriptor nfs_data__descriptor =
+const ProtobufCMessageDescriptor sstack_nfs_data__descriptor =
 {
   PROTOBUF_C_MESSAGE_DESCRIPTOR_MAGIC,
-  "nfs_data",
-  "NfsData",
-  "NfsData",
+  "sstack_nfs_data",
+  "SstackNfsData",
+  "SstackNfsData",
   "",
-  sizeof(NfsData),
+  sizeof(SstackNfsData),
   2,
-  nfs_data__field_descriptors,
-  nfs_data__field_indices_by_name,
-  1,  nfs_data__number_ranges,
-  (ProtobufCMessageInit) nfs_data__init,
+  sstack_nfs_data__field_descriptors,
+  sstack_nfs_data__field_indices_by_name,
+  1,  sstack_nfs_data__number_ranges,
+  (ProtobufCMessageInit) sstack_nfs_data__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor nfs_write_cmd__field_descriptors[3] =
+static const ProtobufCFieldDescriptor sstack_nfs_write_cmd__field_descriptors[3] =
 {
   {
     "offset",
@@ -1075,7 +1636,7 @@ static const ProtobufCFieldDescriptor nfs_write_cmd__field_descriptors[3] =
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_UINT64,
     0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(NfsWriteCmd, offset),
+    PROTOBUF_C_OFFSETOF(SstackNfsWriteCmd, offset),
     NULL,
     NULL,
     0,            /* packed */
@@ -1087,7 +1648,7 @@ static const ProtobufCFieldDescriptor nfs_write_cmd__field_descriptors[3] =
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_UINT64,
     0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(NfsWriteCmd, count),
+    PROTOBUF_C_OFFSETOF(SstackNfsWriteCmd, count),
     NULL,
     NULL,
     0,            /* packed */
@@ -1099,39 +1660,39 @@ static const ProtobufCFieldDescriptor nfs_write_cmd__field_descriptors[3] =
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_MESSAGE,
     0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(NfsWriteCmd, data),
-    &nfs_data__descriptor,
+    PROTOBUF_C_OFFSETOF(SstackNfsWriteCmd, data),
+    &sstack_nfs_data__descriptor,
     NULL,
     0,            /* packed */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
 };
-static const unsigned nfs_write_cmd__field_indices_by_name[] = {
+static const unsigned sstack_nfs_write_cmd__field_indices_by_name[] = {
   1,   /* field[1] = count */
   2,   /* field[2] = data */
   0,   /* field[0] = offset */
 };
-static const ProtobufCIntRange nfs_write_cmd__number_ranges[1 + 1] =
+static const ProtobufCIntRange sstack_nfs_write_cmd__number_ranges[1 + 1] =
 {
   { 1, 0 },
   { 0, 3 }
 };
-const ProtobufCMessageDescriptor nfs_write_cmd__descriptor =
+const ProtobufCMessageDescriptor sstack_nfs_write_cmd__descriptor =
 {
   PROTOBUF_C_MESSAGE_DESCRIPTOR_MAGIC,
-  "nfs_write_cmd",
-  "NfsWriteCmd",
-  "NfsWriteCmd",
+  "sstack_nfs_write_cmd",
+  "SstackNfsWriteCmd",
+  "SstackNfsWriteCmd",
   "",
-  sizeof(NfsWriteCmd),
+  sizeof(SstackNfsWriteCmd),
   3,
-  nfs_write_cmd__field_descriptors,
-  nfs_write_cmd__field_indices_by_name,
-  1,  nfs_write_cmd__number_ranges,
-  (ProtobufCMessageInit) nfs_write_cmd__init,
+  sstack_nfs_write_cmd__field_descriptors,
+  sstack_nfs_write_cmd__field_indices_by_name,
+  1,  sstack_nfs_write_cmd__number_ranges,
+  (ProtobufCMessageInit) sstack_nfs_write_cmd__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor nfs_create_cmd__field_descriptors[2] =
+static const ProtobufCFieldDescriptor sstack_nfs_create_cmd__field_descriptors[2] =
 {
   {
     "mode",
@@ -1139,7 +1700,7 @@ static const ProtobufCFieldDescriptor nfs_create_cmd__field_descriptors[2] =
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_UINT32,
     0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(NfsCreateCmd, mode),
+    PROTOBUF_C_OFFSETOF(SstackNfsCreateCmd, mode),
     NULL,
     NULL,
     0,            /* packed */
@@ -1151,38 +1712,38 @@ static const ProtobufCFieldDescriptor nfs_create_cmd__field_descriptors[2] =
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_MESSAGE,
     0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(NfsCreateCmd, data),
-    &nfs_data__descriptor,
+    PROTOBUF_C_OFFSETOF(SstackNfsCreateCmd, data),
+    &sstack_nfs_data__descriptor,
     NULL,
     0,            /* packed */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
 };
-static const unsigned nfs_create_cmd__field_indices_by_name[] = {
+static const unsigned sstack_nfs_create_cmd__field_indices_by_name[] = {
   1,   /* field[1] = data */
   0,   /* field[0] = mode */
 };
-static const ProtobufCIntRange nfs_create_cmd__number_ranges[1 + 1] =
+static const ProtobufCIntRange sstack_nfs_create_cmd__number_ranges[1 + 1] =
 {
   { 1, 0 },
   { 0, 2 }
 };
-const ProtobufCMessageDescriptor nfs_create_cmd__descriptor =
+const ProtobufCMessageDescriptor sstack_nfs_create_cmd__descriptor =
 {
   PROTOBUF_C_MESSAGE_DESCRIPTOR_MAGIC,
-  "nfs_create_cmd",
-  "NfsCreateCmd",
-  "NfsCreateCmd",
+  "sstack_nfs_create_cmd",
+  "SstackNfsCreateCmd",
+  "SstackNfsCreateCmd",
   "",
-  sizeof(NfsCreateCmd),
+  sizeof(SstackNfsCreateCmd),
   2,
-  nfs_create_cmd__field_descriptors,
-  nfs_create_cmd__field_indices_by_name,
-  1,  nfs_create_cmd__number_ranges,
-  (ProtobufCMessageInit) nfs_create_cmd__init,
+  sstack_nfs_create_cmd__field_descriptors,
+  sstack_nfs_create_cmd__field_indices_by_name,
+  1,  sstack_nfs_create_cmd__number_ranges,
+  (ProtobufCMessageInit) sstack_nfs_create_cmd__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor nfs_access_cmd__field_descriptors[1] =
+static const ProtobufCFieldDescriptor sstack_nfs_mkdir_cmd__field_descriptors[1] =
 {
   {
     "mode",
@@ -1190,75 +1751,253 @@ static const ProtobufCFieldDescriptor nfs_access_cmd__field_descriptors[1] =
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_UINT32,
     0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(NfsAccessCmd, mode),
+    PROTOBUF_C_OFFSETOF(SstackNfsMkdirCmd, mode),
     NULL,
     NULL,
     0,            /* packed */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
 };
-static const unsigned nfs_access_cmd__field_indices_by_name[] = {
+static const unsigned sstack_nfs_mkdir_cmd__field_indices_by_name[] = {
   0,   /* field[0] = mode */
 };
-static const ProtobufCIntRange nfs_access_cmd__number_ranges[1 + 1] =
+static const ProtobufCIntRange sstack_nfs_mkdir_cmd__number_ranges[1 + 1] =
 {
   { 1, 0 },
   { 0, 1 }
 };
-const ProtobufCMessageDescriptor nfs_access_cmd__descriptor =
+const ProtobufCMessageDescriptor sstack_nfs_mkdir_cmd__descriptor =
 {
   PROTOBUF_C_MESSAGE_DESCRIPTOR_MAGIC,
-  "nfs_access_cmd",
-  "NfsAccessCmd",
-  "NfsAccessCmd",
+  "sstack_nfs_mkdir_cmd",
+  "SstackNfsMkdirCmd",
+  "SstackNfsMkdirCmd",
   "",
-  sizeof(NfsAccessCmd),
+  sizeof(SstackNfsMkdirCmd),
   1,
-  nfs_access_cmd__field_descriptors,
-  nfs_access_cmd__field_indices_by_name,
-  1,  nfs_access_cmd__number_ranges,
-  (ProtobufCMessageInit) nfs_access_cmd__init,
+  sstack_nfs_mkdir_cmd__field_descriptors,
+  sstack_nfs_mkdir_cmd__field_indices_by_name,
+  1,  sstack_nfs_mkdir_cmd__number_ranges,
+  (ProtobufCMessageInit) sstack_nfs_mkdir_cmd__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor nfs_rename_cmd__field_descriptors[1] =
+static const ProtobufCFieldDescriptor sstack_nfs_access_cmd__field_descriptors[1] =
+{
+  {
+    "mode",
+    1,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(SstackNfsAccessCmd, mode),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned sstack_nfs_access_cmd__field_indices_by_name[] = {
+  0,   /* field[0] = mode */
+};
+static const ProtobufCIntRange sstack_nfs_access_cmd__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 1 }
+};
+const ProtobufCMessageDescriptor sstack_nfs_access_cmd__descriptor =
+{
+  PROTOBUF_C_MESSAGE_DESCRIPTOR_MAGIC,
+  "sstack_nfs_access_cmd",
+  "SstackNfsAccessCmd",
+  "SstackNfsAccessCmd",
+  "",
+  sizeof(SstackNfsAccessCmd),
+  1,
+  sstack_nfs_access_cmd__field_descriptors,
+  sstack_nfs_access_cmd__field_indices_by_name,
+  1,  sstack_nfs_access_cmd__number_ranges,
+  (ProtobufCMessageInit) sstack_nfs_access_cmd__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor sstack_file_name_t__field_descriptors[2] =
+{
+  {
+    "name_len",
+    1,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(SstackFileNameT, name_len),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "name",
+    2,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_BYTES,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(SstackFileNameT, name),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned sstack_file_name_t__field_indices_by_name[] = {
+  1,   /* field[1] = name */
+  0,   /* field[0] = name_len */
+};
+static const ProtobufCIntRange sstack_file_name_t__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 2 }
+};
+const ProtobufCMessageDescriptor sstack_file_name_t__descriptor =
+{
+  PROTOBUF_C_MESSAGE_DESCRIPTOR_MAGIC,
+  "sstack_file_name_t",
+  "SstackFileNameT",
+  "SstackFileNameT",
+  "",
+  sizeof(SstackFileNameT),
+  2,
+  sstack_file_name_t__field_descriptors,
+  sstack_file_name_t__field_indices_by_name,
+  1,  sstack_file_name_t__number_ranges,
+  (ProtobufCMessageInit) sstack_file_name_t__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor sstack_nfs_symlink_cmd__field_descriptors[1] =
 {
   {
     "new_path",
     1,
     PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_MESSAGE,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(SstackNfsSymlinkCmd, new_path),
+    &sstack_file_name_t__descriptor,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned sstack_nfs_symlink_cmd__field_indices_by_name[] = {
+  0,   /* field[0] = new_path */
+};
+static const ProtobufCIntRange sstack_nfs_symlink_cmd__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 1 }
+};
+const ProtobufCMessageDescriptor sstack_nfs_symlink_cmd__descriptor =
+{
+  PROTOBUF_C_MESSAGE_DESCRIPTOR_MAGIC,
+  "sstack_nfs_symlink_cmd",
+  "SstackNfsSymlinkCmd",
+  "SstackNfsSymlinkCmd",
+  "",
+  sizeof(SstackNfsSymlinkCmd),
+  1,
+  sstack_nfs_symlink_cmd__field_descriptors,
+  sstack_nfs_symlink_cmd__field_indices_by_name,
+  1,  sstack_nfs_symlink_cmd__number_ranges,
+  (ProtobufCMessageInit) sstack_nfs_symlink_cmd__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor sstack_nfs_rename_cmd__field_descriptors[1] =
+{
+  {
+    "new_path",
+    1,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_MESSAGE,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(SstackNfsRenameCmd, new_path),
+    &sstack_file_name_t__descriptor,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned sstack_nfs_rename_cmd__field_indices_by_name[] = {
+  0,   /* field[0] = new_path */
+};
+static const ProtobufCIntRange sstack_nfs_rename_cmd__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 1 }
+};
+const ProtobufCMessageDescriptor sstack_nfs_rename_cmd__descriptor =
+{
+  PROTOBUF_C_MESSAGE_DESCRIPTOR_MAGIC,
+  "sstack_nfs_rename_cmd",
+  "SstackNfsRenameCmd",
+  "SstackNfsRenameCmd",
+  "",
+  sizeof(SstackNfsRenameCmd),
+  1,
+  sstack_nfs_rename_cmd__field_descriptors,
+  sstack_nfs_rename_cmd__field_indices_by_name,
+  1,  sstack_nfs_rename_cmd__number_ranges,
+  (ProtobufCMessageInit) sstack_nfs_rename_cmd__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor sstack_nfs_remove_cmd__field_descriptors[2] =
+{
+  {
+    "path_len",
+    1,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(SstackNfsRemoveCmd, path_len),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "path",
+    2,
+    PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_BYTES,
     0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(NfsRenameCmd, new_path),
+    PROTOBUF_C_OFFSETOF(SstackNfsRemoveCmd, path),
     NULL,
     NULL,
     0,            /* packed */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
 };
-static const unsigned nfs_rename_cmd__field_indices_by_name[] = {
-  0,   /* field[0] = new_path */
+static const unsigned sstack_nfs_remove_cmd__field_indices_by_name[] = {
+  1,   /* field[1] = path */
+  0,   /* field[0] = path_len */
 };
-static const ProtobufCIntRange nfs_rename_cmd__number_ranges[1 + 1] =
+static const ProtobufCIntRange sstack_nfs_remove_cmd__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 1 }
+  { 0, 2 }
 };
-const ProtobufCMessageDescriptor nfs_rename_cmd__descriptor =
+const ProtobufCMessageDescriptor sstack_nfs_remove_cmd__descriptor =
 {
   PROTOBUF_C_MESSAGE_DESCRIPTOR_MAGIC,
-  "nfs_rename_cmd",
-  "NfsRenameCmd",
-  "NfsRenameCmd",
+  "sstack_nfs_remove_cmd",
+  "SstackNfsRemoveCmd",
+  "SstackNfsRemoveCmd",
   "",
-  sizeof(NfsRenameCmd),
-  1,
-  nfs_rename_cmd__field_descriptors,
-  nfs_rename_cmd__field_indices_by_name,
-  1,  nfs_rename_cmd__number_ranges,
-  (ProtobufCMessageInit) nfs_rename_cmd__init,
+  sizeof(SstackNfsRemoveCmd),
+  2,
+  sstack_nfs_remove_cmd__field_descriptors,
+  sstack_nfs_remove_cmd__field_indices_by_name,
+  1,  sstack_nfs_remove_cmd__number_ranges,
+  (ProtobufCMessageInit) sstack_nfs_remove_cmd__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor nfs_commit_cmd__field_descriptors[2] =
+static const ProtobufCFieldDescriptor sstack_nfs_commit_cmd__field_descriptors[2] =
 {
   {
     "offset",
@@ -1266,7 +2005,7 @@ static const ProtobufCFieldDescriptor nfs_commit_cmd__field_descriptors[2] =
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_UINT64,
     0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(NfsCommitCmd, offset),
+    PROTOBUF_C_OFFSETOF(SstackNfsCommitCmd, offset),
     NULL,
     NULL,
     0,            /* packed */
@@ -1278,124 +2017,189 @@ static const ProtobufCFieldDescriptor nfs_commit_cmd__field_descriptors[2] =
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_UINT64,
     0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(NfsCommitCmd, count),
+    PROTOBUF_C_OFFSETOF(SstackNfsCommitCmd, count),
     NULL,
     NULL,
     0,            /* packed */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
 };
-static const unsigned nfs_commit_cmd__field_indices_by_name[] = {
+static const unsigned sstack_nfs_commit_cmd__field_indices_by_name[] = {
   1,   /* field[1] = count */
   0,   /* field[0] = offset */
 };
-static const ProtobufCIntRange nfs_commit_cmd__number_ranges[1 + 1] =
+static const ProtobufCIntRange sstack_nfs_commit_cmd__number_ranges[1 + 1] =
 {
   { 1, 0 },
   { 0, 2 }
 };
-const ProtobufCMessageDescriptor nfs_commit_cmd__descriptor =
+const ProtobufCMessageDescriptor sstack_nfs_commit_cmd__descriptor =
 {
   PROTOBUF_C_MESSAGE_DESCRIPTOR_MAGIC,
-  "nfs_commit_cmd",
-  "NfsCommitCmd",
-  "NfsCommitCmd",
+  "sstack_nfs_commit_cmd",
+  "SstackNfsCommitCmd",
+  "SstackNfsCommitCmd",
   "",
-  sizeof(NfsCommitCmd),
+  sizeof(SstackNfsCommitCmd),
   2,
-  nfs_commit_cmd__field_descriptors,
-  nfs_commit_cmd__field_indices_by_name,
-  1,  nfs_commit_cmd__number_ranges,
-  (ProtobufCMessageInit) nfs_commit_cmd__init,
+  sstack_nfs_commit_cmd__field_descriptors,
+  sstack_nfs_commit_cmd__field_indices_by_name,
+  1,  sstack_nfs_commit_cmd__number_ranges,
+  (ProtobufCMessageInit) sstack_nfs_commit_cmd__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor sstack_nfs_command_struct__field_descriptors[6] =
+static const ProtobufCFieldDescriptor sstack_nfs_command_struct__field_descriptors[11] =
 {
   {
-    "read_cmd",
+    "setattr_cmd",
     1,
     PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_MESSAGE,
     0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(SstackNfsCommandStruct, read_cmd),
-    &nfs_read_cmd__descriptor,
+    PROTOBUF_C_OFFSETOF(SstackNfsCommandStruct, setattr_cmd),
+    &sstack_nfs_setattr_cmd__descriptor,
     NULL,
     0,            /* packed */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "write_cmd",
+    "lookup_cmd",
     2,
     PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_MESSAGE,
     0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(SstackNfsCommandStruct, write_cmd),
-    &nfs_write_cmd__descriptor,
-    NULL,
-    0,            /* packed */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-  {
-    "create_cmd",
-    3,
-    PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_MESSAGE,
-    0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(SstackNfsCommandStruct, create_cmd),
-    &nfs_create_cmd__descriptor,
+    PROTOBUF_C_OFFSETOF(SstackNfsCommandStruct, lookup_cmd),
+    &sstack_nfs_lookup_cmd__descriptor,
     NULL,
     0,            /* packed */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
     "access_cmd",
-    4,
+    3,
     PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_MESSAGE,
     0,   /* quantifier_offset */
     PROTOBUF_C_OFFSETOF(SstackNfsCommandStruct, access_cmd),
-    &nfs_access_cmd__descriptor,
+    &sstack_nfs_access_cmd__descriptor,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "read_cmd",
+    4,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_MESSAGE,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(SstackNfsCommandStruct, read_cmd),
+    &sstack_nfs_read_cmd__descriptor,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "write_cmd",
+    5,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_MESSAGE,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(SstackNfsCommandStruct, write_cmd),
+    &sstack_nfs_write_cmd__descriptor,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "create_cmd",
+    6,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_MESSAGE,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(SstackNfsCommandStruct, create_cmd),
+    &sstack_nfs_create_cmd__descriptor,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "mkdir_cmd",
+    7,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_MESSAGE,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(SstackNfsCommandStruct, mkdir_cmd),
+    &sstack_nfs_mkdir_cmd__descriptor,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "symlink_cmd",
+    8,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_MESSAGE,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(SstackNfsCommandStruct, symlink_cmd),
+    &sstack_nfs_symlink_cmd__descriptor,
     NULL,
     0,            /* packed */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
     "rename_cmd",
-    5,
+    9,
     PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_MESSAGE,
     0,   /* quantifier_offset */
     PROTOBUF_C_OFFSETOF(SstackNfsCommandStruct, rename_cmd),
-    &nfs_rename_cmd__descriptor,
+    &sstack_nfs_rename_cmd__descriptor,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "remove_cmd",
+    10,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_MESSAGE,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(SstackNfsCommandStruct, remove_cmd),
+    &sstack_nfs_remove_cmd__descriptor,
     NULL,
     0,            /* packed */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
     "commit_cmd",
-    6,
+    11,
     PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_MESSAGE,
     0,   /* quantifier_offset */
     PROTOBUF_C_OFFSETOF(SstackNfsCommandStruct, commit_cmd),
-    &nfs_commit_cmd__descriptor,
+    &sstack_nfs_commit_cmd__descriptor,
     NULL,
     0,            /* packed */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
 };
 static const unsigned sstack_nfs_command_struct__field_indices_by_name[] = {
-  3,   /* field[3] = access_cmd */
-  5,   /* field[5] = commit_cmd */
-  2,   /* field[2] = create_cmd */
-  0,   /* field[0] = read_cmd */
-  4,   /* field[4] = rename_cmd */
-  1,   /* field[1] = write_cmd */
+  2,   /* field[2] = access_cmd */
+  10,   /* field[10] = commit_cmd */
+  5,   /* field[5] = create_cmd */
+  1,   /* field[1] = lookup_cmd */
+  6,   /* field[6] = mkdir_cmd */
+  3,   /* field[3] = read_cmd */
+  9,   /* field[9] = remove_cmd */
+  8,   /* field[8] = rename_cmd */
+  0,   /* field[0] = setattr_cmd */
+  7,   /* field[7] = symlink_cmd */
+  4,   /* field[4] = write_cmd */
 };
 static const ProtobufCIntRange sstack_nfs_command_struct__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 6 }
+  { 0, 11 }
 };
 const ProtobufCMessageDescriptor sstack_nfs_command_struct__descriptor =
 {
@@ -1405,52 +2209,388 @@ const ProtobufCMessageDescriptor sstack_nfs_command_struct__descriptor =
   "SstackNfsCommandStruct",
   "",
   sizeof(SstackNfsCommandStruct),
-  6,
+  11,
   sstack_nfs_command_struct__field_descriptors,
   sstack_nfs_command_struct__field_indices_by_name,
   1,  sstack_nfs_command_struct__number_ranges,
   (ProtobufCMessageInit) sstack_nfs_command_struct__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor nfs_lookup_resp__field_descriptors[1] =
+static const ProtobufCFieldDescriptor stat__field_descriptors[20] =
 {
   {
-    "lookup_path",
+    "st_dev",
     1,
     PROTOBUF_C_LABEL_REQUIRED,
-    PROTOBUF_C_TYPE_BYTES,
+    PROTOBUF_C_TYPE_UINT32,
     0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(NfsLookupResp, lookup_path),
+    PROTOBUF_C_OFFSETOF(Stat, st_dev),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "st_ino",
+    2,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(Stat, st_ino),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "st_mode",
+    3,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(Stat, st_mode),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "st_nlink",
+    4,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(Stat, st_nlink),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "st_uid",
+    5,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(Stat, st_uid),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "st_gid",
+    6,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(Stat, st_gid),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "st_rdev",
+    7,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(Stat, st_rdev),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "__pad1",
+    8,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(Stat, __pad1),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "st_size",
+    9,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(Stat, st_size),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "st_blksize",
+    10,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(Stat, st_blksize),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "__pad2",
+    11,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(Stat, __pad2),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "st_blocks",
+    12,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(Stat, st_blocks),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "st_atime",
+    13,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(Stat, st_atime),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "st_atime_nsec",
+    14,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(Stat, st_atime_nsec),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "st_mtime",
+    15,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(Stat, st_mtime),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "st_mtime_nsec",
+    16,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(Stat, st_mtime_nsec),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "st_ctime",
+    17,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(Stat, st_ctime),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "st_ctime_nsec",
+    18,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(Stat, st_ctime_nsec),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "__unused4",
+    19,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(Stat, __unused4),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "__unused5",
+    20,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(Stat, __unused5),
     NULL,
     NULL,
     0,            /* packed */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
 };
-static const unsigned nfs_lookup_resp__field_indices_by_name[] = {
-  0,   /* field[0] = lookup_path */
+static const unsigned stat__field_indices_by_name[] = {
+  7,   /* field[7] = __pad1 */
+  10,   /* field[10] = __pad2 */
+  18,   /* field[18] = __unused4 */
+  19,   /* field[19] = __unused5 */
+  12,   /* field[12] = st_atime */
+  13,   /* field[13] = st_atime_nsec */
+  9,   /* field[9] = st_blksize */
+  11,   /* field[11] = st_blocks */
+  16,   /* field[16] = st_ctime */
+  17,   /* field[17] = st_ctime_nsec */
+  0,   /* field[0] = st_dev */
+  5,   /* field[5] = st_gid */
+  1,   /* field[1] = st_ino */
+  2,   /* field[2] = st_mode */
+  14,   /* field[14] = st_mtime */
+  15,   /* field[15] = st_mtime_nsec */
+  3,   /* field[3] = st_nlink */
+  6,   /* field[6] = st_rdev */
+  8,   /* field[8] = st_size */
+  4,   /* field[4] = st_uid */
 };
-static const ProtobufCIntRange nfs_lookup_resp__number_ranges[1 + 1] =
+static const ProtobufCIntRange stat__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 20 }
+};
+const ProtobufCMessageDescriptor stat__descriptor =
+{
+  PROTOBUF_C_MESSAGE_DESCRIPTOR_MAGIC,
+  "stat",
+  "Stat",
+  "Stat",
+  "",
+  sizeof(Stat),
+  20,
+  stat__field_descriptors,
+  stat__field_indices_by_name,
+  1,  stat__number_ranges,
+  (ProtobufCMessageInit) stat__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor sstack_nfs_getattr_resp__field_descriptors[1] =
+{
+  {
+    "stbuf",
+    1,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_MESSAGE,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(SstackNfsGetattrResp, stbuf),
+    &stat__descriptor,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned sstack_nfs_getattr_resp__field_indices_by_name[] = {
+  0,   /* field[0] = stbuf */
+};
+static const ProtobufCIntRange sstack_nfs_getattr_resp__number_ranges[1 + 1] =
 {
   { 1, 0 },
   { 0, 1 }
 };
-const ProtobufCMessageDescriptor nfs_lookup_resp__descriptor =
+const ProtobufCMessageDescriptor sstack_nfs_getattr_resp__descriptor =
 {
   PROTOBUF_C_MESSAGE_DESCRIPTOR_MAGIC,
-  "nfs_lookup_resp",
-  "NfsLookupResp",
-  "NfsLookupResp",
+  "sstack_nfs_getattr_resp",
+  "SstackNfsGetattrResp",
+  "SstackNfsGetattrResp",
   "",
-  sizeof(NfsLookupResp),
+  sizeof(SstackNfsGetattrResp),
   1,
-  nfs_lookup_resp__field_descriptors,
-  nfs_lookup_resp__field_indices_by_name,
-  1,  nfs_lookup_resp__number_ranges,
-  (ProtobufCMessageInit) nfs_lookup_resp__init,
+  sstack_nfs_getattr_resp__field_descriptors,
+  sstack_nfs_getattr_resp__field_indices_by_name,
+  1,  sstack_nfs_getattr_resp__number_ranges,
+  (ProtobufCMessageInit) sstack_nfs_getattr_resp__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor nfs_access_resp__field_descriptors[1] =
+static const ProtobufCFieldDescriptor sstack_nfs_lookup_resp__field_descriptors[2] =
+{
+  {
+    "lookup_path_len",
+    1,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(SstackNfsLookupResp, lookup_path_len),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "lookup_path",
+    2,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_BYTES,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(SstackNfsLookupResp, lookup_path),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned sstack_nfs_lookup_resp__field_indices_by_name[] = {
+  1,   /* field[1] = lookup_path */
+  0,   /* field[0] = lookup_path_len */
+};
+static const ProtobufCIntRange sstack_nfs_lookup_resp__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 2 }
+};
+const ProtobufCMessageDescriptor sstack_nfs_lookup_resp__descriptor =
+{
+  PROTOBUF_C_MESSAGE_DESCRIPTOR_MAGIC,
+  "sstack_nfs_lookup_resp",
+  "SstackNfsLookupResp",
+  "SstackNfsLookupResp",
+  "",
+  sizeof(SstackNfsLookupResp),
+  2,
+  sstack_nfs_lookup_resp__field_descriptors,
+  sstack_nfs_lookup_resp__field_indices_by_name,
+  1,  sstack_nfs_lookup_resp__number_ranges,
+  (ProtobufCMessageInit) sstack_nfs_lookup_resp__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor sstack_nfs_access_resp__field_descriptors[1] =
 {
   {
     "access",
@@ -1458,37 +2598,37 @@ static const ProtobufCFieldDescriptor nfs_access_resp__field_descriptors[1] =
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_UINT32,
     0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(NfsAccessResp, access),
+    PROTOBUF_C_OFFSETOF(SstackNfsAccessResp, access),
     NULL,
     NULL,
     0,            /* packed */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
 };
-static const unsigned nfs_access_resp__field_indices_by_name[] = {
+static const unsigned sstack_nfs_access_resp__field_indices_by_name[] = {
   0,   /* field[0] = access */
 };
-static const ProtobufCIntRange nfs_access_resp__number_ranges[1 + 1] =
+static const ProtobufCIntRange sstack_nfs_access_resp__number_ranges[1 + 1] =
 {
   { 1, 0 },
   { 0, 1 }
 };
-const ProtobufCMessageDescriptor nfs_access_resp__descriptor =
+const ProtobufCMessageDescriptor sstack_nfs_access_resp__descriptor =
 {
   PROTOBUF_C_MESSAGE_DESCRIPTOR_MAGIC,
-  "nfs_access_resp",
-  "NfsAccessResp",
-  "NfsAccessResp",
+  "sstack_nfs_access_resp",
+  "SstackNfsAccessResp",
+  "SstackNfsAccessResp",
   "",
-  sizeof(NfsAccessResp),
+  sizeof(SstackNfsAccessResp),
   1,
-  nfs_access_resp__field_descriptors,
-  nfs_access_resp__field_indices_by_name,
-  1,  nfs_access_resp__number_ranges,
-  (ProtobufCMessageInit) nfs_access_resp__init,
+  sstack_nfs_access_resp__field_descriptors,
+  sstack_nfs_access_resp__field_indices_by_name,
+  1,  sstack_nfs_access_resp__number_ranges,
+  (ProtobufCMessageInit) sstack_nfs_access_resp__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor nfs_read_resp__field_descriptors[3] =
+static const ProtobufCFieldDescriptor sstack_nfs_read_resp__field_descriptors[3] =
 {
   {
     "count",
@@ -1496,7 +2636,7 @@ static const ProtobufCFieldDescriptor nfs_read_resp__field_descriptors[3] =
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_UINT64,
     0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(NfsReadResp, count),
+    PROTOBUF_C_OFFSETOF(SstackNfsReadResp, count),
     NULL,
     NULL,
     0,            /* packed */
@@ -1508,7 +2648,7 @@ static const ProtobufCFieldDescriptor nfs_read_resp__field_descriptors[3] =
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_INT32,
     0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(NfsReadResp, eof),
+    PROTOBUF_C_OFFSETOF(SstackNfsReadResp, eof),
     NULL,
     NULL,
     0,            /* packed */
@@ -1520,39 +2660,39 @@ static const ProtobufCFieldDescriptor nfs_read_resp__field_descriptors[3] =
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_MESSAGE,
     0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(NfsReadResp, data),
-    &nfs_data__descriptor,
+    PROTOBUF_C_OFFSETOF(SstackNfsReadResp, data),
+    &sstack_nfs_data__descriptor,
     NULL,
     0,            /* packed */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
 };
-static const unsigned nfs_read_resp__field_indices_by_name[] = {
+static const unsigned sstack_nfs_read_resp__field_indices_by_name[] = {
   0,   /* field[0] = count */
   2,   /* field[2] = data */
   1,   /* field[1] = eof */
 };
-static const ProtobufCIntRange nfs_read_resp__number_ranges[1 + 1] =
+static const ProtobufCIntRange sstack_nfs_read_resp__number_ranges[1 + 1] =
 {
   { 1, 0 },
   { 0, 3 }
 };
-const ProtobufCMessageDescriptor nfs_read_resp__descriptor =
+const ProtobufCMessageDescriptor sstack_nfs_read_resp__descriptor =
 {
   PROTOBUF_C_MESSAGE_DESCRIPTOR_MAGIC,
-  "nfs_read_resp",
-  "NfsReadResp",
-  "NfsReadResp",
+  "sstack_nfs_read_resp",
+  "SstackNfsReadResp",
+  "SstackNfsReadResp",
   "",
-  sizeof(NfsReadResp),
+  sizeof(SstackNfsReadResp),
   3,
-  nfs_read_resp__field_descriptors,
-  nfs_read_resp__field_indices_by_name,
-  1,  nfs_read_resp__number_ranges,
-  (ProtobufCMessageInit) nfs_read_resp__init,
+  sstack_nfs_read_resp__field_descriptors,
+  sstack_nfs_read_resp__field_indices_by_name,
+  1,  sstack_nfs_read_resp__number_ranges,
+  (ProtobufCMessageInit) sstack_nfs_read_resp__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor nfs_write_resp__field_descriptors[2] =
+static const ProtobufCFieldDescriptor sstack_nfs_write_resp__field_descriptors[2] =
 {
   {
     "file_write_ok",
@@ -1560,7 +2700,7 @@ static const ProtobufCFieldDescriptor nfs_write_resp__field_descriptors[2] =
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_UINT32,
     0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(NfsWriteResp, file_write_ok),
+    PROTOBUF_C_OFFSETOF(SstackNfsWriteResp, file_write_ok),
     NULL,
     NULL,
     0,            /* packed */
@@ -1572,400 +2712,175 @@ static const ProtobufCFieldDescriptor nfs_write_resp__field_descriptors[2] =
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_UINT32,
     0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(NfsWriteResp, file_wc),
+    PROTOBUF_C_OFFSETOF(SstackNfsWriteResp, file_wc),
     NULL,
     NULL,
     0,            /* packed */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
 };
-static const unsigned nfs_write_resp__field_indices_by_name[] = {
+static const unsigned sstack_nfs_write_resp__field_indices_by_name[] = {
   1,   /* field[1] = file_wc */
   0,   /* field[0] = file_write_ok */
 };
-static const ProtobufCIntRange nfs_write_resp__number_ranges[1 + 1] =
+static const ProtobufCIntRange sstack_nfs_write_resp__number_ranges[1 + 1] =
 {
   { 1, 0 },
   { 0, 2 }
 };
-const ProtobufCMessageDescriptor nfs_write_resp__descriptor =
+const ProtobufCMessageDescriptor sstack_nfs_write_resp__descriptor =
 {
   PROTOBUF_C_MESSAGE_DESCRIPTOR_MAGIC,
-  "nfs_write_resp",
-  "NfsWriteResp",
-  "NfsWriteResp",
+  "sstack_nfs_write_resp",
+  "SstackNfsWriteResp",
+  "SstackNfsWriteResp",
   "",
-  sizeof(NfsWriteResp),
+  sizeof(SstackNfsWriteResp),
   2,
-  nfs_write_resp__field_descriptors,
-  nfs_write_resp__field_indices_by_name,
-  1,  nfs_write_resp__number_ranges,
-  (ProtobufCMessageInit) nfs_write_resp__init,
+  sstack_nfs_write_resp__field_descriptors,
+  sstack_nfs_write_resp__field_indices_by_name,
+  1,  sstack_nfs_write_resp__number_ranges,
+  (ProtobufCMessageInit) sstack_nfs_write_resp__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor nfs_create_resp__field_descriptors[2] =
+static const ProtobufCFieldDescriptor sstack_nfs_readlink_resp__field_descriptors[1] =
 {
   {
-    "file_create_ok",
+    "real_file",
     1,
     PROTOBUF_C_LABEL_REQUIRED,
-    PROTOBUF_C_TYPE_UINT32,
+    PROTOBUF_C_TYPE_MESSAGE,
     0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(NfsCreateResp, file_create_ok),
-    NULL,
-    NULL,
-    0,            /* packed */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-  {
-    "file_wc",
-    2,
-    PROTOBUF_C_LABEL_REQUIRED,
-    PROTOBUF_C_TYPE_UINT32,
-    0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(NfsCreateResp, file_wc),
-    NULL,
+    PROTOBUF_C_OFFSETOF(SstackNfsReadlinkResp, real_file),
+    &sstack_file_name_t__descriptor,
     NULL,
     0,            /* packed */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
 };
-static const unsigned nfs_create_resp__field_indices_by_name[] = {
-  0,   /* field[0] = file_create_ok */
-  1,   /* field[1] = file_wc */
+static const unsigned sstack_nfs_readlink_resp__field_indices_by_name[] = {
+  0,   /* field[0] = real_file */
 };
-static const ProtobufCIntRange nfs_create_resp__number_ranges[1 + 1] =
-{
-  { 1, 0 },
-  { 0, 2 }
-};
-const ProtobufCMessageDescriptor nfs_create_resp__descriptor =
-{
-  PROTOBUF_C_MESSAGE_DESCRIPTOR_MAGIC,
-  "nfs_create_resp",
-  "NfsCreateResp",
-  "NfsCreateResp",
-  "",
-  sizeof(NfsCreateResp),
-  2,
-  nfs_create_resp__field_descriptors,
-  nfs_create_resp__field_indices_by_name,
-  1,  nfs_create_resp__number_ranges,
-  (ProtobufCMessageInit) nfs_create_resp__init,
-  NULL,NULL,NULL    /* reserved[123] */
-};
-static const ProtobufCFieldDescriptor nfs_remove_resp__field_descriptors[1] =
-{
-  {
-    "file_remove_ok",
-    1,
-    PROTOBUF_C_LABEL_REQUIRED,
-    PROTOBUF_C_TYPE_UINT32,
-    0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(NfsRemoveResp, file_remove_ok),
-    NULL,
-    NULL,
-    0,            /* packed */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-};
-static const unsigned nfs_remove_resp__field_indices_by_name[] = {
-  0,   /* field[0] = file_remove_ok */
-};
-static const ProtobufCIntRange nfs_remove_resp__number_ranges[1 + 1] =
+static const ProtobufCIntRange sstack_nfs_readlink_resp__number_ranges[1 + 1] =
 {
   { 1, 0 },
   { 0, 1 }
 };
-const ProtobufCMessageDescriptor nfs_remove_resp__descriptor =
+const ProtobufCMessageDescriptor sstack_nfs_readlink_resp__descriptor =
 {
   PROTOBUF_C_MESSAGE_DESCRIPTOR_MAGIC,
-  "nfs_remove_resp",
-  "NfsRemoveResp",
-  "NfsRemoveResp",
+  "sstack_nfs_readlink_resp",
+  "SstackNfsReadlinkResp",
+  "SstackNfsReadlinkResp",
   "",
-  sizeof(NfsRemoveResp),
+  sizeof(SstackNfsReadlinkResp),
   1,
-  nfs_remove_resp__field_descriptors,
-  nfs_remove_resp__field_indices_by_name,
-  1,  nfs_remove_resp__number_ranges,
-  (ProtobufCMessageInit) nfs_remove_resp__init,
+  sstack_nfs_readlink_resp__field_descriptors,
+  sstack_nfs_readlink_resp__field_indices_by_name,
+  1,  sstack_nfs_readlink_resp__number_ranges,
+  (ProtobufCMessageInit) sstack_nfs_readlink_resp__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor nfs_rename_resp__field_descriptors[1] =
+static const ProtobufCFieldDescriptor sstack_nfs_result_struct__field_descriptors[7] =
 {
   {
-    "file_rename_ok",
-    1,
-    PROTOBUF_C_LABEL_REQUIRED,
-    PROTOBUF_C_TYPE_UINT32,
-    0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(NfsRenameResp, file_rename_ok),
-    NULL,
-    NULL,
-    0,            /* packed */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-};
-static const unsigned nfs_rename_resp__field_indices_by_name[] = {
-  0,   /* field[0] = file_rename_ok */
-};
-static const ProtobufCIntRange nfs_rename_resp__number_ranges[1 + 1] =
-{
-  { 1, 0 },
-  { 0, 1 }
-};
-const ProtobufCMessageDescriptor nfs_rename_resp__descriptor =
-{
-  PROTOBUF_C_MESSAGE_DESCRIPTOR_MAGIC,
-  "nfs_rename_resp",
-  "NfsRenameResp",
-  "NfsRenameResp",
-  "",
-  sizeof(NfsRenameResp),
-  1,
-  nfs_rename_resp__field_descriptors,
-  nfs_rename_resp__field_indices_by_name,
-  1,  nfs_rename_resp__number_ranges,
-  (ProtobufCMessageInit) nfs_rename_resp__init,
-  NULL,NULL,NULL    /* reserved[123] */
-};
-static const ProtobufCFieldDescriptor nfs_fsstat_resp__field_descriptors[0] =
-{
-};
-static const unsigned nfs_fsstat_resp__field_indices_by_name[] = {
-};
-#define nfs_fsstat_resp__number_ranges NULL
-const ProtobufCMessageDescriptor nfs_fsstat_resp__descriptor =
-{
-  PROTOBUF_C_MESSAGE_DESCRIPTOR_MAGIC,
-  "nfs_fsstat_resp",
-  "NfsFsstatResp",
-  "NfsFsstatResp",
-  "",
-  sizeof(NfsFsstatResp),
-  0,
-  nfs_fsstat_resp__field_descriptors,
-  nfs_fsstat_resp__field_indices_by_name,
-  0,  nfs_fsstat_resp__number_ranges,
-  (ProtobufCMessageInit) nfs_fsstat_resp__init,
-  NULL,NULL,NULL    /* reserved[123] */
-};
-static const ProtobufCFieldDescriptor nfs_fsinfo_resp__field_descriptors[0] =
-{
-};
-static const unsigned nfs_fsinfo_resp__field_indices_by_name[] = {
-};
-#define nfs_fsinfo_resp__number_ranges NULL
-const ProtobufCMessageDescriptor nfs_fsinfo_resp__descriptor =
-{
-  PROTOBUF_C_MESSAGE_DESCRIPTOR_MAGIC,
-  "nfs_fsinfo_resp",
-  "NfsFsinfoResp",
-  "NfsFsinfoResp",
-  "",
-  sizeof(NfsFsinfoResp),
-  0,
-  nfs_fsinfo_resp__field_descriptors,
-  nfs_fsinfo_resp__field_indices_by_name,
-  0,  nfs_fsinfo_resp__number_ranges,
-  (ProtobufCMessageInit) nfs_fsinfo_resp__init,
-  NULL,NULL,NULL    /* reserved[123] */
-};
-static const ProtobufCFieldDescriptor nfs_pathconf_resp__field_descriptors[0] =
-{
-};
-static const unsigned nfs_pathconf_resp__field_indices_by_name[] = {
-};
-#define nfs_pathconf_resp__number_ranges NULL
-const ProtobufCMessageDescriptor nfs_pathconf_resp__descriptor =
-{
-  PROTOBUF_C_MESSAGE_DESCRIPTOR_MAGIC,
-  "nfs_pathconf_resp",
-  "NfsPathconfResp",
-  "NfsPathconfResp",
-  "",
-  sizeof(NfsPathconfResp),
-  0,
-  nfs_pathconf_resp__field_descriptors,
-  nfs_pathconf_resp__field_indices_by_name,
-  0,  nfs_pathconf_resp__number_ranges,
-  (ProtobufCMessageInit) nfs_pathconf_resp__init,
-  NULL,NULL,NULL    /* reserved[123] */
-};
-static const ProtobufCFieldDescriptor nfs_commit_resp__field_descriptors[0] =
-{
-};
-static const unsigned nfs_commit_resp__field_indices_by_name[] = {
-};
-#define nfs_commit_resp__number_ranges NULL
-const ProtobufCMessageDescriptor nfs_commit_resp__descriptor =
-{
-  PROTOBUF_C_MESSAGE_DESCRIPTOR_MAGIC,
-  "nfs_commit_resp",
-  "NfsCommitResp",
-  "NfsCommitResp",
-  "",
-  sizeof(NfsCommitResp),
-  0,
-  nfs_commit_resp__field_descriptors,
-  nfs_commit_resp__field_indices_by_name,
-  0,  nfs_commit_resp__number_ranges,
-  (ProtobufCMessageInit) nfs_commit_resp__init,
-  NULL,NULL,NULL    /* reserved[123] */
-};
-static const ProtobufCFieldDescriptor sstack_nfs_result_struct__field_descriptors[11] =
-{
-  {
-    "lookup_resp",
+    "getattr_resp",
     1,
     PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_MESSAGE,
     0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(SstackNfsResultStruct, getattr_resp),
+    &sstack_nfs_getattr_resp__descriptor,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "lookup_resp",
+    2,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_MESSAGE,
+    0,   /* quantifier_offset */
     PROTOBUF_C_OFFSETOF(SstackNfsResultStruct, lookup_resp),
-    &nfs_lookup_resp__descriptor,
+    &sstack_nfs_lookup_resp__descriptor,
     NULL,
     0,            /* packed */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
     "access_resp",
-    2,
+    3,
     PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_MESSAGE,
     0,   /* quantifier_offset */
     PROTOBUF_C_OFFSETOF(SstackNfsResultStruct, access_resp),
-    &nfs_access_resp__descriptor,
+    &sstack_nfs_access_resp__descriptor,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "readlink_resp",
+    4,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_MESSAGE,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(SstackNfsResultStruct, readlink_resp),
+    &sstack_nfs_readlink_resp__descriptor,
     NULL,
     0,            /* packed */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
     "read_resp",
-    3,
+    5,
     PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_MESSAGE,
     0,   /* quantifier_offset */
     PROTOBUF_C_OFFSETOF(SstackNfsResultStruct, read_resp),
-    &nfs_read_resp__descriptor,
+    &sstack_nfs_read_resp__descriptor,
     NULL,
     0,            /* packed */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
     "write_resp",
-    4,
+    6,
     PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_MESSAGE,
     0,   /* quantifier_offset */
     PROTOBUF_C_OFFSETOF(SstackNfsResultStruct, write_resp),
-    &nfs_write_resp__descriptor,
+    &sstack_nfs_write_resp__descriptor,
     NULL,
     0,            /* packed */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
     "create_resp",
-    5,
-    PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_MESSAGE,
-    0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(SstackNfsResultStruct, create_resp),
-    &nfs_create_resp__descriptor,
-    NULL,
-    0,            /* packed */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-  {
-    "remove_resp",
-    6,
-    PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_MESSAGE,
-    0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(SstackNfsResultStruct, remove_resp),
-    &nfs_remove_resp__descriptor,
-    NULL,
-    0,            /* packed */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-  {
-    "rename_resp",
     7,
     PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_MESSAGE,
     0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(SstackNfsResultStruct, rename_resp),
-    &nfs_rename_resp__descriptor,
-    NULL,
-    0,            /* packed */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-  {
-    "fsstat_resp",
-    8,
-    PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_MESSAGE,
-    0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(SstackNfsResultStruct, fsstat_resp),
-    &nfs_fsstat_resp__descriptor,
-    NULL,
-    0,            /* packed */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-  {
-    "fsinfo_resp",
-    9,
-    PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_MESSAGE,
-    0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(SstackNfsResultStruct, fsinfo_resp),
-    &nfs_fsinfo_resp__descriptor,
-    NULL,
-    0,            /* packed */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-  {
-    "pathconf_resp",
-    10,
-    PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_MESSAGE,
-    0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(SstackNfsResultStruct, pathconf_resp),
-    &nfs_pathconf_resp__descriptor,
-    NULL,
-    0,            /* packed */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-  {
-    "commit_resp",
-    11,
-    PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_MESSAGE,
-    0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(SstackNfsResultStruct, commit_resp),
-    &nfs_commit_resp__descriptor,
+    PROTOBUF_C_OFFSETOF(SstackNfsResultStruct, create_resp),
+    &sstack_nfs_write_resp__descriptor,
     NULL,
     0,            /* packed */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
 };
 static const unsigned sstack_nfs_result_struct__field_indices_by_name[] = {
-  1,   /* field[1] = access_resp */
-  10,   /* field[10] = commit_resp */
-  4,   /* field[4] = create_resp */
-  8,   /* field[8] = fsinfo_resp */
-  7,   /* field[7] = fsstat_resp */
-  0,   /* field[0] = lookup_resp */
-  9,   /* field[9] = pathconf_resp */
-  2,   /* field[2] = read_resp */
-  5,   /* field[5] = remove_resp */
-  6,   /* field[6] = rename_resp */
-  3,   /* field[3] = write_resp */
+  2,   /* field[2] = access_resp */
+  6,   /* field[6] = create_resp */
+  0,   /* field[0] = getattr_resp */
+  1,   /* field[1] = lookup_resp */
+  4,   /* field[4] = read_resp */
+  3,   /* field[3] = readlink_resp */
+  5,   /* field[5] = write_resp */
 };
 static const ProtobufCIntRange sstack_nfs_result_struct__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 11 }
+  { 0, 7 }
 };
 const ProtobufCMessageDescriptor sstack_nfs_result_struct__descriptor =
 {
@@ -1975,7 +2890,7 @@ const ProtobufCMessageDescriptor sstack_nfs_result_struct__descriptor =
   "SstackNfsResultStruct",
   "",
   sizeof(SstackNfsResultStruct),
-  11,
+  7,
   sstack_nfs_result_struct__field_descriptors,
   sstack_nfs_result_struct__field_indices_by_name,
   1,  sstack_nfs_result_struct__number_ranges,
@@ -2031,6 +2946,154 @@ const ProtobufCMessageDescriptor sstack_payload_hdr_t__descriptor =
   sstack_payload_hdr_t__field_indices_by_name,
   1,  sstack_payload_hdr_t__number_ranges,
   (ProtobufCMessageInit) sstack_payload_hdr_t__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+const ProtobufCEnumValue sfsd_storage_t__sfs_protocol_t__enum_values_by_number[4] =
+{
+  { "NFS", "SFSD_STORAGE_T__SFS_PROTOCOL_T__NFS", 1 },
+  { "CIFS", "SFSD_STORAGE_T__SFS_PROTOCOL_T__CIFS", 2 },
+  { "ISCSI", "SFSD_STORAGE_T__SFS_PROTOCOL_T__ISCSI", 3 },
+  { "NATIVE", "SFSD_STORAGE_T__SFS_PROTOCOL_T__NATIVE", 4 },
+};
+static const ProtobufCIntRange sfsd_storage_t__sfs_protocol_t__value_ranges[] = {
+{1, 0},{0, 4}
+};
+const ProtobufCEnumValueIndex sfsd_storage_t__sfs_protocol_t__enum_values_by_name[4] =
+{
+  { "CIFS", 1 },
+  { "ISCSI", 2 },
+  { "NATIVE", 3 },
+  { "NFS", 0 },
+};
+const ProtobufCEnumDescriptor sfsd_storage_t__sfs_protocol_t__descriptor =
+{
+  PROTOBUF_C_ENUM_DESCRIPTOR_MAGIC,
+  "sfsd_storage_t.sfs_protocol_t",
+  "sfs_protocol_t",
+  "SfsdStorageT__SfsProtocolT",
+  "",
+  4,
+  sfsd_storage_t__sfs_protocol_t__enum_values_by_number,
+  4,
+  sfsd_storage_t__sfs_protocol_t__enum_values_by_name,
+  1,
+  sfsd_storage_t__sfs_protocol_t__value_ranges,
+  NULL,NULL,NULL,NULL   /* reserved[1234] */
+};
+static const ProtobufCFieldDescriptor sfsd_storage_t__field_descriptors[7] =
+{
+  {
+    "path",
+    1,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_BYTES,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(SfsdStorageT, path),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "mount_point",
+    2,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_BYTES,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(SfsdStorageT, mount_point),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "weight",
+    3,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(SfsdStorageT, weight),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "nblocks",
+    4,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT64,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(SfsdStorageT, nblocks),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "protocol",
+    5,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_ENUM,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(SfsdStorageT, protocol),
+    &sfsd_storage_t__sfs_protocol_t__descriptor,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "ipv4_addr",
+    6,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_BYTES,
+    PROTOBUF_C_OFFSETOF(SfsdStorageT, has_ipv4_addr),
+    PROTOBUF_C_OFFSETOF(SfsdStorageT, ipv4_addr),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "ipv6_addr",
+    7,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_BYTES,
+    PROTOBUF_C_OFFSETOF(SfsdStorageT, has_ipv6_addr),
+    PROTOBUF_C_OFFSETOF(SfsdStorageT, ipv6_addr),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned sfsd_storage_t__field_indices_by_name[] = {
+  5,   /* field[5] = ipv4_addr */
+  6,   /* field[6] = ipv6_addr */
+  1,   /* field[1] = mount_point */
+  3,   /* field[3] = nblocks */
+  0,   /* field[0] = path */
+  4,   /* field[4] = protocol */
+  2,   /* field[2] = weight */
+};
+static const ProtobufCIntRange sfsd_storage_t__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 7 }
+};
+const ProtobufCMessageDescriptor sfsd_storage_t__descriptor =
+{
+  PROTOBUF_C_MESSAGE_DESCRIPTOR_MAGIC,
+  "sfsd_storage_t",
+  "SfsdStorageT",
+  "SfsdStorageT",
+  "",
+  sizeof(SfsdStorageT),
+  7,
+  sfsd_storage_t__field_descriptors,
+  sfsd_storage_t__field_indices_by_name,
+  1,  sfsd_storage_t__number_ranges,
+  (ProtobufCMessageInit) sfsd_storage_t__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
 const ProtobufCEnumValue sstack_payload_t__sstack_nfs_command_t__enum_values_by_number[21] =
@@ -2100,7 +3163,7 @@ const ProtobufCEnumDescriptor sstack_payload_t__sstack_nfs_command_t__descriptor
   sstack_payload_t__sstack_nfs_command_t__value_ranges,
   NULL,NULL,NULL,NULL   /* reserved[1234] */
 };
-static const ProtobufCFieldDescriptor sstack_payload_t__field_descriptors[4] =
+static const ProtobufCFieldDescriptor sstack_payload_t__field_descriptors[5] =
 {
   {
     "hdr",
@@ -2127,8 +3190,20 @@ static const ProtobufCFieldDescriptor sstack_payload_t__field_descriptors[4] =
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "command_struct",
+    "storage",
     3,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_MESSAGE,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(SstackPayloadT, storage),
+    &sfsd_storage_t__descriptor,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "command_struct",
+    4,
     PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_MESSAGE,
     0,   /* quantifier_offset */
@@ -2140,7 +3215,7 @@ static const ProtobufCFieldDescriptor sstack_payload_t__field_descriptors[4] =
   },
   {
     "result_struct",
-    4,
+    5,
     PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_MESSAGE,
     0,   /* quantifier_offset */
@@ -2153,14 +3228,15 @@ static const ProtobufCFieldDescriptor sstack_payload_t__field_descriptors[4] =
 };
 static const unsigned sstack_payload_t__field_indices_by_name[] = {
   1,   /* field[1] = command */
-  2,   /* field[2] = command_struct */
+  3,   /* field[3] = command_struct */
   0,   /* field[0] = hdr */
-  3,   /* field[3] = result_struct */
+  4,   /* field[4] = result_struct */
+  2,   /* field[2] = storage */
 };
 static const ProtobufCIntRange sstack_payload_t__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 4 }
+  { 0, 5 }
 };
 const ProtobufCMessageDescriptor sstack_payload_t__descriptor =
 {
@@ -2170,7 +3246,7 @@ const ProtobufCMessageDescriptor sstack_payload_t__descriptor =
   "SstackPayloadT",
   "",
   sizeof(SstackPayloadT),
-  4,
+  5,
   sstack_payload_t__field_descriptors,
   sstack_payload_t__field_indices_by_name,
   1,  sstack_payload_t__number_ranges,

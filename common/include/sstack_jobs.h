@@ -37,7 +37,8 @@
 
 typedef enum {
 	SFSD_HANDSHAKE	= 1,
-	SFSD_NFS	= 2,
+	SFSD_IO	= 2,
+	SFSD_MAX_TYPE = 2,
 } sfsd_job_type_t;
 
 typedef enum {
@@ -45,6 +46,7 @@ typedef enum {
 	JOB_COMPLETE	= 2,
 	JOB_ABORTED	= 3,
 	JOB_FAILED	= 4,
+	MAX_JOB_STATUS = 4,
 } sfsd_job_status_t;
 
 typedef enum {

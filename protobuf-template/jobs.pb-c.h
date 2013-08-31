@@ -8,32 +8,52 @@
 PROTOBUF_C_BEGIN_DECLS
 
 
-typedef struct _NfsReadCmd NfsReadCmd;
-typedef struct _NfsData NfsData;
-typedef struct _NfsWriteCmd NfsWriteCmd;
-typedef struct _NfsCreateCmd NfsCreateCmd;
-typedef struct _NfsAccessCmd NfsAccessCmd;
-typedef struct _NfsRenameCmd NfsRenameCmd;
-typedef struct _NfsCommitCmd NfsCommitCmd;
+typedef struct _Timespec Timespec;
+typedef struct _SstackFileAttributeT SstackFileAttributeT;
+typedef struct _SstackNfsSetattrCmd SstackNfsSetattrCmd;
+typedef struct _SstackNfsLookupCmd SstackNfsLookupCmd;
+typedef struct _SstackNfsReadCmd SstackNfsReadCmd;
+typedef struct _SstackNfsData SstackNfsData;
+typedef struct _SstackNfsWriteCmd SstackNfsWriteCmd;
+typedef struct _SstackNfsCreateCmd SstackNfsCreateCmd;
+typedef struct _SstackNfsMkdirCmd SstackNfsMkdirCmd;
+typedef struct _SstackNfsAccessCmd SstackNfsAccessCmd;
+typedef struct _SstackFileNameT SstackFileNameT;
+typedef struct _SstackNfsSymlinkCmd SstackNfsSymlinkCmd;
+typedef struct _SstackNfsRenameCmd SstackNfsRenameCmd;
+typedef struct _SstackNfsRemoveCmd SstackNfsRemoveCmd;
+typedef struct _SstackNfsCommitCmd SstackNfsCommitCmd;
 typedef struct _SstackNfsCommandStruct SstackNfsCommandStruct;
-typedef struct _NfsLookupResp NfsLookupResp;
-typedef struct _NfsAccessResp NfsAccessResp;
-typedef struct _NfsReadResp NfsReadResp;
-typedef struct _NfsWriteResp NfsWriteResp;
-typedef struct _NfsCreateResp NfsCreateResp;
-typedef struct _NfsRemoveResp NfsRemoveResp;
-typedef struct _NfsRenameResp NfsRenameResp;
-typedef struct _NfsFsstatResp NfsFsstatResp;
-typedef struct _NfsFsinfoResp NfsFsinfoResp;
-typedef struct _NfsPathconfResp NfsPathconfResp;
-typedef struct _NfsCommitResp NfsCommitResp;
+typedef struct _Stat Stat;
+typedef struct _SstackNfsGetattrResp SstackNfsGetattrResp;
+typedef struct _SstackNfsLookupResp SstackNfsLookupResp;
+typedef struct _SstackNfsAccessResp SstackNfsAccessResp;
+typedef struct _SstackNfsReadResp SstackNfsReadResp;
+typedef struct _SstackNfsWriteResp SstackNfsWriteResp;
+typedef struct _SstackNfsReadlinkResp SstackNfsReadlinkResp;
 typedef struct _SstackNfsResultStruct SstackNfsResultStruct;
 typedef struct _SstackPayloadHdrT SstackPayloadHdrT;
+typedef struct _SfsdStorageT SfsdStorageT;
 typedef struct _SstackPayloadT SstackPayloadT;
 
 
 /* --- enums --- */
 
+typedef enum _SstackFileAttributeT__SstackFileTypeT {
+  SSTACK_FILE_ATTRIBUTE_T__SSTACK_FILE_TYPE_T__NFS_REG = 1,
+  SSTACK_FILE_ATTRIBUTE_T__SSTACK_FILE_TYPE_T__NFS_DIR = 2,
+  SSTACK_FILE_ATTRIBUTE_T__SSTACK_FILE_TYPE_T__NFS_BLK = 3,
+  SSTACK_FILE_ATTRIBUTE_T__SSTACK_FILE_TYPE_T__NFS_CHR = 4,
+  SSTACK_FILE_ATTRIBUTE_T__SSTACK_FILE_TYPE_T__NFS_LNL = 5,
+  SSTACK_FILE_ATTRIBUTE_T__SSTACK_FILE_TYPE_T__NFS_SOCK = 6,
+  SSTACK_FILE_ATTRIBUTE_T__SSTACK_FILE_TYPE_T__NFS_FIFO = 7
+} SstackFileAttributeT__SstackFileTypeT;
+typedef enum _SfsdStorageT__SfsProtocolT {
+  SFSD_STORAGE_T__SFS_PROTOCOL_T__NFS = 1,
+  SFSD_STORAGE_T__SFS_PROTOCOL_T__CIFS = 2,
+  SFSD_STORAGE_T__SFS_PROTOCOL_T__ISCSI = 3,
+  SFSD_STORAGE_T__SFS_PROTOCOL_T__NATIVE = 4
+} SfsdStorageT__SfsProtocolT;
 typedef enum _SstackPayloadT__SstackNfsCommandT {
   SSTACK_PAYLOAD_T__SSTACK_NFS_COMMAND_T__NFS_GETATTR = 1,
   SSTACK_PAYLOAD_T__SSTACK_NFS_COMMAND_T__NFS_SETATTR = 2,
@@ -61,226 +81,304 @@ typedef enum _SstackPayloadT__SstackNfsCommandT {
 
 /* --- messages --- */
 
-struct  _NfsReadCmd
+struct  _Timespec
+{
+  ProtobufCMessage base;
+  uint32_t tv_sec;
+  uint32_t tv_nsec;
+};
+#define TIMESPEC__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&timespec__descriptor) \
+    , 0, 0 }
+
+
+struct  _SstackFileAttributeT
+{
+  ProtobufCMessage base;
+  SstackFileAttributeT__SstackFileTypeT type;
+  uint32_t mode;
+  uint32_t num_link;
+  uint32_t uid;
+  uint32_t gid;
+  uint32_t size;
+  uint32_t used;
+  uint64_t fsid;
+  uint32_t fileid;
+  Timespec *atime;
+  Timespec *mtime;
+  Timespec *ctime;
+};
+#define SSTACK_FILE_ATTRIBUTE_T__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&sstack_file_attribute_t__descriptor) \
+    , 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, NULL }
+
+
+struct  _SstackNfsSetattrCmd
+{
+  ProtobufCMessage base;
+  SstackFileAttributeT *attribute;
+};
+#define SSTACK_NFS_SETATTR_CMD__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&sstack_nfs_setattr_cmd__descriptor) \
+    , NULL }
+
+
+struct  _SstackNfsLookupCmd
+{
+  ProtobufCMessage base;
+  SstackFileNameT *where;
+  SstackFileNameT *what;
+};
+#define SSTACK_NFS_LOOKUP_CMD__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&sstack_nfs_lookup_cmd__descriptor) \
+    , NULL, NULL }
+
+
+struct  _SstackNfsReadCmd
 {
   ProtobufCMessage base;
   uint64_t offset;
   uint64_t count;
-  NfsData *data;
 };
-#define NFS_READ_CMD__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&nfs_read_cmd__descriptor) \
-    , 0, 0, NULL }
+#define SSTACK_NFS_READ_CMD__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&sstack_nfs_read_cmd__descriptor) \
+    , 0, 0 }
 
 
-struct  _NfsData
+struct  _SstackNfsData
 {
   ProtobufCMessage base;
   uint64_t data_len;
   ProtobufCBinaryData data_val;
 };
-#define NFS_DATA__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&nfs_data__descriptor) \
+#define SSTACK_NFS_DATA__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&sstack_nfs_data__descriptor) \
     , 0, {0,NULL} }
 
 
-struct  _NfsWriteCmd
+struct  _SstackNfsWriteCmd
 {
   ProtobufCMessage base;
   uint64_t offset;
   uint64_t count;
-  NfsData *data;
+  SstackNfsData *data;
 };
-#define NFS_WRITE_CMD__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&nfs_write_cmd__descriptor) \
+#define SSTACK_NFS_WRITE_CMD__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&sstack_nfs_write_cmd__descriptor) \
     , 0, 0, NULL }
 
 
-struct  _NfsCreateCmd
+struct  _SstackNfsCreateCmd
 {
   ProtobufCMessage base;
   uint32_t mode;
-  NfsData *data;
+  SstackNfsData *data;
 };
-#define NFS_CREATE_CMD__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&nfs_create_cmd__descriptor) \
+#define SSTACK_NFS_CREATE_CMD__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&sstack_nfs_create_cmd__descriptor) \
     , 0, NULL }
 
 
-struct  _NfsAccessCmd
+struct  _SstackNfsMkdirCmd
 {
   ProtobufCMessage base;
   uint32_t mode;
 };
-#define NFS_ACCESS_CMD__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&nfs_access_cmd__descriptor) \
+#define SSTACK_NFS_MKDIR_CMD__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&sstack_nfs_mkdir_cmd__descriptor) \
     , 0 }
 
 
-struct  _NfsRenameCmd
+struct  _SstackNfsAccessCmd
 {
   ProtobufCMessage base;
-  ProtobufCBinaryData new_path;
+  uint32_t mode;
 };
-#define NFS_RENAME_CMD__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&nfs_rename_cmd__descriptor) \
-    , {0,NULL} }
+#define SSTACK_NFS_ACCESS_CMD__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&sstack_nfs_access_cmd__descriptor) \
+    , 0 }
 
 
-struct  _NfsCommitCmd
+struct  _SstackFileNameT
+{
+  ProtobufCMessage base;
+  uint32_t name_len;
+  ProtobufCBinaryData name;
+};
+#define SSTACK_FILE_NAME_T__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&sstack_file_name_t__descriptor) \
+    , 0, {0,NULL} }
+
+
+struct  _SstackNfsSymlinkCmd
+{
+  ProtobufCMessage base;
+  SstackFileNameT *new_path;
+};
+#define SSTACK_NFS_SYMLINK_CMD__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&sstack_nfs_symlink_cmd__descriptor) \
+    , NULL }
+
+
+struct  _SstackNfsRenameCmd
+{
+  ProtobufCMessage base;
+  SstackFileNameT *new_path;
+};
+#define SSTACK_NFS_RENAME_CMD__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&sstack_nfs_rename_cmd__descriptor) \
+    , NULL }
+
+
+struct  _SstackNfsRemoveCmd
+{
+  ProtobufCMessage base;
+  uint32_t path_len;
+  ProtobufCBinaryData path;
+};
+#define SSTACK_NFS_REMOVE_CMD__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&sstack_nfs_remove_cmd__descriptor) \
+    , 0, {0,NULL} }
+
+
+struct  _SstackNfsCommitCmd
 {
   ProtobufCMessage base;
   uint64_t offset;
   uint64_t count;
 };
-#define NFS_COMMIT_CMD__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&nfs_commit_cmd__descriptor) \
+#define SSTACK_NFS_COMMIT_CMD__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&sstack_nfs_commit_cmd__descriptor) \
     , 0, 0 }
 
 
 struct  _SstackNfsCommandStruct
 {
   ProtobufCMessage base;
-  NfsReadCmd *read_cmd;
-  NfsWriteCmd *write_cmd;
-  NfsCreateCmd *create_cmd;
-  NfsAccessCmd *access_cmd;
-  NfsRenameCmd *rename_cmd;
-  NfsCommitCmd *commit_cmd;
+  SstackNfsSetattrCmd *setattr_cmd;
+  SstackNfsLookupCmd *lookup_cmd;
+  SstackNfsAccessCmd *access_cmd;
+  SstackNfsReadCmd *read_cmd;
+  SstackNfsWriteCmd *write_cmd;
+  SstackNfsCreateCmd *create_cmd;
+  SstackNfsMkdirCmd *mkdir_cmd;
+  SstackNfsSymlinkCmd *symlink_cmd;
+  SstackNfsRenameCmd *rename_cmd;
+  SstackNfsRemoveCmd *remove_cmd;
+  SstackNfsCommitCmd *commit_cmd;
 };
 #define SSTACK_NFS_COMMAND_STRUCT__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&sstack_nfs_command_struct__descriptor) \
-    , NULL, NULL, NULL, NULL, NULL, NULL }
+    , NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL }
 
 
-struct  _NfsLookupResp
+struct  _Stat
 {
   ProtobufCMessage base;
+  uint32_t st_dev;
+  uint32_t st_ino;
+  uint32_t st_mode;
+  uint32_t st_nlink;
+  uint32_t st_uid;
+  uint32_t st_gid;
+  uint32_t st_rdev;
+  uint32_t __pad1;
+  int32_t st_size;
+  int32_t st_blksize;
+  int32_t __pad2;
+  int32_t st_blocks;
+  int32_t st_atime;
+  uint32_t st_atime_nsec;
+  int32_t st_mtime;
+  uint32_t st_mtime_nsec;
+  int32_t st_ctime;
+  uint32_t st_ctime_nsec;
+  uint32_t __unused4;
+  uint32_t __unused5;
+};
+#define STAT__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&stat__descriptor) \
+    , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+
+
+struct  _SstackNfsGetattrResp
+{
+  ProtobufCMessage base;
+  Stat *stbuf;
+};
+#define SSTACK_NFS_GETATTR_RESP__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&sstack_nfs_getattr_resp__descriptor) \
+    , NULL }
+
+
+struct  _SstackNfsLookupResp
+{
+  ProtobufCMessage base;
+  uint32_t lookup_path_len;
   ProtobufCBinaryData lookup_path;
 };
-#define NFS_LOOKUP_RESP__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&nfs_lookup_resp__descriptor) \
-    , {0,NULL} }
+#define SSTACK_NFS_LOOKUP_RESP__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&sstack_nfs_lookup_resp__descriptor) \
+    , 0, {0,NULL} }
 
 
-struct  _NfsAccessResp
+struct  _SstackNfsAccessResp
 {
   ProtobufCMessage base;
   uint32_t access;
 };
-#define NFS_ACCESS_RESP__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&nfs_access_resp__descriptor) \
+#define SSTACK_NFS_ACCESS_RESP__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&sstack_nfs_access_resp__descriptor) \
     , 0 }
 
 
-struct  _NfsReadResp
+struct  _SstackNfsReadResp
 {
   ProtobufCMessage base;
   uint64_t count;
   int32_t eof;
-  NfsData *data;
+  SstackNfsData *data;
 };
-#define NFS_READ_RESP__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&nfs_read_resp__descriptor) \
+#define SSTACK_NFS_READ_RESP__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&sstack_nfs_read_resp__descriptor) \
     , 0, 0, NULL }
 
 
-struct  _NfsWriteResp
+struct  _SstackNfsWriteResp
 {
   ProtobufCMessage base;
   uint32_t file_write_ok;
   uint32_t file_wc;
 };
-#define NFS_WRITE_RESP__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&nfs_write_resp__descriptor) \
+#define SSTACK_NFS_WRITE_RESP__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&sstack_nfs_write_resp__descriptor) \
     , 0, 0 }
 
 
-struct  _NfsCreateResp
+struct  _SstackNfsReadlinkResp
 {
   ProtobufCMessage base;
-  uint32_t file_create_ok;
-  uint32_t file_wc;
+  SstackFileNameT *real_file;
 };
-#define NFS_CREATE_RESP__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&nfs_create_resp__descriptor) \
-    , 0, 0 }
-
-
-struct  _NfsRemoveResp
-{
-  ProtobufCMessage base;
-  uint32_t file_remove_ok;
-};
-#define NFS_REMOVE_RESP__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&nfs_remove_resp__descriptor) \
-    , 0 }
-
-
-struct  _NfsRenameResp
-{
-  ProtobufCMessage base;
-  uint32_t file_rename_ok;
-};
-#define NFS_RENAME_RESP__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&nfs_rename_resp__descriptor) \
-    , 0 }
-
-
-struct  _NfsFsstatResp
-{
-  ProtobufCMessage base;
-};
-#define NFS_FSSTAT_RESP__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&nfs_fsstat_resp__descriptor) \
-     }
-
-
-struct  _NfsFsinfoResp
-{
-  ProtobufCMessage base;
-};
-#define NFS_FSINFO_RESP__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&nfs_fsinfo_resp__descriptor) \
-     }
-
-
-struct  _NfsPathconfResp
-{
-  ProtobufCMessage base;
-};
-#define NFS_PATHCONF_RESP__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&nfs_pathconf_resp__descriptor) \
-     }
-
-
-struct  _NfsCommitResp
-{
-  ProtobufCMessage base;
-};
-#define NFS_COMMIT_RESP__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&nfs_commit_resp__descriptor) \
-     }
+#define SSTACK_NFS_READLINK_RESP__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&sstack_nfs_readlink_resp__descriptor) \
+    , NULL }
 
 
 struct  _SstackNfsResultStruct
 {
   ProtobufCMessage base;
-  NfsLookupResp *lookup_resp;
-  NfsAccessResp *access_resp;
-  NfsReadResp *read_resp;
-  NfsWriteResp *write_resp;
-  NfsCreateResp *create_resp;
-  NfsRemoveResp *remove_resp;
-  NfsRenameResp *rename_resp;
-  NfsFsstatResp *fsstat_resp;
-  NfsFsinfoResp *fsinfo_resp;
-  NfsPathconfResp *pathconf_resp;
-  NfsCommitResp *commit_resp;
+  SstackNfsGetattrResp *getattr_resp;
+  SstackNfsLookupResp *lookup_resp;
+  SstackNfsAccessResp *access_resp;
+  SstackNfsReadlinkResp *readlink_resp;
+  SstackNfsReadResp *read_resp;
+  SstackNfsWriteResp *write_resp;
+  SstackNfsWriteResp *create_resp;
 };
 #define SSTACK_NFS_RESULT_STRUCT__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&sstack_nfs_result_struct__descriptor) \
-    , NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL }
+    , NULL, NULL, NULL, NULL, NULL, NULL, NULL }
 
 
 struct  _SstackPayloadHdrT
@@ -294,151 +392,322 @@ struct  _SstackPayloadHdrT
     , 0, 0 }
 
 
+struct  _SfsdStorageT
+{
+  ProtobufCMessage base;
+  ProtobufCBinaryData path;
+  ProtobufCBinaryData mount_point;
+  uint32_t weight;
+  uint64_t nblocks;
+  SfsdStorageT__SfsProtocolT protocol;
+  protobuf_c_boolean has_ipv4_addr;
+  ProtobufCBinaryData ipv4_addr;
+  protobuf_c_boolean has_ipv6_addr;
+  ProtobufCBinaryData ipv6_addr;
+};
+#define SFSD_STORAGE_T__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&sfsd_storage_t__descriptor) \
+    , {0,NULL}, {0,NULL}, 0, 0, 0, 0,{0,NULL}, 0,{0,NULL} }
+
+
 struct  _SstackPayloadT
 {
   ProtobufCMessage base;
   SstackPayloadHdrT *hdr;
   SstackPayloadT__SstackNfsCommandT command;
+  SfsdStorageT *storage;
   SstackNfsCommandStruct *command_struct;
   SstackNfsResultStruct *result_struct;
 };
 #define SSTACK_PAYLOAD_T__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&sstack_payload_t__descriptor) \
-    , NULL, 0, NULL, NULL }
+    , NULL, 0, NULL, NULL, NULL }
 
 
-/* NfsReadCmd methods */
-void   nfs_read_cmd__init
-                     (NfsReadCmd         *message);
-size_t nfs_read_cmd__get_packed_size
-                     (const NfsReadCmd   *message);
-size_t nfs_read_cmd__pack
-                     (const NfsReadCmd   *message,
+/* Timespec methods */
+void   timespec__init
+                     (Timespec         *message);
+size_t timespec__get_packed_size
+                     (const Timespec   *message);
+size_t timespec__pack
+                     (const Timespec   *message,
                       uint8_t             *out);
-size_t nfs_read_cmd__pack_to_buffer
-                     (const NfsReadCmd   *message,
+size_t timespec__pack_to_buffer
+                     (const Timespec   *message,
                       ProtobufCBuffer     *buffer);
-NfsReadCmd *
-       nfs_read_cmd__unpack
+Timespec *
+       timespec__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data);
-void   nfs_read_cmd__free_unpacked
-                     (NfsReadCmd *message,
+void   timespec__free_unpacked
+                     (Timespec *message,
                       ProtobufCAllocator *allocator);
-/* NfsData methods */
-void   nfs_data__init
-                     (NfsData         *message);
-size_t nfs_data__get_packed_size
-                     (const NfsData   *message);
-size_t nfs_data__pack
-                     (const NfsData   *message,
+/* SstackFileAttributeT methods */
+void   sstack_file_attribute_t__init
+                     (SstackFileAttributeT         *message);
+size_t sstack_file_attribute_t__get_packed_size
+                     (const SstackFileAttributeT   *message);
+size_t sstack_file_attribute_t__pack
+                     (const SstackFileAttributeT   *message,
                       uint8_t             *out);
-size_t nfs_data__pack_to_buffer
-                     (const NfsData   *message,
+size_t sstack_file_attribute_t__pack_to_buffer
+                     (const SstackFileAttributeT   *message,
                       ProtobufCBuffer     *buffer);
-NfsData *
-       nfs_data__unpack
+SstackFileAttributeT *
+       sstack_file_attribute_t__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data);
-void   nfs_data__free_unpacked
-                     (NfsData *message,
+void   sstack_file_attribute_t__free_unpacked
+                     (SstackFileAttributeT *message,
                       ProtobufCAllocator *allocator);
-/* NfsWriteCmd methods */
-void   nfs_write_cmd__init
-                     (NfsWriteCmd         *message);
-size_t nfs_write_cmd__get_packed_size
-                     (const NfsWriteCmd   *message);
-size_t nfs_write_cmd__pack
-                     (const NfsWriteCmd   *message,
+/* SstackNfsSetattrCmd methods */
+void   sstack_nfs_setattr_cmd__init
+                     (SstackNfsSetattrCmd         *message);
+size_t sstack_nfs_setattr_cmd__get_packed_size
+                     (const SstackNfsSetattrCmd   *message);
+size_t sstack_nfs_setattr_cmd__pack
+                     (const SstackNfsSetattrCmd   *message,
                       uint8_t             *out);
-size_t nfs_write_cmd__pack_to_buffer
-                     (const NfsWriteCmd   *message,
+size_t sstack_nfs_setattr_cmd__pack_to_buffer
+                     (const SstackNfsSetattrCmd   *message,
                       ProtobufCBuffer     *buffer);
-NfsWriteCmd *
-       nfs_write_cmd__unpack
+SstackNfsSetattrCmd *
+       sstack_nfs_setattr_cmd__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data);
-void   nfs_write_cmd__free_unpacked
-                     (NfsWriteCmd *message,
+void   sstack_nfs_setattr_cmd__free_unpacked
+                     (SstackNfsSetattrCmd *message,
                       ProtobufCAllocator *allocator);
-/* NfsCreateCmd methods */
-void   nfs_create_cmd__init
-                     (NfsCreateCmd         *message);
-size_t nfs_create_cmd__get_packed_size
-                     (const NfsCreateCmd   *message);
-size_t nfs_create_cmd__pack
-                     (const NfsCreateCmd   *message,
+/* SstackNfsLookupCmd methods */
+void   sstack_nfs_lookup_cmd__init
+                     (SstackNfsLookupCmd         *message);
+size_t sstack_nfs_lookup_cmd__get_packed_size
+                     (const SstackNfsLookupCmd   *message);
+size_t sstack_nfs_lookup_cmd__pack
+                     (const SstackNfsLookupCmd   *message,
                       uint8_t             *out);
-size_t nfs_create_cmd__pack_to_buffer
-                     (const NfsCreateCmd   *message,
+size_t sstack_nfs_lookup_cmd__pack_to_buffer
+                     (const SstackNfsLookupCmd   *message,
                       ProtobufCBuffer     *buffer);
-NfsCreateCmd *
-       nfs_create_cmd__unpack
+SstackNfsLookupCmd *
+       sstack_nfs_lookup_cmd__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data);
-void   nfs_create_cmd__free_unpacked
-                     (NfsCreateCmd *message,
+void   sstack_nfs_lookup_cmd__free_unpacked
+                     (SstackNfsLookupCmd *message,
                       ProtobufCAllocator *allocator);
-/* NfsAccessCmd methods */
-void   nfs_access_cmd__init
-                     (NfsAccessCmd         *message);
-size_t nfs_access_cmd__get_packed_size
-                     (const NfsAccessCmd   *message);
-size_t nfs_access_cmd__pack
-                     (const NfsAccessCmd   *message,
+/* SstackNfsReadCmd methods */
+void   sstack_nfs_read_cmd__init
+                     (SstackNfsReadCmd         *message);
+size_t sstack_nfs_read_cmd__get_packed_size
+                     (const SstackNfsReadCmd   *message);
+size_t sstack_nfs_read_cmd__pack
+                     (const SstackNfsReadCmd   *message,
                       uint8_t             *out);
-size_t nfs_access_cmd__pack_to_buffer
-                     (const NfsAccessCmd   *message,
+size_t sstack_nfs_read_cmd__pack_to_buffer
+                     (const SstackNfsReadCmd   *message,
                       ProtobufCBuffer     *buffer);
-NfsAccessCmd *
-       nfs_access_cmd__unpack
+SstackNfsReadCmd *
+       sstack_nfs_read_cmd__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data);
-void   nfs_access_cmd__free_unpacked
-                     (NfsAccessCmd *message,
+void   sstack_nfs_read_cmd__free_unpacked
+                     (SstackNfsReadCmd *message,
                       ProtobufCAllocator *allocator);
-/* NfsRenameCmd methods */
-void   nfs_rename_cmd__init
-                     (NfsRenameCmd         *message);
-size_t nfs_rename_cmd__get_packed_size
-                     (const NfsRenameCmd   *message);
-size_t nfs_rename_cmd__pack
-                     (const NfsRenameCmd   *message,
+/* SstackNfsData methods */
+void   sstack_nfs_data__init
+                     (SstackNfsData         *message);
+size_t sstack_nfs_data__get_packed_size
+                     (const SstackNfsData   *message);
+size_t sstack_nfs_data__pack
+                     (const SstackNfsData   *message,
                       uint8_t             *out);
-size_t nfs_rename_cmd__pack_to_buffer
-                     (const NfsRenameCmd   *message,
+size_t sstack_nfs_data__pack_to_buffer
+                     (const SstackNfsData   *message,
                       ProtobufCBuffer     *buffer);
-NfsRenameCmd *
-       nfs_rename_cmd__unpack
+SstackNfsData *
+       sstack_nfs_data__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data);
-void   nfs_rename_cmd__free_unpacked
-                     (NfsRenameCmd *message,
+void   sstack_nfs_data__free_unpacked
+                     (SstackNfsData *message,
                       ProtobufCAllocator *allocator);
-/* NfsCommitCmd methods */
-void   nfs_commit_cmd__init
-                     (NfsCommitCmd         *message);
-size_t nfs_commit_cmd__get_packed_size
-                     (const NfsCommitCmd   *message);
-size_t nfs_commit_cmd__pack
-                     (const NfsCommitCmd   *message,
+/* SstackNfsWriteCmd methods */
+void   sstack_nfs_write_cmd__init
+                     (SstackNfsWriteCmd         *message);
+size_t sstack_nfs_write_cmd__get_packed_size
+                     (const SstackNfsWriteCmd   *message);
+size_t sstack_nfs_write_cmd__pack
+                     (const SstackNfsWriteCmd   *message,
                       uint8_t             *out);
-size_t nfs_commit_cmd__pack_to_buffer
-                     (const NfsCommitCmd   *message,
+size_t sstack_nfs_write_cmd__pack_to_buffer
+                     (const SstackNfsWriteCmd   *message,
                       ProtobufCBuffer     *buffer);
-NfsCommitCmd *
-       nfs_commit_cmd__unpack
+SstackNfsWriteCmd *
+       sstack_nfs_write_cmd__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data);
-void   nfs_commit_cmd__free_unpacked
-                     (NfsCommitCmd *message,
+void   sstack_nfs_write_cmd__free_unpacked
+                     (SstackNfsWriteCmd *message,
+                      ProtobufCAllocator *allocator);
+/* SstackNfsCreateCmd methods */
+void   sstack_nfs_create_cmd__init
+                     (SstackNfsCreateCmd         *message);
+size_t sstack_nfs_create_cmd__get_packed_size
+                     (const SstackNfsCreateCmd   *message);
+size_t sstack_nfs_create_cmd__pack
+                     (const SstackNfsCreateCmd   *message,
+                      uint8_t             *out);
+size_t sstack_nfs_create_cmd__pack_to_buffer
+                     (const SstackNfsCreateCmd   *message,
+                      ProtobufCBuffer     *buffer);
+SstackNfsCreateCmd *
+       sstack_nfs_create_cmd__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   sstack_nfs_create_cmd__free_unpacked
+                     (SstackNfsCreateCmd *message,
+                      ProtobufCAllocator *allocator);
+/* SstackNfsMkdirCmd methods */
+void   sstack_nfs_mkdir_cmd__init
+                     (SstackNfsMkdirCmd         *message);
+size_t sstack_nfs_mkdir_cmd__get_packed_size
+                     (const SstackNfsMkdirCmd   *message);
+size_t sstack_nfs_mkdir_cmd__pack
+                     (const SstackNfsMkdirCmd   *message,
+                      uint8_t             *out);
+size_t sstack_nfs_mkdir_cmd__pack_to_buffer
+                     (const SstackNfsMkdirCmd   *message,
+                      ProtobufCBuffer     *buffer);
+SstackNfsMkdirCmd *
+       sstack_nfs_mkdir_cmd__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   sstack_nfs_mkdir_cmd__free_unpacked
+                     (SstackNfsMkdirCmd *message,
+                      ProtobufCAllocator *allocator);
+/* SstackNfsAccessCmd methods */
+void   sstack_nfs_access_cmd__init
+                     (SstackNfsAccessCmd         *message);
+size_t sstack_nfs_access_cmd__get_packed_size
+                     (const SstackNfsAccessCmd   *message);
+size_t sstack_nfs_access_cmd__pack
+                     (const SstackNfsAccessCmd   *message,
+                      uint8_t             *out);
+size_t sstack_nfs_access_cmd__pack_to_buffer
+                     (const SstackNfsAccessCmd   *message,
+                      ProtobufCBuffer     *buffer);
+SstackNfsAccessCmd *
+       sstack_nfs_access_cmd__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   sstack_nfs_access_cmd__free_unpacked
+                     (SstackNfsAccessCmd *message,
+                      ProtobufCAllocator *allocator);
+/* SstackFileNameT methods */
+void   sstack_file_name_t__init
+                     (SstackFileNameT         *message);
+size_t sstack_file_name_t__get_packed_size
+                     (const SstackFileNameT   *message);
+size_t sstack_file_name_t__pack
+                     (const SstackFileNameT   *message,
+                      uint8_t             *out);
+size_t sstack_file_name_t__pack_to_buffer
+                     (const SstackFileNameT   *message,
+                      ProtobufCBuffer     *buffer);
+SstackFileNameT *
+       sstack_file_name_t__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   sstack_file_name_t__free_unpacked
+                     (SstackFileNameT *message,
+                      ProtobufCAllocator *allocator);
+/* SstackNfsSymlinkCmd methods */
+void   sstack_nfs_symlink_cmd__init
+                     (SstackNfsSymlinkCmd         *message);
+size_t sstack_nfs_symlink_cmd__get_packed_size
+                     (const SstackNfsSymlinkCmd   *message);
+size_t sstack_nfs_symlink_cmd__pack
+                     (const SstackNfsSymlinkCmd   *message,
+                      uint8_t             *out);
+size_t sstack_nfs_symlink_cmd__pack_to_buffer
+                     (const SstackNfsSymlinkCmd   *message,
+                      ProtobufCBuffer     *buffer);
+SstackNfsSymlinkCmd *
+       sstack_nfs_symlink_cmd__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   sstack_nfs_symlink_cmd__free_unpacked
+                     (SstackNfsSymlinkCmd *message,
+                      ProtobufCAllocator *allocator);
+/* SstackNfsRenameCmd methods */
+void   sstack_nfs_rename_cmd__init
+                     (SstackNfsRenameCmd         *message);
+size_t sstack_nfs_rename_cmd__get_packed_size
+                     (const SstackNfsRenameCmd   *message);
+size_t sstack_nfs_rename_cmd__pack
+                     (const SstackNfsRenameCmd   *message,
+                      uint8_t             *out);
+size_t sstack_nfs_rename_cmd__pack_to_buffer
+                     (const SstackNfsRenameCmd   *message,
+                      ProtobufCBuffer     *buffer);
+SstackNfsRenameCmd *
+       sstack_nfs_rename_cmd__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   sstack_nfs_rename_cmd__free_unpacked
+                     (SstackNfsRenameCmd *message,
+                      ProtobufCAllocator *allocator);
+/* SstackNfsRemoveCmd methods */
+void   sstack_nfs_remove_cmd__init
+                     (SstackNfsRemoveCmd         *message);
+size_t sstack_nfs_remove_cmd__get_packed_size
+                     (const SstackNfsRemoveCmd   *message);
+size_t sstack_nfs_remove_cmd__pack
+                     (const SstackNfsRemoveCmd   *message,
+                      uint8_t             *out);
+size_t sstack_nfs_remove_cmd__pack_to_buffer
+                     (const SstackNfsRemoveCmd   *message,
+                      ProtobufCBuffer     *buffer);
+SstackNfsRemoveCmd *
+       sstack_nfs_remove_cmd__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   sstack_nfs_remove_cmd__free_unpacked
+                     (SstackNfsRemoveCmd *message,
+                      ProtobufCAllocator *allocator);
+/* SstackNfsCommitCmd methods */
+void   sstack_nfs_commit_cmd__init
+                     (SstackNfsCommitCmd         *message);
+size_t sstack_nfs_commit_cmd__get_packed_size
+                     (const SstackNfsCommitCmd   *message);
+size_t sstack_nfs_commit_cmd__pack
+                     (const SstackNfsCommitCmd   *message,
+                      uint8_t             *out);
+size_t sstack_nfs_commit_cmd__pack_to_buffer
+                     (const SstackNfsCommitCmd   *message,
+                      ProtobufCBuffer     *buffer);
+SstackNfsCommitCmd *
+       sstack_nfs_commit_cmd__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   sstack_nfs_commit_cmd__free_unpacked
+                     (SstackNfsCommitCmd *message,
                       ProtobufCAllocator *allocator);
 /* SstackNfsCommandStruct methods */
 void   sstack_nfs_command_struct__init
@@ -459,214 +728,138 @@ SstackNfsCommandStruct *
 void   sstack_nfs_command_struct__free_unpacked
                      (SstackNfsCommandStruct *message,
                       ProtobufCAllocator *allocator);
-/* NfsLookupResp methods */
-void   nfs_lookup_resp__init
-                     (NfsLookupResp         *message);
-size_t nfs_lookup_resp__get_packed_size
-                     (const NfsLookupResp   *message);
-size_t nfs_lookup_resp__pack
-                     (const NfsLookupResp   *message,
+/* Stat methods */
+void   stat__init
+                     (Stat         *message);
+size_t stat__get_packed_size
+                     (const Stat   *message);
+size_t stat__pack
+                     (const Stat   *message,
                       uint8_t             *out);
-size_t nfs_lookup_resp__pack_to_buffer
-                     (const NfsLookupResp   *message,
+size_t stat__pack_to_buffer
+                     (const Stat   *message,
                       ProtobufCBuffer     *buffer);
-NfsLookupResp *
-       nfs_lookup_resp__unpack
+Stat *
+       stat__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data);
-void   nfs_lookup_resp__free_unpacked
-                     (NfsLookupResp *message,
+void   stat__free_unpacked
+                     (Stat *message,
                       ProtobufCAllocator *allocator);
-/* NfsAccessResp methods */
-void   nfs_access_resp__init
-                     (NfsAccessResp         *message);
-size_t nfs_access_resp__get_packed_size
-                     (const NfsAccessResp   *message);
-size_t nfs_access_resp__pack
-                     (const NfsAccessResp   *message,
+/* SstackNfsGetattrResp methods */
+void   sstack_nfs_getattr_resp__init
+                     (SstackNfsGetattrResp         *message);
+size_t sstack_nfs_getattr_resp__get_packed_size
+                     (const SstackNfsGetattrResp   *message);
+size_t sstack_nfs_getattr_resp__pack
+                     (const SstackNfsGetattrResp   *message,
                       uint8_t             *out);
-size_t nfs_access_resp__pack_to_buffer
-                     (const NfsAccessResp   *message,
+size_t sstack_nfs_getattr_resp__pack_to_buffer
+                     (const SstackNfsGetattrResp   *message,
                       ProtobufCBuffer     *buffer);
-NfsAccessResp *
-       nfs_access_resp__unpack
+SstackNfsGetattrResp *
+       sstack_nfs_getattr_resp__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data);
-void   nfs_access_resp__free_unpacked
-                     (NfsAccessResp *message,
+void   sstack_nfs_getattr_resp__free_unpacked
+                     (SstackNfsGetattrResp *message,
                       ProtobufCAllocator *allocator);
-/* NfsReadResp methods */
-void   nfs_read_resp__init
-                     (NfsReadResp         *message);
-size_t nfs_read_resp__get_packed_size
-                     (const NfsReadResp   *message);
-size_t nfs_read_resp__pack
-                     (const NfsReadResp   *message,
+/* SstackNfsLookupResp methods */
+void   sstack_nfs_lookup_resp__init
+                     (SstackNfsLookupResp         *message);
+size_t sstack_nfs_lookup_resp__get_packed_size
+                     (const SstackNfsLookupResp   *message);
+size_t sstack_nfs_lookup_resp__pack
+                     (const SstackNfsLookupResp   *message,
                       uint8_t             *out);
-size_t nfs_read_resp__pack_to_buffer
-                     (const NfsReadResp   *message,
+size_t sstack_nfs_lookup_resp__pack_to_buffer
+                     (const SstackNfsLookupResp   *message,
                       ProtobufCBuffer     *buffer);
-NfsReadResp *
-       nfs_read_resp__unpack
+SstackNfsLookupResp *
+       sstack_nfs_lookup_resp__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data);
-void   nfs_read_resp__free_unpacked
-                     (NfsReadResp *message,
+void   sstack_nfs_lookup_resp__free_unpacked
+                     (SstackNfsLookupResp *message,
                       ProtobufCAllocator *allocator);
-/* NfsWriteResp methods */
-void   nfs_write_resp__init
-                     (NfsWriteResp         *message);
-size_t nfs_write_resp__get_packed_size
-                     (const NfsWriteResp   *message);
-size_t nfs_write_resp__pack
-                     (const NfsWriteResp   *message,
+/* SstackNfsAccessResp methods */
+void   sstack_nfs_access_resp__init
+                     (SstackNfsAccessResp         *message);
+size_t sstack_nfs_access_resp__get_packed_size
+                     (const SstackNfsAccessResp   *message);
+size_t sstack_nfs_access_resp__pack
+                     (const SstackNfsAccessResp   *message,
                       uint8_t             *out);
-size_t nfs_write_resp__pack_to_buffer
-                     (const NfsWriteResp   *message,
+size_t sstack_nfs_access_resp__pack_to_buffer
+                     (const SstackNfsAccessResp   *message,
                       ProtobufCBuffer     *buffer);
-NfsWriteResp *
-       nfs_write_resp__unpack
+SstackNfsAccessResp *
+       sstack_nfs_access_resp__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data);
-void   nfs_write_resp__free_unpacked
-                     (NfsWriteResp *message,
+void   sstack_nfs_access_resp__free_unpacked
+                     (SstackNfsAccessResp *message,
                       ProtobufCAllocator *allocator);
-/* NfsCreateResp methods */
-void   nfs_create_resp__init
-                     (NfsCreateResp         *message);
-size_t nfs_create_resp__get_packed_size
-                     (const NfsCreateResp   *message);
-size_t nfs_create_resp__pack
-                     (const NfsCreateResp   *message,
+/* SstackNfsReadResp methods */
+void   sstack_nfs_read_resp__init
+                     (SstackNfsReadResp         *message);
+size_t sstack_nfs_read_resp__get_packed_size
+                     (const SstackNfsReadResp   *message);
+size_t sstack_nfs_read_resp__pack
+                     (const SstackNfsReadResp   *message,
                       uint8_t             *out);
-size_t nfs_create_resp__pack_to_buffer
-                     (const NfsCreateResp   *message,
+size_t sstack_nfs_read_resp__pack_to_buffer
+                     (const SstackNfsReadResp   *message,
                       ProtobufCBuffer     *buffer);
-NfsCreateResp *
-       nfs_create_resp__unpack
+SstackNfsReadResp *
+       sstack_nfs_read_resp__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data);
-void   nfs_create_resp__free_unpacked
-                     (NfsCreateResp *message,
+void   sstack_nfs_read_resp__free_unpacked
+                     (SstackNfsReadResp *message,
                       ProtobufCAllocator *allocator);
-/* NfsRemoveResp methods */
-void   nfs_remove_resp__init
-                     (NfsRemoveResp         *message);
-size_t nfs_remove_resp__get_packed_size
-                     (const NfsRemoveResp   *message);
-size_t nfs_remove_resp__pack
-                     (const NfsRemoveResp   *message,
+/* SstackNfsWriteResp methods */
+void   sstack_nfs_write_resp__init
+                     (SstackNfsWriteResp         *message);
+size_t sstack_nfs_write_resp__get_packed_size
+                     (const SstackNfsWriteResp   *message);
+size_t sstack_nfs_write_resp__pack
+                     (const SstackNfsWriteResp   *message,
                       uint8_t             *out);
-size_t nfs_remove_resp__pack_to_buffer
-                     (const NfsRemoveResp   *message,
+size_t sstack_nfs_write_resp__pack_to_buffer
+                     (const SstackNfsWriteResp   *message,
                       ProtobufCBuffer     *buffer);
-NfsRemoveResp *
-       nfs_remove_resp__unpack
+SstackNfsWriteResp *
+       sstack_nfs_write_resp__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data);
-void   nfs_remove_resp__free_unpacked
-                     (NfsRemoveResp *message,
+void   sstack_nfs_write_resp__free_unpacked
+                     (SstackNfsWriteResp *message,
                       ProtobufCAllocator *allocator);
-/* NfsRenameResp methods */
-void   nfs_rename_resp__init
-                     (NfsRenameResp         *message);
-size_t nfs_rename_resp__get_packed_size
-                     (const NfsRenameResp   *message);
-size_t nfs_rename_resp__pack
-                     (const NfsRenameResp   *message,
+/* SstackNfsReadlinkResp methods */
+void   sstack_nfs_readlink_resp__init
+                     (SstackNfsReadlinkResp         *message);
+size_t sstack_nfs_readlink_resp__get_packed_size
+                     (const SstackNfsReadlinkResp   *message);
+size_t sstack_nfs_readlink_resp__pack
+                     (const SstackNfsReadlinkResp   *message,
                       uint8_t             *out);
-size_t nfs_rename_resp__pack_to_buffer
-                     (const NfsRenameResp   *message,
+size_t sstack_nfs_readlink_resp__pack_to_buffer
+                     (const SstackNfsReadlinkResp   *message,
                       ProtobufCBuffer     *buffer);
-NfsRenameResp *
-       nfs_rename_resp__unpack
+SstackNfsReadlinkResp *
+       sstack_nfs_readlink_resp__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data);
-void   nfs_rename_resp__free_unpacked
-                     (NfsRenameResp *message,
-                      ProtobufCAllocator *allocator);
-/* NfsFsstatResp methods */
-void   nfs_fsstat_resp__init
-                     (NfsFsstatResp         *message);
-size_t nfs_fsstat_resp__get_packed_size
-                     (const NfsFsstatResp   *message);
-size_t nfs_fsstat_resp__pack
-                     (const NfsFsstatResp   *message,
-                      uint8_t             *out);
-size_t nfs_fsstat_resp__pack_to_buffer
-                     (const NfsFsstatResp   *message,
-                      ProtobufCBuffer     *buffer);
-NfsFsstatResp *
-       nfs_fsstat_resp__unpack
-                     (ProtobufCAllocator  *allocator,
-                      size_t               len,
-                      const uint8_t       *data);
-void   nfs_fsstat_resp__free_unpacked
-                     (NfsFsstatResp *message,
-                      ProtobufCAllocator *allocator);
-/* NfsFsinfoResp methods */
-void   nfs_fsinfo_resp__init
-                     (NfsFsinfoResp         *message);
-size_t nfs_fsinfo_resp__get_packed_size
-                     (const NfsFsinfoResp   *message);
-size_t nfs_fsinfo_resp__pack
-                     (const NfsFsinfoResp   *message,
-                      uint8_t             *out);
-size_t nfs_fsinfo_resp__pack_to_buffer
-                     (const NfsFsinfoResp   *message,
-                      ProtobufCBuffer     *buffer);
-NfsFsinfoResp *
-       nfs_fsinfo_resp__unpack
-                     (ProtobufCAllocator  *allocator,
-                      size_t               len,
-                      const uint8_t       *data);
-void   nfs_fsinfo_resp__free_unpacked
-                     (NfsFsinfoResp *message,
-                      ProtobufCAllocator *allocator);
-/* NfsPathconfResp methods */
-void   nfs_pathconf_resp__init
-                     (NfsPathconfResp         *message);
-size_t nfs_pathconf_resp__get_packed_size
-                     (const NfsPathconfResp   *message);
-size_t nfs_pathconf_resp__pack
-                     (const NfsPathconfResp   *message,
-                      uint8_t             *out);
-size_t nfs_pathconf_resp__pack_to_buffer
-                     (const NfsPathconfResp   *message,
-                      ProtobufCBuffer     *buffer);
-NfsPathconfResp *
-       nfs_pathconf_resp__unpack
-                     (ProtobufCAllocator  *allocator,
-                      size_t               len,
-                      const uint8_t       *data);
-void   nfs_pathconf_resp__free_unpacked
-                     (NfsPathconfResp *message,
-                      ProtobufCAllocator *allocator);
-/* NfsCommitResp methods */
-void   nfs_commit_resp__init
-                     (NfsCommitResp         *message);
-size_t nfs_commit_resp__get_packed_size
-                     (const NfsCommitResp   *message);
-size_t nfs_commit_resp__pack
-                     (const NfsCommitResp   *message,
-                      uint8_t             *out);
-size_t nfs_commit_resp__pack_to_buffer
-                     (const NfsCommitResp   *message,
-                      ProtobufCBuffer     *buffer);
-NfsCommitResp *
-       nfs_commit_resp__unpack
-                     (ProtobufCAllocator  *allocator,
-                      size_t               len,
-                      const uint8_t       *data);
-void   nfs_commit_resp__free_unpacked
-                     (NfsCommitResp *message,
+void   sstack_nfs_readlink_resp__free_unpacked
+                     (SstackNfsReadlinkResp *message,
                       ProtobufCAllocator *allocator);
 /* SstackNfsResultStruct methods */
 void   sstack_nfs_result_struct__init
@@ -706,6 +899,25 @@ SstackPayloadHdrT *
 void   sstack_payload_hdr_t__free_unpacked
                      (SstackPayloadHdrT *message,
                       ProtobufCAllocator *allocator);
+/* SfsdStorageT methods */
+void   sfsd_storage_t__init
+                     (SfsdStorageT         *message);
+size_t sfsd_storage_t__get_packed_size
+                     (const SfsdStorageT   *message);
+size_t sfsd_storage_t__pack
+                     (const SfsdStorageT   *message,
+                      uint8_t             *out);
+size_t sfsd_storage_t__pack_to_buffer
+                     (const SfsdStorageT   *message,
+                      ProtobufCBuffer     *buffer);
+SfsdStorageT *
+       sfsd_storage_t__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   sfsd_storage_t__free_unpacked
+                     (SfsdStorageT *message,
+                      ProtobufCAllocator *allocator);
 /* SstackPayloadT methods */
 void   sstack_payload_t__init
                      (SstackPayloadT         *message);
@@ -727,68 +939,83 @@ void   sstack_payload_t__free_unpacked
                       ProtobufCAllocator *allocator);
 /* --- per-message closures --- */
 
-typedef void (*NfsReadCmd_Closure)
-                 (const NfsReadCmd *message,
+typedef void (*Timespec_Closure)
+                 (const Timespec *message,
                   void *closure_data);
-typedef void (*NfsData_Closure)
-                 (const NfsData *message,
+typedef void (*SstackFileAttributeT_Closure)
+                 (const SstackFileAttributeT *message,
                   void *closure_data);
-typedef void (*NfsWriteCmd_Closure)
-                 (const NfsWriteCmd *message,
+typedef void (*SstackNfsSetattrCmd_Closure)
+                 (const SstackNfsSetattrCmd *message,
                   void *closure_data);
-typedef void (*NfsCreateCmd_Closure)
-                 (const NfsCreateCmd *message,
+typedef void (*SstackNfsLookupCmd_Closure)
+                 (const SstackNfsLookupCmd *message,
                   void *closure_data);
-typedef void (*NfsAccessCmd_Closure)
-                 (const NfsAccessCmd *message,
+typedef void (*SstackNfsReadCmd_Closure)
+                 (const SstackNfsReadCmd *message,
                   void *closure_data);
-typedef void (*NfsRenameCmd_Closure)
-                 (const NfsRenameCmd *message,
+typedef void (*SstackNfsData_Closure)
+                 (const SstackNfsData *message,
                   void *closure_data);
-typedef void (*NfsCommitCmd_Closure)
-                 (const NfsCommitCmd *message,
+typedef void (*SstackNfsWriteCmd_Closure)
+                 (const SstackNfsWriteCmd *message,
+                  void *closure_data);
+typedef void (*SstackNfsCreateCmd_Closure)
+                 (const SstackNfsCreateCmd *message,
+                  void *closure_data);
+typedef void (*SstackNfsMkdirCmd_Closure)
+                 (const SstackNfsMkdirCmd *message,
+                  void *closure_data);
+typedef void (*SstackNfsAccessCmd_Closure)
+                 (const SstackNfsAccessCmd *message,
+                  void *closure_data);
+typedef void (*SstackFileNameT_Closure)
+                 (const SstackFileNameT *message,
+                  void *closure_data);
+typedef void (*SstackNfsSymlinkCmd_Closure)
+                 (const SstackNfsSymlinkCmd *message,
+                  void *closure_data);
+typedef void (*SstackNfsRenameCmd_Closure)
+                 (const SstackNfsRenameCmd *message,
+                  void *closure_data);
+typedef void (*SstackNfsRemoveCmd_Closure)
+                 (const SstackNfsRemoveCmd *message,
+                  void *closure_data);
+typedef void (*SstackNfsCommitCmd_Closure)
+                 (const SstackNfsCommitCmd *message,
                   void *closure_data);
 typedef void (*SstackNfsCommandStruct_Closure)
                  (const SstackNfsCommandStruct *message,
                   void *closure_data);
-typedef void (*NfsLookupResp_Closure)
-                 (const NfsLookupResp *message,
+typedef void (*Stat_Closure)
+                 (const Stat *message,
                   void *closure_data);
-typedef void (*NfsAccessResp_Closure)
-                 (const NfsAccessResp *message,
+typedef void (*SstackNfsGetattrResp_Closure)
+                 (const SstackNfsGetattrResp *message,
                   void *closure_data);
-typedef void (*NfsReadResp_Closure)
-                 (const NfsReadResp *message,
+typedef void (*SstackNfsLookupResp_Closure)
+                 (const SstackNfsLookupResp *message,
                   void *closure_data);
-typedef void (*NfsWriteResp_Closure)
-                 (const NfsWriteResp *message,
+typedef void (*SstackNfsAccessResp_Closure)
+                 (const SstackNfsAccessResp *message,
                   void *closure_data);
-typedef void (*NfsCreateResp_Closure)
-                 (const NfsCreateResp *message,
+typedef void (*SstackNfsReadResp_Closure)
+                 (const SstackNfsReadResp *message,
                   void *closure_data);
-typedef void (*NfsRemoveResp_Closure)
-                 (const NfsRemoveResp *message,
+typedef void (*SstackNfsWriteResp_Closure)
+                 (const SstackNfsWriteResp *message,
                   void *closure_data);
-typedef void (*NfsRenameResp_Closure)
-                 (const NfsRenameResp *message,
-                  void *closure_data);
-typedef void (*NfsFsstatResp_Closure)
-                 (const NfsFsstatResp *message,
-                  void *closure_data);
-typedef void (*NfsFsinfoResp_Closure)
-                 (const NfsFsinfoResp *message,
-                  void *closure_data);
-typedef void (*NfsPathconfResp_Closure)
-                 (const NfsPathconfResp *message,
-                  void *closure_data);
-typedef void (*NfsCommitResp_Closure)
-                 (const NfsCommitResp *message,
+typedef void (*SstackNfsReadlinkResp_Closure)
+                 (const SstackNfsReadlinkResp *message,
                   void *closure_data);
 typedef void (*SstackNfsResultStruct_Closure)
                  (const SstackNfsResultStruct *message,
                   void *closure_data);
 typedef void (*SstackPayloadHdrT_Closure)
                  (const SstackPayloadHdrT *message,
+                  void *closure_data);
+typedef void (*SfsdStorageT_Closure)
+                 (const SfsdStorageT *message,
                   void *closure_data);
 typedef void (*SstackPayloadT_Closure)
                  (const SstackPayloadT *message,
@@ -799,27 +1026,34 @@ typedef void (*SstackPayloadT_Closure)
 
 /* --- descriptors --- */
 
-extern const ProtobufCMessageDescriptor nfs_read_cmd__descriptor;
-extern const ProtobufCMessageDescriptor nfs_data__descriptor;
-extern const ProtobufCMessageDescriptor nfs_write_cmd__descriptor;
-extern const ProtobufCMessageDescriptor nfs_create_cmd__descriptor;
-extern const ProtobufCMessageDescriptor nfs_access_cmd__descriptor;
-extern const ProtobufCMessageDescriptor nfs_rename_cmd__descriptor;
-extern const ProtobufCMessageDescriptor nfs_commit_cmd__descriptor;
+extern const ProtobufCMessageDescriptor timespec__descriptor;
+extern const ProtobufCMessageDescriptor sstack_file_attribute_t__descriptor;
+extern const ProtobufCEnumDescriptor    sstack_file_attribute_t__sstack_file_type_t__descriptor;
+extern const ProtobufCMessageDescriptor sstack_nfs_setattr_cmd__descriptor;
+extern const ProtobufCMessageDescriptor sstack_nfs_lookup_cmd__descriptor;
+extern const ProtobufCMessageDescriptor sstack_nfs_read_cmd__descriptor;
+extern const ProtobufCMessageDescriptor sstack_nfs_data__descriptor;
+extern const ProtobufCMessageDescriptor sstack_nfs_write_cmd__descriptor;
+extern const ProtobufCMessageDescriptor sstack_nfs_create_cmd__descriptor;
+extern const ProtobufCMessageDescriptor sstack_nfs_mkdir_cmd__descriptor;
+extern const ProtobufCMessageDescriptor sstack_nfs_access_cmd__descriptor;
+extern const ProtobufCMessageDescriptor sstack_file_name_t__descriptor;
+extern const ProtobufCMessageDescriptor sstack_nfs_symlink_cmd__descriptor;
+extern const ProtobufCMessageDescriptor sstack_nfs_rename_cmd__descriptor;
+extern const ProtobufCMessageDescriptor sstack_nfs_remove_cmd__descriptor;
+extern const ProtobufCMessageDescriptor sstack_nfs_commit_cmd__descriptor;
 extern const ProtobufCMessageDescriptor sstack_nfs_command_struct__descriptor;
-extern const ProtobufCMessageDescriptor nfs_lookup_resp__descriptor;
-extern const ProtobufCMessageDescriptor nfs_access_resp__descriptor;
-extern const ProtobufCMessageDescriptor nfs_read_resp__descriptor;
-extern const ProtobufCMessageDescriptor nfs_write_resp__descriptor;
-extern const ProtobufCMessageDescriptor nfs_create_resp__descriptor;
-extern const ProtobufCMessageDescriptor nfs_remove_resp__descriptor;
-extern const ProtobufCMessageDescriptor nfs_rename_resp__descriptor;
-extern const ProtobufCMessageDescriptor nfs_fsstat_resp__descriptor;
-extern const ProtobufCMessageDescriptor nfs_fsinfo_resp__descriptor;
-extern const ProtobufCMessageDescriptor nfs_pathconf_resp__descriptor;
-extern const ProtobufCMessageDescriptor nfs_commit_resp__descriptor;
+extern const ProtobufCMessageDescriptor stat__descriptor;
+extern const ProtobufCMessageDescriptor sstack_nfs_getattr_resp__descriptor;
+extern const ProtobufCMessageDescriptor sstack_nfs_lookup_resp__descriptor;
+extern const ProtobufCMessageDescriptor sstack_nfs_access_resp__descriptor;
+extern const ProtobufCMessageDescriptor sstack_nfs_read_resp__descriptor;
+extern const ProtobufCMessageDescriptor sstack_nfs_write_resp__descriptor;
+extern const ProtobufCMessageDescriptor sstack_nfs_readlink_resp__descriptor;
 extern const ProtobufCMessageDescriptor sstack_nfs_result_struct__descriptor;
 extern const ProtobufCMessageDescriptor sstack_payload_hdr_t__descriptor;
+extern const ProtobufCMessageDescriptor sfsd_storage_t__descriptor;
+extern const ProtobufCEnumDescriptor    sfsd_storage_t__sfs_protocol_t__descriptor;
 extern const ProtobufCMessageDescriptor sstack_payload_t__descriptor;
 extern const ProtobufCEnumDescriptor    sstack_payload_t__sstack_nfs_command_t__descriptor;
 

@@ -19,5 +19,5 @@
 
 #ifndef __SSTACK_VERSION_H_
 #define __SSTACK_VERSION_H_
-#define SSTACK_VERSION "0.04"
+#define SSTACK_VERSION "0.1"
 #endif // __SSTACK_VERSION_H_
