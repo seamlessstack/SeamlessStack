@@ -9,5 +9,5 @@ To compile:
 
 This builds the .proto file and generates a .c file and a .h file.
 
-There is an example of how to use protocol buffers in pack-unpack.c . This test program creates a NFS read command structure and packs the structure. To verify the packing, unpack is done and one of the fields of the header is printed.
+There is an example of how to use protocol buffers in pack-unpack.c . This test program creates a NFS write command structure and packs the structure. To verify the packing, unpack is done and one of the fields of the header is printed.
 

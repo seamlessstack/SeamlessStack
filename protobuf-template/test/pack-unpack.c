@@ -9,8 +9,8 @@ main (void)
 	SstackPayloadT msg = SSTACK_PAYLOAD_T__INIT;
 	SstackPayloadHdrT hdr = SSTACK_PAYLOAD_HDR_T__INIT;
 	SstackNfsCommandStruct cmd = SSTACK_NFS_COMMAND_STRUCT__INIT;
-	NfsReadCmd readcmd = NFS_READ_CMD__INIT;
-	NfsData data = NFS_DATA__INIT;
+	SstackNfsWriteCmd writecmd = SSTACK_NFS_WRITE_CMD__INIT;
+	SstackNfsData data = SSTACK_NFS_DATA__INIT;
 	SstackPayloadT *msg1 = NULL;
 	SstackPayloadHdrT *hdr1 = NULL;
 	void *buf = NULL;
@@ -25,11 +25,11 @@ main (void)
 	data.data_val.len = strlen("ABCDEFGHIJKLMNOPQRSTUVWXYZ") + 1;
 	data.data_val.data = (uint8_t *) "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 	
-	readcmd.offset = 0;
-	readcmd.count = 100;
-	readcmd.data = &data;
+	writecmd.offset = 0;
+	writecmd.count = 100;
+	writecmd.data = &data;
 
-	cmd.read_cmd = &readcmd;
+	cmd.write_cmd = &writecmd;
 
 	msg.command_struct = &cmd;
 

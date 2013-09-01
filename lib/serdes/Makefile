@@ -16,27 +16,28 @@
 #  from SeamlessStack Incorporated.
 #
 
-TOPDIR = ../../../..
+TOPDIR = ../..
 CFALGS += -Wall
 CFLAGS += -g
 #CFLAGS += -O3
-CFLAGS += -D_GNU_SOURCE -fPIC
-CFLAGS += -I$(TOPDIR)/policy/include
-COMPRESSION_LIB_NAME = libcompressplugin.so
-COMPRESSION_OBJECTS = sstack_compression_plugin.o
+CFLAGS += -fPIC -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE
+CFLAGS += -I$(TOPDIR)/common/include -I$(TOPDIR)/protobuf-template/proto
+CFLAGS += -Iinclude -I$(TOPDIR)/common/include/bds_slab
+SERDES_LIB_NAME = libserdes.so
+SERDES_OBJECTS = src/sstack_serdes.o
+SERDES_OBJECT += $(TOPDIR)/protobuf-template/proto/jobs.pb-c.o
 LDFLAGS = -shared -o
-LIBS = -llzma -lpthread
-CC = c99
+CC = gcc
 RM = rm
 
-all:: $(COMPRESSION_LIB_NAME)
+all:: $(SERDES_LIB_NAME)
 
-$(COMPRESSION_LIB_NAME) : $(COMPRESSION_OBJECTS)
-	$(CC) $(LDFLAGS) $(COMPRESSION_LIB_NAME) $(COMPRESSION_OBJECTS) $(LIBS)
+$(SERDES_LIB_NAME) : $(SERDES_OBJECTS)
+	$(CC) $(LDFLAGS) $(SERDES_LIB_NAME) $(SERDES_OBJECTS) $(LIBS)
 
 %.o:$.c
 	$(CC) $(CFLAGS) -o $@ -c $<
 
 clean:
-	$(RM) -f $(COMPRESSION_OBJECTS) $(COMPRESSION_LIB_NAME)
+	$(RM) -f $(SERDES_OBJECTS) $(SERDES_LIB_NAME)
 
