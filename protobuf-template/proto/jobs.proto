@@ -48,6 +48,7 @@ message sstack_file_attribute_t
 	required timespec ctime = 12;
 }
 
+
 message sstack_nfs_setattr_cmd
 {
 	required sstack_file_attribute_t attribute = 1;
@@ -124,17 +125,20 @@ message sstack_nfs_commit_cmd
 
 message sstack_nfs_command_struct
 {
-	optional sstack_nfs_setattr_cmd setattr_cmd = 1;
-	optional sstack_nfs_lookup_cmd lookup_cmd = 2;
-	optional sstack_nfs_access_cmd access_cmd = 3;
-	optional sstack_nfs_read_cmd read_cmd = 4;
-	optional sstack_nfs_write_cmd write_cmd = 5;
-	optional sstack_nfs_create_cmd create_cmd = 6;
-	optional sstack_nfs_mkdir_cmd mkdir_cmd = 7;
-	optional sstack_nfs_symlink_cmd symlink_cmd = 8;
-	optional sstack_nfs_rename_cmd rename_cmd = 9;
-	optional sstack_nfs_remove_cmd remove_cmd = 10;
-	optional sstack_nfs_commit_cmd commit_cmd = 11;
+	optional sstack_chunk_cmd add_chunk_cmd = 1;
+	optional sstack_chunk_cmd update_chunk_cmd = 2;
+	optional sstack_chunk_cmd delete_chunk_cmd = 3;
+	optional sstack_nfs_setattr_cmd setattr_cmd = 4;
+	optional sstack_nfs_lookup_cmd lookup_cmd = 5;
+	optional sstack_nfs_access_cmd access_cmd = 6;
+	optional sstack_nfs_read_cmd read_cmd = 7;
+	optional sstack_nfs_write_cmd write_cmd = 8;
+	optional sstack_nfs_create_cmd create_cmd = 9;
+	optional sstack_nfs_mkdir_cmd mkdir_cmd = 10;
+	optional sstack_nfs_symlink_cmd symlink_cmd = 11;
+	optional sstack_nfs_rename_cmd rename_cmd = 12;
+	optional sstack_nfs_remove_cmd remove_cmd = 13;
+	optional sstack_nfs_commit_cmd commit_cmd = 14;
 } 	
 
 // Not sure how this can be handled 
@@ -200,15 +204,16 @@ message sstack_nfs_readlink_resp
 }
 
 
-message sstack_nfs_result_struct
+message sstack_nfs_response_struct
 {
-	optional sstack_nfs_getattr_resp getattr_resp = 1;
-	optional sstack_nfs_lookup_resp lookup_resp = 2;
-	optional sstack_nfs_access_resp access_resp = 3;
-	optional sstack_nfs_readlink_resp readlink_resp = 4;
-	optional sstack_nfs_read_resp read_resp = 5;
-	optional sstack_nfs_write_resp write_resp = 6;
-	optional sstack_nfs_write_resp create_resp = 7;
+	required uint32 command_ok = 1;
+	optional sstack_nfs_getattr_resp getattr_resp = 2;
+	optional sstack_nfs_lookup_resp lookup_resp = 3;
+	optional sstack_nfs_access_resp access_resp = 4;
+	optional sstack_nfs_readlink_resp readlink_resp = 5;
+	optional sstack_nfs_read_resp read_resp = 6;
+	optional sstack_nfs_write_resp write_resp = 7;
+	optional sstack_nfs_write_resp create_resp = 8;
 }
 
 message sstack_payload_hdr_t
@@ -236,6 +241,11 @@ message sfsd_storage_t
 	optional bytes ipv6_addr = 7;
 }
 
+message sstack_chunk_cmd
+{
+	required sfsd_storage_t storage = 1;
+}
+
 message sstack_payload_t
 {
 	required sstack_payload_hdr_t hdr = 1;
@@ -243,40 +253,43 @@ message sstack_payload_t
 	{
 		SSTACK_ADD_STORAGE = 1;
 		SSTACK_REMOVE_STORAGE = 2;
-		SSTACK_ADD_STORAGE_RSP = 3;
-		SSTACK_REMOVE_STORAGE_RSP = 4;
-		NFS_GETATTR = 5;
-		NFS_SETATTR = 6;
-		NFS_LOOKUP = 7;
-		NFS_ACCESS = 8;
-		NFS_READLINK = 9;
-		NFS_READ = 10;
-		NFS_WRITE = 11;
-		NFS_CREATE = 12;
-		NFS_MKDIR = 13;
-		NFS_SYMLINK = 14;
-		NFS_MKNOD = 15;
-		NFS_REMOVE = 16;
-		NFS_RMDIR = 17;
-		NFS_RENAME = 18;
-		NFS_LINK = 19;
-		NFS_READDIR = 20;
-		NFS_READDIRPLUS = 21;
-		NFS_FSSTAT = 22;
-		NFS_FSINFO = 23;
-		NFS_PATHCONF = 24;
-		NFS_COMMIT = 25;
-		NFS_GETATT_RSP = 26;
-		NFS_LOOKUP_RSP = 27;
-		NFS_ACCESS_RSP = 28;
-		NFS_READLINK_RSP = 29;
-		NFS_READ_RSP = 30;
-		NFS_WRITE_RSP = 31;
-		NFS_CREATE_RSP = 32;
-		NFS_VALID_MAX = 32;
+		SSTACK_UPDATE_STORAGE = 3;
+		SSTACK_ADD_STORAGE_RSP = 4;
+		SSTACK_REMOVE_STORAGE_RSP = 5;
+		SSTACK_UPDATE_STORAGE_RSP = 6;
+		SSTACK_MAX_STORAGE_COMMAND = 6;
+		NFS_GETATTR = 7;
+		NFS_SETATTR = 8;
+		NFS_LOOKUP = 9;
+		NFS_ACCESS = 10;
+		NFS_READLINK = 11;
+		NFS_READ = 12;
+		NFS_WRITE = 13;
+		NFS_CREATE = 14;
+		NFS_MKDIR = 15;
+		NFS_SYMLINK = 16;
+		NFS_MKNOD = 17;
+		NFS_REMOVE = 18;
+		NFS_RMDIR = 19;
+		NFS_RENAME = 20;
+		NFS_LINK = 21;
+		NFS_READDIR = 22;
+		NFS_READDIRPLUS = 23;
+		NFS_FSSTAT = 24;
+		NFS_FSINFO = 25;
+		NFS_PATHCONF = 26;
+		NFS_COMMIT = 27;
+		NFS_GETATTR_RSP = 28;
+		NFS_LOOKUP_RSP = 29;
+		NFS_ACCESS_RSP = 30;
+		NFS_READLINK_RSP = 31;
+		NFS_READ_RSP = 32;
+		NFS_WRITE_RSP = 33;
+		NFS_CREATE_RSP = 34;
+		NFS_VALID_MAX = 34;
 	}
 	required sstack_nfs_command_t command = 2;
 	optional sfsd_storage_t storage = 3;
 	optional sstack_nfs_command_struct command_struct = 4;
-	optional sstack_nfs_result_struct result_struct = 5;
+	optional sstack_nfs_response_struct response_struct = 5;
 }

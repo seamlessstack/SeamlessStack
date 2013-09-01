@@ -20,7 +20,7 @@ main (void)
 	hdr.payload_len = 20;
 	msg.hdr = &hdr;
 
-	msg.command = SSTACK_PAYLOAD_T__SSTACK_NFS_COMMAND_T__NFS_READ;
+	msg.command = SSTACK_PAYLOAD_T__SSTACK_NFS_COMMAND_T__NFS_WRITE;
 	data.data_len = strlen("ABCDEFGHIJKLMNOPQRSTUVWXYZ") + 1;
 	data.data_val.len = strlen("ABCDEFGHIJKLMNOPQRSTUVWXYZ") + 1;
 	data.data_val.data = (uint8_t *) "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
