@@ -141,6 +141,8 @@ sstack_send_payload(sstack_client_handle_t handle,
 	SstackNfsCommandStruct cmd = SSTACK_NFS_COMMAND_STRUCT__INIT;
 	uint32_t payload_len = 0;
 	int ret = -1;
+	size_t len = 0;
+	char *buffer = NULL;
 
 	hdr.sequence = sequence++;
 	hdr.payload_len = 0; // Dummy . will be filled later
@@ -150,8 +152,6 @@ sstack_send_payload(sstack_client_handle_t handle,
 		case SSTACK_REMOVE_STORAGE:
 		case SSTACK_UPDATE_STORAGE: {
 			SfsdStorageT storage = SFSD_STORAGE_T__INIT;
-			size_t len = 0;
-			char * buffer = NULL;
 
 			// TODO
 			// For SSTACK_UPDATE_STORAGE, need to print previous and new
@@ -238,8 +238,6 @@ sstack_send_payload(sstack_client_handle_t handle,
 		case NFS_SETATTR: {
 			SstackNfsSetattrCmd setattrcmd = SSTACK_NFS_SETATTR_CMD__INIT;
 			SstackFileAttributeT fileattr = SSTACK_FILE_ATTRIBUTE_T__INIT;
-			size_t len = 0;
-			char * buffer = NULL;
 
 			sfs_log(ctx, SFS_INFO, "%s: %s called \n", __FUNCTION__,
 					sstack_command_stringify(payload->command));
@@ -286,9 +284,6 @@ sstack_send_payload(sstack_client_handle_t handle,
 			SstackNfsLookupCmd lookupcmd = SSTACK_NFS_LOOKUP_CMD__INIT;
 			SstackFileNameT where = SSTACK_FILE_NAME_T__INIT;
 			SstackFileNameT what = SSTACK_FILE_NAME_T__INIT;
-			size_t len = 0;
-			char *buffer = NULL;
-
 
 			sfs_log(ctx, SFS_INFO, "%s: %s called \n", __FUNCTION__,
 					sstack_command_stringify(payload->command));
@@ -343,8 +338,6 @@ sstack_send_payload(sstack_client_handle_t handle,
 
 		case NFS_ACCESS: {
 			SstackNfsAccessCmd accesscmd = SSTACK_NFS_ACCESS_CMD__INIT;
-			size_t len;
-			char *buffer = NULL;
 
 			sfs_log(ctx, SFS_INFO, "%s: %s called \n", __FUNCTION__,
 					sstack_command_stringify(payload->command));
@@ -387,8 +380,6 @@ sstack_send_payload(sstack_client_handle_t handle,
 		}
 		case NFS_READ: {
 			SstackNfsReadCmd readcmd = SSTACK_NFS_READ_CMD__INIT;
-			size_t len;
-			char *buffer = NULL;
 
 			sfs_log(ctx, SFS_INFO, "%s: %s called \n", __FUNCTION__,
 					sstack_command_stringify(payload->command));
@@ -433,8 +424,6 @@ sstack_send_payload(sstack_client_handle_t handle,
 		case NFS_WRITE: {
 			SstackNfsWriteCmd writecmd = SSTACK_NFS_WRITE_CMD__INIT;
 			SstackNfsData data = SSTACK_NFS_DATA__INIT;
-			size_t len;
-			char *buffer = NULL;
 
 			sfs_log(ctx, SFS_INFO, "%s: %s called \n", __FUNCTION__,
 					sstack_command_stringify(payload->command));
@@ -448,6 +437,285 @@ sstack_send_payload(sstack_client_handle_t handle,
 			writecmd.count = payload->command_struct.write_cmd.count;
 			writecmd.data = &data;
 			cmd.write_cmd = &writecmd;
+			msg.command_struct = &cmd;
+			len = sstack_payload_t__get_packed_size(&msg);
+			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
+			msg.hdr = &hdr; // Parannoid 
+			buffer = malloc(len);
+			if (NULL == buffer) {
+				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
+					"%s. Command aborted \n", __FUNCTION__,
+					sstack_command_stringify(payload->command));
+	
+				return -ENOMEM;
+			}
+			sstack_payload_t__pack(&msg, buffer);
+			ret = _send_payload(transport, handle, buffer, len);
+			if (ret != 0) {
+				sfs_log(ctx, SFS_ERR, "%s: Failed to xmit payload "
+					"for %s request. Error = %d \n",
+					 __FUNCTION__, 
+					sstack_command_stringify(payload->command), ret);
+
+				free(buffer);
+
+				return -ret;
+			} else {
+				sfs_log(ctx, SFS_INFO, "%s: Successfully xmitted payload "
+					"for %s request \n",
+					 __FUNCTION__,
+					sstack_command_stringify(payload->command));
+
+				free(buffer);
+
+				return 0;
+			}
+		}
+		case NFS_CREATE: {
+			SstackNfsCreateCmd createcmd = SSTACK_NFS_CREATE_CMD__INIT;
+			SstackNfsData data = SSTACK_NFS_DATA__INIT;
+
+			sfs_log(ctx, SFS_INFO, "%s: %s called \n", __FUNCTION__,
+					sstack_command_stringify(payload->command));
+			msg.command = SSTACK_PAYLOAD_T__SSTACK_NFS_COMMAND_T__NFS_CREATE;
+			data.data_len = payload->command_struct.create_cmd.data.data_len;
+			data.data_val.len = data.data_len;
+			strncpy((char *) &data.data_val.data,
+				(char *) &payload->command_struct.create_cmd.data.data_val,
+				data.data_len);
+			createcmd.mode = payload->command_struct.create_cmd.mode;
+			createcmd.data = &data;
+			cmd.create_cmd = &createcmd;
+			msg.command_struct = &cmd;
+			len = sstack_payload_t__get_packed_size(&msg);
+			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
+			msg.hdr = &hdr; // Parannoid 
+			buffer = malloc(len);
+			if (NULL == buffer) {
+				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
+					"%s. Command aborted \n", __FUNCTION__,
+					sstack_command_stringify(payload->command));
+	
+				return -ENOMEM;
+			}
+			sstack_payload_t__pack(&msg, buffer);
+			ret = _send_payload(transport, handle, buffer, len);
+			if (ret != 0) {
+				sfs_log(ctx, SFS_ERR, "%s: Failed to xmit payload "
+					"for %s request. Error = %d \n",
+					 __FUNCTION__, 
+					sstack_command_stringify(payload->command), ret);
+
+				free(buffer);
+
+				return -ret;
+			} else {
+				sfs_log(ctx, SFS_INFO, "%s: Successfully xmitted payload "
+					"for %s request \n",
+					 __FUNCTION__,
+					sstack_command_stringify(payload->command));
+
+				free(buffer);
+
+				return 0;
+			}
+		}
+		case NFS_MKDIR: {
+			SstackNfsMkdirCmd mkdircmd = SSTACK_NFS_MKDIR_CMD__INIT;
+
+			sfs_log(ctx, SFS_INFO, "%s: %s called \n", __FUNCTION__,
+					sstack_command_stringify(payload->command));
+			msg.command = SSTACK_PAYLOAD_T__SSTACK_NFS_COMMAND_T__NFS_MKDIR;
+			mkdircmd.mode = payload->command_struct.mkdir_cmd.mode;
+			cmd.mkdir_cmd = &mkdircmd;
+			msg.command_struct = &cmd;
+			len = sstack_payload_t__get_packed_size(&msg);
+			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
+			msg.hdr = &hdr; // Parannoid 
+			buffer = malloc(len);
+			if (NULL == buffer) {
+				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
+					"%s. Command aborted \n", __FUNCTION__,
+					sstack_command_stringify(payload->command));
+	
+				return -ENOMEM;
+			}
+			sstack_payload_t__pack(&msg, buffer);
+			ret = _send_payload(transport, handle, buffer, len);
+			if (ret != 0) {
+				sfs_log(ctx, SFS_ERR, "%s: Failed to xmit payload "
+					"for %s request. Error = %d \n",
+					 __FUNCTION__, 
+					sstack_command_stringify(payload->command), ret);
+
+				free(buffer);
+
+				return -ret;
+			} else {
+				sfs_log(ctx, SFS_INFO, "%s: Successfully xmitted payload "
+					"for %s request \n",
+					 __FUNCTION__,
+					sstack_command_stringify(payload->command));
+
+				free(buffer);
+
+				return 0;
+			}
+		}
+		case NFS_SYMLINK: {
+			SstackNfsSymlinkCmd symlinkcmd = SSTACK_NFS_SYMLINK_CMD__INIT;
+			SstackFileNameT new_path = SSTACK_FILE_NAME_T__INIT;
+
+			sfs_log(ctx, SFS_INFO, "%s: %s called \n", __FUNCTION__,
+					sstack_command_stringify(payload->command));
+			msg.command = SSTACK_PAYLOAD_T__SSTACK_NFS_COMMAND_T__NFS_SYMLINK;
+			new_path.name_len =
+				payload->command_struct.symlink_cmd.new_path.name_len;
+			new_path.name.len = new_path.name_len;
+			strncpy((char *)&new_path.name.data,
+				(char *) payload->command_struct.symlink_cmd.new_path.name,
+				new_path.name.len );
+			symlinkcmd.new_path = &new_path;
+			cmd.symlink_cmd = &symlinkcmd;
+			msg.command_struct = &cmd;
+			len = sstack_payload_t__get_packed_size(&msg);
+			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
+			msg.hdr = &hdr; // Parannoid 
+			buffer = malloc(len);
+			if (NULL == buffer) {
+				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
+					"%s. Command aborted \n", __FUNCTION__,
+					sstack_command_stringify(payload->command));
+	
+				return -ENOMEM;
+			}
+			sstack_payload_t__pack(&msg, buffer);
+			ret = _send_payload(transport, handle, buffer, len);
+			if (ret != 0) {
+				sfs_log(ctx, SFS_ERR, "%s: Failed to xmit payload "
+					"for %s request. Error = %d \n",
+					 __FUNCTION__, 
+					sstack_command_stringify(payload->command), ret);
+
+				free(buffer);
+
+				return -ret;
+			} else {
+				sfs_log(ctx, SFS_INFO, "%s: Successfully xmitted payload "
+					"for %s request \n",
+					 __FUNCTION__,
+					sstack_command_stringify(payload->command));
+
+				free(buffer);
+
+				return 0;
+			}
+		}
+		case NFS_RENAME: {
+			SstackNfsRenameCmd renamecmd = SSTACK_NFS_RENAME_CMD__INIT;
+			SstackFileNameT new_path = SSTACK_FILE_NAME_T__INIT;
+
+			sfs_log(ctx, SFS_INFO, "%s: %s called \n", __FUNCTION__,
+					sstack_command_stringify(payload->command));
+			msg.command = SSTACK_PAYLOAD_T__SSTACK_NFS_COMMAND_T__NFS_RENAME;
+			new_path.name_len =
+				payload->command_struct.rename_cmd.new_path.name_len;
+			new_path.name.len = new_path.name_len;
+			strncpy((char *)&new_path.name.data,
+				(char *) payload->command_struct.rename_cmd.new_path.name,
+				new_path.name.len);
+			renamecmd.new_path = &new_path;
+			cmd.rename_cmd = &renamecmd;
+			msg.command_struct = &cmd;
+			len = sstack_payload_t__get_packed_size(&msg);
+			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
+			msg.hdr = &hdr; // Parannoid 
+			buffer = malloc(len);
+			if (NULL == buffer) {
+				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
+					"%s. Command aborted \n", __FUNCTION__,
+					sstack_command_stringify(payload->command));
+	
+				return -ENOMEM;
+			}
+			sstack_payload_t__pack(&msg, buffer);
+			ret = _send_payload(transport, handle, buffer, len);
+			if (ret != 0) {
+				sfs_log(ctx, SFS_ERR, "%s: Failed to xmit payload "
+					"for %s request. Error = %d \n",
+					 __FUNCTION__, 
+					sstack_command_stringify(payload->command), ret);
+
+				free(buffer);
+
+				return -ret;
+			} else {
+				sfs_log(ctx, SFS_INFO, "%s: Successfully xmitted payload "
+					"for %s request \n",
+					 __FUNCTION__,
+					sstack_command_stringify(payload->command));
+
+				free(buffer);
+
+				return 0;
+			}
+		}
+		case NFS_REMOVE: {
+			SstackNfsRemoveCmd removecmd = SSTACK_NFS_REMOVE_CMD__INIT;
+
+			sfs_log(ctx, SFS_INFO, "%s: %s called \n", __FUNCTION__,
+					sstack_command_stringify(payload->command));
+			msg.command = SSTACK_PAYLOAD_T__SSTACK_NFS_COMMAND_T__NFS_REMOVE;
+			removecmd.path_len =
+				payload->command_struct.remove_cmd.path_len;
+			removecmd.path.len = removecmd.path_len;
+			strncpy((char *) &removecmd.path.data,
+				(char *) &payload->command_struct.remove_cmd.path,
+				removecmd.path.len);
+			cmd.remove_cmd = &removecmd;
+			msg.command_struct = &cmd;
+			len = sstack_payload_t__get_packed_size(&msg);
+			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
+			msg.hdr = &hdr; // Parannoid 
+			buffer = malloc(len);
+			if (NULL == buffer) {
+				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
+					"%s. Command aborted \n", __FUNCTION__,
+					sstack_command_stringify(payload->command));
+	
+				return -ENOMEM;
+			}
+			sstack_payload_t__pack(&msg, buffer);
+			ret = _send_payload(transport, handle, buffer, len);
+			if (ret != 0) {
+				sfs_log(ctx, SFS_ERR, "%s: Failed to xmit payload "
+					"for %s request. Error = %d \n",
+					 __FUNCTION__, 
+					sstack_command_stringify(payload->command), ret);
+
+				free(buffer);
+
+				return -ret;
+			} else {
+				sfs_log(ctx, SFS_INFO, "%s: Successfully xmitted payload "
+					"for %s request \n",
+					 __FUNCTION__,
+					sstack_command_stringify(payload->command));
+
+				free(buffer);
+
+				return 0;
+			}
+		}
+		case NFS_COMMIT: {
+			SstackNfsCommitCmd commitcmd = SSTACK_NFS_COMMIT_CMD__INIT;
+
+			sfs_log(ctx, SFS_INFO, "%s: %s called \n", __FUNCTION__,
+					sstack_command_stringify(payload->command));
+			msg.command = SSTACK_PAYLOAD_T__SSTACK_NFS_COMMAND_T__NFS_COMMIT;
+			commitcmd.offset = payload->command_struct.commit_cmd.offset;
+			commitcmd.count = payload->command_struct.commit_cmd.count;
+			cmd.commit_cmd = &commitcmd;
 			msg.command_struct = &cmd;
 			len = sstack_payload_t__get_packed_size(&msg);
 			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
