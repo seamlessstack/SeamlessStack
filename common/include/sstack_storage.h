@@ -21,6 +21,7 @@
 #define __SSTACK_STORAGE_H_
 
 #define MAX_MOUNT_POINT_LEN 16
+#include <sstack_transport.h>
 
 /* Supported Protocols */
 typedef enum {

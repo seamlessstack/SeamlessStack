@@ -35,6 +35,10 @@
 #define MAX_QUEUE_SIZE 1024
 #define MAX_EXTENT_SIZE 65536 /* (64 * 1024 bytes) */
 
+/* Forward declaration */
+struct sfs_chunk_domain;
+typedef struct sfs_chunk_domain sfs_chunk_domain_t;
+
 typedef enum {
 	SFSD_HANDSHAKE	= 1,
 	SFSD_NFS	= 2,
@@ -76,10 +80,15 @@ typedef struct sfsd {
 	sstack_client_handle_t handle;
 	/* To be used in sfsd;
 	   Undefined if accessed in sfs */
+
+	/* The chunk domain which this sfsd 
+	   controls */
+	sfs_chunk_domain_t *chunk;
 	pthread_t receiver_thread;
 	void *receiver_params;
 	char sfs_addr[IPV4_ADDR_MAX];
 	sstack_thread_pool_t *thread_pool;
+	sstack_thread_pool_t *chunk_thread_pool;
 #define PAYLOAD_CACHE_OFFSET 0
 #define DATA_CACHE_OFFSET 1
 #define HANDLE_PARAM_OFFSET 2

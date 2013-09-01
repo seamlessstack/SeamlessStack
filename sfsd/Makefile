@@ -14,6 +14,7 @@ LDFLAGS = -L $(TOPDIR)/common/ -L $(OSS_LIBDIR)
 
 SFSD_OBJS = src/main.o src/sfsd.o src/sfsd_signals.o src/sfsd_threads.o \
 	    src/sfsd_ops.o src/sfsd_transport.o src/sfsd_erasure.o \
+	    src/sfsd_chunk.o
 
 all:: sfsd
 

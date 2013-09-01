@@ -31,13 +31,29 @@ struct handle_payload_params {
 	log_ctx_t *log_ctx;
 	/* Pointer to cache descriptor of self */
 	bds_cache_desc_t cache_p;
+	sfsd_t	*sfsd;
 };
 static void* do_receive_thread (void *params);
 static void handle_command(sstack_payload_t *command,
 		sstack_payload_t **response,
-		bds_cache_desc_t cache_arr[2], log_ctx_t *log_ctx);
+		bds_cache_desc_t cache_arr[2], sfsd_t *sfsd,
+		log_ctx_t *log_ctx);
+static inline void send_unsucessful_response(sstack_payload_t *payload,
+		sfsd_t *sfsd);
+static sstack_payload_t* get_payload(sstack_transport_t *transport,
+		sstack_client_handle_t handle);
+static int32_t send_payload(sstack_transport_t *transport,
+		sstack_client_handle_t handle, sstack_payload_t *response);
 
 /* ====================+++++++++++++++++++++++++++++++++==================*/
+static inline void send_unsucessful_response(sstack_payload_t *payload,
+		sfsd_t *sfsd)
+{
+	if (payload) {
+		payload->response_struct.command_ok = -1;
+		send_payload(sfsd->transport, sfsd->handle, payload);
+	}
+}
 
 static int32_t sfsd_create_receiver_thread(sfsd_t *sfsd)
 {
@@ -73,6 +89,11 @@ int32_t init_thread_pool(sfsd_t *sfsd)
 			"Could not create sfsd thread pool",
 			ret, sfsd->log_ctx, SFS_ERR);
 
+	sfsd->chunk_thread_pool = sstack_thread_pool_create(1, 2, 0, &attr);
+	SFS_LOG_EXIT((sfsd->thread_pool != NULL),
+			"Could not create sfsd chunk thread pool",
+			ret, sfsd->log_ctx, SFS_ERR);
+
 	sfs_log(sfsd->log_ctx, SFS_INFO, "Thread pool initialized");
 	return 0;
 	
@@ -96,6 +117,12 @@ static sstack_payload_t* get_payload(sstack_transport_t *transport,
 	return payload;
 }
 
+int32_t send_payload(sstack_transport_t *transport,
+		sstack_client_handle_t handle, sstack_payload_t *payload)
+{
+	return 0;
+}
+
 static void* do_process_payload(void *param)
 {
 	struct handle_payload_params *h_param =
@@ -103,15 +130,21 @@ static void* do_process_payload(void *param)
 	sstack_payload_t *command = h_param->payload;
 	sstack_payload_t *response = NULL;
 	bds_cache_desc_t param_cache = h_param->cache_p;
-
-	handle_command(command, &response, h_param->cache_arr, h_param->log_ctx);
+	handle_command(command, &response,
+			h_param->cache_arr, h_param->sfsd,
+			h_param->log_ctx);
 	/* Free of the param cache */
 	bds_cache_free(param_cache, h_param);
 
 	/* Send of the response */
-	
+	if (send_payload(h_param->sfsd->transport,
+				h_param->sfsd->handle, response)) {
+		sfs_log (h_param->log_ctx, SFS_ERR, "Error sending payload");
+	}
 
-	return 0;
+	/* Free off the response */
+	bds_cache_free(h_param->cache_arr[PAYLOAD_CACHE_OFFSET], response);
+	return NULL;
 }
 
 static void* do_receive_thread(void *param)
@@ -167,33 +200,73 @@ static void* do_receive_thread(void *param)
 		/* After getting the payload, assign a thread pool from the
 		   thread pool to do the job */
 		if (payload != NULL) {
+			/* Command could be 
+			   1) Chunk domain command
+			   2) Standard NFS command */
 			handle_params = bds_cache_alloc(param_cache);
 			if (handle_params == NULL) {
 				sfs_log(sfsd->log_ctx, SFS_ERR, 
 						"Failed to allocate %s",
 						"handle_params");
-				/* TODO: need to send an error response here */
+				send_unsucessful_response(payload, sfsd);
 				continue;
 			}
-
 			handle_params->payload = payload;
 			handle_params->log_ctx = sfsd->log_ctx;
-			handle_params->cache_arr = sfsd->payload_cache_arr;
+			handle_params->cache_arr =
+				sfsd->payload_cache_arr;
 			handle_params->cache_p = param_cache;
+			handle_params->sfsd = sfsd;
 			ret = sstack_thread_pool_queue(sfsd->thread_pool,
 					do_process_payload, handle_params);
 			sfs_log(sfsd->log_ctx,
-					((ret == 0) ? SFS_DEBUG: SFS_ERR),
-					"Job queue status: %d", ret);
+				((ret == 0) ? SFS_DEBUG: SFS_ERR),
+				"Job queue status: %d", ret);
 		}
 	}
 }
 
 void handle_command(sstack_payload_t *command, sstack_payload_t **response,
-		bds_cache_desc_t cache_arr[2], log_ctx_t *log_ctx)
+		bds_cache_desc_t cache_arr[2], sfsd_t *sfsd, log_ctx_t *log_ctx)
 {
+	sfsd_storage_t *storage;
+	char *path;
+	int32_t ret = 0;
 	switch(command->command)
 	{
+		/* sstack storage commands here */
+		case SSTACK_ADD_STORAGE:
+			storage = &command->command_struct.add_chunk_cmd.storage;
+			path = sfsd_add_chunk(sfsd->chunk, storage);
+			if (path) {
+				free(path);
+			} else {
+				ret = -EINVAL;
+			}
+			command->response_struct.command_ok = ret;
+			*response = command;
+			break;
+		case SSTACK_UPDATE_STORAGE:
+			storage = &command->command_struct.update_chunk_cmd.storage;
+			if (0 != (ret = sfsd_update_chunk(sfsd->chunk,
+							storage))) {
+				sfs_log(log_ctx, SFS_ERR, "Unable to update"
+						"chunk");
+			}
+			command->response_struct.command_ok = ret;
+			*response = command;
+			break;
+		case SSTACK_REMOVE_STORAGE:
+			storage = &command->command_struct.delete_chunk_cmd.storage;
+			if (0 != (ret = sfsd_remove_chunk(sfsd->chunk,
+							storage))) {
+				sfs_log(log_ctx, SFS_ERR, "Unable to remove"
+						"chunk");
+			}
+			command->response_struct.command_ok = ret;
+			*response = command;
+			break;
+		/* sstack nfs commands here */
 		case NFS_GETATTR:
 			*response = sstack_getattr(command, cache_arr, log_ctx);
 			break;

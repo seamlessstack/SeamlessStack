@@ -20,6 +20,7 @@
 #define __SSTACK_NFS_H_
 
 #include <limits.h>
+#include <sstack_storage.h>
 /**
   * Commands that are sent from SFS to SFSD.
   * The command list includes the following:-
@@ -30,6 +31,7 @@
   **/
 typedef enum sstack_command {
 	SSTACK_ADD_STORAGE,
+	SSTACK_UPDATE_STORAGE,
 	SSTACK_REMOVE_STORAGE,
 	SSTACK_MAX_STORAGE_COMMAND,
 	NFS_GETATTR,
@@ -89,6 +91,10 @@ typedef struct sstack_file_name {
 } sstack_file_name_t;
 
 /* =============== COMMAND STRUCTURES ========================*/
+
+struct sstack_chunk_cmd {
+	sfsd_storage_t storage;
+};
 
 struct sstack_nfs_setattr_cmd {
 	sstack_file_attribute_t attribute;
@@ -151,6 +157,17 @@ struct sstack_nfs_commit_cmd {
 typedef struct sstack_command_struct {
 	sstack_file_name_t file_handle;
 	union {
+		/* Add storage command */
+		struct sstack_chunk_cmd add_chunk_cmd;
+
+		/* Update storage command */
+		struct sstack_chunk_cmd update_chunk_cmd;
+
+		/* Remove storage commad */
+		struct sstack_chunk_cmd delete_chunk_cmd;
+
+		/* ===== NFS COMMANDS BELOW ======= */
+
 		/* NFS v3 GETATTR command -
 		 Doesnot need anything apart 
 		 from file handle */

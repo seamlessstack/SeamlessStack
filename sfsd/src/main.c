@@ -26,6 +26,7 @@
 #include <sstack_transport.h>
 #include <sstack_sfsd.h>
 #include <bds_slab.h>
+#include <sstack_chunk.h>
 
 /* sstack log directory */
 char sstack_log_directory[PATH_MAX];
@@ -61,21 +62,23 @@ int main(int argc, char **argv)
 	ASSERT ((0 == register_signals(&sfsd)),
 			"Signal regisration failed", 1, 1, 0);
 
-	/* Mount devices to appropriate mount points */
-	//init_storage_devs(&sfsd);
-
 	/* Initialize transport */
 	init_transport(&sfsd);
 
 	/* Initialize thread pool */
 	init_thread_pool(&sfsd);
 
+	/* Initialize the chunk domain */
+
+	sfsd.chunk = sfsd_chunk_domain_init(&sfsd, sfsd.log_ctx);
+
+	ASSERT((sfsd.chunk != NULL),
+			"Chunk domain initialization failed", 1, 1, 0);
+
 	/* Daemonize */
 	//daemon(0, 0);
 
 	while(1);
-	/* Run the sfsd daemon */
-	run_daemon_sfsd(&sfsd);
 
 	/* Control never returns */
 	return 0;
