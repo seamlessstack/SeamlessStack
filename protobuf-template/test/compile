@@ -1,1 +1,1 @@
-cc -g pack-unpack.c jobs.pb-c.c  -o pack-unpack  -lprotobuf-c
+cc -g pack-unpack.c proto/jobs.pb-c.c  -o pack-unpack  -lprotobuf-c

@@ -194,7 +194,7 @@ message sstack_nfs_read_resp
 
 message sstack_nfs_write_resp
 {
-	required uint32 file_write_ok = 1;
+	required uint32 file_create_ok = 1;
 	required uint32 file_wc = 2;
 }
 

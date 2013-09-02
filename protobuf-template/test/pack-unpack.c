@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "jobs.pb-c.h"
+#include <jobs.pb-c.h>
 
 int
 main (void)

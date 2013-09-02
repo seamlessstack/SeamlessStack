@@ -75,28 +75,35 @@ sstack_command_stringify(sstack_command_t command)
 }
 
 /*
- * _send_payload - Helper function to call transport function
+ * _sendrecv_payload - Helper function to call transport function
  * Main itention is to avoid clutter for each command handling.
  *
  * transport - transport structure used between sfs and sfsd
  * handle - client handle. Should be non-NULL.
  * buffer - preallocated buffer containing packed payload
  * len - Length of the packed payload.
+ * tx - boolean to indicate tx or rx. If 1 then tx. Else rx
  *
- * Return 0 on success and negative number indicating error on failure.
+ * Return 0 on success for xmit and number bytes received for recv.
+ * Returns a negative number indicating error on failure.
  */ 
 
 static inline int
-_send_payload(sstack_transport_t *transport,
+_sendrecv_payload(sstack_transport_t *transport,
 			sstack_client_handle_t handle,
 			char *buffer,
-			size_t len)
+			size_t len,
+			int tx)
 {
 
-	if (transport && transport->transport_ops.tx && (handle > 0)) {
+	if (transport && transport->transport_ops.tx &&
+			transport->transport_ops.rx  && (handle > 0)) {
 		int ret = -1;
 
-		ret = transport->transport_ops.tx(handle, len, (void *) buffer);
+		if (tx == 1)
+			ret = transport->transport_ops.tx(handle, len, (void *) buffer);
+		else if (tx == 0)
+			ret = transport->transport_ops.rx(handle, len, (void *) buffer);
 		if (ret == -1) {
 			// Request failed
 			return -errno;
@@ -104,8 +111,13 @@ _send_payload(sstack_transport_t *transport,
 		// Assumption is tx will try few times to transmit full data.
 		// If it is unsuccessul, tx returns -1.
 		// So not checking for partial data transfer here.
-
-		return 0;
+		// For recv, header is received first followed by the real payload.
+		// recv will keep trying till number of bytes mentioned in the 
+		// payload heder are received. So no partial recvs are possible.
+		if (tx == 1)
+			return 0;
+		else if (tx == 0)
+			return ret;
 	} else {
 		// Something wrong with parameters
 		return -EINVAL;
@@ -206,7 +218,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 			}
 			sstack_payload_t__pack(&msg, buffer);
 			// Send it using transport
-			ret = _send_payload(transport, handle, buffer, len);
+			ret = _sendrecv_payload(transport, handle, buffer, len, 1);
 			if (ret != 0) {
 				sfs_log(ctx, SFS_ERR, "%s: Failed to xmit payload "
 					"for %s request for ipaddr %s "
@@ -259,7 +271,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 				return -ENOMEM;
 			}
 			sstack_payload_t__pack(&msg, buffer);
-			ret = _send_payload(transport, handle, buffer, len);
+			ret = _sendrecv_payload(transport, handle, buffer, len, 1);
 			if (ret != 0) {
 				sfs_log(ctx, SFS_ERR, "%s: Failed to xmit payload "
 					"for %s request. Error = %d \n",
@@ -314,7 +326,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 				return -ENOMEM;
 			}
 			sstack_payload_t__pack(&msg, buffer);
-			ret = _send_payload(transport, handle, buffer, len);
+			ret = _sendrecv_payload(transport, handle, buffer, len, 1);
 			if (ret != 0) {
 				sfs_log(ctx, SFS_ERR, "%s: Failed to xmit payload "
 					"for %s request. Error = %d \n",
@@ -357,7 +369,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 				return -ENOMEM;
 			}
 			sstack_payload_t__pack(&msg, buffer);
-			ret = _send_payload(transport, handle, buffer, len);
+			ret = _sendrecv_payload(transport, handle, buffer, len, 1);
 			if (ret != 0) {
 				sfs_log(ctx, SFS_ERR, "%s: Failed to xmit payload "
 					"for %s request. Error = %d \n",
@@ -400,7 +412,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 				return -ENOMEM;
 			}
 			sstack_payload_t__pack(&msg, buffer);
-			ret = _send_payload(transport, handle, buffer, len);
+			ret = _sendrecv_payload(transport, handle, buffer, len, 1);
 			if (ret != 0) {
 				sfs_log(ctx, SFS_ERR, "%s: Failed to xmit payload "
 					"for %s request. Error = %d \n",
@@ -450,7 +462,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 				return -ENOMEM;
 			}
 			sstack_payload_t__pack(&msg, buffer);
-			ret = _send_payload(transport, handle, buffer, len);
+			ret = _sendrecv_payload(transport, handle, buffer, len, 1);
 			if (ret != 0) {
 				sfs_log(ctx, SFS_ERR, "%s: Failed to xmit payload "
 					"for %s request. Error = %d \n",
@@ -499,7 +511,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 				return -ENOMEM;
 			}
 			sstack_payload_t__pack(&msg, buffer);
-			ret = _send_payload(transport, handle, buffer, len);
+			ret = _sendrecv_payload(transport, handle, buffer, len, 1);
 			if (ret != 0) {
 				sfs_log(ctx, SFS_ERR, "%s: Failed to xmit payload "
 					"for %s request. Error = %d \n",
@@ -541,7 +553,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 				return -ENOMEM;
 			}
 			sstack_payload_t__pack(&msg, buffer);
-			ret = _send_payload(transport, handle, buffer, len);
+			ret = _sendrecv_payload(transport, handle, buffer, len, 1);
 			if (ret != 0) {
 				sfs_log(ctx, SFS_ERR, "%s: Failed to xmit payload "
 					"for %s request. Error = %d \n",
@@ -590,7 +602,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 				return -ENOMEM;
 			}
 			sstack_payload_t__pack(&msg, buffer);
-			ret = _send_payload(transport, handle, buffer, len);
+			ret = _sendrecv_payload(transport, handle, buffer, len, 1);
 			if (ret != 0) {
 				sfs_log(ctx, SFS_ERR, "%s: Failed to xmit payload "
 					"for %s request. Error = %d \n",
@@ -639,7 +651,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 				return -ENOMEM;
 			}
 			sstack_payload_t__pack(&msg, buffer);
-			ret = _send_payload(transport, handle, buffer, len);
+			ret = _sendrecv_payload(transport, handle, buffer, len, 1);
 			if (ret != 0) {
 				sfs_log(ctx, SFS_ERR, "%s: Failed to xmit payload "
 					"for %s request. Error = %d \n",
@@ -686,7 +698,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 				return -ENOMEM;
 			}
 			sstack_payload_t__pack(&msg, buffer);
-			ret = _send_payload(transport, handle, buffer, len);
+			ret = _sendrecv_payload(transport, handle, buffer, len, 1);
 			if (ret != 0) {
 				sfs_log(ctx, SFS_ERR, "%s: Failed to xmit payload "
 					"for %s request. Error = %d \n",
@@ -729,7 +741,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 				return -ENOMEM;
 			}
 			sstack_payload_t__pack(&msg, buffer);
-			ret = _send_payload(transport, handle, buffer, len);
+			ret = _sendrecv_payload(transport, handle, buffer, len, 1);
 			if (ret != 0) {
 				sfs_log(ctx, SFS_ERR, "%s: Failed to xmit payload "
 					"for %s request. Error = %d \n",
@@ -761,6 +773,109 @@ sstack_recv_payload(sstack_client_handle_t handle,
 					sstack_transport_t *transport,
 					log_ctx_t *ctx)
 {
+	SstackPayloadT *msg = NULL;
+	ssize_t payload_len = 0;
+	sstack_payload_t *payload = NULL;
+	char temp_payload[sizeof(sstack_payload_t)]; // Max size of payload
 
+
+	payload = (sstack_payload_t *) malloc(sizeof(sstack_payload_t));
+	if (NULL == payload) {
+		sfs_log(ctx, SFS_ERR, "%s: Failed to allocate memory for receiving"
+			" payload. Client handle = %"PRId64" \n",
+			__FUNCTION__, handle);
+		return NULL;
+	}
+
+	memset((void *)payload, '\0', sizeof(sstack_payload_t));
+	// Call the transport function to receive the buffer
+	payload_len = _sendrecv_payload(transport, handle, temp_payload,
+			 (size_t) sizeof(sstack_payload_t), 0);
+	if (payload_len == -1) {
+		sfs_log(ctx, SFS_ERR, "%s: Recv failed for payload. "
+			"Client handle = %"PRId64" \n",
+			__FUNCTION__, handle);
+		return NULL;
+	}
+	// Parse temp_payload and populate payload
+	msg = sstack_payload_t__unpack(NULL, payload_len, temp_payload);
+	// Populate the payload structure with required fields
+	payload->hdr.sequence = msg->hdr->sequence;
+	payload->hdr.payload_len = msg->hdr->payload_len;
+	payload->command = msg->command;
+
+	switch(msg->command) {
+		case SSTACK_ADD_STORAGE:
+		case SSTACK_REMOVE_STORAGE:
+		case SSTACK_UPDATE_STORAGE_RSP: {
+			payload->response_struct.command_ok =
+				msg->response_struct->command_ok;
+			if (payload->response_struct.command_ok == 1) {
+				sfs_log(ctx, SFS_INFO, "%s: Command %s succeeded. "
+					"Client handle = %"PRId64" \n",
+					__FUNCTION__,
+					sstack_command_stringify(msg->command),
+					handle);
+			}
+			return payload;
+		}
+		case NFS_GETATTR_RSP:
+			memcpy((void *) &payload->response_struct.getattr_resp.stbuf,
+					(void *) msg->response_struct->getattr_resp->stbuf,
+					sizeof(struct stat));
+
+			return payload;
+		case NFS_LOOKUP_RSP: {
+			ProtobufCBinaryData lookup_path;
+
+			payload->response_struct.lookup_resp.lookup_path_len =
+				msg->response_struct->lookup_resp->lookup_path_len;
+			lookup_path = msg->response_struct->lookup_resp->lookup_path;
+			memcpy((void *) payload->response_struct.lookup_resp.lookup_path,
+				(void *) lookup_path.data, lookup_path.len);
+			return payload;
+		}
+		case NFS_ACCESS_RSP:
+			payload->response_struct.access_resp.access =
+				msg->response_struct->access_resp->access;
+			return payload;
+		case NFS_READLINK_RSP: {
+			ProtobufCBinaryData name;
+
+			payload->response_struct.readlink_resp.real_file.name_len =
+				msg->response_struct->readlink_resp->real_file->name_len;
+			name = msg->response_struct->readlink_resp->real_file->name;
+			memcpy((void *) payload->response_struct.readlink_resp.real_file.name,
+				(void *) name.data, name.len);
+			return payload;
+		}
+		case NFS_READ_RSP: {
+			ProtobufCBinaryData data_val;
+
+			payload->response_struct.read_resp.count =
+				msg->response_struct->read_resp->count;
+			payload->response_struct.read_resp.eof =
+				msg->response_struct->read_resp->eof;
+			payload->response_struct.read_resp.data.data_len =
+				msg->response_struct->read_resp->data->data_len;
+			data_val = msg->response_struct->read_resp->data->data_val;
+			memcpy((void *) payload->response_struct.read_resp.data.data_val,
+				(void *) data_val.data, data_val.len);
+			return payload;
+		}
+		case NFS_WRITE_RSP:
+			payload->response_struct.write_resp.file_create_ok =
+				msg->response_struct->write_resp->file_create_ok;
+			payload->response_struct.write_resp.file_wc =
+				msg->response_struct->write_resp->file_wc;
+			return payload;
+		case NFS_CREATE_RSP:
+			payload->response_struct.create_resp.file_create_ok =
+				msg->response_struct->create_resp->file_create_ok;
+			payload->response_struct.create_resp.file_wc =
+				msg->response_struct->create_resp->file_wc;
+			return payload;
+			
+	}
 	return NULL;
 }
