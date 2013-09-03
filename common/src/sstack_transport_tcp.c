@@ -103,7 +103,8 @@ tcp_client_init(sstack_transport_t *transport)
  * tcp_tx - Send payload 
  *
  * handle - client handle i.e. socket fd
- * payload_len - Length of the payload. sfs(d) uses sizeof(sstack_payload_t)
+ * payload_len - Length of the payload. sfs(d) uses packed size of
+ * sstack_payload_t which is <= sizeof(sstack_payload_t).
  * payload - Real payload to be transmitted. sfs(d) use sstack_payload_t
  *
  * Returns number of bytes transmitted on success and -2 on failure.
@@ -119,11 +120,12 @@ tcp_tx(sstack_client_handle_t handle, size_t payload_len, void *payload)
  * tcp_rx - Receive payload 
  *
  * handle - client handle i.e. socket fd
- * payload_len - Length of the payload. sfs(d) uses sizeof(sstack_payload_t)
+ * payload_len - Length of the payload. sfs(d) uses packed size of
+ * sstack_payload_t which is <= sizeof(sstack_payload_t).
  * payload - Real payload to be transmitted. sfs(d) use sstack_payload_t
  *
  * Reads sstack_payload_hdr_t to determine real payload size. Returns 
- * sizeof(sstack_payload_t) + payload length on success.
+ * sizeof(sstack_payload_hdr_t) + payload length on success.
  *
  * Returns number of bytes received on success and a negative number 
  * indicating errno on failure.
