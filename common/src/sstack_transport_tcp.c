@@ -32,15 +32,35 @@
 #include <sys/types.h>
 #include <signal.h>
 #include <sys/wait.h>
+#include <sstack_jobs.h>
 #include <sstack_transport.h>
 #include <sstack_log.h>
 
 #define PORT "24496"
 #define CONNECT_PORT 24496
 
+/*
+ * sigchld_handler - Zombie reaper
+ */
+
+static void
+sigchld_handler(int signal)
+{
+	while(waitpid(-1, NULL, WNOHANG) > 0);
+}
+
+/*
+ * tcp_client_init - Init part of client(sfsd)
+ *
+ * transport - transport structure for the client (sfsd)
+ *
+ * Returns client handle i.e. socket descriptor got after connet
+ */
+
 sstack_client_handle_t
 tcp_client_init(sstack_transport_t *transport)
 {
+	struct sigaction sa;
 	struct sockaddr_in addr = { 0 };
 	int sockfd  = -1;
 
@@ -64,9 +84,30 @@ tcp_client_init(sstack_transport_t *transport)
 		return -1;
 	}
 
+	sa.sa_handler = sigchld_handler;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = SA_RESTART;
+	if (sigaction(SIGCHLD, &sa, NULL) == -1) {
+		sfs_log(transport->ctx, SFS_ERR, "%s: sigaction failed with"
+			"error %d\n", __FUNCTION__, errno); 
+		close(sockfd);
+
+		return  -1;
+	}
+
 	return sockfd;
 }
 
+
+/*
+ * tcp_tx - Send payload 
+ *
+ * handle - client handle i.e. socket fd
+ * payload_len - Length of the payload. sfs(d) uses sizeof(sstack_payload_t)
+ * payload - Real payload to be transmitted. sfs(d) use sstack_payload_t
+ *
+ * Returns number of bytes transmitted on success and -2 on failure.
+ */
 
 int
 tcp_tx(sstack_client_handle_t handle, size_t payload_len, void *payload)
@@ -74,11 +115,83 @@ tcp_tx(sstack_client_handle_t handle, size_t payload_len, void *payload)
 	return send((int) handle, payload, payload_len, 0);
 }
 
+/*
+ * tcp_rx - Receive payload 
+ *
+ * handle - client handle i.e. socket fd
+ * payload_len - Length of the payload. sfs(d) uses sizeof(sstack_payload_t)
+ * payload - Real payload to be transmitted. sfs(d) use sstack_payload_t
+ *
+ * Reads sstack_payload_hdr_t to determine real payload size. Returns 
+ * sizeof(sstack_payload_t) + payload length on success.
+ *
+ * Returns number of bytes received on success and a negative number 
+ * indicating errno on failure.
+ */
+
 int
 tcp_rx(sstack_client_handle_t handle, size_t payload_len, void *payload)
 {
-	return recv((int) handle, payload, payload_len, 0);
+	sstack_payload_hdr_t hdr;
+	int ret = -1;
+	int count = 0;
+	int bytes_read = 0;
+	int bytes_remaining = 0;
+
+	if (handle < 0 || payload_len <= 0 || NULL == payload) {
+		// Invalid parameters
+		return -EINVAL;
+	}
+
+	ret = recv((int) handle, (void *) &hdr, sizeof(sstack_payload_hdr_t), 0);
+	if (ret == -1) {
+		// Receive failed
+		return -errno;
+	}
+	memcpy((void *) payload, (void *) &hdr, sizeof(sstack_payload_hdr_t));
+	bytes_read += sizeof(sstack_payload_hdr_t);
+	bytes_remaining =  hdr.payload_len;
+	// Go ahead and read rest of the payload
+	ret = recv((int) handle, (char *) payload + sizeof(sstack_payload_hdr_t),
+			hdr.payload_len, 0);
+	if (ret == -1) {
+		// Receive failed
+		return -errno;
+	} else if (ret == hdr.payload_len) {
+		// recv succeeded.
+		return (sizeof(sstack_payload_hdr_t) + hdr.payload_len);
+	} else {
+		bytes_remaining -= ret;
+		bytes_read += ret;
+		while (bytes_remaining) {
+			if (count == MAX_RECV_RETRIES) {
+				// Failed to recv payload
+				return -errno;
+			}
+			ret = recv((int) handle, (char *) payload + bytes_read,
+				bytes_remaining, 0);
+			if (ret == -1) {
+				// Failure
+				return -errno;
+			} else  if (ret == bytes_remaining) {
+				// Recv succeeded
+				return (sizeof(sstack_payload_hdr_t) + hdr.payload_len);
+			} else {
+				count ++;
+				bytes_read  += ret;
+				bytes_remaining -= ret;
+			}
+		}
+	}
 }
+
+/*
+ * tcp_select - helper function to wait for connections
+ *
+ * handle - socket decriptor
+ * flags - block mask
+ *
+ */
 
 int
 tcp_select(sstack_client_handle_t handle, uint32_t block_flags)
@@ -112,12 +225,18 @@ tcp_select(sstack_client_handle_t handle, uint32_t block_flags)
 	return IGNORE_NO_BLOCK;
 }
 
-static void
-sigchld_handler(int signal)
-{
-	while(waitpid(-1, NULL, WNOHANG) > 0);
-}
 
+
+/*
+ * tcp_server_setup - Server (sfs) side socket setup
+ *
+ * transport - transport structure of the server(sfs)
+ *
+ * Creates the socket and binds it to the IP specified in the transport
+ * and starts listening on socket.
+ *
+ * Returns 0 on success and -1 on failure with errno set to proper value.
+ */
 
 sstack_client_handle_t
 tcp_server_setup(sstack_transport_t *transport)
@@ -175,6 +294,13 @@ tcp_server_setup(sstack_transport_t *transport)
 	return  (sstack_handle_t) sockfd;
 }
 
+/*
+ * get_tcp_transport - Helper function to populate transport structure
+ *
+ * addr - IPv4 address for the transport
+ *
+ * Returns NULL upon failure and transport structure upon success.
+ */
 
 sstack_transport_t *get_tcp_transport(char *addr)
 {

@@ -35,6 +35,8 @@
 #define READ_NO_BLOCK 1
 #define WRITE_NO_BLOCK 2
 
+#define MAX_RECV_RETRIES 10
+
 typedef uint32_t sstack_handle_t;
 
 typedef enum {
