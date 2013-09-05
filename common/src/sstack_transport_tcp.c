@@ -145,7 +145,8 @@ tcp_rx(sstack_client_handle_t handle, size_t payload_len, void *payload)
 		return -EINVAL;
 	}
 
-	ret = recv((int) handle, (void *) &hdr, sizeof(sstack_payload_hdr_t), 0);
+	ret = recv((int) handle, (void *) &hdr,
+			sizeof(sstack_payload_hdr_t), 0);
 	if (ret == -1) {
 		// Receive failed
 		return -errno;
@@ -154,8 +155,8 @@ tcp_rx(sstack_client_handle_t handle, size_t payload_len, void *payload)
 	bytes_read += sizeof(sstack_payload_hdr_t);
 	bytes_remaining =  hdr.payload_len;
 	// Go ahead and read rest of the payload
-	ret = recv((int) handle, (char *) payload + sizeof(sstack_payload_hdr_t),
-			hdr.payload_len, 0);
+	ret = recv((int) handle, (char *) payload +
+			sizeof(sstack_payload_hdr_t), hdr.payload_len, 0);
 	if (ret == -1) {
 		// Receive failed
 		return -errno;
@@ -177,7 +178,8 @@ tcp_rx(sstack_client_handle_t handle, size_t payload_len, void *payload)
 				return -errno;
 			} else  if (ret == bytes_remaining) {
 				// Recv succeeded
-				return (sizeof(sstack_payload_hdr_t) + hdr.payload_len);
+				return (sizeof(sstack_payload_hdr_t) +
+						hdr.payload_len);
 			} else {
 				count ++;
 				bytes_read  += ret;
@@ -185,6 +187,7 @@ tcp_rx(sstack_client_handle_t handle, size_t payload_len, void *payload)
 			}
 		}
 	}
+	return count;
 }
 
 /*
@@ -250,8 +253,9 @@ tcp_server_setup(sstack_transport_t *transport)
 
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (sockfd == -1) {
-		sfs_log(transport->ctx, SFS_ERR, "%s: Socket creation failed with"
-			"error %d\n", __FUNCTION__, errno); 
+		sfs_log(transport->ctx, SFS_ERR,
+				"%s: Socket creation failed with"
+				"error %d\n", __FUNCTION__, errno); 
 		return -1;
 	}
 
@@ -310,7 +314,8 @@ sstack_transport_t *get_tcp_transport(char *addr)
 	
 	transport = alloc_transport();
 
-	ASSERT((transport != NULL), "Failed to allocate tcp transport", 1, 1, 0);
+	ASSERT((transport != NULL),
+			"Failed to allocate tcp transport", 1, 1, 0);
 
 	transport->transport_type = TCPIP;
 	transport->transport_hdr.tcp.ipv4 = 1;
