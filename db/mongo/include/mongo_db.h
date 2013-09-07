@@ -36,12 +36,12 @@
 extern int mongo_db_open(void);
 extern int mongo_db_close(void);
 extern int mongo_db_init(void);
-extern int mongo_db_insert(uint64_t , char * , size_t , db_type_t);
-extern int mongo_db_seekread(uint64_t , char *, size_t , off_t ,
+extern int mongo_db_insert(char * , char * , size_t , db_type_t);
+extern int mongo_db_seekread(char * , char *, size_t , off_t ,
 		int , db_type_t);
-extern int mongo_db_update(uint64_t , char * , size_t , db_type_t);
-extern int mongo_db_get(uint64_t , char * , size_t , db_type_t);
-extern int mongo_db_delete(uint64_t);
+extern int mongo_db_update(char * , char * , size_t , db_type_t);
+extern int mongo_db_get(char * , char * , size_t , db_type_t);
+extern int mongo_db_delete(char * );
 extern int mongo_db_cleanup(void);
 
 static inline

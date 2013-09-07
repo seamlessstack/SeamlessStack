@@ -136,18 +136,23 @@ mongo_db_init(void)
 
 // Meat of the DB
 int
-mongo_db_insert(uint64_t key, char *data, size_t len, db_type_t type)
+mongo_db_insert(char *key, char *data, size_t len, db_type_t type)
 {
 	bson b[1];
 	int ret = -1;
 	char db_and_collection[NAME_SIZE];
 	char record_name[REC_NAME_SIZE];
 
+	if (key == NULL) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Key passed is NULL. \n", __FUNCTION__);
+		return -EINVAL;
+	}
+
 	bson_init(b);
-	ret = bson_append_long(b, "record_num", key);
+	ret = bson_append_string(b, "record_num", key);
 	if (ret != BSON_OK) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to append record_num to bson for "
-			"inode %"PRId64". Error = %d \n", __FUNCTION__, key, ret);
+			"inode %s. Error = %d \n", __FUNCTION__, key, ret);
 		bson_destroy(b);
 		return -ret;
 	}
@@ -164,7 +169,7 @@ mongo_db_insert(uint64_t key, char *data, size_t len, db_type_t type)
 		(const char *) data, len);
 	if (ret != BSON_OK) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to append inode to bson for" 
-			" inode %"PRId64". Error = %d \n", __FUNCTION__, key, ret);
+			" inode %s. Error = %d \n", __FUNCTION__, key, ret);
 		bson_destroy(b);
 		return -ret;
 	}
@@ -172,7 +177,7 @@ mongo_db_insert(uint64_t key, char *data, size_t len, db_type_t type)
 	ret = bson_append_long(b, "record_length", len);
 	if (ret != BSON_OK) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to append size to bson for "
-			"inode %"PRId64". Error = %d \n", __FUNCTION__, key, ret);
+			"inode %s. Error = %d \n", __FUNCTION__, key, ret);
 		bson_destroy(b);
 		return -ret;
 	}
@@ -190,14 +195,14 @@ mongo_db_insert(uint64_t key, char *data, size_t len, db_type_t type)
 	ret = mongo_insert(conn, db_and_collection, b, NULL);
 	if (ret != MONGO_OK) {
 		sfs_log(sfs_ctx, SFS_ERR,
-			"%s: Failed to insert record %"PRId64" of type %d"
+			"%s: Failed to insert record %s of type %d"
 			"into db.collection %s. Error = %d\n",
 			__FUNCTION__, key, (int) type, db_and_collection, ret);
 		bson_destroy(b);
 		return -ret;
 	}
 	sfs_log(sfs_ctx, SFS_INFO,
-		"%s: Successfully inserted record %"PRId64" of type %d"
+		"%s: Successfully inserted record %s of type %d"
 		" into db.collection %s\n",
 		__FUNCTION__, key, (int) type, db_and_collection);
 	pthread_mutex_unlock(&mongo_db_mutex);
@@ -210,7 +215,7 @@ mongo_db_insert(uint64_t key, char *data, size_t len, db_type_t type)
 // Uses gzseek and gzread
 // Needed to read extents from inode
 int
-mongo_db_seekread(uint64_t key, char *data, size_t len, off_t offset,
+mongo_db_seekread(char * key, char *data, size_t len, off_t offset,
 	int whence, db_type_t type) 
 {
 	int ret = -1;
@@ -222,6 +227,11 @@ mongo_db_seekread(uint64_t key, char *data, size_t len, off_t offset,
 	uint64_t record_len = 0;
 	char *record;
 
+	if (key == NULL) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Key passed is NULL. \n", __FUNCTION__);
+		return -EINVAL;
+	}
+
 	if (NULL == data) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: data pointer is NULL. \n",
 			__FUNCTION__);
@@ -229,7 +239,13 @@ mongo_db_seekread(uint64_t key, char *data, size_t len, off_t offset,
 	}
 
 	bson_init(query);
-	bson_append_long(query, "record_num", key);
+	bson_append_string(query, "record_num", key);
+	if (ret != BSON_OK) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to append record_num to bson for "
+			"inode %s. Error = %d \n", __FUNCTION__, key, ret);
+		bson_destroy(query);
+		return -ret;
+	}
 	bson_finish(query);
 
 	// We expect only one document per collection for a given key
@@ -246,7 +262,7 @@ mongo_db_seekread(uint64_t key, char *data, size_t len, off_t offset,
 
 	if (ret != MONGO_OK) {
 		sfs_log(sfs_ctx, SFS_ERR,
-			"%s: Failed to retrieve record for %"PRId64" from"
+			"%s: Failed to retrieve record for %s from"
 			" collection %s. Error = %d\n",
 			__FUNCTION__, key, db_and_collection, ret);
 		bson_destroy(query);
@@ -269,7 +285,7 @@ mongo_db_seekread(uint64_t key, char *data, size_t len, off_t offset,
 	if (NULL == record) {
 		sfs_log(sfs_ctx, SFS_ERR,
 			"%s: Failed to allocate memory for reading record."
-			"Requested size = %"PRId64" key = %"PRId64" db name = %s\n",
+			"Requested size = %"PRId64" key = %s db name = %s\n",
 			__FUNCTION__, record_len, key, db_and_collection);
 		bson_destroy(query);
 		return -ENOMEM;
@@ -287,7 +303,7 @@ mongo_db_seekread(uint64_t key, char *data, size_t len, off_t offset,
 
 
 int
-mongo_db_get(uint64_t key, char *data, size_t len, db_type_t type)
+mongo_db_get(char *key, char *data, size_t len, db_type_t type)
 {
 	int ret = -1;
 	bson query[1];
@@ -297,6 +313,11 @@ mongo_db_get(uint64_t key, char *data, size_t len, db_type_t type)
 	char record_name[REC_NAME_SIZE];
 	uint64_t record_len = 0;
 
+	if (key == NULL) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Key passed is NULL. \n", __FUNCTION__);
+		return -EINVAL;
+	}
+
 	if (NULL == data || len <= 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters specified. \n",
 			__FUNCTION__);
@@ -304,7 +325,14 @@ mongo_db_get(uint64_t key, char *data, size_t len, db_type_t type)
 	}
 
 	bson_init(query);
-	bson_append_long(query, "record_num", key);
+	bson_append_string(query, "record_num", key);
+	if (ret != BSON_OK) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to append record_num to bson for "
+			"inode %a. Error = %d \n", __FUNCTION__, key, ret);
+		bson_destroy(query);
+		return -ret;
+	}
+
 	bson_finish(query);
 
 	// We expect only one document per collection for a given key
@@ -321,7 +349,7 @@ mongo_db_get(uint64_t key, char *data, size_t len, db_type_t type)
 
 	if (ret != MONGO_OK) {
 		sfs_log(sfs_ctx, SFS_ERR,
-			"%s: Failed to retrieve record for %"PRId64" from"
+			"%s: Failed to retrieve record for %s from"
 			" collection %s. Error = %d\n",
 			__FUNCTION__, key, db_and_collection, ret);
 		bson_destroy(query);
@@ -358,7 +386,7 @@ mongo_db_get(uint64_t key, char *data, size_t len, db_type_t type)
 }
 
 int
-mongo_db_update(uint64_t key, char *data, size_t len, db_type_t type)
+mongo_db_update(char *key, char *data, size_t len, db_type_t type)
 {
 	int ret = -1;
 	bson b[1];
@@ -366,10 +394,10 @@ mongo_db_update(uint64_t key, char *data, size_t len, db_type_t type)
 	char record_name[REC_NAME_SIZE];
 
 	bson_init(b);
-	ret = bson_append_long(b, "record_number", key);
+	ret = bson_append_string(b, "record_number", key);
 	if (ret != MONGO_OK) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to append record_num to bson for "
-			"inode %"PRId64". Error = %d \n", __FUNCTION__, key, ret);
+			"inode %s. Error = %d \n", __FUNCTION__, key, ret);
 		bson_destroy(b);
 		return -ret;
 	}
@@ -386,7 +414,7 @@ mongo_db_update(uint64_t key, char *data, size_t len, db_type_t type)
 		(const char *) data, len);
 	if (ret != BSON_OK) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to append inode to bson for" 
-			" inode %"PRId64". Error = %d \n", __FUNCTION__, key, ret);
+			" inode %s. Error = %d \n", __FUNCTION__, key, ret);
 		bson_destroy(b);
 		return -ret;
 	}
@@ -394,7 +422,7 @@ mongo_db_update(uint64_t key, char *data, size_t len, db_type_t type)
 	ret = bson_append_long(b, "record_length", len);
 	if (ret != BSON_OK) {
 		sfslog(sfs_ctx, SFS_ERR, "%s: Failed to append size to bson for "
-			"inode %"PRId64". Error = %d \n", __FUNCTION__, key, ret);
+			"inode %s. Error = %d \n", __FUNCTION__, key, ret);
 		bson_destroy(b);
 		return -ret;
 	}
@@ -413,7 +441,7 @@ mongo_db_update(uint64_t key, char *data, size_t len, db_type_t type)
 	ret = mongo_update(conn, db_and_collection, bson_shared_empty(), b,
 			0, NULL);
 	if (ret != MONGO_OK) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: Record updation for key %"PRId64" into "
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Record updation for key %s into "
 			"database %s failed with error %d\n",
 			__FUNCTION__, key, db_and_collection, ret);
 		pthread_mutex_unlock(&mongo_db_mutex);
@@ -427,7 +455,7 @@ mongo_db_update(uint64_t key, char *data, size_t len, db_type_t type)
 }
 
 int
-mongo_db_delete(uint64_t key)
+mongo_db_delete(char *key)
 {
 	int ret = -1;
 
@@ -472,6 +500,7 @@ out:
 int
 mongo_db_cleanup(void)
 {
+	mongo_db_delete(NULL);
 	mongo_destroy(conn);
 
 	return 0;

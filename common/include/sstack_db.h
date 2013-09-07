@@ -41,12 +41,12 @@ typedef enum {
 typedef int (*db_init_t)(void);
 typedef int (*db_open_t)(void);
 typedef int (*db_close_t)(void);
-typedef int (*db_insert_t)(uint64_t , char * , size_t, db_type_t);
-typedef int (*db_get_t)(uint64_t , char * , size_t , db_type_t);
-typedef int (*db_seekread_t)(uint64_t , char * , size_t , off_t ,
+typedef int (*db_insert_t)(char * , char * , size_t, db_type_t);
+typedef int (*db_get_t)(char * , char * , size_t , db_type_t);
+typedef int (*db_seekread_t)(char * , char * , size_t , off_t ,
 		int , db_type_t);
-typedef int (*db_update_t)(uint64_t , char * , size_t , db_type_t);
-typedef int (*db_delete_t)(uint64_t);
+typedef int (*db_update_t)(char * , char * , size_t , db_type_t);
+typedef int (*db_delete_t)(char *);
 typedef int (*db_cleanup_t)(void);
 
 

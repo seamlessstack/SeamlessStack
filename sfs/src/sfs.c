@@ -49,6 +49,7 @@
 #include <sfs.h>
 #include <mongo_db.h>
 /* Macros */
+#define MAX_INODE_LEN 21 // Maximum len of uint64_t is 20
 
 /* BSS */
 log_ctx_t *sfs_ctx = NULL;
@@ -88,6 +89,7 @@ add_inodes(const char *path)
 	uint64_t *value = NULL;
 	char *fname = NULL;
 	struct stat status;
+	char inode_str[MAX_INODE_LEN] = { '\0' };
 
     sfs_log(sfs_ctx, SFS_DEBUG, "%s: path = %s\n", __FUNCTION__, path);
     if (lstat(path, &status) == -1) {
@@ -190,7 +192,8 @@ add_inodes(const char *path)
 
 	// Now inode is ready to be placed in DB
 	// Put it in DB
-	if (db->db_ops.db_insert && (db->db_ops.db_insert(inode->i_num, buffer,
+	sprintf(inode_str, "%"PRId64"", inode->i_num);
+	if (db->db_ops.db_insert && (db->db_ops.db_insert(inode_str, buffer,
 		(sizeof(inode_t) + sizeof(extent_t)), INODE_TYPE) != 1)) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to add inode to db . \n",
 			__FUNCTION__);
