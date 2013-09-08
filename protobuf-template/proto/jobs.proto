@@ -60,10 +60,37 @@ message sstack_nfs_lookup_cmd
 	required sstack_file_name_t what = 2;
 }
 
+message attribute
+{
+	required uint32 ver = 1;
+	required uint32 a_qoslevel = 2;
+	required uint32 a_ishidden = 3;
+}
+
+message policy_plugin
+{
+	required uint32 ver = 1;
+	required uint32 pp_refcount = 2;
+	required bytes pp_policy_name = 3;
+	required bytes pp_sha_sum = 4;
+	required uint32 is_activated = 5;
+	required uint32 pp_lock = 6;
+}
+
+message policy_entry
+{
+	required attribute pe_attr = 1;
+	required uint32 pe_num_plugins = 2;
+	required uint32 pe_refcount = 3;
+	required uint32 pe_lock = 4;
+	repeated policy_plugin pe_policy = 5;
+}
+
 message sstack_nfs_read_cmd 
 {
 	required uint64 offset = 1;
 	required uint64 count = 2;
+	required policy_entry entry = 3;
 }
 
 message sstack_nfs_data
@@ -77,12 +104,14 @@ message sstack_nfs_write_cmd
 	required uint64 offset = 1;
 	required uint64 count = 2;
 	required sstack_nfs_data data = 3;
+	required policy_entry entry = 4;
 }
 
 message sstack_nfs_create_cmd
 {
 	required uint32 mode = 1;
 	required sstack_nfs_data data = 2;
+	required policy_entry entry = 3;
 }
 
 message sstack_nfs_mkdir_cmd

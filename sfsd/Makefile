@@ -22,6 +22,7 @@ CFLAGS += -g
 #CFLAGS += -O3
 CFLAGS += -I ./include -I $(TOPDIR)/common/include
 CFLAGS += -I $(TOPDIR)/common/include/bds_slab
+CFLAGS += -I $(TOPDIR)/policy/include
 CFLAGS += -I ../oss/jerasure_lib
 CFLAGS += -D_GNU_SOURCE -g
 CFLAGS += -Wall

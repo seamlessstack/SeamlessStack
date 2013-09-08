@@ -16,10 +16,12 @@
 #  from SeamlessStack Incorporated.
 #
 
+TOPDIR = ../
 CFLAGS += -Wall
 CFLAGS += -g
 #CFLAGS += -O3
-CFLAGS += -I include -I include/bds_slab
+CFLAGS += -I $(TOPDIR)/common/include -I $(TOPDIR)/common/include/bds_slab
+CFLAGS += -I $(TOPDIR)/policy/include
 CFLAGS += -D_GNU_SOURCE -D_LINUX_ -DUSE_OS_INFO -D_x86_64_
 CFLAGS += -fPIC
 LIB = -lpthread -lrt

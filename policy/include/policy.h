@@ -5,6 +5,7 @@
 #define POLICY_TAG_LEN 16
 
 #include <Judy.h>
+#define SHA256_DIGEST_LENGTH 32
 
 enum ret_code
 {
@@ -21,7 +22,6 @@ struct attribute
 	uint32_t ver;
 	uint8_t a_qoslevel;
 	uint8_t	a_ishidden:1;
-	uint8_t	a_isstriped:1;
 };
 
 /**
@@ -53,6 +53,7 @@ struct policy_entry
 	pthread_spinlock_t pe_lock;
 	struct policy_plugin *pe_policy[0];
 };
+
 
 /**
   * The global policy table. Keeps

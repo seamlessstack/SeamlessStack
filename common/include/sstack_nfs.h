@@ -21,6 +21,8 @@
 
 #include <limits.h>
 #include <sstack_storage.h>
+#include <policy.h>
+
 /**
   * Commands that are sent from SFS to SFSD.
   * The command list includes the following:-
@@ -118,6 +120,7 @@ struct sstack_nfs_lookup_cmd {
 struct sstack_nfs_read_cmd {
 	off_t offset;
 	size_t count;
+	struct policy_entry entry;
 };
 
 
@@ -128,6 +131,7 @@ struct sstack_nfs_write_cmd {
 		size_t data_len;
 		uint8_t data_val[MAX_EXTENT_SIZE];
 	} data;
+	struct policy_entry entry;
 };
 
 struct sstack_nfs_create_cmd {
@@ -136,6 +140,7 @@ struct sstack_nfs_create_cmd {
 		size_t data_len;
 		uint8_t data_val[MAX_EXTENT_SIZE];
 	} data;
+	struct policy_entry entry;
 };
 
 struct sstack_nfs_mkdir_cmd {

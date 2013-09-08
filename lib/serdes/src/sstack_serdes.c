@@ -392,12 +392,64 @@ sstack_send_payload(sstack_client_handle_t handle,
 		}
 		case NFS_READ: {
 			SstackNfsReadCmd readcmd = SSTACK_NFS_READ_CMD__INIT;
+			PolicyEntry entry = POLICY_ENTRY__INIT;
+			Attribute attr = ATTRIBUTE__INIT;
+			PolicyPlugin **plugins = NULL;
+			int i = 0;
 
 			sfs_log(ctx, SFS_INFO, "%s: %s called \n", __FUNCTION__,
 					sstack_command_stringify(payload->command));
 			msg.command = SSTACK_PAYLOAD_T__SSTACK_NFS_COMMAND_T__NFS_READ;
 			readcmd.offset = payload->command_struct.read_cmd.offset;
 			readcmd.count = payload->command_struct.read_cmd.count;
+			attr.ver = payload->command_struct.read_cmd.entry.pe_attr->ver;
+			attr.a_qoslevel =
+				payload->command_struct.read_cmd.entry.pe_attr->a_qoslevel;
+			attr.a_ishidden =
+				payload->command_struct.read_cmd.entry.pe_attr->a_ishidden;
+			entry.pe_attr = &attr;
+			entry.pe_num_plugins =
+				payload->command_struct.read_cmd.entry.pe_num_plugins;
+			entry.pe_refcount =
+				payload->command_struct.read_cmd.entry.pe_refcount;
+			entry.pe_lock =
+				payload->command_struct.read_cmd.entry.pe_lock;
+			plugins = (PolicyPlugin **) malloc(entry.pe_num_plugins *
+					sizeof(PolicyPlugin));
+			if (NULL == plugins) {
+				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
+					"%s. Command aborted \n", __FUNCTION__,
+					sstack_command_stringify(payload->command));
+	
+				return -ENOMEM;
+			}
+			for ( i = 0; i < entry.pe_num_plugins; i++ ) {
+				plugins[i]->ver =
+					payload->command_struct.read_cmd.entry.pe_policy[i]->ver;	
+				plugins[i]->pp_refcount =
+					payload->command_struct.read_cmd.entry.pe_policy[i]
+						->pp_refcount;
+				plugins[i]->pp_policy_name.len =
+					strlen(payload->command_struct.read_cmd.entry.pe_policy[i]
+						->pp_policy_name);
+				strcpy((char *)&plugins[i]->pp_policy_name.data,
+					payload->command_struct.read_cmd.entry.pe_policy[i]
+						->pp_policy_name);	
+				plugins[i]->pp_sha_sum.len =
+					strlen(payload->command_struct.read_cmd.entry.pe_policy[i]
+						->pp_sha_sum);
+				strcpy((char *) &plugins[i]->pp_sha_sum.data,
+					payload->command_struct.read_cmd.entry.pe_policy[i]
+						->pp_sha_sum);	
+				plugins[i]->is_activated =
+					payload->command_struct.read_cmd.entry.pe_policy[i]
+						->is_activated;
+				plugins[i]->pp_lock =
+					payload->command_struct.read_cmd.entry.pe_policy[i]
+						->pp_lock;
+			}
+			entry.pe_policy = plugins;
+			readcmd.entry = &entry;
 			cmd.read_cmd = &readcmd;
 			msg.command_struct = &cmd;
 			len = sstack_payload_t__get_packed_size(&msg);
@@ -436,6 +488,10 @@ sstack_send_payload(sstack_client_handle_t handle,
 		case NFS_WRITE: {
 			SstackNfsWriteCmd writecmd = SSTACK_NFS_WRITE_CMD__INIT;
 			SstackNfsData data = SSTACK_NFS_DATA__INIT;
+			PolicyEntry entry = POLICY_ENTRY__INIT;
+			Attribute attr = ATTRIBUTE__INIT;
+			PolicyPlugin **plugins = NULL;
+			int i = 0;
 
 			sfs_log(ctx, SFS_INFO, "%s: %s called \n", __FUNCTION__,
 					sstack_command_stringify(payload->command));
@@ -448,6 +504,42 @@ sstack_send_payload(sstack_client_handle_t handle,
 			writecmd.offset = payload->command_struct.write_cmd.offset;
 			writecmd.count = payload->command_struct.write_cmd.count;
 			writecmd.data = &data;
+			plugins = (PolicyPlugin **) malloc(entry.pe_num_plugins *
+					sizeof(PolicyPlugin));
+			if (NULL == plugins) {
+				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
+					"%s. Command aborted \n", __FUNCTION__,
+					sstack_command_stringify(payload->command));
+	
+				return -ENOMEM;
+			}
+			for ( i = 0; i < entry.pe_num_plugins; i++ ) {
+				plugins[i]->ver =
+					payload->command_struct.write_cmd.entry.pe_policy[i]->ver;	
+				plugins[i]->pp_refcount =
+					payload->command_struct.write_cmd.entry.pe_policy[i]
+						->pp_refcount;
+				plugins[i]->pp_policy_name.len =
+					strlen(payload->command_struct.write_cmd.entry.pe_policy[i]
+						->pp_policy_name);
+				strcpy((char *)&plugins[i]->pp_policy_name.data,
+					payload->command_struct.write_cmd.entry.pe_policy[i]
+						->pp_policy_name);	
+				plugins[i]->pp_sha_sum.len =
+					strlen(payload->command_struct.write_cmd.entry.pe_policy[i]
+						->pp_sha_sum);
+				strcpy((char *) &plugins[i]->pp_sha_sum.data,
+					payload->command_struct.write_cmd.entry.pe_policy[i]
+						->pp_sha_sum);	
+				plugins[i]->is_activated =
+					payload->command_struct.write_cmd.entry.pe_policy[i]
+						->is_activated;
+				plugins[i]->pp_lock =
+					payload->command_struct.write_cmd.entry.pe_policy[i]
+						->pp_lock;
+			}
+			entry.pe_policy = plugins;
+			writecmd.entry = &entry;
 			cmd.write_cmd = &writecmd;
 			msg.command_struct = &cmd;
 			len = sstack_payload_t__get_packed_size(&msg);
@@ -486,6 +578,10 @@ sstack_send_payload(sstack_client_handle_t handle,
 		case NFS_CREATE: {
 			SstackNfsCreateCmd createcmd = SSTACK_NFS_CREATE_CMD__INIT;
 			SstackNfsData data = SSTACK_NFS_DATA__INIT;
+			PolicyEntry entry = POLICY_ENTRY__INIT;
+			Attribute attr = ATTRIBUTE__INIT;
+			PolicyPlugin **plugins = NULL;
+			int i = 0;
 
 			sfs_log(ctx, SFS_INFO, "%s: %s called \n", __FUNCTION__,
 					sstack_command_stringify(payload->command));
@@ -497,6 +593,42 @@ sstack_send_payload(sstack_client_handle_t handle,
 				data.data_len);
 			createcmd.mode = payload->command_struct.create_cmd.mode;
 			createcmd.data = &data;
+			plugins = (PolicyPlugin **) malloc(entry.pe_num_plugins *
+					sizeof(PolicyPlugin));
+			if (NULL == plugins) {
+				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
+					"%s. Command aborted \n", __FUNCTION__,
+					sstack_command_stringify(payload->command));
+	
+				return -ENOMEM;
+			}
+			for ( i = 0; i < entry.pe_num_plugins; i++ ) {
+				plugins[i]->ver =
+					payload->command_struct.create_cmd.entry.pe_policy[i]->ver;	
+				plugins[i]->pp_refcount =
+					payload->command_struct.create_cmd.entry.pe_policy[i]
+						->pp_refcount;
+				plugins[i]->pp_policy_name.len =
+					strlen(payload->command_struct.create_cmd.entry.pe_policy[i]
+						->pp_policy_name);
+				strcpy((char *)&plugins[i]->pp_policy_name.data,
+					payload->command_struct.create_cmd.entry.pe_policy[i]
+						->pp_policy_name);	
+				plugins[i]->pp_sha_sum.len =
+					strlen(payload->command_struct.create_cmd.entry.pe_policy[i]
+						->pp_sha_sum);
+				strcpy((char *) &plugins[i]->pp_sha_sum.data,
+					payload->command_struct.create_cmd.entry.pe_policy[i]
+						->pp_sha_sum);	
+				plugins[i]->is_activated =
+					payload->command_struct.create_cmd.entry.pe_policy[i]
+						->is_activated;
+				plugins[i]->pp_lock =
+					payload->command_struct.create_cmd.entry.pe_policy[i]
+						->pp_lock;
+			}
+			entry.pe_policy = plugins;
+			createcmd.entry = &entry;
 			cmd.create_cmd = &createcmd;
 			msg.command_struct = &cmd;
 			len = sstack_payload_t__get_packed_size(&msg);

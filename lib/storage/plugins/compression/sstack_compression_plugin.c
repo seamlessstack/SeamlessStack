@@ -60,10 +60,6 @@ compression_plugin_init(void)
 	plugin->is_activated = 0;
 	plugin->pp_refcount = 0;
 	pthread_spin_init(&plugin->pp_lock, PTHREAD_PROCESS_PRIVATE);
-	plugin->init_policy = compression_plugin_init;
-	plugin->deinit_policy = compression_plugin_deinit;
-	plugin->apply_policy = compression_plugin_compress;
-	plugin->remove_policy = compression_plugin_decompress;
 
 	return plugin;
 }

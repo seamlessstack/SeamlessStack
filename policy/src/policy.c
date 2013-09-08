@@ -234,8 +234,6 @@ static void build_attribute_structure(char *string,
 			attribute->a_qoslevel = 1;
 		else if (!strcmp(token, "qos-low"))
 			attribute->a_qoslevel = 0;
-		else if (!strcmp(token, "striped"))
-			attribute->a_isstriped = 1;
 		token = strtok_r(NULL, ",\t", &saveptr);
 	}
 	policy_input->pi_attr = attribute;
@@ -297,7 +295,7 @@ static uint32_t add_policy(struct policy_input *pi)
 	for(i = 0, k = 0; i < pi->pi_num_policy; i++) {
 		for(j = 0; j < filled_policies; j++) { 
 			if (!strcmp(pi->pi_policy_tag[i],
-				policy_tab.pt_table[j]->pp_policy_tag)) {
+				policy_tab.pt_table[j]->pp_policy_name)) {
 				pp = policy_tab.pt_table[j];
 				pe->pe_policy[k++] = pp;
 				pe->pe_num_plugins++;
@@ -384,7 +382,7 @@ struct policy_entry* get_policy(const char* path)
 		sprintf (index, "%s^%x^%x^%s", index_fname,index_uid,
 				index_gid, index_ftype);
 		pthread_rwlock_rdlock(&pst.pst_lock[i]);
-		JSLG(pvalue, pst.pst_head[i], index);
+		JSLG(pvalue, (const uint8_t *) pst.pst_head[i], index);
 		if (pvalue == NULL) {
 			pthread_rwlock_unlock(&pst.pst_lock[i]);
 			continue;
@@ -408,9 +406,9 @@ int main(void)
 	init_policy();
 #define NUM_PLUGIN 3
 	/*plugin[0] - Encryption */
-	strcpy(plugin[0].pp_policy_tag, "encryption"); 
-	strcpy(plugin[1].pp_policy_tag, "plugin1"); 
-	strcpy(plugin[2].pp_policy_tag, "plugin2");
+	strcpy(plugin[0].pp_policy_name, "encryption"); 
+	strcpy(plugin[1].pp_policy_name, "plugin1"); 
+	strcpy(plugin[2].pp_policy_name, "plugin2");
 
 	for(i=0; i < NUM_PLUGIN; i++) {
 		pthread_spin_init(&plugin[i].pp_lock,
@@ -425,7 +423,7 @@ int main(void)
 	if (pe != NULL) {
 		for (i = 0; i < pe->pe_num_plugins; ++i)
 			printf ("policy tag: %s\n",
-					pe->pe_policy[i]->pp_policy_tag);
+					pe->pe_policy[i]->pp_policy_name);
 	} else {
 		printf ("No policy found\n");
 	}
