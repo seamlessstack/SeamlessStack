@@ -302,6 +302,32 @@ mongo_db_seekread(char * key, char *data, size_t len, off_t offset,
 }
 
 
+void
+mongo_db_iterate(db_type_t type, iterator_function_t iterator, void *params)
+{
+	int ret = -1;
+	bson response[1];
+	mongo_cursor cursor[1];
+	char db_and_collection[NAME_SIZE];
+
+	if (iterator == NULL) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: No iterator function supplied\n",
+				__FUNCTION__);
+		return -EINVAL;
+	}
+
+	ret = construct_db_name(db_and_collection, type);
+	if (ret != 0) {
+		sfs_log(sfs_ctx, SFS_ERR,
+				"%s: Invalid type specified. db_type = %d\n",
+				__FUNCTION__, type);
+		return -1;
+	}
+	mongo_cursor_init(cursor, conn, db_and_collection);
+
+	while (mongo_cursor_next(cursor) == MONGO_OK) {
+	}
+}
 int
 mongo_db_get(char *key, char *data, size_t len, db_type_t type)
 {
@@ -314,7 +340,8 @@ mongo_db_get(char *key, char *data, size_t len, db_type_t type)
 	uint64_t record_len = 0;
 
 	if (key == NULL) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: Key passed is NULL. \n", __FUNCTION__);
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Key passed is NULL. \n",
+				__FUNCTION__);
 		return -EINVAL;
 	}
 
@@ -359,7 +386,8 @@ mongo_db_get(char *key, char *data, size_t len, db_type_t type)
 	ret = construct_record_name(record_name, type);
 	if (ret != 0) {
 		// This is just to catch stack corruption if any
-		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid type specified. db_type = %d\n",
+		sfs_log(sfs_ctx, SFS_ERR,
+				"%s: Invalid type specified. db_type = %d\n",
 			__FUNCTION__, type);
 		bson_destroy(query);
 		return -1;
