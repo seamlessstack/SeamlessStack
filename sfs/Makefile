@@ -21,6 +21,7 @@ CFLAGS += -g
 #CFLAGS += -O3
 CFLAGS += -I $(TOPDIR)/common/include -I include -I $(TOPDIR)/db/mongo/include
 CFLAGS += -I $(TOPDIR)/common/include/bds_slab
+CFLAGS += -I $(TOPDIR)/policy/include
 CFLAGS += -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DFUSE_USE_VERSION=26
 CFLAGS += -DMONGO_HAVE_STDINT
 OSS_LIBSDIR = $(TOPDIR)/oss_install/lib
