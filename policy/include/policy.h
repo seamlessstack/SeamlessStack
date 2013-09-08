@@ -34,14 +34,11 @@ typedef struct policy_plugin policy_plugin_t;
 typedef struct policy_plugin
 {
 	uint32_t ver;
-	uint8_t  is_activated;
 	uint32_t pp_refcount;
-	char	 pp_policy_tag[POLICY_TAG_LEN];	
+	char	 pp_policy_name[POLICY_TAG_LEN];
+	uint8_t  pp_sha_sum[SHA256_DIGEST_LENGTH];
+	uint8_t  is_activated;
 	pthread_spinlock_t pp_lock;
-	policy_plugin_t * (*init_policy)(void);
-	void (*deinit_policy)(policy_plugin_t *);
-	uint32_t (*apply_policy)(const char *path);
-	uint32_t (*remove_policy)(const char *path, char *buffer);
 } policy_plugin_t;
 
 /** Container to keep attributes and plugins
