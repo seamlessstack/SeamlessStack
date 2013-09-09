@@ -41,10 +41,5 @@ typedef struct policy {
 
 static policy_t default_policy = { 1, 0, 0, 0, NULL};
 
-static inline policy_t *
-get_policy(const char * path)
-{
-	return NULL;
-}
 
 #endif // __SSTACK_POLICY_H_

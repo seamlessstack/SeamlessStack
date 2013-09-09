@@ -22,11 +22,13 @@ CFLAGS += -g
 CFLAGS += -I $(TOPDIR)/common/include -I include -I $(TOPDIR)/db/mongo/include
 CFLAGS += -I $(TOPDIR)/common/include/bds_slab
 CFLAGS += -I $(TOPDIR)/policy/include
+CFLAGS += -I $(TOPDIR)/lib/caching/include -I $(TOPDIR)/oss_install/include
 CFLAGS += -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DFUSE_USE_VERSION=26
 CFLAGS += -DMONGO_HAVE_STDINT
 OSS_LIBSDIR = $(TOPDIR)/oss_install/lib
 LIB = $(shell pkg-config --libs fuse) -lpthread -L$(TOPDIR)/db/mongo -lmongo_db
 LIB += -L$(OSS_LIBSDIR) -lmongoc -lbson
+LIB += -L$(TOPDIR)/lib/caching -lcache
 
 SFS_OBJS = src/sfs.o
 

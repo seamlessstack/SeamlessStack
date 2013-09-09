@@ -46,6 +46,7 @@
 #include <sstack_helper.h>
 #include <sstack_version.h>
 #include <sstack_bitops.h>
+#include <sstack_cache_api.h>
 #include <sfs.h>
 #include <mongo_db.h>
 /* Macros */
@@ -58,6 +59,7 @@ sfs_log_level_t sstack_log_level = SFS_DEBUG;
 sfs_chunk_entry_t	*sfs_chunks = NULL;
 uint64_t nchunks = 0;
 db_t *db = NULL;
+memcached_st *mc = NULL;
 
 /* Structure definitions */
 
@@ -86,10 +88,9 @@ add_inodes(const char *path)
 	extent_t attr;
 	inode_t *inode;
 	policy_t *policy = NULL;
-	uint64_t *value = NULL;
-	char *fname = NULL;
 	struct stat status;
 	char inode_str[MAX_INODE_LEN] = { '\0' };
+	int ret = -1;
 
     sfs_log(sfs_ctx, SFS_DEBUG, "%s: path = %s\n", __FUNCTION__, path);
     if (lstat(path, &status) == -1) {
@@ -204,20 +205,13 @@ add_inodes(const char *path)
 
 	// Insert into reverse lookup db
 	// TBD
-#if 0
-	value = calloc(sizeof(uint64_t), 1);
-	if (NULL == value) {
-		syslog(LOG_ERR, "%s: Unable to allocate memory for key.\n",
-			__FUNCTION__);
+	ret = sstack_cache_store(mc, path, inode_str, strlen(inode_str) + 1);
+	if (ret != 0) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to store object into memcached."
+				" Key = %s value = %s \n", __FUNCTION__, path, inode_str);
 		return 0;
 	}
-	memcpy(value, &inode->i_num, sizeof(uint64_t));
-	fname = strdup(path);
 
-	hashtable_insert(reverse_lookup, fname, value);
-	USYSLOG(LOG_INFO, "%s: filename stored for inode %"PRId64" is %s \n",
-		__FUNCTION__, *value, fname);
-#endif // if 0
 	free(buffer);
 
 	return 0;
@@ -798,6 +792,7 @@ main(int argc, char *argv[])
 		ASSERT((ret != 0), "Log initialization failed. Logging disabled",
 			0, 0, 0);
 	}	
+	mc = sstack_cache_init("localhost", 1);
 
 	ret = fuse_opt_add_arg(&args, "-obig_writes");
 	ASSERT((ret != -1), "Enabling big writes failed.", 0, 0, 0);
