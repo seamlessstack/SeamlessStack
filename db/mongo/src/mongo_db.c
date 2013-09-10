@@ -1,11 +1,11 @@
 /*************************************************************************
- * 
+ *
  * SEAMLESSSTACK CONFIDENTIAL
  * __________________________
- * 
+ *
  *  [2012] - [2013]  SeamlessStack Inc
  *  All Rights Reserved.
- * 
+ *
  * NOTICE:  All information contained herein is, and remains
  * the property of SeamlessStack Incorporated and its suppliers,
  * if any.  The intellectual and technical concepts contained
@@ -47,7 +47,7 @@ mongo_db_close(void)
 }
 
 // db_init is where directory structure for the db is/are created
-// 
+//
 
 int
 mongo_db_init(void)
@@ -168,7 +168,7 @@ mongo_db_insert(char *key, char *data, size_t len, db_type_t type)
 	ret = bson_append_binary(b, record_name, BSON_BIN_BINARY,
 		(const char *) data, len);
 	if (ret != BSON_OK) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to append inode to bson for" 
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to append inode to bson for"
 			" inode %s. Error = %d \n", __FUNCTION__, key, ret);
 		bson_destroy(b);
 		return -ret;
@@ -216,7 +216,7 @@ mongo_db_insert(char *key, char *data, size_t len, db_type_t type)
 // Needed to read extents from inode
 int
 mongo_db_seekread(char * key, char *data, size_t len, off_t offset,
-	int whence, db_type_t type) 
+	int whence, db_type_t type)
 {
 	int ret = -1;
 	bson query[1];
@@ -306,14 +306,19 @@ void
 mongo_db_iterate(db_type_t type, iterator_function_t iterator, void *params)
 {
 	int ret = -1;
-	bson response[1];
+	bson *response;
+	bson_iterator iter[1];
 	mongo_cursor cursor[1];
 	char db_and_collection[NAME_SIZE];
+	char *key;
+	void *data;
+	uint64_t record_len;
+	char *record_name;
 
 	if (iterator == NULL) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: No iterator function supplied\n",
 				__FUNCTION__);
-		return -EINVAL;
+		return;
 	}
 
 	ret = construct_db_name(db_and_collection, type);
@@ -321,12 +326,22 @@ mongo_db_iterate(db_type_t type, iterator_function_t iterator, void *params)
 		sfs_log(sfs_ctx, SFS_ERR,
 				"%s: Invalid type specified. db_type = %d\n",
 				__FUNCTION__, type);
-		return -1;
+		return;
 	}
 	mongo_cursor_init(cursor, conn, db_and_collection);
 
 	while (mongo_cursor_next(cursor) == MONGO_OK) {
+		response = &cursor->current;
+		bson_find(iter, response, "record_num");
+		key = bson_iterator_string(iter);
+		construct_record_name(record_name, type);
+		bson_find(iter, response, record_name);
+		data = bson_iterator_bin_data(iter);
+		bson_find(iter, response, "record length");
+		record_len = bson_iterator_log(iter);
+		iterator(params, key, data, record_len);
 	}
+	return;
 }
 int
 mongo_db_get(char *key, char *data, size_t len, db_type_t type)
@@ -441,7 +456,7 @@ mongo_db_update(char *key, char *data, size_t len, db_type_t type)
 	ret = bson_append_binary(b, record_name, BSON_BIN_BINARY,
 		(const char *) data, len);
 	if (ret != BSON_OK) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to append inode to bson for" 
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to append inode to bson for"
 			" inode %s. Error = %d \n", __FUNCTION__, key, ret);
 		bson_destroy(b);
 		return -ret;

@@ -37,7 +37,7 @@ typedef enum {
 
 //#define uint64_t unsigned long long int
 
-typedef void (*iterator_function_t)(void *params);
+typedef void (*iterator_function_t)(void *params, char *key, void *data, ssize_t data_len);
 
 // DB operations 
 typedef int (*db_init_t)(void);
