@@ -303,7 +303,7 @@ mongo_db_seekread(char * key, char *data, size_t len, off_t offset,
 
 
 void
-mongo_db_iterate(db_type_t type, iterator_function_t iterator, void *params)
+mongo_db_iterate(db_type_t type, iterator_function_t iterator_fn, void *params)
 {
 	int ret = -1;
 	bson *response;
@@ -315,7 +315,7 @@ mongo_db_iterate(db_type_t type, iterator_function_t iterator, void *params)
 	uint64_t record_len;
 	char *record_name;
 
-	if (iterator == NULL) {
+	if (iterator_fn == NULL) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: No iterator function supplied\n",
 				__FUNCTION__);
 		return;
@@ -333,13 +333,13 @@ mongo_db_iterate(db_type_t type, iterator_function_t iterator, void *params)
 	while (mongo_cursor_next(cursor) == MONGO_OK) {
 		response = &cursor->current;
 		bson_find(iter, response, "record_num");
-		key = bson_iterator_string(iter);
+		key = (char *)bson_iterator_string(iter);
 		construct_record_name(record_name, type);
 		bson_find(iter, response, record_name);
-		data = bson_iterator_bin_data(iter);
+		data = (void *)bson_iterator_bin_data(iter);
 		bson_find(iter, response, "record length");
 		record_len = bson_iterator_log(iter);
-		iterator(params, key, data, record_len);
+		iterator_fn(params, key, data, record_len);
 	}
 	return;
 }
