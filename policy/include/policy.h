@@ -3,6 +3,7 @@
 
 #define NUM_BUCKETS 16
 #define POLICY_TAG_LEN 16
+#define NUM_MAX_POLICY 64
 
 #include <Judy.h>
 #define SHA256_DIGEST_LENGTH 32
@@ -64,7 +65,7 @@ struct policy_entry
 struct policy_table
 {
 	pthread_rwlock_t pt_table_lock;
-	struct policy_plugin *pt_table[64];
+	struct policy_plugin *pt_table[NUM_MAX_POLICY];
 	uint64_t policy_slots;
 };
 

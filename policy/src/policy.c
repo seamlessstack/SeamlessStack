@@ -28,6 +28,7 @@
 #include <Judy.h>
 #include <pthread.h>
 #include <policy.h>
+#include <sstack_db.h>
 
 #define NUM_BUCKETS 16
 #define MAX_POLICIES 64
@@ -48,7 +49,7 @@ struct policy_input
 
 static uint32_t read_policy_configuration(void);
 static void parse_line(char *line, struct policy_input **pi);
-static uint32_t add_policy(struct policy_input *input); 
+static uint32_t add_policy(struct policy_input *input);
 static void  build_attribute_structure(char *token,
 		struct policy_input *pi);
 static void build_policy_structure(char *token,
@@ -61,7 +62,7 @@ static struct policy_table policy_tab;
 static struct policy_search_table pst;
 
 /* Initialize the policy framework data structures */
-void init_policy(void)
+void init_policy(db_t *db)
 {
 	int32_t i = 0;
 	memset(&policy_tab, 0, sizeof(struct policy_table));
@@ -74,15 +75,26 @@ void init_policy(void)
 	return;
 }
 
-uint32_t register_plugin(struct policy_plugin *policy,
-		uint32_t *plugin_id)
+
+uint32_t register_plugin(const char *plugin_path, log_ctx_t *ctx)
 {
 	uint64_t slot;
 	uint64_t temp;
-	if (policy == NULL) {
-		printf ("Invalid policy supplied");
+	struct policy_plugin *plugin;
+	plugin = malloc(sizeof(*plugin));
+	if (!plugin) {
+		sfs_log(ctx, SFS_ERR, "Allocate memory for plugin failed: %s",
+			plugin_path);
+		return -ENOMEM;
+	}
+	memset(plugin, 0, sizeof(plugin));
+	if (validate_plugin(plugin_path, plugin->pp_policy_name
+			    ,plugin->pp_sha_sum, ctx) != 0) {
+		sfs_log (ctx, SFS_ERR,
+			 "Plugin validation failed: %s", plugin_path);
 		return -EINVAL;
 	}
+	pthread_spin_init(&plugin->pp_lock, PTHREAD_PROCESS_PRIVATE);
 	pthread_rwlock_wrlock(&policy_tab.pt_table_lock);
 	/* Look for an empty slot in the policy registration table */
 	slot = ffs(policy_tab.policy_slots);
@@ -129,10 +141,10 @@ uint32_t unregister_plugin(uint32_t plugin_id)
 /* =================== PRIVATE FUNCTIONS =========================== */
 
 /* Read the policy configuration and call functions
- * to add/associate policy with the files 
- */  
+ * to add/associate policy with the files
+ */
 static uint32_t read_policy_configuration(void)
-{	
+{
 	FILE *fp = NULL;
 	char *line = NULL;
 	size_t len = 0;
@@ -142,7 +154,7 @@ static uint32_t read_policy_configuration(void)
 		perror("Unable to open policy file");
 		return -errno;
 	}
-	
+
 	while (getline((char **)&line, &len, fp) > 0) {
 		parse_line(line, &pi);
 		if (pi != NULL)
@@ -245,8 +257,8 @@ static void build_policy_structure(char *string,
 {
 	char *token = NULL;
 	char *saveptr = NULL;
-	uint32_t i = 0;	
-	
+	uint32_t i = 0;
+
 	token = strtok_r(string, ",\t\n ", &saveptr);
 	while (isspace(*token++));
 	if (*(--token) == '#')
@@ -268,7 +280,7 @@ static uint32_t add_policy(struct policy_input *pi)
 	int32_t i = 0, j = 0, k = 0;
 	int32_t index = 0, filled_policies = 0;
 	char    buf[PATH_MAX + 16 /* UID + GID */
-		+ TYPE_LEN + 4 /* \0 + 3 guard characters */]; 
+		+ TYPE_LEN + 4 /* \0 + 3 guard characters */];
 	struct  policy_entry *pe = NULL;
 	struct	policy_plugin *pp;
 	Word_t	*pvalue;
@@ -276,16 +288,16 @@ static uint32_t add_policy(struct policy_input *pi)
 	if (pi->pi_ftype[0] != '*')
 		index |= 1;
 	if (pi->pi_gid != -1)
-		index |= 2; 
+		index |= 2;
 	if (pi->pi_uid != -1)
 		index |= 4;
 	if (pi->pi_fname[0] != '*')
 		index |= 8;
-	
+
 	sprintf(buf, "%s^%x^%x^%s", pi->pi_fname,
 			pi->pi_uid, pi->pi_gid, pi->pi_ftype);
 	/* Allocate memory for policy_entry to be inserted */
-	if ((pe = malloc(sizeof(*pe) +pi->pi_num_policy * 
+	if ((pe = malloc(sizeof(*pe) +pi->pi_num_policy *
 					sizeof(void *))) == NULL)
 		return -ENOMEM;
 	pthread_spin_init(&pe->pe_lock, PTHREAD_PROCESS_PRIVATE);
@@ -293,7 +305,7 @@ static uint32_t add_policy(struct policy_input *pi)
 	pthread_rwlock_rdlock(&policy_tab.pt_table_lock);
 	filled_policies = __builtin_popcount(~(policy_tab.policy_slots));
 	for(i = 0, k = 0; i < pi->pi_num_policy; i++) {
-		for(j = 0; j < filled_policies; j++) { 
+		for(j = 0; j < filled_policies; j++) {
 			if (!strcmp(pi->pi_policy_tag[i],
 				policy_tab.pt_table[j]->pp_policy_name)) {
 				pp = policy_tab.pt_table[j];
@@ -344,23 +356,23 @@ struct policy_entry* get_policy(const char* path)
 	int32_t i;
 	struct policy_entry *pe = NULL;
 	Word_t *pvalue;
-	/* Index variables. Helps in 
+	/* Index variables. Helps in
 	   creating Judy indexes */
 	char *fname[2], *index_fname;
 	char *ftype[2], *index_ftype;
 	uid_t uid[2], index_uid;
 	gid_t gid[2], index_gid;
 	/* Actual Judy index holder */
-	char index[PATH_MAX + 16 /* UID + GID */ 
+	char index[PATH_MAX + 16 /* UID + GID */
 		+ TYPE_LEN + 4 /* '\0' and guard characters */ ];
-	
+
 	/* UID */
 	uid[0] = -1;
 	uid[1] = getuid();
 	/* GID */
 	gid[0] = -1;
 	gid[1] = getgid();
-	
+
 	/* File Type */
 	ftype[0] = "*";
 	ftype[1] = get_file_type(path);
@@ -373,7 +385,7 @@ struct policy_entry* get_policy(const char* path)
 	/* Search from the specific to the generic policies */
 	for(i = (NUM_BUCKETS - 1); (i >= 0) && (pe == NULL); i--) {
 		/* Generate the Judy index here depending
-		   upon the number of bits set in the 
+		   upon the number of bits set in the
 		   bucket number */
 		index_fname = fname[(i >> 3) & 1];
 		index_uid = uid[(i >> 2) & 1];
@@ -406,8 +418,8 @@ int main(void)
 	init_policy();
 #define NUM_PLUGIN 3
 	/*plugin[0] - Encryption */
-	strcpy(plugin[0].pp_policy_name, "encryption"); 
-	strcpy(plugin[1].pp_policy_name, "plugin1"); 
+	strcpy(plugin[0].pp_policy_name, "encryption");
+	strcpy(plugin[1].pp_policy_name, "plugin1");
 	strcpy(plugin[2].pp_policy_name, "plugin2");
 
 	for(i=0; i < NUM_PLUGIN; i++) {
