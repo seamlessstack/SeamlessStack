@@ -11,7 +11,7 @@
  * if any.  The intellectual and technical concepts contained
  * herein are proprietary to SeamlessStack Incorporated
  * and its suppliers and may be covered by U.S. and Foreign Patents,
- * patents in process, and are protected by trade secret or copyright law.
+s * patents in process, and are protected by trade secret or copyright law.
  * Dissemination of this information or reproduction of this material
  * is strictly forbidden unless prior written permission is obtained
  * from SeamlessStack Incorporated.
@@ -29,9 +29,10 @@
 #include <pthread.h>
 #include <policy.h>
 #include <sstack_db.h>
+#include <sstack_log.h>
+
 
 #define NUM_BUCKETS 16
-#define MAX_POLICIES 64
 #define TYPE_LEN 8
 
 #define POLICY_FILE "/home/shubhro/policy/policy.conf"
@@ -40,65 +41,166 @@ struct policy_input
 {
 	uid_t	pi_uid;
 	gid_t	pi_gid;
-	char	pi_policy_tag[MAX_POLICIES][POLICY_TAG_LEN];
+	char	pi_policy_tag[NUM_MAX_POLICY][POLICY_TAG_LEN];
 	char	pi_ftype [TYPE_LEN];
 	char	pi_fname[PATH_MAX];
 	size_t	pi_num_policy;
-	struct attribute *pi_attr;
+	struct attribute pi_attr;
 };
 
-static uint32_t read_policy_configuration(void);
+struct policy_db_entry
+{
+	char pdb_policy_tag[NUM_MAX_POLICY][POLICY_TAG_LEN];
+	char pdb_policy_cksum[NUM_MAX_POLICY][SHA256_DIGEST_LENGTH];
+	uint8_t pdb_mem_index;
+	size_t pdb_num_policy;
+	struct attribute pdb_attr;
+};
+
+#if 0
+static uint32_t read_policy_configuration(db_t db_type,
+					  struct policy_search_table *pst);
 static void parse_line(char *line, struct policy_input **pi);
-static uint32_t add_policy(struct policy_input *input);
 static void  build_attribute_structure(char *token,
-		struct policy_input *pi);
+				       struct policy_input *pi);
 static void build_policy_structure(char *token,
 		struct policy_input *pi);
 static char * get_file_type(const char *fpath);
+#endif
+static void  add_policy_to_pst(const char *key, uint8_t index,
+				  struct policy_entry *pe);
+static int32_t get_pe_from_pi(struct policy_input *pi, struct policy_entry *pe);
+static int32_t get_pdbe_from_pe(struct policy_entry *pe,
+				struct policy_db_entry *pdbe);
+static int32_t get_pe_from_pdbe(struct policy_db_entry *pdbe,
+				struct policy_entry *pe);
+static void  get_pe_from_tags(const char *tags[], size_t num_tags,
+				struct policy_entry *pe);
+static void policy_iterate(void *params, char *key,
+			   void *data, ssize_t data_len);
 
-/*=================Policy registration public APIs========================*/
+/* ================ PRIVATE GLOBALS ==================*/
 
 static struct policy_table policy_tab;
 static struct policy_search_table pst;
+static log_ctx_t *policy_ctx;
+static uint8_t policy_initialized = 0;
+
+/*=================Policy registration public APIs========================*/
+
 
 /* Initialize the policy framework data structures */
-void init_policy(db_t *db)
+void init_policy(db_t *db, db_type_t db_type, log_ctx_t *callee_ctx)
 {
 	int32_t i = 0;
 	memset(&policy_tab, 0, sizeof(struct policy_table));
 	pthread_rwlock_init(&policy_tab.pt_table_lock, NULL);
+	policy_ctx = sfs_create_log_ctx();
+	if (policy_ctx == NULL) {
+		sfs_log(callee_ctx, SFS_ERR,
+			"Unable to create policy log ctx"
+			" policy wont be available");
+		return;
+	}
 	policy_tab.policy_slots = (uint64_t) (-1);
 	for (i = 0; i < NUM_BUCKETS; i++) {
 		pst.pst_head[i] = (Pvoid_t)NULL;
 		pthread_rwlock_init(&pst.pst_lock[i], NULL);
 	}
+	db->db_ops.db_iterate(db_type, policy_iterate, &pst);
+	policy_initialized = TRUE;
 	return;
 }
 
+int32_t submit_policy_entry(struct policy_input *pi, db_t *db,
+			    db_type_t db_type)
+{
+	uint8_t index = 0;
+	int rcint;
+	int32_t ret = 0;
+	struct policy_db_entry pdb_entry;
+	struct policy_entry  *pe = NULL;
 
-uint32_t register_plugin(const char *plugin_path, log_ctx_t *ctx)
+	char key[PATH_MAX + 16 /* UID + GID */
+		+ TYPE_LEN + 4 /* \0 + 3 guard characters */];
+
+	if (policy_initialized == FALSE || pi == NULL ||
+	    db == NULL || db_type == 0) {
+		return -EINVAL;
+	}
+
+	/* Allocate memory for policy_entry to be inserted
+	   to the in-memory policy search table */
+	if ((pe = malloc(sizeof(*pe) +pi->pi_num_policy *
+			 sizeof(void *))) == NULL) {
+		ret = -ENOMEM;
+		goto ret;
+	}
+	if (pi->pi_ftype[0] != '*')
+		index |= 1;
+	if (pi->pi_gid != -1)
+		index |= 2;
+	if (pi->pi_uid != -1)
+		index |= 4;
+	if (pi->pi_fname[0] != '*')
+		index |= 8;
+
+	sprintf(key, "%s^%s^%d^%d", pi->pi_fname, pi->pi_ftype,
+		pi->pi_uid, pi->pi_gid);
+
+	pthread_rwlock_rdlock(&policy_tab.pt_table_lock);
+	get_pe_from_pi(pi, pe);
+	add_policy_to_pst(key, index, pe);
+	get_pdbe_from_pe(pe, &pdb_entry);
+
+	if (db->db_ops.db_insert(key, (char *)&pdb_entry,
+				 sizeof(pdb_entry), db_type) == 0) {
+		sfs_log(policy_ctx, SFS_INFO,
+			"Policy submitted successfully");
+	} else {
+		sfs_log(policy_ctx, SFS_ERR, "Policy submit to db failed");
+		/* Remove policy entry Judy array */
+		JSLD(rcint, pst.pst_head[index], (uint8_t *)key);
+		free(pe);
+		ret = -EINVAL;
+	}
+	pthread_rwlock_unlock(&policy_tab.pt_table_lock);
+
+ret:
+	free(pi);
+	return ret;
+}
+
+uint32_t register_plugin(const char *plugin_path, uint32_t *plugin_id)
 {
 	uint64_t slot;
 	uint64_t temp;
 	struct policy_plugin *plugin;
+
+	if (policy_initialized == FALSE || plugin_path == NULL) {
+		return -EINVAL;
+	}
+
 	plugin = malloc(sizeof(*plugin));
 	if (!plugin) {
-		sfs_log(ctx, SFS_ERR, "Allocate memory for plugin failed: %s",
-			plugin_path);
+		sfs_log(policy_ctx, SFS_ERR,
+			"Allocate memory for plugin failed: %s", plugin_path);
 		return -ENOMEM;
 	}
-	memset(plugin, 0, sizeof(plugin));
-	if (validate_plugin(plugin_path, plugin->pp_policy_name
-			    ,plugin->pp_sha_sum, ctx) != 0) {
-		sfs_log (ctx, SFS_ERR,
+	memset(plugin, 0, sizeof(*plugin));
+#if 0
+	if (validate_plugin(plugin_path, plugin->pp_policy_name,
+			    plugin->pp_sha_sum, policy_ctx) != 0) {
+		sfs_log (policy_ctx, SFS_ERR,
 			 "Plugin validation failed: %s", plugin_path);
 		return -EINVAL;
 	}
+#endif
 	pthread_spin_init(&plugin->pp_lock, PTHREAD_PROCESS_PRIVATE);
 	pthread_rwlock_wrlock(&policy_tab.pt_table_lock);
 	/* Look for an empty slot in the policy registration table */
 	slot = ffs(policy_tab.policy_slots);
-	policy_tab.pt_table[slot - 1] = policy;
+	policy_tab.pt_table[slot - 1] = plugin;
 	temp = 1 << (slot - 1);
 	policy_tab.policy_slots ^= temp;
 	pthread_rwlock_unlock(&policy_tab.pt_table_lock);
@@ -109,6 +211,11 @@ uint32_t register_plugin(const char *plugin_path, log_ctx_t *ctx)
 
 uint32_t activate_plugin(uint32_t plugin_id)
 {
+
+	if (policy_initialized == FALSE) {
+		return -EINVAL;
+	}
+
 	pthread_rwlock_rdlock(&policy_tab.pt_table_lock);
 	pthread_spin_lock(&policy_tab.pt_table[plugin_id]->pp_lock);
 	policy_tab.pt_table[plugin_id]->is_activated = TRUE;
@@ -121,50 +228,50 @@ uint32_t activate_plugin(uint32_t plugin_id)
 uint32_t unregister_plugin(uint32_t plugin_id)
 {
 	struct policy_plugin *plugin;
+
 	/* Remove references from the policy_tab table so that
 	   the plugin can't be accessed any more by add_policy()
 	   and friends */
 	pthread_rwlock_wrlock(&policy_tab.pt_table_lock);
 	plugin = policy_tab.pt_table[plugin_id];
-	policy_tab.pt_table[plugin_id] = NULL;
-	policy_tab.policy_slots ^= 1 << (plugin_id + 1);
-	pthread_rwlock_unlock(&policy_tab.pt_table_lock);
-	/* if the reference count of the plugin is 0, remove it */
-	pthread_spin_lock(&plugin->pp_lock);
-	if (plugin->pp_refcount == 0) {
-		free(plugin);
+	if (plugin) {
+		policy_tab.pt_table[plugin_id] = NULL;
+		policy_tab.policy_slots ^= 1 << (plugin_id + 1);
+		pthread_rwlock_unlock(&policy_tab.pt_table_lock);
+		/* if the reference count of the plugin is 0, remove it */
+		if (plugin->pp_refcount == 0) {
+			free(plugin);
+		}
 	}
-	pthread_spin_unlock(&plugin->pp_lock);
 	return 0;
 }
 
 /* =================== PRIVATE FUNCTIONS =========================== */
 
-/* Read the policy configuration and call functions
- * to add/associate policy with the files
- */
-static uint32_t read_policy_configuration(void)
+static void policy_iterate(void *params, char *key, void *data,
+			   ssize_t data_len)
 {
-	FILE *fp = NULL;
-	char *line = NULL;
-	size_t len = 0;
-	struct policy_input *pi = NULL;
+	struct policy_db_entry *pdbe;
+	struct policy_entry *pe;
 
-	if ((fp = fopen(POLICY_FILE, "r")) == NULL) {
-		perror("Unable to open policy file");
-		return -errno;
+	if (params == NULL || key == NULL || data == NULL || data_len == 0) {
+		sfs_log(policy_ctx, SFS_ERR, "%s(), line: %d: %s\n",
+			__FUNCTION__, __LINE__, "Invalid Parameters");
+		return;
 	}
 
-	while (getline((char **)&line, &len, fp) > 0) {
-		parse_line(line, &pi);
-		if (pi != NULL)
-			add_policy(pi);
+	pdbe = (struct policy_db_entry *)data;
+	if ((pe = malloc(sizeof(*pe))) == NULL) {
+		sfs_log(policy_ctx, SFS_ERR, "%s(): line %d, %s",
+			__FUNCTION__, __LINE__, "pe allocate failed");
+		return;
 	}
-	free(line);
-	return EXIT_SUCCESS;
+	get_pe_from_pdbe(pdbe, pe);
+	add_policy_to_pst(key, pdbe->pdb_mem_index, pe);
+	return;
 }
 
-
+#if 0
 static void parse_line(char *line, struct policy_input **policy_input)
 {
 	char *token = NULL;
@@ -224,6 +331,7 @@ static void parse_line(char *line, struct policy_input **policy_input)
 	return;
 }
 
+
 static void build_attribute_structure(char *string,
 		struct policy_input *policy_input)
 {
@@ -264,7 +372,7 @@ static void build_policy_structure(char *string,
 	if (*(--token) == '#')
 		return;
 
-	while (token && (i < MAX_POLICIES)) {
+	while (token && (i < NUM_MAX_POLICY)) {
 		/* Iterate through registered policies to see if we have
 		   the plugin with us */
 		strncpy(pi->pi_policy_tag[i], token, POLICY_TAG_LEN);
@@ -274,39 +382,95 @@ static void build_policy_structure(char *string,
 	}
 	return;
 }
-
-static uint32_t add_policy(struct policy_input *pi)
+#endif
+static int32_t get_pdbe_from_pe(struct policy_entry *pe,
+				    struct policy_db_entry *pdbe)
 {
-	int32_t i = 0, j = 0, k = 0;
-	int32_t index = 0, filled_policies = 0;
-	char    buf[PATH_MAX + 16 /* UID + GID */
-		+ TYPE_LEN + 4 /* \0 + 3 guard characters */];
-	struct  policy_entry *pe = NULL;
-	struct	policy_plugin *pp;
-	Word_t	*pvalue;
-	/* Apply the precedence rules here */
-	if (pi->pi_ftype[0] != '*')
-		index |= 1;
-	if (pi->pi_gid != -1)
-		index |= 2;
-	if (pi->pi_uid != -1)
-		index |= 4;
-	if (pi->pi_fname[0] != '*')
-		index |= 8;
+	int32_t i, ret = 0;
 
-	sprintf(buf, "%s^%x^%x^%s", pi->pi_fname,
-			pi->pi_uid, pi->pi_gid, pi->pi_ftype);
-	/* Allocate memory for policy_entry to be inserted */
-	if ((pe = malloc(sizeof(*pe) +pi->pi_num_policy *
-					sizeof(void *))) == NULL)
-		return -ENOMEM;
+	if (pe == NULL || pdbe == NULL) {
+		sfs_log(policy_ctx, SFS_ERR, "%s(): line: %d: %s",
+			__FUNCTION__, __LINE__,
+			"Invalid parameters specified");
+		ret = -EINVAL;
+		goto ret;
+	}
+
+	/* Acquire the policy entry spin lock */
+	pthread_spin_lock(&pe->pe_lock);
+	for(i = 0; i < pe->pe_num_plugins; ++i) {
+		strncpy(pdbe->pdb_policy_tag[i],
+			pe->pe_policy[i]->pp_policy_name, POLICY_TAG_LEN);
+		memcpy(pdbe->pdb_policy_cksum[i],
+		       pe->pe_policy[i]->pp_sha_sum, SHA256_DIGEST_LENGTH);
+	}
+	pdbe->pdb_num_policy = pe->pe_num_plugins;
+	memcpy(&pdbe->pdb_attr, &pe->pe_attr, sizeof(*pdbe));
+	pthread_spin_unlock(&pe->pe_lock);
+ret:
+
+	return ret;
+}
+/* pe must be allocated while calling this */
+static int32_t get_pe_from_pdbe(struct policy_db_entry *pdb,
+				     struct policy_entry *pe)
+{
+	int32_t ret = 0;
+
+	if (pdb == NULL || pe == NULL) {
+		sfs_log(policy_ctx, SFS_ERR, "%s(): line : %d: %s",
+			__FUNCTION__, __LINE__,
+			"Invalid parameters specified");
+		ret = -EINVAL;
+		goto ret;
+	}
 	pthread_spin_init(&pe->pe_lock, PTHREAD_PROCESS_PRIVATE);
-	/* Find the policy to be applied */
-	pthread_rwlock_rdlock(&policy_tab.pt_table_lock);
+	memcpy(&pe->pe_attr, &pdb->pdb_attr, sizeof(struct attribute));
+	get_pe_from_tags((const char **)pdb->pdb_policy_tag,
+			pdb->pdb_num_policy, pe);
+
+ret:
+	return ret;
+}
+
+/* pe must be allocated while calling this */
+static inline int32_t get_pe_from_pi(struct policy_input *pi,
+					  struct policy_entry *pe)
+{
+	int32_t ret = 0;
+
+	if (pi == NULL || pe == NULL) {
+		sfs_log (policy_ctx, SFS_ERR, "%s(): line %d: %s",
+			 __FUNCTION__, __LINE__,
+			 "Invalid parameters specified");
+		ret = -EINVAL;
+		goto ret;
+	}
+	pthread_spin_init(&pe->pe_lock, PTHREAD_PROCESS_PRIVATE);
+	memcpy(&pe->pe_attr, &pi->pi_attr, sizeof(struct attribute));
+	get_pe_from_tags((const char **)pi->pi_policy_tag,
+			 pi->pi_num_policy, pe);
+
+ret:
+	return ret;
+
+}
+/*
+ * TODO: check this function
+ * policy_tab->pt_table_lock must be held while calling this!!
+ */
+static void  get_pe_from_tags(const char *policy_tags[],
+				     size_t num_tags,
+				     struct policy_entry *pe)
+{
+	int32_t i, j, k;
+	int32_t filled_policies = 0;
+	struct policy_plugin *pp = NULL;
+
 	filled_policies = __builtin_popcount(~(policy_tab.policy_slots));
-	for(i = 0, k = 0; i < pi->pi_num_policy; i++) {
+	for(i = 0, k = 0; i < num_tags; i++) {
 		for(j = 0; j < filled_policies; j++) {
-			if (!strcmp(pi->pi_policy_tag[i],
+			if (!strcmp(policy_tags[i],
 				policy_tab.pt_table[j]->pp_policy_name)) {
 				pp = policy_tab.pt_table[j];
 				pe->pe_policy[k++] = pp;
@@ -317,15 +481,26 @@ static uint32_t add_policy(struct policy_input *pi)
 			}
 		}
 	}
-	pthread_rwlock_unlock(&policy_tab.pt_table_lock);
-	pe->pe_attr = pi->pi_attr;
+	return;
+}
+
+/* Add policy into the Judy array -
+ * return the index into the Judy array
+ * -1 on any error
+ * policy_tab->pt_table_lock must be held while
+ * calling this!!
+ */
+static void add_policy_to_pst(const char *key, uint8_t index,
+		       struct policy_entry *pe)
+{
+	Word_t	*pvalue;
 	/* Insert the policy_entry into the Judy array */
 	pthread_rwlock_wrlock(&pst.pst_lock[index]);
-	JSLI(pvalue, pst.pst_head[index], buf);
+	JSLI(pvalue, pst.pst_head[index], (uint8_t *)key);
 	pthread_rwlock_unlock(&pst.pst_lock[index]);
 	if (pvalue)
 		*pvalue = (Word_t) pe;
-	return 0;
+	return;
 }
 
 /* TODO: Change the implementation */
@@ -394,7 +569,7 @@ struct policy_entry* get_policy(const char* path)
 		sprintf (index, "%s^%x^%x^%s", index_fname,index_uid,
 				index_gid, index_ftype);
 		pthread_rwlock_rdlock(&pst.pst_lock[i]);
-		JSLG(pvalue, (const uint8_t *) pst.pst_head[i], index);
+		JSLG(pvalue, pst.pst_head[i], (uint8_t *)index);
 		if (pvalue == NULL) {
 			pthread_rwlock_unlock(&pst.pst_lock[i]);
 			continue;

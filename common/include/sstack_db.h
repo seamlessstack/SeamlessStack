@@ -1,11 +1,11 @@
 /*************************************************************************
- * 
+ *
  * SEAMLESSSTACK CONFIDENTIAL
  * __________________________
- * 
+ *
  *  [2012] - [2013]  SeamlessStack Inc
  *  All Rights Reserved.
- * 
+ *
  * NOTICE:  All information contained herein is, and remains
  * the property of SeamlessStack Incorporated and its suppliers,
  * if any.  The intellectual and technical concepts contained
@@ -33,19 +33,20 @@ typedef enum {
 	CONFIG_TYPE = 4,	// Fot storing config records
 	MAX_TYPE = 5
 } db_type_t;
- 
+
 
 //#define uint64_t unsigned long long int
 
-typedef void (*iterator_function_t)(void *params, char *key, void *data, ssize_t data_len);
+typedef void (*iterator_function_t)(void *params,
+				    char *key, void *data, ssize_t data_len);
 
-// DB operations 
+// DB operations
 typedef int (*db_init_t)(void);
 typedef int (*db_open_t)(void);
 typedef int (*db_close_t)(void);
 typedef int (*db_insert_t)(char * , char * , size_t, db_type_t);
 typedef void (*db_iterate_t)(db_type_t db_type, iterator_function_t iterator,
-		void *params);
+			     void *params);
 typedef int (*db_get_t)(char * , char * , size_t , db_type_t);
 typedef int (*db_seekread_t)(char * , char * , size_t , off_t ,
 		int , db_type_t);
@@ -75,7 +76,7 @@ typedef struct db {
 
 extern db_t *db;
 
-// DB functions 
+// DB functions
 static inline db_t *
 create_db(void)
 {
@@ -95,7 +96,7 @@ destroy_db(db_t * db)
 // DB registration function
 static inline void
 db_register(db_t *db, db_init_t db_init, db_open_t db_open, db_close_t db_close,
-	db_insert_t db_insert, db_iterate_t db_iterate, db_get_t db_get, 
+	db_insert_t db_insert, db_iterate_t db_iterate, db_get_t db_get,
 	db_seekread_t db_seekread, db_update_t db_update, db_delete_t db_delete,
 	db_cleanup_t db_cleanup)
 {

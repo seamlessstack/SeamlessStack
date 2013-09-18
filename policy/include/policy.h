@@ -16,7 +16,7 @@ enum ret_code
 
 /**
   * Represents the supported attributes.
-  * Would be allocated one per file 
+  * Would be allocated one per file
  **/
 struct attribute
 {
@@ -26,9 +26,9 @@ struct attribute
 };
 
 /**
-  * Represents one plugin. Allocated during 
+  * Represents one plugin. Allocated during
   * registration.
- **/ 
+ **/
 
 typedef struct policy_plugin policy_plugin_t;
 
@@ -45,21 +45,22 @@ typedef struct policy_plugin
 /** Container to keep attributes and plugins
   * together per file. Result of a get_policy()
   * call
- **/ 
+ **/
 struct policy_entry
 {
-	struct attribute *pe_attr;
+	struct attribute pe_attr;
 	size_t pe_num_plugins;
 	uint32_t pe_refcount;
 	pthread_spinlock_t pe_lock;
+	uint8_t pst_index;    /* index in the policy search table */
 	struct policy_plugin *pe_policy[0];
 };
 
 
 /**
   * The global policy table. Keeps
-  * the registered plugins at one 
-  * place. Accessed when a plugin is 
+  * the registered plugins at one
+  * place. Accessed when a plugin is
   * associated with a file
   **/
 struct policy_table
@@ -82,7 +83,7 @@ struct policy_search_table
 
 
 /* Policy framework functions */
-uint32_t register_plugin(struct policy_plugin *plugin, 
+uint32_t register_plugin(const char *plugin_path,
 		uint32_t *plugin_id);
 uint32_t unregister_plugin(uint32_t plugin_id);
 uint32_t activate_plugin(uint32_t plugin_id);

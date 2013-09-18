@@ -1,11 +1,11 @@
 /*************************************************************************
- * 
+ *
  * SEAMLESSSTACK CONFIDENTIAL
  * __________________________
- * 
+ *
  *  [2012] - [2013]  SeamlessStack Inc
  *  All Rights Reserved.
- * 
+ *
  * NOTICE:  All information contained herein is, and remains
  * the property of SeamlessStack Incorporated and its suppliers,
  * if any.  The intellectual and technical concepts contained
@@ -152,7 +152,7 @@ add_inodes(const char *path)
 	memcpy(&inode->i_mtime, &status.st_mtime, sizeof(struct timespec));
 	inode->i_size = status.st_size;
 	inode->i_numreplicas = 1; // For now, single copy
-	// Since the file already exists, done't split it now. Split it when 
+	// Since the file already exists, done't split it now. Split it when
 	// next write arrives
 	inode->i_numextents = 1;
 	inode->i_links = status.st_nlink;
@@ -200,7 +200,7 @@ add_inodes(const char *path)
 			__FUNCTION__);
 		free(buffer);
 		/* Though the operation failed. nothing much can be done. */
-		return 0; 
+		return 0;
 	}
 
 	// Insert into reverse lookup db
@@ -246,7 +246,7 @@ populate_db(const char *dir_name)
 		// "Readdir" gets subsequent entries from "d"
 		entry = readdir (d);
 		if (! entry) {
-			/* 
+			/*
 			 * There are no more entries in this directory, so break
 			 * out of the while loop.
 			 */
@@ -257,7 +257,7 @@ populate_db(const char *dir_name)
 		if (strcmp (d_name, "..") != 0 && strcmp (d_name, ".") != 0) {
 			sprintf(path, "%s%s", dir_name, d_name);
 			sfs_log(sfs_ctx, SFS_ERR, "%s: dir_name = %s, d_name = %s \n",
-				__FUNCTION__, dir_name, d_name);  
+				__FUNCTION__, dir_name, d_name);
 			p = rep(path, '/');
 			add_inodes(p);
 			free(p);
@@ -531,7 +531,7 @@ sfs_init(struct fuse_conn_info *conn)
 	// Need to create one more collection for reverse lookup table
 	// This is to get inode number given pathname
 
-	// Populate the INODE collection of the DB with all the files found 
+	// Populate the INODE collection of the DB with all the files found
 	// in chunks added so far
 	for (chunk_index = 0; chunk_index < nchunks; chunk_index++)
 		populate_db(sfs_chunks[chunk_index].chunk_path);
@@ -600,7 +600,7 @@ sfs_store_branch(char *branch)
 			sfs_chunks[nchunks].rw = 1;
 		}
 	}
-	
+
 	res = strsep(ptr, ",");
 	if (res) {
 		uint32_t weight = atoi(res);
@@ -648,7 +648,7 @@ sfs_remove_branch(char *branch)
 	// Copy rest of the chunks leaving the current one
 	memcpy((void *)temp , (void *) (sfs_chunks + i + 1), (nchunks -i -1) *
 			sizeof(sfs_chunk_entry_t));
-	// Adjust the sfs_chunks size	
+	// Adjust the sfs_chunks size
 	// If realloc fails, then we have an issue
 	temp = realloc(sfs_chunks,
 			(nchunks - 1) * sizeof(sfs_chunk_entry_t));
@@ -661,9 +661,9 @@ sfs_remove_branch(char *branch)
 	nchunks -= 1;
 
 	return 1;
-}	
+}
 
-	
+
 static int
 sfs_parse_branches(const char *arg)
 {
@@ -791,7 +791,7 @@ main(int argc, char *argv[])
 		ret = sfs_log_init(sfs_ctx, sstack_log_level, "sfs");
 		ASSERT((ret != 0), "Log initialization failed. Logging disabled",
 			0, 0, 0);
-	}	
+	}
 	mc = sstack_cache_init("localhost", 1);
 
 	ret = fuse_opt_add_arg(&args, "-obig_writes");

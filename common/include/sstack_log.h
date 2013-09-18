@@ -1,11 +1,11 @@
 /*************************************************************************
- * 
+ *
  * SEAMLESSSTACK CONFIDENTIAL
  * __________________________
- * 
+ *
  *  [2012] - [2013]  SeamlessStack Inc
  *  All Rights Reserved.
- * 
+ *
  * NOTICE:  All information contained herein is, and remains
  * the property of SeamlessStack Incorporated and its suppliers,
  * if any.  The intellectual and technical concepts contained
@@ -43,13 +43,13 @@ extern char sstack_log_directory[];
 
 /*
  * ASSERT takes five arguments:
- * p - a condition 
+ * p - a condition
  * q - a string
  * r - assert or not
  * s -  exit out of the function? 1 for yes and 0 for no
  * t - return value if r = 0 and s = 1 . Otherwise ignored
  */
- 
+
 #define ASSERT(p, q, r, s, t)	do { \
 	if (!(p))  \
 	fprintf(stderr, "%s: %s\n", __FUNCTION__, (q));\
@@ -63,9 +63,9 @@ extern char sstack_log_directory[];
 
 /*
  * SFS_LOG_EXIT takes five arguments:
- * p - a condition 
+ * p - a condition
  * q - a string
- * r - return value 
+ * r - return value
  * s - pointer to log_ctx_t structure
  * t - sfs log level
  */
@@ -163,7 +163,7 @@ sfs_destroy_log_ctx(log_ctx_t *ctx)
  * sfs_log_close - Close the log file related to a log_ctx
  *
  * ctx is the log context, It is checked for non-NULL only
- * 
+ *
  * All that is done is to close the log_fd in the ctx
  * Returns 0 on success and -1 if something is horribly wrong
  * Does not use assert() as failure is non-critical.
@@ -205,7 +205,7 @@ sfs_change_loglevel(log_ctx_t *ctx, sfs_log_level_t level)
 /*
  * sfs_log_init - Initialize file based logging for SeamlessStack
  *
- * This is written to satisy file based logging for all components 
+ * This is written to satisy file based logging for all components
  *
  * Parameter assumptions:
  * ctx is allocated
@@ -228,7 +228,7 @@ sfs_log_init(log_ctx_t *ctx, sfs_log_level_t level, char *compname)
 		"Invalid log level specified.", 0, 1, -1);
 	ASSERT((compname[0] != '\0'), "Progname is NULL.", 0, 1, -1);
 
-	// Since this operation is not done often, 
+	// Since this operation is not done often,
 	pthread_mutex_lock(&ctx->log_mutex);
 	strncpy(file_name, compname, 27);
 	// Check if user specified a log directory
@@ -253,7 +253,7 @@ sfs_log_init(log_ctx_t *ctx, sfs_log_level_t level, char *compname)
 	fd = open(log_file_abspath, O_CREAT|O_RDWR|O_LARGEFILE,
 			S_IRUSR|S_IWUSR);
 	if (fd == -1) {
-		// Failed to open log file 
+		// Failed to open log file
 		fprintf(stderr, "%s: Failed to open log file %s."
 			" Logging is disabled\n", __FUNCTION__, log_file_abspath);
 		ctx->log_fd = -1;
@@ -272,7 +272,7 @@ sfs_log_init(log_ctx_t *ctx, sfs_log_level_t level, char *compname)
 	}
 
 
-	return 0;	
+	return 0;
 }
 
 /*
@@ -371,7 +371,7 @@ sfs_log(log_ctx_t *ctx, sfs_log_level_t level, char *format, ...)
  * TBD
  */
 
- /* sfs_print_logs_by_time - Print logs between two times given in localtime 
+ /* sfs_print_logs_by_time - Print logs between two times given in localtime
  * format and by priority(6 for all logs)
  * TBD
  */
