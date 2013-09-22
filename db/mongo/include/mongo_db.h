@@ -23,6 +23,7 @@
 #include <bson.h>
 #include <mongo.h>
 #include <sstack_db.h>
+#include <sstack_log.h>
 #define DB_NAME "sstack_db"
 #define POLICY_COLLECTION "policy"
 #define INODE_COLLECTION "inodes"
@@ -33,17 +34,18 @@
 #define NAME_SIZE 32
 #define REC_NAME_SIZE 32
 
-extern int mongo_db_open(void);
-extern int mongo_db_close(void);
-extern int mongo_db_init(void);
-extern int mongo_db_insert(char * , char * , size_t , db_type_t);
+extern int mongo_db_open(log_ctx_t *);
+extern int mongo_db_close(log_ctx_t *);
+extern int mongo_db_init(log_ctx_t *);
+extern int mongo_db_insert(char * , char * , size_t , db_type_t , log_ctx_t *);
 extern int mongo_db_seekread(char * , char *, size_t , off_t ,
-		int , db_type_t);
-extern int mongo_db_update(char * , char * , size_t , db_type_t);
-extern void mongo_db_iterate(db_type_t , iterator_function_t , void *);
-extern int mongo_db_get(char * , char * , size_t , db_type_t);
-extern int mongo_db_delete(char * );
-extern int mongo_db_cleanup(void);
+		int , db_type_t , log_ctx_t *);
+extern int mongo_db_update(char * , char * , size_t , db_type_t , log_ctx_t *);
+extern void mongo_db_iterate(db_type_t , iterator_function_t , void *,
+				log_ctx_t *);
+extern int mongo_db_get(char * , char * , db_type_t , log_ctx_t *);
+extern int mongo_db_delete(char * , log_ctx_t *);
+extern int mongo_db_cleanup(log_ctx_t *);
 
 static inline
 int construct_db_name(char *name, db_type_t type)

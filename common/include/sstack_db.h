@@ -24,6 +24,7 @@
 #include <sys/types.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <sstack_log.h>
 
 // DB types
 typedef enum {
@@ -41,18 +42,18 @@ typedef void (*iterator_function_t)(void *params,
 				    char *key, void *data, ssize_t data_len);
 
 // DB operations
-typedef int (*db_init_t)(void);
-typedef int (*db_open_t)(void);
-typedef int (*db_close_t)(void);
-typedef int (*db_insert_t)(char * , char * , size_t, db_type_t);
+typedef int (*db_init_t)(log_ctx_t *);
+typedef int (*db_open_t)(log_ctx_t *);
+typedef int (*db_close_t)(log_ctx_t *);
+typedef int (*db_insert_t)(char * , char * , size_t, db_type_t , log_ctx_t *);
 typedef void (*db_iterate_t)(db_type_t db_type, iterator_function_t iterator,
-			     void *params);
-typedef int (*db_get_t)(char * , char * , size_t , db_type_t);
+			     void *params, log_ctx_t *);
+typedef int (*db_get_t)(char * , char * , db_type_t , log_ctx_t *);
 typedef int (*db_seekread_t)(char * , char * , size_t , off_t ,
-		int , db_type_t);
-typedef int (*db_update_t)(char * , char * , size_t , db_type_t);
-typedef int (*db_delete_t)(char *);
-typedef int (*db_cleanup_t)(void);
+		int , db_type_t, log_ctx_t *);
+typedef int (*db_update_t)(char * , char * , size_t , db_type_t , log_ctx_t *);
+typedef int (*db_delete_t)(char * , log_ctx_t *);
+typedef int (*db_cleanup_t)(log_ctx_t *);
 
 
 // DB operations
@@ -72,6 +73,7 @@ typedef struct db_operations {
 // DB structure
 typedef struct db {
 	db_ops_t db_ops;
+	log_ctx_t *ctx;
 } db_t;
 
 extern db_t *db;
@@ -98,7 +100,7 @@ static inline void
 db_register(db_t *db, db_init_t db_init, db_open_t db_open, db_close_t db_close,
 	db_insert_t db_insert, db_iterate_t db_iterate, db_get_t db_get,
 	db_seekread_t db_seekread, db_update_t db_update, db_delete_t db_delete,
-	db_cleanup_t db_cleanup)
+	db_cleanup_t db_cleanup, log_ctx_t *ctx)
 {
 	db->db_ops.db_init = db_init;
 	db->db_ops.db_open = db_open;
@@ -110,6 +112,7 @@ db_register(db_t *db, db_init_t db_init, db_open_t db_open, db_close_t db_close,
 	db->db_ops.db_update = db_update;
 	db->db_ops.db_delete = db_delete;
 	db->db_ops.db_cleanup = db_cleanup;
+	db->ctx = ctx;
 }
 
 #endif // __SSTACK_DB_H__

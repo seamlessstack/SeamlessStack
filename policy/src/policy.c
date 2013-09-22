@@ -107,7 +107,7 @@ void init_policy(db_t *db, db_type_t db_type, log_ctx_t *callee_ctx)
 		pst.pst_head[i] = (Pvoid_t)NULL;
 		pthread_rwlock_init(&pst.pst_lock[i], NULL);
 	}
-	db->db_ops.db_iterate(db_type, policy_iterate, &pst);
+	db->db_ops.db_iterate(db_type, policy_iterate, &pst, callee_ctx);
 	policy_initialized = TRUE;
 	return;
 }
@@ -154,7 +154,7 @@ int32_t submit_policy_entry(struct policy_input *pi, db_t *db,
 	get_pdbe_from_pe(pe, &pdb_entry);
 
 	if (db->db_ops.db_insert(key, (char *)&pdb_entry,
-				 sizeof(pdb_entry), db_type) == 0) {
+				 sizeof(pdb_entry), db_type, policy_ctx) == 0) {
 		sfs_log(policy_ctx, SFS_INFO,
 			"Policy submitted successfully");
 	} else {
@@ -463,7 +463,7 @@ static void  get_pe_from_tags(const char *policy_tags[],
 				     struct policy_entry *pe)
 {
 	int32_t i, j, k;
-	int32_t filled_policies = 0;
+	//int32_t filled_policies = 0;
 	struct policy_plugin *pp = NULL;
 
 	for(i = 0, k = 0; i < num_tags; i++) {

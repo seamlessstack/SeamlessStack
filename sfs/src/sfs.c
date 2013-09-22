@@ -50,7 +50,7 @@
 #include <sfs.h>
 #include <mongo_db.h>
 /* Macros */
-#define MAX_INODE_LEN 21 // Maximum len of uint64_t is 20
+#define MAX_INODE_LEN 40 // Maximum len of uint64_t is 39
 
 /* BSS */
 log_ctx_t *sfs_ctx = NULL;
@@ -91,6 +91,7 @@ add_inodes(const char *path)
 	struct stat status;
 	char inode_str[MAX_INODE_LEN] = { '\0' };
 	int ret = -1;
+	extent_path_t *ep = NULL;
 
     sfs_log(sfs_ctx, SFS_DEBUG, "%s: path = %s\n", __FUNCTION__, path);
     if (lstat(path, &status) == -1) {
@@ -185,14 +186,16 @@ add_inodes(const char *path)
 			__FUNCTION__, path, attr.e_cksum);
 	} else
 		attr.e_cksum = 0; // Place holder
-	strcpy(attr.e_path[0], path);
+	ep = attr.e_path;
+	strcpy(ep->extent_path, path);
 	memcpy((buffer+sizeof(sstack_inode_t)), &attr, sizeof(sstack_extent_t));
 
 	// Now inode is ready to be placed in DB
 	// Put it in DB
 	sprintf(inode_str, "%lld", inode->i_num);
 	if (db->db_ops.db_insert && (db->db_ops.db_insert(inode_str, buffer,
-		(sizeof(sstack_inode_t) + sizeof(sstack_extent_t)), INODE_TYPE) != 1)) {
+		(sizeof(sstack_inode_t) + sizeof(sstack_extent_t)),
+		INODE_TYPE, sfs_ctx) != 1)) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to add inode to db . \n",
 			__FUNCTION__);
 		free(buffer);
@@ -510,13 +513,13 @@ sfs_init(struct fuse_conn_info *conn)
 	db_register(db, mongo_db_init, mongo_db_open, mongo_db_close,
 		mongo_db_insert, mongo_db_iterate, mongo_db_get,
 		mongo_db_seekread, mongo_db_update, mongo_db_delete,
-		mongo_db_cleanup);
-	if (db->db_ops.db_init() != 0) {
+		mongo_db_cleanup, sfs_ctx);
+	if (db->db_ops.db_init(sfs_ctx) != 0) {
 		sfs_log(sfs_ctx, SFS_CRIT, "%s: DB init faled with error %d\n",
 			__FUNCTION__, errno);
 		return NULL;
 	}
-	if (db->db_ops.db_open() != 0) {
+	if (db->db_ops.db_open(sfs_ctx) != 0) {
 		sfs_log(sfs_ctx, SFS_CRIT, "%s: DB open faled with error %d\n",
 			__FUNCTION__, errno);
 		return NULL;

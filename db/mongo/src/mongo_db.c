@@ -29,19 +29,18 @@
 
 pthread_mutex_t mongo_db_mutex = PTHREAD_MUTEX_INITIALIZER;
 mongo conn[1];
-extern log_ctx_t *sfs_ctx;
 
 
 // db_open, db_close are NOP for this DB
 
 int
-mongo_db_open(void)
+mongo_db_open(log_ctx_t * ctx)
 {
 	return 0;
 }
 
 int
-mongo_db_close(void)
+mongo_db_close(log_ctx_t *ctx)
 {
 	return 0;
 }
@@ -50,14 +49,14 @@ mongo_db_close(void)
 //
 
 int
-mongo_db_init(void)
+mongo_db_init(log_ctx_t *ctx)
 {
 	int ret = -1;
 
 	// Initialize the connection
 	ret = mongo_client(conn, MONGO_IP, MONGO_PORT);
 	if (ret != MONGO_OK) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to connect to mongodb. "
+		sfs_log(ctx, SFS_ERR, "%s: Failed to connect to mongodb. "
 			"Error = %d\n", __FUNCTION__, ret);
 		return -1;
 	}
@@ -67,28 +66,28 @@ mongo_db_init(void)
 	// Cleanup all collections
 	ret = mongo_cmd_drop_collection(conn, DB_NAME, POLICY_COLLECTION, NULL);
 	if (ret != MONGO_OK) {
-		sfs_log(sfs_ctx, SFS_INFO,
+		sfs_log(ctx, SFS_INFO,
 			"%s: Collection %s does not exist in db %s\n",
 			__FUNCTION__, POLICY_COLLECTION, DB_NAME);
 	}
 
 	ret = mongo_cmd_drop_collection(conn, DB_NAME, INODE_COLLECTION, NULL);
 	if (ret != MONGO_OK) {
-		sfs_log(sfs_ctx, SFS_INFO,
+		sfs_log(ctx, SFS_INFO,
 			"%s: Collection %s does not exist in db %s\n",
 			__FUNCTION__, POLICY_COLLECTION, DB_NAME);
 	}
 
 	ret = mongo_cmd_drop_collection(conn, DB_NAME, JOURNAL_COLLECTION, NULL);
 	if (ret != MONGO_OK) {
-		sfs_log(sfs_ctx, SFS_INFO,
+		sfs_log(ctx, SFS_INFO,
 			"%s: Collection %s does not exist in db %s\n",
 			__FUNCTION__, POLICY_COLLECTION, DB_NAME);
 	}
 
 	ret = mongo_cmd_drop_collection(conn, DB_NAME, CONFIG_COLLECTION, NULL);
 	if (ret != MONGO_OK) {
-		sfs_log(sfs_ctx, SFS_INFO,
+		sfs_log(ctx, SFS_INFO,
 			"%s: Collection %s does not exist in db %s\n",
 			__FUNCTION__, POLICY_COLLECTION, DB_NAME);
 	}
@@ -98,7 +97,7 @@ mongo_db_init(void)
 	ret = mongo_create_collection(conn, DB_NAME, POLICY_COLLECTION,
 		0, NULL);
 	if (ret != MONGO_OK) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: Creating policy collection failed. "
+		sfs_log(ctx, SFS_ERR, "%s: Creating policy collection failed. "
 			"Default collections are capped which makes sharding impossible.\n",
 			__FUNCTION__);
 		return -1;
@@ -107,7 +106,7 @@ mongo_db_init(void)
 	ret = mongo_create_collection(conn, DB_NAME, INODE_COLLECTION,
 		0, NULL);
 	if (ret != MONGO_OK) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: Creating inode collection failed. "
+		sfs_log(ctx, SFS_ERR, "%s: Creating inode collection failed. "
 			"Default collections are capped which makes sharding impossible.\n",
 			__FUNCTION__);
 		return -1;
@@ -116,7 +115,7 @@ mongo_db_init(void)
 	ret = mongo_create_collection(conn, DB_NAME, JOURNAL_COLLECTION,
 		0, NULL);
 	if (ret != MONGO_OK) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: Creating journal collection failed. "
+		sfs_log(ctx, SFS_ERR, "%s: Creating journal collection failed. "
 			"Default collections are capped which makes sharding impossible.\n",
 			__FUNCTION__);
 		return -1;
@@ -125,7 +124,7 @@ mongo_db_init(void)
 	ret = mongo_create_collection(conn, DB_NAME, CONFIG_COLLECTION,
 		0, NULL);
 	if (ret != MONGO_OK) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: Creating config collection failed. "
+		sfs_log(ctx, SFS_ERR, "%s: Creating config collection failed. "
 			"Default collections are capped which makes sharding impossible.\n",
 			__FUNCTION__);
 		return -1;
@@ -136,7 +135,8 @@ mongo_db_init(void)
 
 // Meat of the DB
 int
-mongo_db_insert(char *key, char *data, size_t len, db_type_t type)
+mongo_db_insert(char *key, char *data, size_t len, db_type_t type,
+				log_ctx_t *ctx)
 {
 	bson b[1];
 	int ret = -1;
@@ -144,14 +144,14 @@ mongo_db_insert(char *key, char *data, size_t len, db_type_t type)
 	char record_name[REC_NAME_SIZE];
 
 	if (key == NULL) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: Key passed is NULL. \n", __FUNCTION__);
+		sfs_log(ctx, SFS_ERR, "%s: Key passed is NULL. \n", __FUNCTION__);
 		return -EINVAL;
 	}
 
 	bson_init(b);
 	ret = bson_append_string(b, "record_num", key);
 	if (ret != BSON_OK) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to append record_num to bson for "
+		sfs_log(ctx, SFS_ERR, "%s: Failed to append record_num to bson for "
 			"inode %s. Error = %d \n", __FUNCTION__, key, ret);
 		bson_destroy(b);
 		return -ret;
@@ -159,7 +159,7 @@ mongo_db_insert(char *key, char *data, size_t len, db_type_t type)
 
 	ret = construct_record_name(record_name, type);
 	if (ret != 0) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid record type %d specified\n",
+		sfs_log(ctx, SFS_ERR, "%s: Invalid record type %d specified\n",
 			__FUNCTION__, type);
 		bson_destroy(b);
 		return -1;
@@ -168,7 +168,7 @@ mongo_db_insert(char *key, char *data, size_t len, db_type_t type)
 	ret = bson_append_binary(b, record_name, BSON_BIN_BINARY,
 		(const char *) data, len);
 	if (ret != BSON_OK) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to append inode to bson for"
+		sfs_log(ctx, SFS_ERR, "%s: Failed to append inode to bson for"
 			" inode %s. Error = %d \n", __FUNCTION__, key, ret);
 		bson_destroy(b);
 		return -ret;
@@ -176,7 +176,7 @@ mongo_db_insert(char *key, char *data, size_t len, db_type_t type)
 
 	ret = bson_append_long(b, "record_length", len);
 	if (ret != BSON_OK) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to append size to bson for "
+		sfs_log(ctx, SFS_ERR, "%s: Failed to append size to bson for "
 			"inode %s. Error = %d \n", __FUNCTION__, key, ret);
 		bson_destroy(b);
 		return -ret;
@@ -185,7 +185,7 @@ mongo_db_insert(char *key, char *data, size_t len, db_type_t type)
 	bson_finish(b);
 	ret = construct_db_name(db_and_collection, type);
 	if (ret != 0) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid type specified. db_type = %d\n",
+		sfs_log(ctx, SFS_ERR, "%s: Invalid type specified. db_type = %d\n",
 			__FUNCTION__, type);
 		bson_destroy(b);
 		return -1;
@@ -194,14 +194,14 @@ mongo_db_insert(char *key, char *data, size_t len, db_type_t type)
 	pthread_mutex_lock(&mongo_db_mutex);
 	ret = mongo_insert(conn, db_and_collection, b, NULL);
 	if (ret != MONGO_OK) {
-		sfs_log(sfs_ctx, SFS_ERR,
+		sfs_log(ctx, SFS_ERR,
 			"%s: Failed to insert record %s of type %d"
 			"into db.collection %s. Error = %d\n",
 			__FUNCTION__, key, (int) type, db_and_collection, ret);
 		bson_destroy(b);
 		return -ret;
 	}
-	sfs_log(sfs_ctx, SFS_INFO,
+	sfs_log(ctx, SFS_INFO,
 		"%s: Successfully inserted record %s of type %d"
 		" into db.collection %s\n",
 		__FUNCTION__, key, (int) type, db_and_collection);
@@ -216,7 +216,7 @@ mongo_db_insert(char *key, char *data, size_t len, db_type_t type)
 // Needed to read extents from inode
 int
 mongo_db_seekread(char * key, char *data, size_t len, off_t offset,
-	int whence, db_type_t type)
+	int whence, db_type_t type, log_ctx_t *ctx)
 {
 	int ret = -1;
 	bson query[1];
@@ -228,12 +228,12 @@ mongo_db_seekread(char * key, char *data, size_t len, off_t offset,
 	char *record;
 
 	if (key == NULL) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: Key passed is NULL. \n", __FUNCTION__);
+		sfs_log(ctx, SFS_ERR, "%s: Key passed is NULL. \n", __FUNCTION__);
 		return -EINVAL;
 	}
 
 	if (NULL == data) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: data pointer is NULL. \n",
+		sfs_log(ctx, SFS_ERR, "%s: data pointer is NULL. \n",
 			__FUNCTION__);
 		return -EINVAL;
 	}
@@ -241,7 +241,7 @@ mongo_db_seekread(char * key, char *data, size_t len, off_t offset,
 	bson_init(query);
 	bson_append_string(query, "record_num", key);
 	if (ret != BSON_OK) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to append record_num to bson for "
+		sfs_log(ctx, SFS_ERR, "%s: Failed to append record_num to bson for "
 			"inode %s. Error = %d \n", __FUNCTION__, key, ret);
 		bson_destroy(query);
 		return -ret;
@@ -252,7 +252,7 @@ mongo_db_seekread(char * key, char *data, size_t len, off_t offset,
 	// So mongo_find_one suffices
 	ret = construct_db_name(db_and_collection, type);
 	if (ret != 0) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid type specified. db_type = %d\n",
+		sfs_log(ctx, SFS_ERR, "%s: Invalid type specified. db_type = %d\n",
 			__FUNCTION__, type);
 		bson_destroy(query);
 		return -1;
@@ -261,7 +261,7 @@ mongo_db_seekread(char * key, char *data, size_t len, off_t offset,
 		response);
 
 	if (ret != MONGO_OK) {
-		sfs_log(sfs_ctx, SFS_ERR,
+		sfs_log(ctx, SFS_ERR,
 			"%s: Failed to retrieve record for %s from"
 			" collection %s. Error = %d\n",
 			__FUNCTION__, key, db_and_collection, ret);
@@ -272,7 +272,7 @@ mongo_db_seekread(char * key, char *data, size_t len, off_t offset,
 	ret = construct_record_name(record_name, type);
 	if (ret != 0) {
 		// This is just to catch stack corruption if any
-		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid type specified. db_type = %d\n",
+		sfs_log(ctx, SFS_ERR, "%s: Invalid type specified. db_type = %d\n",
 			__FUNCTION__, type);
 		bson_destroy(query);
 		return -1;
@@ -283,7 +283,7 @@ mongo_db_seekread(char * key, char *data, size_t len, off_t offset,
 	// Allocate memory for data
 	record = malloc(record_len);
 	if (NULL == record) {
-		sfs_log(sfs_ctx, SFS_ERR,
+		sfs_log(ctx, SFS_ERR,
 			"%s: Failed to allocate memory for reading record."
 			"Requested size = %"PRId64" key = %s db name = %s\n",
 			__FUNCTION__, record_len, key, db_and_collection);
@@ -303,7 +303,8 @@ mongo_db_seekread(char * key, char *data, size_t len, off_t offset,
 
 
 void
-mongo_db_iterate(db_type_t type, iterator_function_t iterator_fn, void *params)
+mongo_db_iterate(db_type_t type, iterator_function_t iterator_fn, void *params,
+				log_ctx_t *ctx)
 {
 	int ret = -1;
 	bson *response;
@@ -316,14 +317,14 @@ mongo_db_iterate(db_type_t type, iterator_function_t iterator_fn, void *params)
 	char *record_name;
 
 	if (iterator_fn == NULL) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: No iterator function supplied\n",
+		sfs_log(ctx, SFS_ERR, "%s: No iterator function supplied\n",
 				__FUNCTION__);
 		return;
 	}
 
 	ret = construct_db_name(db_and_collection, type);
 	if (ret != 0) {
-		sfs_log(sfs_ctx, SFS_ERR,
+		sfs_log(ctx, SFS_ERR,
 				"%s: Invalid type specified. db_type = %d\n",
 				__FUNCTION__, type);
 		return;
@@ -343,8 +344,21 @@ mongo_db_iterate(db_type_t type, iterator_function_t iterator_fn, void *params)
 	}
 	return;
 }
+
+/*
+ * mongo_db_get - Get one record specified by key from MongoDB collection
+ *  represented by type
+ *
+ * key - Key for the record
+ * data - O/P parameter that holds read record. Can pass NULL
+ * type - Type of the collection
+ *
+ * Returns number of bytes read  on success and negative number 
+ * indicating error on failure.
+ */
+
 int
-mongo_db_get(char *key, char *data, size_t len, db_type_t type)
+mongo_db_get(char *key, char *data, db_type_t type, log_ctx_t *ctx)
 {
 	int ret = -1;
 	bson query[1];
@@ -355,21 +369,15 @@ mongo_db_get(char *key, char *data, size_t len, db_type_t type)
 	uint64_t record_len = 0;
 
 	if (key == NULL) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: Key passed is NULL. \n",
+		sfs_log(ctx, SFS_ERR, "%s: Key passed is NULL. \n",
 				__FUNCTION__);
-		return -EINVAL;
-	}
-
-	if (NULL == data || len <= 0) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters specified. \n",
-			__FUNCTION__);
 		return -EINVAL;
 	}
 
 	bson_init(query);
 	bson_append_string(query, "record_num", key);
 	if (ret != BSON_OK) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to append record_num to bson for "
+		sfs_log(ctx, SFS_ERR, "%s: Failed to append record_num to bson for "
 			"inode %a. Error = %d \n", __FUNCTION__, key, ret);
 		bson_destroy(query);
 		return -ret;
@@ -381,7 +389,7 @@ mongo_db_get(char *key, char *data, size_t len, db_type_t type)
 	// So mongo_find_one suffices
 	ret = construct_db_name(db_and_collection, type);
 	if (ret != 0) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid type specified. db_type = %d\n",
+		sfs_log(ctx, SFS_ERR, "%s: Invalid type specified. db_type = %d\n",
 			__FUNCTION__, type);
 		bson_destroy(query);
 		return -1;
@@ -390,7 +398,7 @@ mongo_db_get(char *key, char *data, size_t len, db_type_t type)
 		bson_shared_empty(), response);
 
 	if (ret != MONGO_OK) {
-		sfs_log(sfs_ctx, SFS_ERR,
+		sfs_log(ctx, SFS_ERR,
 			"%s: Failed to retrieve record for %s from"
 			" collection %s. Error = %d\n",
 			__FUNCTION__, key, db_and_collection, ret);
@@ -401,7 +409,7 @@ mongo_db_get(char *key, char *data, size_t len, db_type_t type)
 	ret = construct_record_name(record_name, type);
 	if (ret != 0) {
 		// This is just to catch stack corruption if any
-		sfs_log(sfs_ctx, SFS_ERR,
+		sfs_log(ctx, SFS_ERR,
 				"%s: Invalid type specified. db_type = %d\n",
 			__FUNCTION__, type);
 		bson_destroy(query);
@@ -411,25 +419,26 @@ mongo_db_get(char *key, char *data, size_t len, db_type_t type)
 	(void)bson_find(iter, response, "record_length");
 	record_len = bson_iterator_long(iter);
 	(void)bson_find(iter, response, record_name);
-	// Check if requested length is bigger than the actual length
-	if (record_len < len) {
-		sfs_log(sfs_ctx, SFS_INFO,
-			"%s: Record size is smaller than lenth requested."
-			" Record len = %"PRId64" len = %d\n",
-			__FUNCTION__, record_len, (int)len);
-		memcpy(data, bson_iterator_bin_data(iter), record_len);
-		len = record_len;
-	} else {
-		memcpy(data, bson_iterator_bin_data(iter), len);
+	// Allocate buffer
+	data = malloc(record_len);
+	if (NULL == data) {
+		sfs_log(ctx, SFS_ERR, "%s: Unable to allocate %d bytes for "
+				"reading inode record for inode %s. \n",
+				__FUNCTION__, record_len, key);
+
+		return -EINVAL;
 	}
+	memcpy(data, bson_iterator_bin_data(iter), record_len);
 
 	bson_destroy(query);
 	bson_destroy(response);
-	return len;
+
+	return record_len;
 }
 
 int
-mongo_db_update(char *key, char *data, size_t len, db_type_t type)
+mongo_db_update(char *key, char *data, size_t len, db_type_t type,
+		log_ctx_t *ctx)
 {
 	int ret = -1;
 	bson b[1];
@@ -439,7 +448,7 @@ mongo_db_update(char *key, char *data, size_t len, db_type_t type)
 	bson_init(b);
 	ret = bson_append_string(b, "record_number", key);
 	if (ret != MONGO_OK) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to append record_num to bson for "
+		sfs_log(ctx, SFS_ERR, "%s: Failed to append record_num to bson for "
 			"inode %s. Error = %d \n", __FUNCTION__, key, ret);
 		bson_destroy(b);
 		return -ret;
@@ -447,7 +456,7 @@ mongo_db_update(char *key, char *data, size_t len, db_type_t type)
 
 	ret = construct_record_name(record_name, type);
 	if (ret != 0) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid record type %d specified\n",
+		sfs_log(ctx, SFS_ERR, "%s: Invalid record type %d specified\n",
 			__FUNCTION__, type);
 		bson_destroy(b);
 		return -1;
@@ -456,7 +465,7 @@ mongo_db_update(char *key, char *data, size_t len, db_type_t type)
 	ret = bson_append_binary(b, record_name, BSON_BIN_BINARY,
 		(const char *) data, len);
 	if (ret != BSON_OK) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to append inode to bson for"
+		sfs_log(ctx, SFS_ERR, "%s: Failed to append inode to bson for"
 			" inode %s. Error = %d \n", __FUNCTION__, key, ret);
 		bson_destroy(b);
 		return -ret;
@@ -464,7 +473,7 @@ mongo_db_update(char *key, char *data, size_t len, db_type_t type)
 
 	ret = bson_append_long(b, "record_length", len);
 	if (ret != BSON_OK) {
-		sfslog(sfs_ctx, SFS_ERR, "%s: Failed to append size to bson for "
+		sfslog(ctx, SFS_ERR, "%s: Failed to append size to bson for "
 			"inode %s. Error = %d \n", __FUNCTION__, key, ret);
 		bson_destroy(b);
 		return -ret;
@@ -474,7 +483,7 @@ mongo_db_update(char *key, char *data, size_t len, db_type_t type)
 
 	ret = construct_db_name(db_and_collection, type);
 	if (ret != 0) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid type specified. db_type = %d\n",
+		sfs_log(ctx, SFS_ERR, "%s: Invalid type specified. db_type = %d\n",
 			__FUNCTION__, type);
 		bson_destroy(b);
 		return -1;
@@ -484,7 +493,7 @@ mongo_db_update(char *key, char *data, size_t len, db_type_t type)
 	ret = mongo_update(conn, db_and_collection, bson_shared_empty(), b,
 			0, NULL);
 	if (ret != MONGO_OK) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: Record updation for key %s into "
+		sfs_log(ctx, SFS_ERR, "%s: Record updation for key %s into "
 			"database %s failed with error %d\n",
 			__FUNCTION__, key, db_and_collection, ret);
 		pthread_mutex_unlock(&mongo_db_mutex);
@@ -498,7 +507,7 @@ mongo_db_update(char *key, char *data, size_t len, db_type_t type)
 }
 
 int
-mongo_db_delete(char *key)
+mongo_db_delete(char *key, log_ctx_t *ctx)
 {
 	int ret = -1;
 
@@ -506,7 +515,7 @@ mongo_db_delete(char *key)
 	// Cleanup all collections
 	ret = mongo_cmd_drop_collection(conn, DB_NAME, POLICY_COLLECTION, NULL);
 	if (ret != MONGO_OK) {
-		sfs_log(sfs_ctx, SFS_INFO,
+		sfs_log(ctx, SFS_INFO,
 			"%s: Collection %s does not exist in db %s\n",
 			__FUNCTION__, POLICY_COLLECTION, DB_NAME);
 		ret = -1;
@@ -514,7 +523,7 @@ mongo_db_delete(char *key)
 	}
 	ret = mongo_cmd_drop_collection(conn, DB_NAME, INODE_COLLECTION, NULL);
 	if (ret != MONGO_OK) {
-		sfs_log(sfs_ctx, SFS_INFO,
+		sfs_log(ctx, SFS_INFO,
 			"%s: Collection %s does not exist in db %s\n",
 			__FUNCTION__, POLICY_COLLECTION, DB_NAME);
 		ret = -1;
@@ -522,7 +531,7 @@ mongo_db_delete(char *key)
 	}
 	ret = mongo_cmd_drop_collection(conn, DB_NAME, JOURNAL_COLLECTION, NULL);
 	if (ret != MONGO_OK) {
-		sfs_log(sfs_ctx, SFS_INFO,
+		sfs_log(ctx, SFS_INFO,
 			"%s: Collection %s does not exist in db %s\n",
 			__FUNCTION__, POLICY_COLLECTION, DB_NAME);
 		ret = -1;
@@ -530,7 +539,7 @@ mongo_db_delete(char *key)
 	}
 	ret = mongo_cmd_drop_collection(conn, DB_NAME, CONFIG_COLLECTION, NULL);
 	if (ret != MONGO_OK) {
-		sfs_log(sfs_ctx, SFS_INFO,
+		sfs_log(ctx, SFS_INFO,
 			"%s: Collection %s does not exist in db %s\n",
 			__FUNCTION__, POLICY_COLLECTION, DB_NAME);
 		ret = -1;
@@ -541,10 +550,11 @@ out:
 }
 
 int
-mongo_db_cleanup(void)
+mongo_db_cleanup(log_ctx_t *ctx)
 {
-	mongo_db_delete(NULL);
+	mongo_db_delete(NULL, ctx);
 	mongo_destroy(conn);
+	sfs_log(ctx, SFS_INFO, "%s: DB %s destroyed \n", __FUNCTION__, DB_NAME);
 
 	return 0;
 }

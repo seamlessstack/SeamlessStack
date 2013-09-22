@@ -288,7 +288,7 @@ void handle_command(sstack_payload_t *command, sstack_payload_t **response,
 			break;
 		case NFS_WRITE:
 			*response = sstack_write(command, cache_arr,
-						 sfsd, log_ctx);
+						 &sfsd, log_ctx);
 			break;
 		case NFS_CREATE:
 			*response = sstack_create(command, cache_arr,
