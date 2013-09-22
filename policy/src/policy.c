@@ -456,7 +456,6 @@ ret:
 
 }
 /*
- * TODO: check this function
  * policy_tab->pt_table_lock must be held while calling this!!
  */
 static void  get_pe_from_tags(const char *policy_tags[],
@@ -467,9 +466,10 @@ static void  get_pe_from_tags(const char *policy_tags[],
 	int32_t filled_policies = 0;
 	struct policy_plugin *pp = NULL;
 
-	filled_policies = __builtin_popcount(~(policy_tab.policy_slots));
 	for(i = 0, k = 0; i < num_tags; i++) {
-		for(j = 0; j < filled_policies; j++) {
+		for(j = 0; j < NUM_MAX_POLICY; j++) {
+			if (policy_tab.pt_table[j] == NULL)
+				continue;
 			if (!strcmp(policy_tags[i],
 				policy_tab.pt_table[j]->pp_policy_name)) {
 				pp = policy_tab.pt_table[j];
@@ -485,8 +485,6 @@ static void  get_pe_from_tags(const char *policy_tags[],
 }
 
 /* Add policy into the Judy array -
- * return the index into the Judy array
- * -1 on any error
  * policy_tab->pt_table_lock must be held while
  * calling this!!
  */
