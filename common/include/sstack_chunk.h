@@ -1,11 +1,11 @@
 /*************************************************************************
- * 
+ *
  * SEAMLESSSTACK CONFIDENTIAL
  * __________________________
- * 
+ *
  *  [2012] - [2013]  SeamlessStack Inc
  *  All Rights Reserved.
- * 
+ *
  * NOTICE:  All information contained herein is, and remains
  * the property of SeamlessStack Incorporated and its suppliers,
  * if any.  The intellectual and technical concepts contained
@@ -41,6 +41,8 @@ typedef struct sfs_chunk_domain {
 	uint64_t size_in_blks; // Total size f chunk domain in file system blocks
 	log_ctx_t  *ctx;	// Log context for the chunk domain
 	sfsd_storage_t *storage; // Individual chunks
+	/* The chunk scheduler function */
+	int32_t (*schedule)(struct sfs_chunk_domain *);
 } sfs_chunk_domain_t;
 
 

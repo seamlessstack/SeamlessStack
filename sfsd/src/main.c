@@ -1,11 +1,11 @@
 /*************************************************************************
- * 
+ *
  * SEAMLESSSTACK CONFIDENTIAL
  * __________________________
- * 
+ *
  *  [2012] - [2013]  SeamlessStack Inc
  *  All Rights Reserved.
- * 
+ *
  * NOTICE:  All information contained herein is, and remains
  * the property of SeamlessStack Incorporated and its suppliers,
  * if any.  The intellectual and technical concepts contained
@@ -46,13 +46,13 @@ int main(int argc, char **argv)
 		strncpy(sstack_log_directory, argv[1], PATH_MAX);
 	}
 	memset(&sfsd, 0, sizeof(sfsd));
-	
+
 	/* Get the server address from the command line also */
 	strcpy(sfsd.sfs_addr, argv[2]);
 
 	/* initialize logging */
 	ctx = sfs_create_log_ctx();
-	ASSERT((NULL != ctx), "Log create failed", 1, 1, 0); 
+	ASSERT((NULL != ctx), "Log create failed", 1, 1, 0);
 	log_ret = sfs_log_init(ctx, SFS_DEBUG, "sfsd");
 	ASSERT((0 == log_ret), "Log init failed", 1, 1, 0);
 

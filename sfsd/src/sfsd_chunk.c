@@ -1,11 +1,11 @@
 /*************************************************************************
- * 
+ *
  * SEAMLESSSTACK CONFIDENTIAL
  * __________________________
- * 
+ *
  *  [2012] - [2013]  SeamlessStack Inc
  *  All Rights Reserved.
- * 
+ *
  * NOTICE:  All information contained herein is, and remains
  * the property of SeamlessStack Incorporated and its suppliers,
  * if any.  The intellectual and technical concepts contained
@@ -27,6 +27,8 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #define MAX_COMMAND ((PATH_MAX) + (MAX_MOUNT_POINT_LEN) + 64)
+
+static int32_t sfsd_chunk_schedule_rr(void);
 
 /*
  * sfsd_chunk_domain_init - Initialize the chunk domain datastructure
@@ -59,19 +61,20 @@ sfsd_chunk_domain_init(sfsd_t *sfsd, log_ctx_t *ctx)
 	chunk->sfsd = sfsd;
 	chunk->state = REACHABLE;	// Let's be positive :-)
 	chunk->num_chunks = 0;
-	chunk->size_in_blks = 0; // No chunks added yet	
+	chunk->size_in_blks = 0; // No chunks added yet
 	chunk->ctx = ctx;
 	chunk->storage = NULL;
+	/* The chunk scheduler; For now it is simple round robin */
+	chunk->schedule = sfsd_chunk_schedule_rr;
 
 	sfs_log(ctx, SFS_INFO, "%s: Chunk domain for sfsd 0x%llx is successfully "
 		"created. Chunk domain address = 0x%llx \n",
 			__FUNCTION__, (void*) sfsd, (void*) chunk);
-
 	return chunk;
-}	
+}
 
 /*
- * sfsd_chunk_domain_destroy - Destroy chunk domain 
+ * sfsd_chunk_domain_destroy - Destroy chunk domain
  *
  * chunk - Should be a non-NULL address
  *
@@ -83,7 +86,7 @@ void
 sfsd_chunk_domain_destroy(sfs_chunk_domain_t *chunk)
 {
 	if (NULL == chunk)
-		return;	
+		return;
 
 	sfs_log(chunk->ctx, SFS_INFO, "%s: Chunk domain for sfsd 0x%llx is"
 		" destroyed \n", __FUNCTION__, (void *) chunk->sfsd);
@@ -103,11 +106,11 @@ sfsd_chunk_domain_destroy(sfs_chunk_domain_t *chunk)
  * return value. Returns NULL on failure.
  * chunk->storage gets updated with all the existing chunks plus new chunk.
  * So expect chunk->num_chunks to be incremented upon success.
- * storage->nblocks is assumed to be non-zero. 
+ * storage->nblocks is assumed to be non-zero.
  *
  * NOTE:
  * Caller needs to free the return path.
- * 
+ *
  */
 
 char *
@@ -203,9 +206,9 @@ sfsd_add_chunk(sfs_chunk_domain_t *chunk, sfsd_storage_t *storage)
 
 		return path;
 	} else {
-		//TBD 
+		//TBD
 		return NULL;
-	}	
+	}
 }
 
 /*
@@ -214,7 +217,7 @@ sfsd_add_chunk(sfs_chunk_domain_t *chunk, sfsd_storage_t *storage)
  * chunk - chunk domain address
  * storage - chunk to be removed
  *
- * Returns 0 on success and a negative number on failure. Logging is done 
+ * Returns 0 on success and a negative number on failure. Logging is done
  * wherever possible.
  */
 
@@ -292,7 +295,7 @@ skip:
 			chunk->storage = (sfsd_storage_t *) new_storage;
 		} else {
 			// Copy till i
-			memcpy(new_storage, (void *) chunk->storage, 
+			memcpy(new_storage, (void *) chunk->storage,
 				sizeof(sfsd_storage_t) * (i+1));
 			// Copy the rest if any
 			if (i != (chunk->num_chunks -1)) {
@@ -334,7 +337,7 @@ sfsd_update_chunk(sfs_chunk_domain_t *chunk, sfsd_storage_t *storage)
 	int i = 0;
 	sfsd_storage_t *temp = NULL;
 	int found = 0;
-	
+
 	if (NULL == chunk || NULL == storage)
 		return -1;
 
@@ -460,4 +463,30 @@ sfsd_display_chunk_domain(sfs_chunk_domain_t *chunk)
 		sfs_log(chunk->ctx, SFS_INFO, "Chunk protocol = %s\n",
 			sfsd_disp_protocol(temp->protocol));
 	}
+}
+
+/*
+ * Round Robin chunk scheduler
+ * returns the next usable chunk index
+ * to be used
+ */
+
+static int32_t sfsd_chunk_schedule_rr(sfsd_chunk_domain_t *chunk_domain)
+{
+	static int32_t next_scheduled = 0;
+	int32_t ret = -1;
+	if (chunk_domain->num_chunks == 0) {
+		/* No chunk added yet */
+		sfs_log(chunk_domain->ctx, SFS_ERR,
+			"%s(): line %d: No chunks added yet\n",
+			__FUNCTION__, __LINE__);
+		ret = -EINVAL;
+	} else {
+		sfs_log(chunk_domain->ctx, SFS_DEBUG,
+			"%s(), line %d: Chunk scheduled %d\n",
+			__FUNCTION__, __LINE__, next_scheduled);
+		ret = (next_schedule++) % chunk_domain->num_chunks;
+	}
+
+	return ret;
 }

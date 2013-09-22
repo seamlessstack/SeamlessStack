@@ -1,11 +1,11 @@
 /*************************************************************************
- * 
+ *
  * SEAMLESSSTACK CONFIDENTIAL
  * __________________________
- * 
+ *
  *  [2012] - [2013]  SeamlessStack Inc
  *  All Rights Reserved.
- * 
+ *
  * NOTICE:  All information contained herein is, and remains
  * the property of SeamlessStack Incorporated and its suppliers,
  * if any.  The intellectual and technical concepts contained
@@ -38,9 +38,9 @@ sstack_payload_t* sstack_getattr(
 	char *p = file_handle->name;
 	sstack_payload_t *response = NULL;
 	struct sstack_nfs_getattr_resp *getattr_resp = NULL;
-	
+
 	/* Make the string null terminated */
-	p[file_handle->name_len - 1] = 0; 
+	p[file_handle->name_len - 1] = 0;
 	sfs_log(ctx, SFS_DEBUG, ":%s extent path:%s", __FUNCTION__, p);
 
 	//i= find_rorw_branch(path); - Might need later
@@ -49,7 +49,7 @@ sstack_payload_t* sstack_getattr(
 		command_stat = -ENOMEM;
 		goto error;
 	}
-	
+
 	getattr_resp = &response->response_struct.getattr_resp;
 	command_stat = lstat(p, &getattr_resp->stbuf);
 	sfs_log(ctx, SFS_DEBUG, "%s(): command status: %d", __FUNCTION__,
@@ -60,9 +60,9 @@ sstack_payload_t* sstack_getattr(
 
 	/* This is a workaround for broken gnu find implementations. Actually,
 	 * n_links is not defined at all for directories by posix. However, it
-	 * seems to be common for filesystems to set it to one if the actual 
+	 * seems to be common for filesystems to set it to one if the actual
 	 * value is unknown. Since nlink_t is unsigned and since these broken
-	 * implementations always substract 2 (for . and ..) this will cause an 
+	 * implementations always substract 2 (for . and ..) this will cause an
 	 * underflow, setting it to max(nlink_t).
 	 */
 	if (S_ISDIR(getattr_resp->stbuf.st_mode))
@@ -72,7 +72,7 @@ sstack_payload_t* sstack_getattr(
 	response->hdr.sequence = payload->hdr.sequence;
 	response->hdr.payload_len = sizeof(*response);
 	response->response_struct.command_ok = command_stat;
-	
+
 	return response;
 
 error:
@@ -138,7 +138,7 @@ sstack_payload_t *sstack_access(
 	response->hdr.sequence = payload->hdr.sequence;
 	response->hdr.payload_len = sizeof(*response);
 	response->response_struct.command_ok = command_stat;
-	
+
 	return response;
 error:
 	payload->response_struct.command_ok = command_stat;
@@ -181,7 +181,7 @@ sstack_payload_t *sstack_readlink(
 	response->hdr.sequence = payload->hdr.sequence;
 	response->hdr.payload_len = sizeof(*response);
 	response->response_struct.command_ok = command_stat;
-	
+
 	return response;
 
 error:
@@ -196,7 +196,7 @@ error:
 sstack_payload_t *sstack_read(
 		sstack_payload_t *payload,
 		bds_cache_desc_t payload_data_cache[2],
-		log_ctx_t *ctx)
+		sfsd_t *sfsd, log_ctx_t *ctx)
 {
 	/* Not implemented */
 	sfs_log(ctx, SFS_INFO, "%s(): function not implemented", __FUNCTION__);
@@ -206,7 +206,7 @@ sstack_payload_t *sstack_read(
 sstack_payload_t *sstack_write(
 		sstack_payload_t *payload,
 		bds_cache_desc_t payload_data_cache[2],
-		log_ctx_t *ctx)
+		sfsd_t *sfsd, log_ctx_t *ctx)
 {
 	/* Not implemented */
 	sfs_log(ctx, SFS_INFO, "%s(): function not implemented", __FUNCTION__);
@@ -216,10 +216,10 @@ sstack_payload_t *sstack_write(
 sstack_payload_t *sstack_create(
 		sstack_payload_t *payload,
 		bds_cache_desc_t payload_data_cache[2],
-		log_ctx_t *ctx)
+		sfsd_t *sfsd, log_ctx_t *ctx)
 {
-	/* Not implemented */
-	sfs_log(ctx, SFS_INFO, "%s(): function not implemented", __FUNCTION__);
+	struct policy_entry *pe = &payload->command_struct.entry;
+	/* Locate an extent */
 	return NULL;
 }
 
@@ -235,7 +235,7 @@ sstack_payload_t *sstack_mkdir(
 		&payload->command_struct.mkdir_cmd;
 	char *p = dir_path->name;
 	p[dir_path->name_len] = '\0';
-	
+
 	response = bds_cache_alloc(payload_data_cache[PAYLOAD_CACHE_OFFSET]);
 	if (!response) {
 		sfs_log(ctx, SFS_ERR, "%s(): Memory allocation failed",
@@ -253,7 +253,7 @@ sstack_payload_t *sstack_mkdir(
 	response->hdr.sequence = payload->hdr.sequence;
 	response->hdr.payload_len = sizeof(*response);
 	response->response_struct.command_ok = command_stat;
-	
+
 	return response;
 
 error:

@@ -1,11 +1,11 @@
 /*************************************************************************
- * 
+ *
  * SEAMLESSSTACK CONFIDENTIAL
  * __________________________
- * 
+ *
  *  [2012] - [2013]  SeamlessStack Inc
  *  All Rights Reserved.
- * 
+ *
  * NOTICE:  All information contained herein is, and remains
  * the property of SeamlessStack Incorporated and its suppliers,
  * if any.  The intellectual and technical concepts contained
@@ -50,17 +50,17 @@ sstack_payload_t* sstack_readlink(
 sstack_payload_t* sstack_read(
 		sstack_payload_t *payload,
 		bds_cache_desc_t payload_data_cache[2],
-		log_ctx_t *ctx);
+		sfsd_t *sfsd, log_ctx_t *ctx);
 
 sstack_payload_t* sstack_write(
 		sstack_payload_t *payload,
 		bds_cache_desc_t payload_data_cache[2],
-		log_ctx_t *ctx);
+		sfsd_t sfsd, log_ctx_t *ctx);
 
 sstack_payload_t* sstack_create(
 		sstack_payload_t *payload,
 		bds_cache_desc_t payload_data_cache[2],
-		log_ctx_t *ctx);
+		sfsd_t *sfsd, log_ctx_t *ctx);
 
 sstack_payload_t* sstack_mkdir(
 		sstack_payload_t *payload,

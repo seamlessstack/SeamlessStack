@@ -1,11 +1,11 @@
 /*************************************************************************
- * 
+ *
  * SEAMLESSSTACK CONFIDENTIAL
  * __________________________
- * 
+ *
  *  [2012] - [2013]  SeamlessStack Inc
  *  All Rights Reserved.
- * 
+ *
  * NOTICE:  All information contained herein is, and remains
  * the property of SeamlessStack Incorporated and its suppliers,
  * if any.  The intellectual and technical concepts contained
@@ -184,13 +184,13 @@ typedef struct sstack_command_struct {
 		/* ===== NFS COMMANDS BELOW ======= */
 
 		/* NFS v3 GETATTR command -
-		 Doesnot need anything apart 
+		 Doesnot need anything apart
 		 from file handle */
 
 		/* NFS v3 SETATTR command */
 		struct sstack_nfs_setattr_cmd setattr_cmd;
 
-		/* NFS v3 LOOKUP command */ 
+		/* NFS v3 LOOKUP command */
 		struct sstack_nfs_lookup_cmd lookup_cmd;
 
 		/* NFS v3 ACCESS command */
@@ -269,7 +269,7 @@ typedef struct sstack_nfs_response_struct {
 
 		/* NFS v3 ACCESS response */
 		struct sstack_nfs_access_resp access_resp;
-		
+
 		/* NFS v3 READLINK response */
 		struct sstack_nfs_readlink_resp readlink_resp;
 

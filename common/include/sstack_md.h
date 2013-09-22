@@ -1,11 +1,11 @@
 /*************************************************************************
- * 
+ *
  * SEAMLESSSTACK CONFIDENTIAL
  * __________________________
- * 
+ *
  *  [2012] - [2013]  SeamlessStack Inc
  *  All Rights Reserved.
- * 
+ *
  * NOTICE:  All information contained herein is, and remains
  * the property of SeamlessStack Incorporated and its suppliers,
  * if any.  The intellectual and technical concepts contained
@@ -34,9 +34,9 @@
 #include <sstack_bitops.h>
 #include <sstack_db.h>
 
-// Recommended number of replicas in standard practice is 3. 
+// Recommended number of replicas in standard practice is 3.
 // Setting MAX_REPLICAS to 10 just to handle user request
-#define MAX_REPLICAS 10 
+#define MAX_REPLICAS 10
 #define INODE_NUM_START 2
 #define SSTACK_EXTENT_SIZE 65536
 
@@ -71,24 +71,24 @@ typedef struct extent {
 // Defines erasure code location
 // For now, path is sufficient. This structure is for future enhancements.
 typedef struct erasure {
-	char *path[PATH_MAX]; 
+	char *path[PATH_MAX];
 } sstack_erasure_t;
 
 // Defines metadata structure for each inode
-// If i_type is SYMLINK, first extent file name contains the real file name 
+// If i_type is SYMLINK, first extent file name contains the real file name
 // to which this inode/file links.
 
 typedef struct inode {
-	pthread_mutex_t	i_lock; // We could use futex 
+	pthread_mutex_t	i_lock; // We could use futex
 	// Inode number. Max is 2^128 on 64-bit machine
-	unsigned long long  i_num;
-	char i_name[PATH_MAX]; 
+	uint64_t i_num;
+	char i_name[PATH_MAX];
 	uid_t	i_uid; // Owner uid
 	gid_t	i_gid; // Owner gid
 	mode_t	i_mode; // Permissions
-	type_t	i_type; // Type of file	
+	type_t	i_type; // Type of file
 	int		i_links; // Number of references. Used for unlink()
-	policy_t i_policy; 
+	policy_t i_policy;
 	struct timespec i_atime; // Last access time
 	struct timespec i_ctime; // Creation time
 	struct timespec i_mtime; // Modification time
@@ -98,7 +98,7 @@ typedef struct inode {
 	unsigned int i_numerasure; // Number of erasure code extents
 	sstack_erasure_t i_erasure[0]; // Erasure code segment information
 	int i_numextents; // Number of extents
-	sstack_extent_t i_extent[0]; // extents 
+	sstack_extent_t i_extent[0]; // extents
 } sstack_inode_t;
 
 
@@ -120,8 +120,9 @@ get_inode_size(uint64_t inode_num, db_t *db)
 	ret = get_inode(inode_num, &inode, db);
 	if (ret != -1)
 		return (sizeof(sstack_inode_t) +
-					(inode.i_numextents * sizeof(sstack_extent_t)));
-	else 
+					(inode.i_numextents *
+					 sizeof(sstack_extent_t)));
+	else
 		return -1;
 }
 
@@ -146,9 +147,9 @@ get_free_inode(void)
 	// Check inode cache for any reusable inodes
 	// If there are reusable inodes, remove the first one from inode cache
 	// and return the inode_num
-	// If there are none, atomic increment the global inode number and 
+	// If there are none, atomic increment the global inode number and
 	// return preincremented global inode number
-	// Global inode number needs to be preserved in superblock which will 
+	// Global inode number needs to be preserved in superblock which will
 	// be stored as an object in database.
 	pthread_mutex_lock(&inode_mutex);
 	inode_number ++;

@@ -1,11 +1,11 @@
 /*************************************************************************
- * 
+ *
  * SEAMLESSSTACK CONFIDENTIAL
  * __________________________
- * 
+ *
  *  [2012] - [2013]  SeamlessStack Inc
  *  All Rights Reserved.
- * 
+ *
  * NOTICE:  All information contained herein is, and remains
  * the property of SeamlessStack Incorporated and its suppliers,
  * if any.  The intellectual and technical concepts contained
@@ -74,7 +74,7 @@ typedef struct sstack_payload {
 		sstack_nfs_response_struct response_struct;
 	};
 } sstack_payload_t;
-	
+
 typedef struct sfsd {
 	/* To be used in sfs and sfsd */
 	log_ctx_t *log_ctx;
@@ -83,7 +83,7 @@ typedef struct sfsd {
 	/* To be used in sfsd;
 	   Undefined if accessed in sfs */
 
-	/* The chunk domain which this sfsd 
+	/* The chunk domain which this sfsd
 	   controls */
 	sfs_chunk_domain_t *chunk;
 	pthread_t receiver_thread;
@@ -98,7 +98,7 @@ typedef struct sfsd {
 } sfsd_t;
 
 typedef struct job {
-	int version; 
+	int version;
 	sfsd_job_type_t job_type;
 	int num_clients; // Number of valid clients
 	sfsd_t sfsd_t[MAX_SFSD_CLIENTS];
@@ -108,8 +108,8 @@ typedef struct job {
 	sstack_payload_t	payload[0];
 } job_t;
 
-/* 
- * Multiple jobs queues in SFS, one for each priority level 
+/*
+ * Multiple jobs queues in SFS, one for each priority level
  * exists. Scheduler threads each per sfsds pick one payload
  * at a time and send of to one of the actual sfsd.
  */

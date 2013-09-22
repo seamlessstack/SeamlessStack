@@ -1,11 +1,11 @@
 /*************************************************************************
- * 
+ *
  * SEAMLESSSTACK CONFIDENTIAL
  * __________________________
- * 
+ *
  *  [2012] - [2013]  SeamlessStack Inc
  *  All Rights Reserved.
- * 
+ *
  * NOTICE:  All information contained herein is, and remains
  * the property of SeamlessStack Incorporated and its suppliers,
  * if any.  The intellectual and technical concepts contained
@@ -96,7 +96,7 @@ int32_t init_thread_pool(sfsd_t *sfsd)
 
 	sfs_log(sfsd->log_ctx, SFS_INFO, "Thread pool initialized");
 	return 0;
-	
+
 }
 
 static sstack_payload_t* get_payload(sstack_transport_t *transport,
@@ -107,11 +107,11 @@ static sstack_payload_t* get_payload(sstack_transport_t *transport,
 	sstack_transport_ops_t *ops = &transport->transport_ops;
 
 	payload = malloc(sizeof(*payload));
-	SFS_LOG_EXIT((payload != NULL), "Allocate payload failed", NULL, 
+	SFS_LOG_EXIT((payload != NULL), "Allocate payload failed", NULL,
 			transport->ctx, SFS_ERR);
-	/* Read of the payload */ 
+	/* Read of the payload */
 	nbytes = ops->rx(handle, sizeof(*payload), payload);
-	sfs_log (transport->ctx, ((nbytes == 0) ? SFS_ERR : SFS_DEBUG), 
+	sfs_log (transport->ctx, ((nbytes == 0) ? SFS_ERR : SFS_DEBUG),
 			"Payload size: %d\n", nbytes);
 
 	return payload;
@@ -130,9 +130,8 @@ static void* do_process_payload(void *param)
 	sstack_payload_t *command = h_param->payload;
 	sstack_payload_t *response = NULL;
 	bds_cache_desc_t param_cache = h_param->cache_p;
-	handle_command(command, &response,
-			h_param->cache_arr, h_param->sfsd,
-			h_param->log_ctx);
+	handle_command(command, &response, h_param->cache_arr,
+		       h_param->sfsd, h_param->log_ctx);
 	/* Free of the param cache */
 	bds_cache_free(param_cache, h_param);
 
@@ -157,7 +156,7 @@ static void* do_receive_thread(void *param)
 	bds_cache_desc_t param_cache = NULL;
 	/* Check for the handle, if it doesn't exist
 	   simply exit */
-	SFS_LOG_EXIT((sfsd->handle != 0), 
+	SFS_LOG_EXIT((sfsd->handle != 0),
 			"Transport handle doesn't exist. Exiting..",
 			NULL, sfsd->log_ctx, SFS_ERR);
 	/* Create the caches */
@@ -200,12 +199,12 @@ static void* do_receive_thread(void *param)
 		/* After getting the payload, assign a thread pool from the
 		   thread pool to do the job */
 		if (payload != NULL) {
-			/* Command could be 
+			/* Command could be
 			   1) Chunk domain command
 			   2) Standard NFS command */
 			handle_params = bds_cache_alloc(param_cache);
 			if (handle_params == NULL) {
-				sfs_log(sfsd->log_ctx, SFS_ERR, 
+				sfs_log(sfsd->log_ctx, SFS_ERR,
 						"Failed to allocate %s",
 						"handle_params");
 				send_unsucessful_response(payload, sfsd);
@@ -284,13 +283,16 @@ void handle_command(sstack_payload_t *command, sstack_payload_t **response,
 					log_ctx);
 			break;
 		case NFS_READ:
-			*response = sstack_read(command, cache_arr, log_ctx);
+			*response = sstack_read(command, cache_arr,
+						sfsd,log_ctx);
 			break;
 		case NFS_WRITE:
-			*response = sstack_write(command, cache_arr, log_ctx);
+			*response = sstack_write(command, cache_arr,
+						 sfsd, log_ctx);
 			break;
 		case NFS_CREATE:
-			*response = sstack_create(command, cache_arr, log_ctx);
+			*response = sstack_create(command, cache_arr,
+						  sfsd, log_ctx);
 			break;
 		case NFS_MKDIR:
 			*response = sstack_mkdir(command, cache_arr, log_ctx);
@@ -337,6 +339,6 @@ void handle_command(sstack_payload_t *command, sstack_payload_t **response,
 		default:
 			break;
 	};
-	
+
 	(*response)->hdr.sequence = command->hdr.sequence;
 }

@@ -1,11 +1,11 @@
 /*************************************************************************
- * 
+ *
  * SEAMLESSSTACK CONFIDENTIAL
  * __________________________
- * 
+ *
  *  [2012] - [2013]  SeamlessStack Inc
  *  All Rights Reserved.
- * 
+ *
  * NOTICE:  All information contained herein is, and remains
  * the property of SeamlessStack Incorporated and its suppliers,
  * if any.  The intellectual and technical concepts contained
@@ -28,7 +28,7 @@
 
 // Define various policies here
 typedef struct policy {
-	uint8_t p_qoslevel; //  self explanatory 
+	uint8_t p_qoslevel; //  self explanatory
 	uint8_t p_ishidden:1; // Not shown upon readdir()
 	uint8_t p_isstriped:1; // If 0, lies as a whole file.
 	uint64_t p_extentsize; // Size of each extent if striped in 4KiB blocks

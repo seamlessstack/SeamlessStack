@@ -1,11 +1,11 @@
 /*************************************************************************
- * 
+ *
  * SEAMLESSSTACK CONFIDENTIAL
  * __________________________
- * 
+ *
  *  [2012] - [2013]  SeamlessStack Inc
  *  All Rights Reserved.
- * 
+ *
  * NOTICE:  All information contained herein is, and remains
  * the property of SeamlessStack Incorporated and its suppliers,
  * if any.  The intellectual and technical concepts contained
@@ -32,15 +32,16 @@ typedef enum {
 } sfs_protocol_t;
 
 typedef struct sfsd_storage {
-	char path[PATH_MAX];		// Path of the source
-	char mount_point[MAX_MOUNT_POINT_LEN]; // Local mount point - not persisted
-	uint32_t weight;			// Storage weight
-	uint64_t nblocks; 		// Number of file system blocks
-	sfs_protocol_t  protocol;	// How this chunk is reached?
+	char path[PATH_MAX];
+	char mount_point[MAX_MOUNT_POINT_LEN];
+	uint32_t weight;
+	uint64_t nblocks;
+	sfs_protocol_t  protocol;
+	uint64_t num_chunks_written;
 	// Chunk's "address"
 	union {
-		char ipv4_addr[IPV4_ADDR_MAX]; // NULL terminated address
-		char ipv6_addr[IPV6_ADDR_MAX]; // NULL terminated address
+		char ipv4_addr[IPV4_ADDR_MAX];
+		char ipv6_addr[IPV6_ADDR_MAX];
 		/* Other protocol addresses */
 	};
 } sfsd_storage_t;
