@@ -83,7 +83,8 @@ message policy_entry
 	required uint32 pe_num_plugins = 2;
 	required uint32 pe_refcount = 3;
 	required uint32 pe_lock = 4;
-	repeated policy_plugin pe_policy = 5;
+	required uint32 pst_index = 5;
+	repeated policy_plugin pe_policy = 6;
 }
 
 message sstack_nfs_read_cmd 

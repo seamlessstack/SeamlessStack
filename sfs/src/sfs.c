@@ -85,8 +85,8 @@ static int
 add_inodes(const char *path)
 {
 	char *buffer = NULL;
-	extent_t attr;
-	inode_t *inode;
+	sstack_extent_t attr;
+	sstack_inode_t *inode;
 	policy_t *policy = NULL;
 	struct stat status;
 	char inode_str[MAX_INODE_LEN] = { '\0' };
@@ -100,7 +100,7 @@ add_inodes(const char *path)
 		return -errno;
     }
 
-	buffer = calloc((sizeof(inode_t) + sizeof(extent_t)), 1);
+	buffer = calloc((sizeof(sstack_inode_t) + sizeof(sstack_extent_t)), 1);
 	if (NULL == buffer) {
 		// TBD
 		sfs_log(sfs_ctx,SFS_CRIT,
@@ -110,7 +110,7 @@ add_inodes(const char *path)
 	}
 
 	// Use buffer as (inode + extent)
-	inode = (inode_t *)buffer;
+	inode = (sstack_inode_t *)buffer;
 	// Populate inode structure
 	inode->i_num = get_free_inode();
 	strcpy(inode->i_name, path);
@@ -177,25 +177,22 @@ add_inodes(const char *path)
 		memcpy(&inode->i_policy, policy, sizeof(policy_t));
 	}
 	// Populate the extent
-	memset(&attr, 0, sizeof(extent_t));
-	attr.e_type = OFFSET;
-	attr.e_value = 0;
-	attr.e_size = status.st_size;
+	memset(&attr, 0, sizeof(sstack_extent_t));
+	attr.e_realsize = status.st_size;
 	if (inode->i_type == REGFILE) {
 		attr.e_cksum = checksum(path); // CRC32
 		sfs_log(sfs_ctx, SFS_INFO, "%s: checksum of %s is %lu \n",
 			__FUNCTION__, path, attr.e_cksum);
 	} else
 		attr.e_cksum = 0; // Place holder
-	set_bit(attr.e_replica_valid, 1);
 	strcpy(attr.e_path[0], path);
-	memcpy((buffer+sizeof(inode_t)), &attr, sizeof(extent_t));
+	memcpy((buffer+sizeof(sstack_inode_t)), &attr, sizeof(sstack_extent_t));
 
 	// Now inode is ready to be placed in DB
 	// Put it in DB
-	sprintf(inode_str, "%"PRId64"", inode->i_num);
+	sprintf(inode_str, "%lld", inode->i_num);
 	if (db->db_ops.db_insert && (db->db_ops.db_insert(inode_str, buffer,
-		(sizeof(inode_t) + sizeof(extent_t)), INODE_TYPE) != 1)) {
+		(sizeof(sstack_inode_t) + sizeof(sstack_extent_t)), INODE_TYPE) != 1)) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to add inode to db . \n",
 			__FUNCTION__);
 		free(buffer);

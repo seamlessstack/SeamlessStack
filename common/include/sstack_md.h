@@ -34,9 +34,11 @@
 #include <sstack_bitops.h>
 #include <sstack_db.h>
 
-
-#define MAX_REPLICAS 3  // Recommended number of replicas in standard practice
+// Recommended number of replicas in standard practice is 3. 
+// Setting MAX_REPLICAS to 10 just to handle user request
+#define MAX_REPLICAS 10 
 #define INODE_NUM_START 2
+#define SSTACK_EXTENT_SIZE 65536
 
 typedef enum type {
 	REGFILE = 1,
@@ -50,33 +52,36 @@ typedef enum type {
 	UNKNOWN
 } type_t;
 
-// TBD
-// Other attribute types (if required) need to be added and extent_t
-// needs to be updated
-typedef enum attr_type {
-	OFFSET = 1
-} attr_type_t;
-	
+typedef unsigned long long sstack_offset_t;
+typedef unsigned long long sstack_size_t;
 
 // Defines chunk location . Overloading on xattr
 typedef struct extent {
-	attr_type_t e_type;
-	uint64_t e_value; // Like offset in file system blocks. Max value is 2^76 or 65536 exa bytes
-	uint64_t e_size; // in bytes. So max chunk size is 16 exa bytes
-	unsigned long e_cksum; // Checksum of the chunk
-	uint8_t e_replica_valid; // Validity of replicas. For self healing or migrating chunks to other storage	
-	char e_path[MAX_REPLICAS][PATH_MAX]; // File name on the distributed FS
-} extent_t;
+	sstack_offset_t e_offset; // Offset within the file
+	// e_size is not required any more as we are goig to use
+	// 64KiB as extent size. If the file is smaller, e_realsize
+	// takes care of extent size.
+//	uint64_t e_size; // in bytes. So max chunk size is 16 exa bytes
+	uint64_t e_realsize; // Real size of the extent
+	unsigned long e_cksum; // Checksum of the extent
+	unsigned int e_numreplicas; // Just to avoid reading sstack_inode_t again
+	char *e_path[PATH_MAX]; // Pointer to an array of replica paths
+} sstack_extent_t;
+
+// Defines erasure code location
+// For now, path is sufficient. This structure is for future enhancements.
+typedef struct erasure {
+	char *path[PATH_MAX]; 
+} sstack_erasure_t;
 
 // Defines metadata structure for each inode
 // If i_type is SYMLINK, first extent file name contains the real file name 
 // to which this inode/file links.
 
 typedef struct inode {
-#ifndef USE_FUTEX
 	pthread_mutex_t	i_lock; // We could use futex 
-#endif /* USE_FUTEX */
-	uint64_t i_num; // Inode number . max number of files possible is 2^64
+	// Inode number. Max is 2^128 on 64-bit machine
+	unsigned long long  i_num;
 	char i_name[PATH_MAX]; 
 	uid_t	i_uid; // Owner uid
 	gid_t	i_gid; // Owner gid
@@ -87,32 +92,35 @@ typedef struct inode {
 	struct timespec i_atime; // Last access time
 	struct timespec i_ctime; // Creation time
 	struct timespec i_mtime; // Modification time
-	uint64_t	i_size; // Size of the file
+	sstack_size_t	i_size; // Size of the file
 	int i_numreplicas; // Number of replicas
+	uint64_t i_erasure_stripe_size; // Erasure code stripe size
+	unsigned int i_numerasure; // Number of erasure code extents
+	sstack_erasure_t i_erasure[0]; // Erasure code segment information
 	int i_numextents; // Number of extents
-	char i_erasure_code_path[PATH_MAX]; // Erasure code for the file
-	extent_t i_extent[0]; // extents 
-} inode_t;
+	sstack_extent_t i_extent[0]; // extents 
+} sstack_inode_t;
 
 
-extern int get_inode(uint64_t inode_num, inode_t * inode, db_t *db);
-extern int get_extents(uint64_t inode_num, extent_t *extent, int num_extents,
-					db_t *db);
+extern int get_inode(uint64_t inode_num, sstack_inode_t * inode, db_t *db);
+extern int get_extents(unsigned long long  inode_num, sstack_extent_t *extent,
+				int num_extents, db_t *db);
 extern uint64_t get_inode_number(const char *path);
 unsigned long checksum(const char *filename);
-void dump_extents(extent_t *extent, int num_extents);
+void dump_extents(sstack_extent_t *extent, int num_extents);
 
 // Helper functions
 static inline int
 get_inode_size(uint64_t inode_num, db_t *db)
 {
-	inode_t inode;
+	sstack_inode_t inode;
 	int ret = -1;
 	// Go read the initial inode structure without extents
 
 	ret = get_inode(inode_num, &inode, db);
 	if (ret != -1)
-		return (sizeof(inode_t) + (inode.i_numextents * sizeof(extent_t)));
+		return (sizeof(sstack_inode_t) +
+					(inode.i_numextents * sizeof(sstack_extent_t)));
 	else 
 		return -1;
 }
@@ -132,7 +140,7 @@ release_inode(uint64_t inode_num)
 
 // This is for allocating new inode number
 
-static inline uint64_t
+static inline unsigned long long
 get_free_inode(void)
 {
 	// Check inode cache for any reusable inodes
@@ -146,7 +154,6 @@ get_free_inode(void)
 	inode_number ++;
 	pthread_mutex_unlock(&inode_mutex);
 
-//	USYSLOG(LOG_ERR, "%s: Returning inode number %d \n", __FUNCTION__, (int)inode_number);
 
 	return inode_number;
 }
