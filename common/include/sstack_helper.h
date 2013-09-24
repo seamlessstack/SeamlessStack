@@ -198,4 +198,173 @@ get_inode(unsigned long long inode_num, sstack_inode_t *inode, db_t *db)
 	}
 }
 
+/*
+ * flatten_inode - Flatten inode structure for storing in DB
+ *
+ * inode - in-core inode structure
+ * len - O/P parameter indicating record size
+ * ctx - Log context
+ *
+ * Returns non-NULL buffer containing the record on success. Return NULL
+ * upon failure and logs the reason for failure.
+ */
+
+static inline char *
+flatten_inode(sstack_inode_t *inode, size_t *len, log_ctx_t *ctx)
+{
+	char *data = NULL;
+	int fixed_len = 0;
+	char *temp = 0;
+	int i = 0;
+
+	// Parameter validation
+	if (NULL == inode) {
+		sfs_log(ctx, SFS_ERR, "%s: Invalid parameters passed \n", __FUNCTION__);
+
+		return NULL;
+	}
+	*len = 0; // Just in case
+
+	// Copy fixed fields of the inode
+	fixed_len = get_inode_fixed_fields_len();
+	data = malloc(fixed_len);
+	if (NULL == data) {
+		sfs_log(ctx, SFS_ERR, "%s: Failed to allocate memory for "
+			"storing fixed fields of inode %lld\n",  __FUNCTION__,
+			inode->i_num);
+		return NULL;
+	}
+	memcpy(data, inode, fixed_len);
+	*len += fixed_len;
+	// Copy remaining fields
+	// 1. Erausre
+	for (i = 0; i < inode->i_numerasure; i++) {
+		sstack_erasure_t *er;
+
+		er = inode->i_erasure;
+		// Next 4 bytes contain path_len
+		temp = realloc(data, ((*len) + sizeof(int)));
+		if (NULL == temp) {
+			sfs_log(ctx, SFS_ERR, "%s: Failed to allocate memory for "
+				"storing fixed fields of inode %lld\n",  __FUNCTION__,
+				inode->i_num);
+			free(data); // Freeup old 
+			return NULL;
+		}
+		data = temp;
+		memcpy((void *) (data + (*len)), (void *) &er->path_len, sizeof(int));
+		*len += sizeof(int);
+		// Copy path
+		temp = realloc(data, ((*len) + er->path_len));
+		if (NULL == temp) {
+			sfs_log(ctx, SFS_ERR, "%s: Failed to allocate memory for "
+				"storing fixed fields of inode %lld\n",  __FUNCTION__,
+				inode->i_num);
+			free(data); // Freeup old 
+			return NULL;
+		}
+		data = temp;
+		memcpy((void *) (data + (*len)), er->path, er->path_len);
+		*len += er->path_len;
+		er ++;
+	}
+	// 2. Extents
+	for (i = 0; i < inode->i_numextents; i++) {
+		sstack_extent_t *ex;
+
+		ex = inode->i_extent;
+		fixed_len = get_extent_fixed_fields_len();
+		// Copy fixed fields
+		temp = realloc(data, ((*len) + fixed_len));
+		if (NULL == temp) {
+			sfs_log(ctx, SFS_ERR, "%s: Failed to allocate memory for "
+				"storing fixed fields of inode %lld\n",  __FUNCTION__,
+				inode->i_num);
+			free(data); // Freeup old 
+			return NULL;
+		}
+		data = temp;
+		memcpy((void *) (data + (*len)), (void *) &ex->e_offset, fixed_len);
+		*len += fixed_len;
+
+		// Copy extent paths
+		temp = realloc(data, ((*len) + (ex->e_numreplicas * PATH_MAX)));
+		if (NULL == temp) {
+			sfs_log(ctx, SFS_ERR, "%s: Failed to allocate memory for "
+				"storing fixed fields of inode %lld\n",  __FUNCTION__,
+				inode->i_num);
+			free(data); // Freeup old 
+			return NULL;
+		}
+		data = temp;
+		memcpy((void *) (data + (*len)), ex->e_path,
+						(ex->e_numreplicas * PATH_MAX));
+		*len += (ex->e_numreplicas * PATH_MAX);
+		ex ++;
+	}
+
+	return data;
+}
+
+/*
+ * put_inode -  Store flattened inode structure onto db
+ *
+ * inode - in-core inode structure . Should be non-NULL
+ * db - DB pointer. Should be non-NULL
+ *
+ * Returns 0 on success and negative number indicating error on failure.
+ */
+
+
+static inline int
+put_inode(sstack_inode_t *inode, db_t *db)
+{
+	char inode_str[MAX_INODE_LEN] = { '\0' };
+	char *data = NULL;
+	size_t len = 0;
+	int ret = -1;
+	unsigned long long inode_num = 0;
+
+	// Parameter validation
+	if (NULL == inode || NULL == db) {
+		sfs_log(db->ctx, SFS_ERR, "%s: Invalid parameters specified.\n",
+						__FUNCTION__);
+		return -EINVAL;
+	}
+
+	inode_num = inode->i_num;
+	if (inode_num < INODE_NUM_START) {
+		sfs_log(db->ctx, SFS_ERR, "%s: Invalid parameters specified.\n",
+						__FUNCTION__);
+		return -EINVAL;
+	}
+
+	sprintf(inode_str, "%lld", inode_num);
+
+	data = flatten_inode(inode, &len, db->ctx);
+	if (NULL == data) {
+		sfs_log(db->ctx, SFS_ERR, "%s: Unable to flatten inode %lld\n",
+				__FUNCTION__, inode_num);
+
+		return -1;
+	}
+
+	if (db->db_ops.db_insert && ((db->db_ops.db_insert(inode_str, data, len,
+					INODE_TYPE, db->ctx)) == 1)) {
+		sfs_log(db->ctx, SFS_INFO, "%s: Succeeded for inode %lld \n",
+				__FUNCTION__, inode_num);
+	
+		ret = 0;
+	} else {
+		sfs_log(db->ctx, SFS_ERR, "%s: Failed for inode %lld \n",
+				__FUNCTION__, inode_num);
+
+		ret = -2;
+	}
+
+	free(data);
+
+	return ret;
+}
+
 #endif //__SSTACK_HELPER_H_
