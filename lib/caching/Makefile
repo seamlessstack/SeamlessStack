@@ -28,7 +28,6 @@ LDFLAGS = -shared -o
 OSS_DIR = $(TOPDIR)/oss_install/lib
 LIBS = -L$(OSS_DIR) -lmemcached
 CC = gcc
-RM = rm
 
 all:: $(CACHING_LIB_NAME)
 

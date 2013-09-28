@@ -31,7 +31,7 @@
 #include <syslog.h>
 #include <sys/param.h>
 
-#include <sstack_policy.h>
+#include <policy.h>
 #include <sstack_bitops.h>
 #include <sstack_db.h>
 
@@ -125,7 +125,7 @@ typedef struct inode {
 		mode_t	i_mode; // Permissions
 		type_t	i_type; // Type of file
 		int		i_links; // Number of references. Used for unlink()
-		policy_t i_policy;
+		policy_entry_t i_policy;
 		struct timespec i_atime; // Last access time
 		struct timespec i_ctime; // Creation time
 		struct timespec i_mtime; // Modification time
@@ -151,7 +151,7 @@ get_inode_fixed_fields_len(void)
 {
 	return (sizeof(pthread_mutex_t) +  sizeof(unsigned long long) +
 			PATH_MAX + sizeof(uid_t) + sizeof(gid_t) + sizeof(mode_t) +
-			sizeof(type_t) + 4 + sizeof(policy_t) +
+			sizeof(type_t) + 4 + sizeof(policy_entry_t) +
 			(3 * sizeof(struct timespec)) + sizeof(sstack_size_t) +
 			4 + 8 + 4 + 4);
 }

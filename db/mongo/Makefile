@@ -23,11 +23,14 @@ CFLAGS += -I include -I $(TOPDIR)/common/include -DMONGO_HAVE_STDINT
 CFLAGS += -D_GNU_SOURCE -fPIC
 CC = gcc
 LDFLAGS = -shared -o
+MONGOC_LIB = -L $(TOPDIR)/oss_install/lib -lmongoc
+BSON_LIB = -L $(TOPDIR)/oss_libs/lib -lbson
 
 all:: $(MONGO_DB_LIBNAME)
 
 $(MONGO_DB_LIBNAME) : $(MONGO_OBJECTS)
-	$(CC) $(LDFLAGS) $(MONGO_DB_LIBNAME) $(MONGO_OBJECTS)
+	$(CC) $(LDFLAGS) $(MONGO_DB_LIBNAME) $(MONGO_OBJECTS) $(MONGOC_LIB) \
+								   $(BSON_LIB)
 
 %.o:%.c
 	$(CC) $(CFLAGS) -o $@ -c $<

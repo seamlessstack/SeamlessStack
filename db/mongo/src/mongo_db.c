@@ -339,7 +339,7 @@ mongo_db_iterate(db_type_t type, iterator_function_t iterator_fn, void *params,
 		bson_find(iter, response, record_name);
 		data = (void *)bson_iterator_bin_data(iter);
 		bson_find(iter, response, "record length");
-		record_len = bson_iterator_log(iter);
+		record_len = bson_iterator_long(iter);
 		iterator_fn(params, key, data, record_len);
 	}
 	return;
@@ -473,7 +473,7 @@ mongo_db_update(char *key, char *data, size_t len, db_type_t type,
 
 	ret = bson_append_long(b, "record_length", len);
 	if (ret != BSON_OK) {
-		sfslog(ctx, SFS_ERR, "%s: Failed to append size to bson for "
+		sfs_log(ctx, SFS_ERR, "%s: Failed to append size to bson for "
 			"inode %s. Error = %d \n", __FUNCTION__, key, ret);
 		bson_destroy(b);
 		return -ret;

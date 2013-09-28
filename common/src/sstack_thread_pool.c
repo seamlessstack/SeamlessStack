@@ -150,7 +150,7 @@ worker_thread(void *arg)
      * if a timeout occurs or if the pool is being destroyed.
      */
     (void) pthread_mutex_lock(&pool->pool_mutex);
-    pthread_cleanup_push(worker_cleanup, pool);
+    pthread_cleanup_push(worker_cleanup, (void *) pool);
     active.active_tid = pthread_self();
     for (;;) {
         /*
@@ -195,7 +195,7 @@ worker_thread(void *arg)
             active.active_next = pool->pool_active;
             pool->pool_active = &active;
             (void) pthread_mutex_unlock(&pool->pool_mutex);
-            pthread_cleanup_push(job_cleanup, pool);
+            pthread_cleanup_push(job_cleanup, (void *)pool);
             free(job);
             /*
              * Call the specified job function.
@@ -351,7 +351,7 @@ void
 sstack_thread_pool_wait(sstack_thread_pool_t *pool)
 {
     (void) pthread_mutex_lock(&pool->pool_mutex);
-    pthread_cleanup_push(pthread_mutex_unlock, &pool->pool_mutex);
+    pthread_cleanup_push(pthread_mutex_unlock, (void *) &pool->pool_mutex);
     while (pool->pool_head != NULL || pool->pool_active != NULL) {
         pool->pool_flags |= POOL_WAIT;
         (void) pthread_cond_wait(&pool->pool_waitcv, &pool->pool_mutex);
@@ -366,7 +366,7 @@ sstack_thread_pool_destroy(sstack_thread_pool_t *pool)
     job_t *job;
 
     (void) pthread_mutex_lock(&pool->pool_mutex);
-    pthread_cleanup_push(pthread_mutex_unlock, &pool->pool_mutex);
+    pthread_cleanup_push(pthread_mutex_unlock, (void *) &pool->pool_mutex);
 
     /* mark the pool as being destroyed; wakeup idle workers */
     pool->pool_flags |= POOL_DESTROY;

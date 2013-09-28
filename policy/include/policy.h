@@ -8,6 +8,11 @@
 #include <Judy.h>
 #define SHA256_DIGEST_LENGTH 32
 
+// QoS levels
+#define QOS_LOW 1 // Not cached in memory. Stored in slow/distant storage
+#define QOS_MEDIUM 2 // Cached . Not on SSD. Stored in nearline storage
+#define QOS_HIGH 3 // Cached in memory and SSD. Stored in nearby storage
+
 enum ret_code
 {
 	FALSE,
@@ -46,7 +51,7 @@ typedef struct policy_plugin
   * together per file. Result of a get_policy()
   * call
  **/
-struct policy_entry
+typedef struct policy_entry
 {
 	struct attribute pe_attr;
 	size_t pe_num_plugins;
@@ -54,7 +59,7 @@ struct policy_entry
 	pthread_spinlock_t pe_lock;
 	uint8_t pst_index;    /* index in the policy search table */
 	struct policy_plugin *pe_policy[0];
-};
+} policy_entry_t;
 
 
 /**

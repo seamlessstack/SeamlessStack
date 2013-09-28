@@ -113,5 +113,7 @@ rep(char *src, char slash)
 	return src;
 }
 
+extern uint32_t sstack_checksum(log_ctx_t *, char *);
+
 
 #endif // __SFS_H_

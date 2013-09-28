@@ -36,6 +36,7 @@
 #include <dirent.h>
 #include <sys/wait.h>
 #include <signal.h>
+#include <pthread.h>
 
 
 /* Local headers */
@@ -47,7 +48,9 @@
 #include <sstack_version.h>
 #include <sstack_bitops.h>
 #include <sstack_cache_api.h>
+#include <policy.h>
 #include <sfs.h>
+#include <sfs_entry.h>
 #include <mongo_db.h>
 /* Macros */
 #define MAX_INODE_LEN 40 // Maximum len of uint64_t is 39
@@ -60,6 +63,9 @@ sfs_chunk_entry_t	*sfs_chunks = NULL;
 uint64_t nchunks = 0;
 db_t *db = NULL;
 memcached_st *mc = NULL;
+pthread_mutex_t inode_mutex = PTHREAD_MUTEX_INITIALIZER;
+unsigned long long inode_number = INODE_NUM_START;
+
 
 /* Structure definitions */
 
@@ -87,7 +93,7 @@ add_inodes(const char *path)
 	char *buffer = NULL;
 	sstack_extent_t attr;
 	sstack_inode_t *inode;
-	policy_t *policy = NULL;
+	policy_entry_t *policy = NULL;
 	struct stat status;
 	char inode_str[MAX_INODE_LEN] = { '\0' };
 	int ret = -1;
@@ -166,22 +172,23 @@ add_inodes(const char *path)
 		sfs_log(sfs_ctx, SFS_INFO,
 			"%s: No policies specified. Default policy applied\n",
 			__FUNCTION__);
-		memcpy(&inode->i_policy, &default_policy, sizeof(policy_t));
+		inode->i_policy.pe_attr.a_qoslevel = QOS_LOW;
+		inode->i_policy.pe_attr.a_ishidden = 0;
 	} else {
 		// Got the policy
 		sfs_log(sfs_ctx, SFS_INFO,
 			"%s: Got policy for file %s\n", __FUNCTION__, path);
-		sfs_log(sfs_ctx, SFS_INFO, "%s: %s %d %d %d %"PRId64" \n",
-			__FUNCTION__, path, policy->p_qoslevel,
-			policy->p_ishidden, policy->p_isstriped,
-			policy->p_extentsize);
-		memcpy(&inode->i_policy, policy, sizeof(policy_t));
+		sfs_log(sfs_ctx, SFS_INFO, "%s: ver %s qoslevel %d hidden %d \n",
+			__FUNCTION__, path, policy->pe_attr.ver,
+			policy->pe_attr.a_qoslevel,
+			policy->pe_attr.a_ishidden);
+		memcpy(&inode->i_policy, policy, sizeof(policy_entry_t));
 	}
 	// Populate the extent
 	memset(&attr, 0, sizeof(sstack_extent_t));
 	attr.e_realsize = status.st_size;
 	if (inode->i_type == REGFILE) {
-		attr.e_cksum = checksum(path); // CRC32
+		attr.e_cksum = sstack_checksum(sfs_ctx, path); // CRC32
 		sfs_log(sfs_ctx, SFS_INFO, "%s: checksum of %s is %lu \n",
 			__FUNCTION__, path, attr.e_cksum);
 	} else
@@ -722,7 +729,7 @@ sfs_opt_proc(void *data, const char *arg, int key,
 // declarations
 static struct fuse_operations sfs_oper = {
 	.getattr		=	sfs_getattr,
-	.readlink		=	sfs_realink,
+	.readlink		=	sfs_readlink,
 	.readdir		=	sfs_readdir,
 	.mknod			=	sfs_mknod,
 	.mkdir			=	sfs_mkdir,

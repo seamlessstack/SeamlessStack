@@ -28,9 +28,12 @@ CFLAGS += -DMONGO_HAVE_STDINT
 OSS_LIBSDIR = $(TOPDIR)/oss_install/lib
 LIB = $(shell pkg-config --libs fuse) -lpthread -L$(TOPDIR)/db/mongo -lmongo_db
 LIB += -L$(OSS_LIBSDIR) -lmongoc -lbson
-LIB += -L$(TOPDIR)/lib/caching -lcache
+LIB += -L$(TOPDIR)/lib/caching -lcache 
+LIB += -L$(TOPDIR)/policy -lpolicy
+LIB += -L$(TOPDIR)/common -lsstack_common
+LIB += -L$(TOPDIR)/oss_install/lib -lmemcached
 
-SFS_OBJS = src/sfs.o
+SFS_OBJS = src/sfs.o src/sfs_entry.o
 
 all:: sfs
 
@@ -38,4 +41,4 @@ sfs: $(SFS_OBJS)
 	$(CC) $(LDFLAGS) -o $@ $(SFS_OBJS) $(LIB)
 
 clean:
-	rm -f sfs *.o
+	rm -f sfs src/*.o
