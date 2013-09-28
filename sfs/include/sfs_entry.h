@@ -21,6 +21,9 @@
 #define __SFS_ENTRY_H_
 
 #include <stdint.h>
+#include <sstack_cache_api.h>
+
+extern memcached_st *mc;
 
 // SFS FUSE entry points
 extern int sfs_getattr(const char *, struct stat *);
@@ -69,7 +72,7 @@ extern int sfs_poll(const char *, struct fuse_file_info *,
 				struct fuse_pollhandle *, unsigned *);
 extern int sfs_write_buf(const char *, struct fuse_bufvec *, off_t ,
 				struct fuse_file_info *);
-extern int sfs_read_buf(const char *, struct fuse_bufvec *, size_t ,
+extern int sfs_read_buf(const char *, struct fuse_bufvec **, size_t ,
 				off_t , struct fuse_file_info *);
 extern int sfs_flock(const char *, struct fuse_file_info *, int );
 

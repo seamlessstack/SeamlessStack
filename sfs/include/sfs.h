@@ -20,11 +20,12 @@
 #ifndef __SFS_H_
 #define __SFS_H_
 
-#include <sstack_log.h>
 #include <sys/param.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <sstack_log.h>
+#include <sstack_db.h>
 #define ROOT_SEP ":"
 #define MINIMUM_WEIGHT 0
 #define DEFAULT_WEIGHT 5
@@ -113,7 +114,9 @@ rep(char *src, char slash)
 	return src;
 }
 
-extern uint32_t sstack_checksum(log_ctx_t *, char *);
+extern uint32_t sstack_checksum(log_ctx_t *, const char *);
+extern log_ctx_t *sfs_ctx;
+extern db_t *db;
 
 
 #endif // __SFS_H_

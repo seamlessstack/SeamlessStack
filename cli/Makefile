@@ -16,10 +16,11 @@
 #  from SeamlessStack Incorporated.
 #
 
+TOPDIR=../
 CFLAGS += -Wall
 CFLAGS += -g
 #CFLAGS += -O3
-CFLAGS += -I ../common/include -I include -I ../sfs/include
+CFLAGS += -I $(TOPDIR)/common/include -I include -I $(TOPDIR)/sfs/include
 CFLAGS += -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE
 LIBS = -lpthread
 RM = rm

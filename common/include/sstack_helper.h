@@ -88,7 +88,17 @@ fill_inode(sstack_inode_t *inode, char *data, log_ctx_t *ctx)
 	cur = (data + get_inode_fixed_fields_len());
 
 	// Copy remaining fields 
-	// 1. Erasure code segment paths
+	// 1. Copy extentded attributes
+	temp = (char *) malloc(in->i_xattrlen);
+	if (NULL == temp) {
+		sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory \n",
+						__FUNCTION__);
+		return -ENOMEM;
+	}
+	memcpy((void *) temp, (void *) cur, in->i_xattrlen);
+	cur += in->i_xattrlen;
+
+	// 2. Erasure code segment paths
 	for (i = 0; i < in->i_numerasure; i++) {
 		sstack_erasure_t *er;
 
@@ -118,7 +128,7 @@ fill_inode(sstack_inode_t *inode, char *data, log_ctx_t *ctx)
 
 	inode->i_erasure = (sstack_erasure_t *) erasure;
 
-	// 2. Extent paths
+	// 3. Extent paths
 	cur = (data + get_inode_fixed_fields_len() + covered);
 	covered = 0;
 
@@ -237,7 +247,13 @@ flatten_inode(sstack_inode_t *inode, size_t *len, log_ctx_t *ctx)
 	memcpy(data, inode, fixed_len);
 	*len += fixed_len;
 	// Copy remaining fields
-	// 1. Erausre
+
+	// 1. Extended attributes
+	memcpy((void *) (data + (*len)), (void *) inode->i_xattr,
+					inode->i_xattrlen);
+	*len += inode->i_xattrlen;
+
+	// 2. Erausre
 	for (i = 0; i < inode->i_numerasure; i++) {
 		sstack_erasure_t *er;
 
@@ -268,7 +284,8 @@ flatten_inode(sstack_inode_t *inode, size_t *len, log_ctx_t *ctx)
 		*len += er->path_len;
 		er ++;
 	}
-	// 2. Extents
+
+	// 3. Extents
 	for (i = 0; i < inode->i_numextents; i++) {
 		sstack_extent_t *ex;
 
@@ -365,6 +382,46 @@ put_inode(sstack_inode_t *inode, db_t *db)
 	free(data);
 
 	return ret;
+}
+
+/*
+ * sstack_free_ersaure - Helper function to free up memory allocated
+ * 						to i_sraure
+ *
+ * ctx - log_ctx
+ * erasure - Memory to be freed. Must be non-NULL
+ * num_erasure - Number of erasure code segments
+ */
+
+static inline void
+sstack_free_erasure(log_ctx_t *ctx,
+				sstack_erasure_t *erasure,
+				int num_erasure)
+{
+	sstack_erasure_t *er;
+	int i = 0;
+
+	// Parameter validation
+	if (NULL == erasure) {
+		sfs_log(ctx, SFS_ERR, "%s: Invalid parameter. "
+					"Could indicate memory leak \n", __FUNCTION__);
+		return;
+	}
+
+	er = erasure;
+
+	while (i < num_erasure) {
+		free(er->path);
+		er ++;
+		if (NULL == er) {
+			sfs_log(ctx, SFS_ERR, "%s: FATAL ERROR. "
+					"Could indicate corruption \n", __FUNCTION__);
+			return;
+		}
+		i++;
+	}
+
+	free(erasure);
 }
 
 #endif //__SSTACK_HELPER_H_

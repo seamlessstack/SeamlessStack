@@ -33,7 +33,7 @@ extern uint32_t crc_pcl(const char * file_buffer, size_t file_size,
 			uint32_t prev);
 
 uint32_t
-sstack_checksum(log_ctx_t *ctx, char *filename)
+sstack_checksum(log_ctx_t *ctx, const char *filename)
 {
 	int fd = -1;
 	char *file_buffer;

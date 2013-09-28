@@ -130,11 +130,14 @@ typedef struct inode {
 		struct timespec i_ctime; // Creation time
 		struct timespec i_mtime; // Modification time
 		sstack_size_t	i_size; // Size of the file
+		sstack_size_t i_ondisksize;
 		int i_numreplicas; // Number of replicas
 		uint64_t i_erasure_stripe_size; // Erasure code stripe size
 		unsigned int i_numerasure; // Number of erasure code extents
 		int i_numextents; // Number of extents
+		size_t i_xattrlen; // Extended attibute len
 	};
+	char *i_xattr; // Extended attributes
 	sstack_erasure_t *i_erasure; // Erasure code segment information
 	sstack_extent_t *i_extent; // extents
 } sstack_inode_t;
@@ -153,7 +156,7 @@ get_inode_fixed_fields_len(void)
 			PATH_MAX + sizeof(uid_t) + sizeof(gid_t) + sizeof(mode_t) +
 			sizeof(type_t) + 4 + sizeof(policy_entry_t) +
 			(3 * sizeof(struct timespec)) + sizeof(sstack_size_t) +
-			4 + 8 + 4 + 4);
+			sizeof(sstack_size_t) + 4 + 8 + 4 + 4 + 4);
 }
 
 extern int get_extents(unsigned long long  inode_num, sstack_extent_t *extent,

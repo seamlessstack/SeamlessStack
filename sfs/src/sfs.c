@@ -158,6 +158,7 @@ add_inodes(const char *path)
 	memcpy(&inode->i_ctime, &status.st_ctime, sizeof(struct timespec));
 	memcpy(&inode->i_mtime, &status.st_mtime, sizeof(struct timespec));
 	inode->i_size = status.st_size;
+	inode->i_ondisksize = (status.st_blocks * 512);
 	inode->i_numreplicas = 1; // For now, single copy
 	// Since the file already exists, done't split it now. Split it when
 	// next write arrives
