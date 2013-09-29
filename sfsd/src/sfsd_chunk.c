@@ -470,7 +470,7 @@ sfsd_display_chunk_domain(sfs_chunk_domain_t *chunk)
  * to be used
  */
 
-static int32_t sfsd_chunk_schedule_rr(sfsd_chunk_domain_t *chunk_domain)
+static int32_t sfsd_chunk_schedule_rr(sfs_chunk_domain_t *chunk_domain)
 {
 	static int32_t next_scheduled = 0;
 	int32_t ret = -1;
