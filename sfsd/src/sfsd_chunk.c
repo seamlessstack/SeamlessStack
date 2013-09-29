@@ -464,7 +464,6 @@ sfsd_display_chunk_domain(sfs_chunk_domain_t *chunk)
 			sfsd_disp_protocol(temp->protocol));
 	}
 }
-
 /*
  * Round Robin chunk scheduler
  * returns the next usable chunk index
