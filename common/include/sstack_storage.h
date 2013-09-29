@@ -21,15 +21,8 @@
 #define __SSTACK_STORAGE_H_
 
 #define MAX_MOUNT_POINT_LEN 16
+#include <sstack_types.h>
 #include <sstack_transport.h>
-
-/* Supported Protocols */
-typedef enum {
-	NFS	= 1,  // *nix clients
-	CIFS	= 2,  // Bidozzz clients
-	ISCSI	= 3,  // iSCSI targets
-	NATIVE	= 4,  // Native protocol to support faster storage access
-} sfs_protocol_t;
 
 typedef struct sfsd_storage {
 	char path[PATH_MAX];
@@ -38,11 +31,6 @@ typedef struct sfsd_storage {
 	uint64_t nblocks;
 	sfs_protocol_t  protocol;
 	uint64_t num_chunks_written;
-	// Chunk's "address"
-	union {
-		char ipv4_addr[IPV4_ADDR_MAX];
-		char ipv6_addr[IPV6_ADDR_MAX];
-		/* Other protocol addresses */
-	};
+	sstack_address_t address;
 } sfsd_storage_t;
 #endif /*__SSTACK_STORAGE_H_ */

@@ -26,15 +26,16 @@
 #include <sstack_chunk.h>
 #include <sstack_sfsd.h>
 #include <bds_slab.h>
+#include <sstack_md.h>
+#include <sstack_helper.h>
 
-sstack_payload_t* sstack_getattr(
-		sstack_payload_t *payload,
-		bds_cache_desc_t payload_data_cache[2],
-		log_ctx_t *ctx)
+extern bds_cache_desc_t sfsd_global_cache_arr[];
+sstack_payload_t* sstack_getattr(sstack_payload_t *payload, log_ctx_t *ctx)
 {
 
 	int32_t command_stat = 0;
-	sstack_file_name_t *file_handle = &payload->command_struct.file_handle;
+	sstack_file_handle_t *file_handle =
+		&payload->command_struct.extent_handle;
 	char *p = file_handle->name;
 	sstack_payload_t *response = NULL;
 	struct sstack_nfs_getattr_resp *getattr_resp = NULL;
@@ -44,7 +45,7 @@ sstack_payload_t* sstack_getattr(
 	sfs_log(ctx, SFS_DEBUG, ":%s extent path:%s", __FUNCTION__, p);
 
 	//i= find_rorw_branch(path); - Might need later
-	response = bds_cache_alloc(payload_data_cache[PAYLOAD_CACHE_OFFSET]);
+	response = bds_cache_alloc(sfsd_global_cache_arr[PAYLOAD_CACHE_OFFSET]);
 	if (!response) {
 		command_stat = -ENOMEM;
 		goto error;
@@ -78,47 +79,39 @@ sstack_payload_t* sstack_getattr(
 error:
 	payload->response_struct.command_ok = command_stat;
 	if (response)
-		bds_cache_free(payload_data_cache[PAYLOAD_CACHE_OFFSET],
+		bds_cache_free(sfsd_global_cache_arr[PAYLOAD_CACHE_OFFSET],
 				response);
 	return payload;
 }
 
 
-sstack_payload_t *sstack_setattr(
-		sstack_payload_t *payload,
-		bds_cache_desc_t payload_data_cache[2],
-		log_ctx_t *ctx)
+sstack_payload_t *sstack_setattr(sstack_payload_t *payload, log_ctx_t *ctx)
 {
 	/* Not implemented */
 	sfs_log(ctx, SFS_INFO, "%s(): function not implemented", __FUNCTION__);
 	return NULL;
 }
 
-sstack_payload_t *sstack_lookup(
-		sstack_payload_t *payload,
-		bds_cache_desc_t payload_data_cache[2],
-		log_ctx_t *ctx)
+sstack_payload_t *sstack_lookup(sstack_payload_t *payload, log_ctx_t *ctx)
 {
 	/* Not implemented */
 	sfs_log(ctx, SFS_INFO, "%s(): function not implemented", __FUNCTION__);
 	return NULL;
 }
 
-sstack_payload_t *sstack_access(
-		sstack_payload_t *payload,
-		bds_cache_desc_t payload_data_cache[2],
-		log_ctx_t *ctx)
+sstack_payload_t *sstack_access(sstack_payload_t *payload, log_ctx_t *ctx)
 {
 	int command_stat = 0;
 	struct sstack_nfs_access_cmd *cmd = &payload->command_struct.access_cmd;
-	sstack_file_name_t *file_handle = &payload->command_struct.file_handle;
+	sstack_file_handle_t *file_handle =
+		&payload->command_struct.extent_handle;
 	sstack_payload_t *response = NULL;
 	struct sstack_nfs_access_resp *access_resp;
 	char *p = file_handle->name;
 	p[file_handle->name_len - 1] = '\0';
 	sfs_log(ctx, SFS_DEBUG, "%s(): path", __FUNCTION__, p);
 
-	response = bds_cache_alloc(payload_data_cache[PAYLOAD_CACHE_OFFSET]);
+	response = bds_cache_alloc(sfsd_global_cache_arr[PAYLOAD_CACHE_OFFSET]);
 	if (!response) {
 		sfs_log(ctx, SFS_ERR, "%s(): Memory allocation failed",
 				__FUNCTION__);
@@ -143,25 +136,22 @@ sstack_payload_t *sstack_access(
 error:
 	payload->response_struct.command_ok = command_stat;
 	if (response)
-		bds_cache_free(payload_data_cache[PAYLOAD_CACHE_OFFSET],
+		bds_cache_free(sfsd_global_cache_arr[PAYLOAD_CACHE_OFFSET],
 				response);
 	return payload;
 }
 
 
-sstack_payload_t *sstack_readlink(
-		sstack_payload_t *payload,
-		bds_cache_desc_t payload_data_cache[2],
-		log_ctx_t *ctx)
+sstack_payload_t *sstack_readlink(sstack_payload_t *payload, log_ctx_t *ctx)
 {
 	int32_t command_stat = 0;
-	sstack_file_name_t *link = &payload->command_struct.file_handle;
+	sstack_file_handle_t *link = &payload->command_struct.extent_handle;
 	sstack_payload_t *response = NULL;
 	struct sstack_nfs_readlink_resp *readlink_resp = NULL;
 	char *p = link->name;
 	p[link->name_len - 1] = '\0';
 
-	response = bds_cache_alloc(payload_data_cache[PAYLOAD_CACHE_OFFSET]);
+	response = bds_cache_alloc(sfsd_global_cache_arr[PAYLOAD_CACHE_OFFSET]);
 	if (!response) {
 		sfs_log(ctx, SFS_ERR, "%s(): Memory allocation failed",
 				__FUNCTION__);
@@ -187,15 +177,160 @@ sstack_payload_t *sstack_readlink(
 error:
 	payload->response_struct.command_ok = command_stat;
 	if (response)
-		bds_cache_free(payload_data_cache[PAYLOAD_CACHE_OFFSET],
+		bds_cache_free(sfsd_global_cache_arr[PAYLOAD_CACHE_OFFSET],
 				response);
 	return payload;
 
 }
 
-sstack_payload_t *sstack_read(
-		sstack_payload_t *payload,
-		bds_cache_desc_t payload_data_cache[2],
+/* Match the extent handles based on the protocol and the path
+   in the chunk */
+static inline int32_t match_extent(sstack_file_handle_t *h1,
+				   sstack_file_handle_t *h2)
+{
+	/* Match extent addresses based on protocol */
+	if (h1->proto != h2->proto)
+		return FALSE;
+
+	if (match_address(&h1->address, &h2->address) == FALSE)
+		return FALSE;
+
+	if (!strncmp(h1->name, h2->name, PATH_MAX))
+		return TRUE;
+
+	return FALSE;
+}
+
+static int32_t read_extent(sstack_file_handle_t *extent_handle,
+			   sstack_inode_t *inode, void *buffer, log_ctx_t *ctx)
+{
+	int32_t fd;
+	int32_t ret = 0, nbytes = 0, i = 0, len = 0;
+	sstack_extent_t *extent = NULL;
+	char *p = extent_handle->name;
+	char *q = NULL;
+	char *r;
+	char *path;
+	p[extent_handle->name_len - 1] = '\0';
+
+	/* Search the IP address in the extent handle in the inode
+	   structure. Needed to find out the extent_t to get the full
+	   information about the particular extent */
+
+	for(i = 0; i < inode->i_numextents; ++i) {
+		if (TRUE == match_extent(extent_handle,
+					  inode->i_extent[i].e_path)) {
+			extent = &inode->i_extent[i];
+			break;
+		}
+	}
+
+	if (extent == NULL) {
+		sfs_log(ctx, SFS_ERR, "%s(): Error reading extent\n");
+		ret = -EINVAL;
+		goto ret;
+	}
+
+	if ((q = get_mount_path(extent_handle, &r)) == NULL) {
+		sfs_log(ctx, SFS_ERR, "%s(): Invalid mount path for:%s\n", p);
+		ret = -EINVAL;
+		goto ret;
+	}
+
+	/* Create the file path relative to the mount point */
+	len = strlen(r); /* r contains the nfs export */
+	p += len; /* p points to start of the path minus the nfs export */
+	path = bds_cache_alloc(sfsd_global_cache_arr[DATA4K_CACHE_OFFSET]);
+	if (path == NULL) {
+		ret = -ENOMEM;
+		sfs_log(ctx, SFS_ERR, "%s(): Error getting from path cache",
+			__FUNCTION__);
+		goto ret;
+	}
+	sprintf (path, "%s%s",q, p);
+	if ((fd = open(path, O_RDONLY)) < 0) {
+		sfs_log(ctx, SFS_ERR, "%s(): extent '%s' open failed",
+			__FUNCTION__, p);
+		ret = errno;;
+	}
+	nbytes = read(fd, buffer, extent->e_realsize);
+	if (nbytes == 0) {
+		sfs_log(ctx, SFS_ERR, "%s(): Read returned 0\n",
+			__FUNCTION__);
+		ret = errno;
+	}
+ret:
+	return ret;
+}
+
+sstack_payload_t *sstack_read(sstack_payload_t *payload,
+	sfsd_t *sfsd, log_ctx_t *ctx)
+{
+	int32_t i, command_stat = 0;
+	sstack_inode_t *inode;
+	struct sstack_nfs_read_cmd *cmd = &payload->command_struct.read_cmd;
+	struct policy_entry *pe = &cmd->pe;
+	struct payload *response;
+	void *buffer1 = NULL, *buffer2 = NULL;
+	inode = bds_cache_alloc(sfsd_global_cache_arr[INODE_CACHE_OFFSET]);
+	if (inode == NULL) {
+		command_stat = -ENOMEM;
+		sfs_log(ctx, SFS_ERR, "%s(): %s\n",
+			__FUNCTION__, "Inode cache mem not available");
+		goto error;
+	}
+
+	if (get_inode(cmd->inode_no, inode, sfsd->db) != 0) {
+		command_stat = -EINVAL;
+		sfs_log(ctx, SFS_ERR, "%s(): Inode not available",
+			__FUNCTION__);
+		goto error;
+	}
+
+	/* Now time for reading. Allocate a repsonse structure */
+	response = bds_cache_alloc(sfsd_global_cache_arr[PAYLOAD_CACHE_OFFSET]);
+	if (response == NULL) {
+		command_stat = -ENOMEM;
+		sfs_log(ctx, SFS_ERR, "%s(): No memory for response struct\n",
+			__FUNCTION__);
+		goto error;
+	}
+	buffer1 = bds_cache_alloc(sfsd_global_cache_arr[DATA64K_CACHE_OFFSET]);
+	if (buffer1 == NULL) {
+		sfs_log(ctx, SFS_ERR, "%s(): Error getting read buffer\n",
+			__FUNCTION__);
+		command_stat = -ENOMEM;
+		goto error;
+	}
+	/* Read the actual extent now */
+	command_stat = read_extent(&payload->command_struct.extent_handle,
+				   inode, buffer1, ctx);
+	if (command_stat != 0) {
+		sfs_log(ctx, SFS_ERR, "%s(): Error reading extent",
+			__FUNCTION__);
+		goto error;
+	}
+
+	for(i = pe->pe_num_plugins; i >= 0; i--) {
+		//Call the remove plugins from the dlsym/dlopen
+		//Finally buffer2 should have the data
+	}
+
+	// if erausre code required data required
+	// read erasure code and return
+
+	// Read extent and remove policy
+
+	// calculate checksum(crc) . if correct data
+	// return else indicate sfs that data is not
+	// present
+	return NULL;
+error:
+
+	return NULL;
+}
+
+sstack_payload_t *sstack_write(sstack_payload_t *payload,
 		sfsd_t *sfsd, log_ctx_t *ctx)
 {
 	/* Not implemented */
@@ -203,40 +338,24 @@ sstack_payload_t *sstack_read(
 	return NULL;
 }
 
-sstack_payload_t *sstack_write(
-		sstack_payload_t *payload,
-		bds_cache_desc_t payload_data_cache[2],
+sstack_payload_t *sstack_create(sstack_payload_t *payload,
 		sfsd_t *sfsd, log_ctx_t *ctx)
 {
-	/* Not implemented */
-	sfs_log(ctx, SFS_INFO, "%s(): function not implemented", __FUNCTION__);
-	return NULL;
-}
-
-sstack_payload_t *sstack_create(
-		sstack_payload_t *payload,
-		bds_cache_desc_t payload_data_cache[2],
-		sfsd_t *sfsd, log_ctx_t *ctx)
-{
-	struct policy_entry *pe = &payload->command_struct.entry;
 	/* Locate an extent */
 	return NULL;
 }
 
-sstack_payload_t *sstack_mkdir(
-		sstack_payload_t *payload,
-		bds_cache_desc_t payload_data_cache[2],
-		log_ctx_t *ctx)
+sstack_payload_t *sstack_mkdir(sstack_payload_t *payload, log_ctx_t *ctx)
 {
 	int32_t command_stat = 0;
-	sstack_file_name_t *dir_path = &payload->command_struct.file_handle;
+	sstack_file_handle_t *dir_path = &payload->command_struct.extent_handle;
 	sstack_payload_t *response = NULL;
 	struct sstack_nfs_mkdir_cmd *mkdir_cmd =
 		&payload->command_struct.mkdir_cmd;
 	char *p = dir_path->name;
 	p[dir_path->name_len] = '\0';
 
-	response = bds_cache_alloc(payload_data_cache[PAYLOAD_CACHE_OFFSET]);
+	response = bds_cache_alloc(sfsd_global_cache_arr[PAYLOAD_CACHE_OFFSET]);
 	if (!response) {
 		sfs_log(ctx, SFS_ERR, "%s(): Memory allocation failed",
 				__FUNCTION__);
@@ -259,20 +378,17 @@ sstack_payload_t *sstack_mkdir(
 error:
 	payload->response_struct.command_ok = command_stat;
 	if (response)
-		bds_cache_free(payload_data_cache[PAYLOAD_CACHE_OFFSET],
+		bds_cache_free(sfsd_global_cache_arr[PAYLOAD_CACHE_OFFSET],
 				response);
 	return payload;
 
 }
 
-sstack_payload_t *sstack_symlink(
-		sstack_payload_t *payload,
-		bds_cache_desc_t payload_data_cache[2],
-		log_ctx_t *ctx)
+sstack_payload_t *sstack_symlink(sstack_payload_t *payload, log_ctx_t *ctx)
 {
 	int32_t command_stat = 0;
-	sstack_file_name_t *old_path = &payload->command_struct.file_handle;
-	sstack_file_name_t *new_path =
+	sstack_file_handle_t *old_path = &payload->command_struct.extent_handle;
+	sstack_file_handle_t *new_path =
 		&payload->command_struct.symlink_cmd.new_path;
 	sstack_payload_t *response = payload;
 
@@ -292,22 +408,17 @@ sstack_payload_t *sstack_symlink(
 	return response;
 }
 
-sstack_payload_t *sstack_mknod(
-		sstack_payload_t *payload,
-		bds_cache_desc_t payload_data_cache[2],
-		log_ctx_t *ctx)
+sstack_payload_t *sstack_mknod(sstack_payload_t *payload, log_ctx_t *ctx)
 {
 	/* Not implemented */
 	sfs_log(ctx, SFS_INFO, "%s(): function not implemented", __FUNCTION__);
 	return NULL;
 }
 
-sstack_payload_t *sstack_remove(
-		sstack_payload_t *payload,
-		bds_cache_desc_t payload_data_cache[2],
-		log_ctx_t *ctx)
+sstack_payload_t *sstack_remove( sstack_payload_t *payload, log_ctx_t *ctx)
 {
-	sstack_file_name_t *file_handle = &payload->command_struct.file_handle;
+	sstack_file_handle_t *file_handle =
+		&payload->command_struct.extent_handle;
 	sstack_payload_t *response = payload;
 	char *p = file_handle->name;
 	int32_t command_stat = 0;
@@ -322,14 +433,11 @@ sstack_payload_t *sstack_remove(
 	return response;
 }
 
-sstack_payload_t *sstack_rmdir(
-		sstack_payload_t *payload,
-		bds_cache_desc_t payload_data_cache[2],
-		log_ctx_t *ctx)
+sstack_payload_t *sstack_rmdir(sstack_payload_t *payload, log_ctx_t *ctx)
 {
 	int32_t command_stat = 0;
 	sstack_payload_t *response = payload;
-	sstack_file_name_t *file_handle = &payload->command_struct.file_handle;
+	sstack_file_handle_t *file_handle = &payload->command_struct.extent_handle;
 	char *p = file_handle->name;
 
 	p[file_handle->name_len - 1] = '\0';
@@ -344,15 +452,12 @@ sstack_payload_t *sstack_rmdir(
 	return response;
 }
 
-sstack_payload_t *sstack_rename(
-		sstack_payload_t *payload,
-		bds_cache_desc_t payload_data_cache[2],
-		log_ctx_t *ctx)
+sstack_payload_t *sstack_rename(sstack_payload_t *payload, log_ctx_t *ctx)
 {
 	int32_t command_stat = 0;
 	sstack_payload_t *response = payload;
-	sstack_file_name_t *old_path = &payload->command_struct.file_handle;
-	sstack_file_name_t *new_path =
+	sstack_file_handle_t *old_path = &payload->command_struct.extent_handle;
+	sstack_file_handle_t *new_path =
 		&payload->command_struct.rename_cmd.new_path;
 	char *p = old_path->name;
 	char *q = new_path->name;
@@ -368,14 +473,11 @@ sstack_payload_t *sstack_rename(
 	return response;
 }
 
-sstack_payload_t *sstack_link(
-		sstack_payload_t *payload,
-		bds_cache_desc_t payload_data_cache[2],
-		log_ctx_t *ctx)
+sstack_payload_t *sstack_link(sstack_payload_t *payload, log_ctx_t *ctx)
 {
 	int32_t command_stat = 0;
-	sstack_file_name_t *old_path = &payload->command_struct.file_handle;
-	sstack_file_name_t *new_path =
+	sstack_file_handle_t *old_path = &payload->command_struct.extent_handle;
+	sstack_file_handle_t *new_path =
 		&payload->command_struct.symlink_cmd.new_path;
 	sstack_payload_t *response = payload;
 
@@ -395,63 +497,44 @@ sstack_payload_t *sstack_link(
 	return response;
 }
 
-sstack_payload_t *sstack_readdir(
-		sstack_payload_t *payload,
-		bds_cache_desc_t payload_data_cache[2],
-		log_ctx_t *ctx)
+sstack_payload_t *sstack_readdir(sstack_payload_t *payload, log_ctx_t *ctx)
 {
 	/* Not implemented */
 	sfs_log(ctx, SFS_INFO, "%s(): function not implemented", __FUNCTION__);
 	return NULL;
 }
 
-sstack_payload_t *sstack_readdirplus(
-		sstack_payload_t *payload,
-		bds_cache_desc_t payload_data_cache[2],
-		log_ctx_t *ctx)
+sstack_payload_t *sstack_readdirplus(sstack_payload_t *payload, log_ctx_t *ctx)
 {
 	/* Not implemented */
 	sfs_log(ctx, SFS_INFO, "%s(): function not implemented", __FUNCTION__);
 	return NULL;
 }
 
-sstack_payload_t *sstack_fsstat(
-		sstack_payload_t *payload,
-		bds_cache_desc_t payload_data_cache[2],
-		log_ctx_t *ctx)
+sstack_payload_t *sstack_fsstat(sstack_payload_t *payload, log_ctx_t *ctx)
 {
 	/* Not implemented */
 	sfs_log(ctx, SFS_INFO, "%s(): function not implemented", __FUNCTION__);
 	return NULL;
 }
 
-sstack_payload_t *sstack_fsinfo(
-		sstack_payload_t *payload,
-		bds_cache_desc_t payload_data_cache[2],
-		log_ctx_t *ctx)
+sstack_payload_t *sstack_fsinfo(sstack_payload_t *payload, log_ctx_t *ctx)
 {
 	/* Not implemented */
 	sfs_log(ctx, SFS_INFO, "%s(): function not implemented", __FUNCTION__);
 	return NULL;
 }
 
-sstack_payload_t *sstack_pathconf(
-		sstack_payload_t *payload,
-		bds_cache_desc_t payload_data_cache[2],
-		log_ctx_t *ctx)
+sstack_payload_t *sstack_pathconf(sstack_payload_t *payload, log_ctx_t *ctx)
 {
 	/* Not implemented */
 	sfs_log(ctx, SFS_INFO, "%s(): function not implemented", __FUNCTION__);
 	return NULL;
 }
 
-sstack_payload_t *sstack_commit(
-		sstack_payload_t *payload,
-		bds_cache_desc_t payload_data_cache[2],
-		log_ctx_t *ctx)
+sstack_payload_t *sstack_commit(sstack_payload_t *payload, log_ctx_t *ctx)
 {
 	/* Not implemented */
 	sfs_log(ctx, SFS_INFO, "%s(): function not implemented", __FUNCTION__);
 	return NULL;
 }
-

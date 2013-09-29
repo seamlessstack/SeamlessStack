@@ -25,6 +25,7 @@
 #include <sstack_nfs.h>
 #include <sstack_storage.h>
 #include <sstack_log.h>
+#include <sstack_db.h>
 #include <sstack_thread_pool.h>
 #include <bds_slab.h>
 
@@ -88,13 +89,11 @@ typedef struct sfsd {
 	sfs_chunk_domain_t *chunk;
 	pthread_t receiver_thread;
 	void *receiver_params;
+	db_t *db;
 	char sfs_addr[IPV4_ADDR_MAX];
 	sstack_thread_pool_t *thread_pool;
 	sstack_thread_pool_t *chunk_thread_pool;
-#define PAYLOAD_CACHE_OFFSET 0
-#define DATA_CACHE_OFFSET 1
-#define HANDLE_PARAM_OFFSET 2
-	bds_cache_desc_t payload_cache_arr[3];
+	bds_cache_desc_t *caches;
 } sfsd_t;
 
 typedef struct job {

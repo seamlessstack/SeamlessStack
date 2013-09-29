@@ -97,10 +97,12 @@ typedef struct sstack_file_attribute {
 	struct timespec ctime;
 } sstack_file_attribute_t;
 
-typedef struct sstack_file_name {
+typedef struct sstack_file_handle {
 	size_t name_len;
 	char name[PATH_MAX];
-} sstack_file_name_t;
+	sfs_protocol_t proto;
+	sstack_address_t address;
+} sstack_file_handle_t;
 
 /* =============== COMMAND STRUCTURES ========================*/
 
@@ -113,18 +115,20 @@ struct sstack_nfs_setattr_cmd {
 };
 
 struct sstack_nfs_lookup_cmd {
-	sstack_file_name_t where;
-	sstack_file_name_t what;
+	sstack_file_handle_t where;
+	sstack_file_handle_t what;
 };
 
 struct sstack_nfs_read_cmd {
+	uint64_t inode_no;
 	off_t offset;
 	size_t count;
-	struct policy_entry entry;
+	struct policy_entry pe;
 };
 
 
 struct sstack_nfs_write_cmd {
+	uint64_t inode_no;
 	off_t offset;
 	size_t count;
 	struct {
@@ -135,6 +139,7 @@ struct sstack_nfs_write_cmd {
 };
 
 struct sstack_nfs_create_cmd {
+	uint64_t inode_no;
 	uint32_t mode;
 	struct {
 		size_t data_len;
@@ -153,11 +158,11 @@ struct sstack_nfs_access_cmd {
 
 struct sstack_nfs_symlink_cmd {
 	/* Old name in file handle */
-	sstack_file_name_t new_path;
+	sstack_file_handle_t new_path;
 };
 
 struct sstack_nfs_rename_cmd {
-	sstack_file_name_t new_path;
+	sstack_file_handle_t new_path;
 };
 
 struct sstack_nfs_remove_cmd {
@@ -170,7 +175,7 @@ struct sstack_nfs_commit_cmd {
 	size_t count;
 };
 typedef struct sstack_command_struct {
-	sstack_file_name_t file_handle;
+	sstack_file_handle_t extent_handle;
 	union {
 		/* Add storage command */
 		struct sstack_chunk_cmd add_chunk_cmd;
@@ -252,7 +257,7 @@ struct sstack_nfs_write_resp {
 };
 
 struct sstack_nfs_readlink_resp {
-	sstack_file_name_t real_file;
+	sstack_file_handle_t real_file;
 };
 
 typedef struct sstack_nfs_response_struct {

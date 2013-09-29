@@ -1,11 +1,11 @@
 /*************************************************************************
- * 
+ *
  * SEAMLESSSTACK CONFIDENTIAL
  * __________________________
- * 
+ *
  *  [2012] - [2013]  SeamlessStack Inc
  *  All Rights Reserved.
- * 
+ *
  * NOTICE:  All information contained herein is, and remains
  * the property of SeamlessStack Incorporated and its suppliers,
  * if any.  The intellectual and technical concepts contained
@@ -23,6 +23,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <stdlib.h>
+#include <sstack_nfs.h>
 #include <sstack_log.h>
 #include <sstack_md.h>
 
@@ -36,7 +37,7 @@ get_opt_str(const char *arg, char *opt_name)
 	ASSERT((str), "Invalid parameter specified. Exiting...", 0, 0, 0);
 	if (!str)
 		exit(-1);
-	
+
 	str ++;
 	str = strdup(str);
 	ASSERT((str), "strdup failed. Exiting...", 0, 0, 0);
@@ -99,10 +100,12 @@ fill_inode(sstack_inode_t *inode, char *data, log_ctx_t *ctx)
 	cur += in->i_xattrlen;
 
 	// 2. Erasure code segment paths
+	// Copy remaining fields
+	// 1. Erasure code segment paths
 	for (i = 0; i < in->i_numerasure; i++) {
 		sstack_erasure_t *er;
 
-		er = (sstack_erasure_t *) ((char *) (data + 
+		er = (sstack_erasure_t *) ((char *) (data +
 						get_inode_fixed_fields_len() + covered));
 
 		memcpy(&path_len, (cur + covered), 4);
@@ -145,7 +148,7 @@ fill_inode(sstack_inode_t *inode, char *data, log_ctx_t *ctx)
 		}
 		memcpy(path, (cur + get_extent_fixed_fields_len() + covered),
 				ex->e_numreplicas * PATH_MAX);
-		ex->e_path =  (extent_path_t *) path;
+		ex->e_path =  (sstack_file_handle_t *) path;
 		extents = realloc(extents, (sizeof(sstack_extent_t) + covered));
 		if (NULL == path) {
 			sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory \n",
@@ -170,7 +173,7 @@ fill_inode(sstack_inode_t *inode, char *data, log_ctx_t *ctx)
  * db - db pointer
  *
  * Gets inode structure from db and populate fields in inode.
- * Members like i_erasure and i_extents are allocated here. It is caller's 
+ * Members like i_erasure and i_extents are allocated here. It is caller's
  * responsibility to free them after use.
  *
  * Returns 0 on success and a negative number indicating error on failure.

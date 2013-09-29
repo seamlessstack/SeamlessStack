@@ -56,14 +56,6 @@ typedef enum type {
 typedef unsigned long long sstack_offset_t;
 typedef unsigned long long sstack_size_t;
 
-// TODO
-// To introduce path_len and make extent_path as a pointer
-// This is making fill_inode() more complicated. 
-
-typedef struct {
-	char extent_path[PATH_MAX];
-} extent_path_t;
-
 // Defines chunk location . Overloading on xattr
 typedef struct extent {
 	// Fixed fields of the extent
@@ -78,7 +70,7 @@ typedef struct extent {
 		unsigned long e_cksum; // Checksum of the extent
 		unsigned int e_numreplicas; // Avoid reading sstack_inode_t again
 	};
-	extent_path_t *e_path; // Pointer to an array of replica paths
+	sstack_file_handle_t *e_path; // Pointer to an array of replica paths
 } sstack_extent_t;
 
 

@@ -23,16 +23,10 @@
 #include <sstack_chunk.h>
 #include <sstack_jobs.h>
 #include <sfsd_ops.h>
+#include <sstack_md.h>
 
 /* ===================== PRIVATE DECLARATIONS ============================ */
-struct handle_payload_params {
-	sstack_payload_t *payload;
-	bds_cache_desc_t *cache_arr;
-	log_ctx_t *log_ctx;
-	/* Pointer to cache descriptor of self */
-	bds_cache_desc_t cache_p;
-	sfsd_t	*sfsd;
-};
+
 static void* do_receive_thread (void *params);
 static void handle_command(sstack_payload_t *command,
 		sstack_payload_t **response,
@@ -159,33 +153,8 @@ static void* do_receive_thread(void *param)
 	SFS_LOG_EXIT((sfsd->handle != 0),
 			"Transport handle doesn't exist. Exiting..",
 			NULL, sfsd->log_ctx, SFS_ERR);
-	/* Create the caches */
-	ret = bds_cache_create("payload-cache", sizeof(sstack_payload_t), 0,
-			NULL, NULL,
-			&sfsd->payload_cache_arr[PAYLOAD_CACHE_OFFSET]);
-
-	SFS_LOG_EXIT((ret == 0),
-			"Could not create payload cache. Exiting..",
-			NULL, sfsd->log_ctx, SFS_ERR);
-
-	ret = bds_cache_create("data-cache", sizeof(sstack_payload_t), 0,
-			NULL, NULL,
-			&sfsd->payload_cache_arr[DATA_CACHE_OFFSET]);
-
-	SFS_LOG_EXIT((ret == 0),
-			"Could not create data cache. Exiting..",
-			NULL, sfsd->log_ctx, SFS_ERR);
-
-	ret = bds_cache_create("param-cache", sizeof(*handle_params), 0,
-			NULL, NULL,
-			&sfsd->payload_cache_arr[HANDLE_PARAM_OFFSET]);
-
-	SFS_LOG_EXIT((ret == 0),
-			"Could not create param cache. Exiting..",
-			NULL, sfsd->log_ctx, SFS_ERR);
-	param_cache = sfsd->payload_cache_arr[HANDLE_PARAM_OFFSET];
-
-	sfs_log(sfsd->log_ctx, SFS_DEBUG, "All cache creations are successful");
+	
+	param_cache = sfsd->caches[HANDLE_PARAM_OFFSET];
 
 	while (1) {
 		/* Check whether there is some command from the
@@ -213,7 +182,7 @@ static void* do_receive_thread(void *param)
 			handle_params->payload = payload;
 			handle_params->log_ctx = sfsd->log_ctx;
 			handle_params->cache_arr =
-				sfsd->payload_cache_arr;
+				sfsd->caches;
 			handle_params->cache_p = param_cache;
 			handle_params->sfsd = sfsd;
 			ret = sstack_thread_pool_queue(sfsd->thread_pool,
@@ -226,7 +195,7 @@ static void* do_receive_thread(void *param)
 }
 
 void handle_command(sstack_payload_t *command, sstack_payload_t **response,
-		bds_cache_desc_t cache_arr[2], sfsd_t *sfsd, log_ctx_t *log_ctx)
+		bds_cache_desc_t *cache_arr, sfsd_t *sfsd, log_ctx_t *log_ctx)
 {
 	sfsd_storage_t *storage;
 	char *path;
@@ -267,74 +236,67 @@ void handle_command(sstack_payload_t *command, sstack_payload_t **response,
 			break;
 		/* sstack nfs commands here */
 		case NFS_GETATTR:
-			*response = sstack_getattr(command, cache_arr, log_ctx);
+			*response = sstack_getattr(command, log_ctx);
 			break;
 		case NFS_SETATTR:
-			*response = sstack_setattr(command, cache_arr, log_ctx);
+			*response = sstack_setattr(command, log_ctx);
 			break;
 		case NFS_LOOKUP:
-			*response = sstack_lookup(command, cache_arr, log_ctx);
+			*response = sstack_lookup(command, log_ctx);
 			break;
 		case NFS_ACCESS:
-			*response = sstack_access(command, cache_arr, log_ctx);
+			*response = sstack_access(command, log_ctx);
 			break;
 		case NFS_READLINK:
-			*response = sstack_readlink(command, cache_arr,
-					log_ctx);
+			*response = sstack_readlink(command, log_ctx);
 			break;
 		case NFS_READ:
-			*response = sstack_read(command, cache_arr,
-						sfsd,log_ctx);
+			*response = sstack_read(command, sfsd,log_ctx);
 			break;
 		case NFS_WRITE:
-			*response = sstack_write(command, cache_arr,
-						 &sfsd, log_ctx);
+			*response = sstack_write(command, sfsd, log_ctx);
 			break;
 		case NFS_CREATE:
-			*response = sstack_create(command, cache_arr,
-						  sfsd, log_ctx);
+			*response = sstack_create(command, sfsd, log_ctx);
 			break;
 		case NFS_MKDIR:
-			*response = sstack_mkdir(command, cache_arr, log_ctx);
+			*response = sstack_mkdir(command, log_ctx);
 			break;
 		case NFS_SYMLINK:
-			*response = sstack_symlink(command, cache_arr, log_ctx);
+			*response = sstack_symlink(command, log_ctx);
 			break;
 		case NFS_MKNOD:
-			*response = sstack_mknod(command, cache_arr, log_ctx);
+			*response = sstack_mknod(command, log_ctx);
 			break;
 		case NFS_REMOVE:
-			*response = sstack_remove(command, cache_arr, log_ctx);
+			*response = sstack_remove(command, log_ctx);
 			break;
 		case NFS_RMDIR:
-			*response = sstack_rmdir(command, cache_arr, log_ctx);
+			*response = sstack_rmdir(command, log_ctx);
 			break;
 		case NFS_RENAME:
-			*response = sstack_rename(command, cache_arr, log_ctx);
+			*response = sstack_rename(command, log_ctx);
 			break;
 		case NFS_LINK:
-			*response = sstack_link(command, cache_arr, log_ctx);
+			*response = sstack_link(command, log_ctx);
 			break;
 		case NFS_READDIR:
-			*response = sstack_readdir(command, cache_arr, log_ctx);
+			*response = sstack_readdir(command, log_ctx);
 			break;
 		case NFS_READDIRPLUS:
-			*response = sstack_readdirplus(command, cache_arr,
-					log_ctx);
+			*response = sstack_readdirplus(command, log_ctx);
 			break;
 		case NFS_FSSTAT:
-			*response = sstack_fsstat(command, cache_arr,
-					log_ctx);
+			*response = sstack_fsstat(command, log_ctx);
 			break;
 		case NFS_FSINFO:
-			*response = sstack_fsinfo(command, cache_arr, log_ctx);
+			*response = sstack_fsinfo(command, log_ctx);
 			break;
 		case NFS_PATHCONF:
-			*response = sstack_pathconf(command, cache_arr,
-					log_ctx);
+			*response = sstack_pathconf(command, log_ctx);
 			break;
 		case NFS_COMMIT:
-			*response = sstack_commit(command, cache_arr, log_ctx);
+			*response = sstack_commit(command, log_ctx);
 			break;
 		default:
 			break;

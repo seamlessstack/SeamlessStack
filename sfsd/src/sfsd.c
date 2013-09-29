@@ -24,6 +24,7 @@
 #include <sstack_sfsd.h>
 
 extern log_ctx_t *sfsd_ctx;
+
 void run_daemon_sfsd(sfsd_t *sfsd)
 {
 	sleep(4);

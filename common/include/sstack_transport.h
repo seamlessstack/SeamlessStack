@@ -23,9 +23,6 @@
 #include <sstack_log.h>
 #include <sstack_types.h>
 
-#define IPV4_ADDR_MAX 16
-#define IPV6_ADDR_MAX 40
-
 #define SSTACK_BACKLOG 5
 
 #define READ_BLOCK_MASK	1

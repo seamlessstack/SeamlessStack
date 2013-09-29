@@ -26,9 +26,11 @@
 #include <sstack_chunk.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <sstack_types.h>
+
 #define MAX_COMMAND ((PATH_MAX) + (MAX_MOUNT_POINT_LEN) + 64)
 
-static int32_t sfsd_chunk_schedule_rr(void);
+static int32_t sfsd_chunk_schedule_rr(sfs_chunk_domain_t *chunk_domain);
 
 /*
  * sfsd_chunk_domain_init - Initialize the chunk domain datastructure
@@ -159,7 +161,7 @@ sfsd_add_chunk(sfs_chunk_domain_t *chunk, sfsd_storage_t *storage)
 		// ipv6_addr size takes care of both IPv4 and IPv6 addresses
 
 		snprintf((char *) command, MAX_COMMAND, "mount -t nfs %s:%s %s",
-			storage->ipv6_addr, storage->path, path);
+			storage->address.ipv6_address, storage->path, path);
 		ret = system(command);
 		if (ret == -1) {
 			sfs_log(chunk->ctx, SFS_ERR, "%s: Failed to add chunk 0x%llx to "
@@ -169,7 +171,7 @@ sfsd_add_chunk(sfs_chunk_domain_t *chunk, sfsd_storage_t *storage)
 			return NULL;
 		}
 		sfs_log(chunk->ctx, SFS_INFO, "%s: Mounting chunk path %s:%s to "
-			"local path %s successded\n", __FUNCTION__, storage->ipv6_addr,
+			"local path %s successded\n", __FUNCTION__, storage->address.ipv6_address,
 			storage->path, path);
 
 		// Update the chunk domain data structure
@@ -257,7 +259,7 @@ sfsd_remove_chunk(sfs_chunk_domain_t *chunk, sfsd_storage_t *storage)
 		// Only NFS handled
 		if (storage->protocol == NFS) {
 			if ((temp->path == storage->path) &&
-				(temp->ipv6_addr == storage->ipv6_addr)) {
+				(temp->address.ipv6_address == storage->address.ipv6_address)) {
 					found = 1;
 					goto skip;
 			}
@@ -354,7 +356,9 @@ sfsd_update_chunk(sfs_chunk_domain_t *chunk, sfsd_storage_t *storage)
 		// Only NFS handled
 		if (storage->protocol == NFS) {
 			if ((temp->path == storage->path) &&
-				(temp->ipv6_addr == storage->ipv6_addr)) {
+			    (!strncmp(temp->address.ipv6_address,
+				      storage->address.ipv6_address,
+				      IPV6_ADDR_MAX))) {
 					found = 1;
 					goto skip;
 			}
@@ -456,7 +460,7 @@ sfsd_display_chunk_domain(sfs_chunk_domain_t *chunk)
 		}
 		sfs_log(chunk->ctx, SFS_INFO, "\nChunk # %d \n", i);
 		sfs_log(chunk->ctx, SFS_INFO, "Chunk path = %s:%s\n",
-			temp->ipv6_addr, temp->path);
+			temp->address.ipv6_address, temp->path);
 		sfs_log(chunk->ctx, SFS_INFO, "Chunk weight = %d\n", temp->weight);
 		sfs_log(chunk->ctx, SFS_INFO, "Number of blocks in chunk = %"PRId64"\n",
 			temp->nblocks);
@@ -464,11 +468,11 @@ sfsd_display_chunk_domain(sfs_chunk_domain_t *chunk)
 			sfsd_disp_protocol(temp->protocol));
 	}
 }
-/*
+/**
  * Round Robin chunk scheduler
  * returns the next usable chunk index
  * to be used
- */
+ **/
 
 static int32_t sfsd_chunk_schedule_rr(sfs_chunk_domain_t *chunk_domain)
 {
@@ -484,8 +488,60 @@ static int32_t sfsd_chunk_schedule_rr(sfs_chunk_domain_t *chunk_domain)
 		sfs_log(chunk_domain->ctx, SFS_DEBUG,
 			"%s(), line %d: Chunk scheduled %d\n",
 			__FUNCTION__, __LINE__, next_scheduled);
-		ret = (next_schedule++) % chunk_domain->num_chunks;
+		ret = (next_scheduled++) % chunk_domain->num_chunks;
 	}
 
 	return ret;
+}
+
+int32_t match_address(sstack_address_t *s1, sstack_address_t *s2)
+{
+	if (s1->protocol != s2->protocol)
+		return FALSE;
+	switch(s1->protocol)
+	{
+	case IPV4:
+		if (!strncmp(s1->ipv4_address, s2->ipv4_address, IPV4_ADDR_MAX))
+			return TRUE;
+	case IPV6:
+		if (!strncmp(s1->ipv6_address, s2->ipv6_address, IPV6_ADDR_MAX))
+			return TRUE;
+	default:
+		return FALSE;
+	};
+	return FALSE;
+}
+
+/**
+ * Get the mount point corresponding to the extent path passed
+ * down as the parameter. Compare the "address" and the begining
+ *  of the file path wth the nfs/<proto> export
+ **/
+char *get_mount_path(sfs_chunk_domain_t *chunk_domain ,
+		     sstack_file_handle_t *file_handle, char **export_path)
+{
+	int32_t i;
+	sfsd_storage_t *storage = NULL;
+	if (chunk_domain == NULL || file_handle == NULL) {
+		return NULL;
+	}
+
+	for (i = 0; i < chunk_domain->num_chunks; ++i) {
+		storage = chunk_domain->storage + i;
+		if (file_handle->proto != storage->protocol)
+			continue;
+		/* Match the IP addresses */
+		if (match_address(&file_handle->address,
+				  &storage->address) == FALSE)
+			continue;
+
+		/* Protocol and addresses match. Let's try to match the nfs
+		   mount path now */
+		if (strstr(file_handle->name, storage->path)) {
+			/* the match is found!!! */
+			*export_path = storage->path;
+			return storage->mount_point;
+		}
+	}
+	return NULL;
 }

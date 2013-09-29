@@ -27,16 +27,66 @@
 #include <sstack_sfsd.h>
 #include <bds_slab.h>
 #include <sstack_chunk.h>
+#include <sstack_db.h>
+#include <sstack_md.h>
+#include <mongo_db.h>
 
 /* sstack log directory */
 char sstack_log_directory[PATH_MAX];
+struct handle_payload_params;
 static sfsd_t sfsd;
+bds_cache_desc_t sfsd_global_cache_arr[MAX_CACHE_OFFSET];
+
+struct cache_entry {
+	char name[32];
+	size_t size;
+};
+
+struct cache_entry caches[MAX_CACHE_OFFSET] = {
+	{"payload-cache", sizeof(sstack_payload_t)},
+	{"param-cache", sizeof (struct handle_payload_params)},
+	{"inode-cache", sizeof(sstack_inode_t)},
+	{"data-4k-cache", 4096},
+	{"data-64k-cache", 65536},
+};
+
+static int32_t sfsd_create_caches(sfsd_t *sfsd, struct cache_entry *centry)
+{
+	int32_t i,j, ret;
+	/* Allocate memory for the caches array */
+	sfsd->caches = malloc(sizeof(bds_cache_desc_t) * MAX_CACHE_OFFSET);
+
+	if (sfsd->caches == NULL) {
+		sfs_log(sfsd->log_ctx,
+			SFS_ERR, "Caches array allocation failed\n");
+		return -ENOMEM;
+	}
+	for(i = 0; i < MAX_CACHE_OFFSET; ++i) {
+		ret = bds_cache_create(centry[i].name, centry[i].size, 0, NULL,
+				       NULL, &sfsd_global_cache_arr[i]);
+		if (ret != 0) {
+			sfs_log(sfsd->log_ctx, SFS_ERR,
+				"Could not create cache for %s\n",
+				centry[i].name);
+			goto error;
+		}
+	}
+
+	return 0;
+
+error:
+	sfs_log(sfsd->log_ctx, SFS_ERR, "%s(): Bailing out..", __FUNCTION__);
+	for (j = i; j >= 0; j--)
+		bds_cache_destroy(sfsd_global_cache_arr[j]);
+	return -ENOMEM;
+}
 
 int main(int argc, char **argv)
 {
 
 	log_ctx_t *ctx = NULL;
 	int log_ret = 0;
+	db_t *db;
 
 	/* Set up the log directory */
 	if (argc == 1) {
@@ -47,7 +97,7 @@ int main(int argc, char **argv)
 	}
 	memset(&sfsd, 0, sizeof(sfsd));
 
-	/* Get the server address from the command line also */
+	/* Get the server address also from the command line */
 	strcpy(sfsd.sfs_addr, argv[2]);
 
 	/* initialize logging */
@@ -61,7 +111,18 @@ int main(int argc, char **argv)
 	/* Register signals */
 	ASSERT ((0 == register_signals(&sfsd)),
 			"Signal regisration failed", 1, 1, 0);
+	/* Initialize and connect to the DB. DONOT initialize DB
+	 here, it would be done by SFS*/
+	db = create_db();
+	ASSERT((db != NULL), "DB create failed", 1, 1, 0);
+	db_register(db, mongo_db_init, mongo_db_open, mongo_db_close,
+		mongo_db_insert, mongo_db_iterate, mongo_db_get,
+		mongo_db_seekread, mongo_db_update, mongo_db_delete,
+		mongo_db_cleanup, ctx);
+	sfsd.db = db;
 
+	ASSERT((0 == sfsd_create_caches(&sfsd, caches)),
+			"Cache creation failed", 1, 1, 0);
 	/* Initialize transport */
 	init_transport(&sfsd);
 
@@ -69,7 +130,6 @@ int main(int argc, char **argv)
 	init_thread_pool(&sfsd);
 
 	/* Initialize the chunk domain */
-
 	sfsd.chunk = sfsd_chunk_domain_init(&sfsd, sfsd.log_ctx);
 
 	ASSERT((sfsd.chunk != NULL),
