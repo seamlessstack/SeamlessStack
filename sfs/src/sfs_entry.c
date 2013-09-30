@@ -482,18 +482,18 @@ append_xattr(sstack_inode_t *inode, const char * name, const char * value,
 	// This can be rewritten to use sprintf
 	cur_len = inode->i_xattrlen;
 	// Append key
+	// Omit '\0' of key
 	memcpy((void *) (p + cur_len) , (void *) name, key_len);
 	cur_len  += key_len;
 	// Append '='
 	memcpy((void *) (p + cur_len) , (void *)  "=", 1);
 	cur_len += 1;
 	// Append value
-	memcpy((void *) (p + cur_len) ,(void *) value, len);
+	// Value is anyway a string. So directly strcpy it.
+	// It is assumed that len includes trailing '\0' character.
+	// Manpage is amibuous.
+	strcpy((p + cur_len), value);
 	cur_len += len;
-	// Append '\0'
-	// "0" is same as '\0'
-	memcpy((void *) (p + cur_len) , (void *) "0", 1);
-	cur_len += 1;
 
 	inode->i_xattrlen = cur_len;
 	inode->i_xattr = p;
@@ -685,14 +685,174 @@ int
 sfs_getxattr(const char *path, const char *name, char *value, size_t size)
 {
 
-	return 0;	
+	int ret = -1;
+	unsigned long long inode_num = 0;
+	char *inodestr = NULL;
+	sstack_inode_t inode;
+	size_t size1;
+	int i = 0;
+	char *p = NULL;
+	char key[MAX_KEY_LEN] = { '\0' };
+
+	// Parameter validation
+	if (NULL == path || NULL == name || NULL == value ||
+					size == 0) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters passed. \n",
+					__FUNCTION__);
+		errno = EINVAL;
+
+		return -1;
+	}
+
+	// Get the inode number for the file.
+	inodestr = sstack_cache_read_one(mc, path, strlen(path), &size1);
+	if (NULL == inodestr) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
+					"for path %s.\n", __FUNCTION__, path);
+		errno = ENOENT;
+
+		return -1;
+	}
+	inode_num = atoll((const char *)inodestr);
+	// Get inode from DB
+	ret = get_inode(inode_num, &inode, db);
+	if (ret != 0) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to get inode %lld. Path = %s "
+						"error = %d\n", __FUNCTION__, inode_num, path, ret);
+		errno = ret;
+
+		return -1;
+	}
+
+	p = inode.i_xattr;
+	// Walk through the xattrs 
+	while ( i < inode.i_xattrlen) {
+		int j;
+
+		j = 0;
+		memset(key, '\0', MAX_KEY_LEN);
+		// Skip field separators (NULL character)
+		if (*(p + i) == '\0') {
+			i++;
+			continue;
+		}
+		// Copy till '=' into key
+		while (*(p + i) != '=') {
+			*(key + i) = *(p + i);
+			i++;
+			j++;
+		}
+
+		key[j + 1] = '\0';
+
+		if (strcmp(key, name) == 0) {
+			int k = 0;
+			// Copy xattr value into value
+			// Manpage does not mention about size paramater.
+			// Assuming size parameter does not including trailing '\0'
+			// Copy either size bytes or till we hit field separator ('\0')
+			while ((*(p + i) != '\0') &&  k < size) {
+				*(value + k) = *(p + i);
+				i ++;
+				k ++;
+			}
+
+			return k;	
+		}
+		i += j;
+		// Skip over value
+		while(*(p + i) != '\0')
+			i++;
+	}
+
+	// If we did not get a match, error out.
+	sfs_log(sfs_ctx, SFS_ERR, "%s: Attribute %s not found for path %s\n",
+					__FUNCTION__, name, path);
+	errno = ENOATTR;
+
+	return -1;
 }
 
 int
 sfs_listxattr(const char *path, char *list, size_t size)
 {
+	int ret = -1;
+	unsigned long long inode_num = 0;
+	char *inodestr = NULL;
+	sstack_inode_t inode;
+	size_t size1;
+	int i = 0;
+	char *p = NULL;
+	char key[MAX_KEY_LEN] = { '\0' };
+	int bytes_copied = 0;
+	
 
-	return 0;	
+	// Parameter validation
+	if (NULL == path || NULL == list || size == 0) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters specified \n",
+						__FUNCTION__);
+		errno = EINVAL;
+
+		return -1;
+	}
+
+	// Get the inode number for the file.
+	inodestr = sstack_cache_read_one(mc, path, strlen(path), &size1);
+	if (NULL == inodestr) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
+					"for path %s.\n", __FUNCTION__, path);
+		errno = ENOENT;
+
+		return -1;
+	}
+	inode_num = atoll((const char *)inodestr);
+	// Get inode from DB
+	ret = get_inode(inode_num, &inode, db);
+	if (ret != 0) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to get inode %lld. Path = %s "
+						"error = %d\n", __FUNCTION__, inode_num, path, ret);
+		errno = ret;
+
+		return -1;
+	}
+
+	p = inode.i_xattr;
+	// Walk through the xattrs 
+	while ( i < inode.i_xattrlen) {
+		int j;
+
+		j = 0;
+		memset(key, '\0', MAX_KEY_LEN);
+		// Skip field separators (NULL character)
+		if (*(p + i) == '\0') {
+			i++;
+			continue;
+		}
+		// Copy till '=' into key
+		while (*(p + i) != '=') {
+			*(key + i) = *(p + i);
+			i++;
+			j++;
+		}
+
+		key[j + 1] = '\0';
+		// Value contains concatenation of NULL terminated strings
+		// like user.name1\0user.name2\0user.name3 ...
+		if (size > bytes_copied && ((bytes_copied + (j + 1)) < size)) {
+			strcpy((char *) (list + bytes_copied), key);
+			bytes_copied += (j + 1);
+		} else {
+			// Value filled up.
+			break;
+		}
+
+		i += j;
+		// Skip over attribute value
+		while(*(p + i) != '\0')
+			i++;
+	}
+
+	return bytes_copied;
 }
 
 int
