@@ -26,6 +26,7 @@
 #include <sstack_nfs.h>
 #include <sstack_log.h>
 #include <sstack_md.h>
+#include <sstack_nfs.h>
 
 #define MAX_INODE_LEN 40 // Maximum number of characters in 2^128 is 39
 
@@ -140,14 +141,14 @@ fill_inode(sstack_inode_t *inode, char *data, log_ctx_t *ctx)
 		char *path;
 
 		ex = (sstack_extent_t *) ((char *)(cur + covered));
-		path = malloc(ex->e_numreplicas * PATH_MAX);
+		path = malloc(ex->e_numreplicas * sizeof(sstack_file_handle_t));
 		if(NULL == path) {
 			sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory \n",
 					__FUNCTION__);
 			return -ENOMEM;
 		}
 		memcpy(path, (cur + get_extent_fixed_fields_len() + covered),
-				ex->e_numreplicas * PATH_MAX);
+				ex->e_numreplicas * sizeof(sstack_file_handle_t));
 		ex->e_path =  (sstack_file_handle_t *) path;
 		extents = realloc(extents, (sizeof(sstack_extent_t) + covered));
 		if (NULL == path) {
@@ -156,7 +157,8 @@ fill_inode(sstack_inode_t *inode, char *data, log_ctx_t *ctx)
 			return -ENOMEM;
 		}
 		memcpy((extents + covered), ex, sizeof(sstack_extent_t));
-		covered += (sizeof(sstack_extent_t) + (ex->e_numreplicas * PATH_MAX));
+		covered += (sizeof(sstack_extent_t) +
+						(ex->e_numreplicas * sizeof(sstack_file_handle_t)));
 	}
 	inode->i_extent = (sstack_extent_t *) extents;
 
@@ -308,7 +310,8 @@ flatten_inode(sstack_inode_t *inode, size_t *len, log_ctx_t *ctx)
 		*len += fixed_len;
 
 		// Copy extent paths
-		temp = realloc(data, ((*len) + (ex->e_numreplicas * PATH_MAX)));
+		temp = realloc(data, ((*len) + (ex->e_numreplicas *
+										sizeof(sstack_file_handle_t))));
 		if (NULL == temp) {
 			sfs_log(ctx, SFS_ERR, "%s: Failed to allocate memory for "
 				"storing fixed fields of inode %lld\n",  __FUNCTION__,
@@ -318,8 +321,8 @@ flatten_inode(sstack_inode_t *inode, size_t *len, log_ctx_t *ctx)
 		}
 		data = temp;
 		memcpy((void *) (data + (*len)), ex->e_path,
-						(ex->e_numreplicas * PATH_MAX));
-		*len += (ex->e_numreplicas * PATH_MAX);
+						(ex->e_numreplicas * sizeof(sstack_file_handle_t)));
+		*len += (ex->e_numreplicas * sizeof(sstack_file_handle_t));
 		ex ++;
 	}
 

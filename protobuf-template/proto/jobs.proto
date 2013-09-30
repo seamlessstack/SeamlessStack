@@ -89,9 +89,10 @@ message policy_entry
 
 message sstack_nfs_read_cmd 
 {
-	required uint64 offset = 1;
-	required uint64 count = 2;
-	required policy_entry entry = 3;
+	required uint64 inode_no = 1;
+	required uint64 offset = 2;
+	required uint64 count = 3;
+	required policy_entry pe = 4;
 }
 
 message sstack_nfs_data
@@ -102,17 +103,19 @@ message sstack_nfs_data
 
 message sstack_nfs_write_cmd
 {
-	required uint64 offset = 1;
-	required uint64 count = 2;
-	required sstack_nfs_data data = 3;
-	required policy_entry entry = 4;
+	required uint64 inode_no = 1;
+	required uint64 offset = 2;
+	required uint64 count = 3;
+	required sstack_nfs_data data = 4;
+	required policy_entry pe = 5;
 }
 
 message sstack_nfs_create_cmd
 {
-	required uint32 mode = 1;
-	required sstack_nfs_data data = 2;
-	required policy_entry entry = 3;
+	required uint64 inode_no = 1;
+	required uint32 mode = 2;
+	required sstack_nfs_data data = 3;
+	required policy_entry pe = 4;
 }
 
 message sstack_nfs_mkdir_cmd
@@ -252,6 +255,17 @@ message sstack_payload_hdr_t
 	required uint32 payload_len = 2;
 }
 
+message sstack_address_t
+{
+	enum sstack_network_protocol_t
+	{
+		IPV4 = 1;
+		IPV6 = 2;
+	}
+	required sstack_network_protocol_t protocol = 1;
+	optional bytes ipv4_address = 2;
+	optional bytes ipv6_address = 3;
+}
 
 message sfsd_storage_t
 {
@@ -267,8 +281,8 @@ message sfsd_storage_t
 		NATIVE = 4;
 	}
 	required sfs_protocol_t protocol = 5;
-	optional bytes ipv4_addr = 6;
-	optional bytes ipv6_addr = 7;
+	required uint64 num_chunks_written = 6;
+	required sstack_address_t address = 7;
 }
 
 message sstack_chunk_cmd

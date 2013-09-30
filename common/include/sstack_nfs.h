@@ -135,7 +135,7 @@ struct sstack_nfs_write_cmd {
 		size_t data_len;
 		uint8_t data_val[MAX_EXTENT_SIZE];
 	} data;
-	struct policy_entry entry;
+	struct policy_entry pe;
 };
 
 struct sstack_nfs_create_cmd {
@@ -145,7 +145,7 @@ struct sstack_nfs_create_cmd {
 		size_t data_len;
 		uint8_t data_val[MAX_EXTENT_SIZE];
 	} data;
-	struct policy_entry entry;
+	struct policy_entry pe;
 };
 
 struct sstack_nfs_mkdir_cmd {

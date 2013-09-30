@@ -34,6 +34,7 @@
 #include <policy.h>
 #include <sstack_bitops.h>
 #include <sstack_db.h>
+#include <sstack_nfs.h>
 
 // Recommended number of replicas in standard practice is 3.
 // Setting MAX_REPLICAS to 10 just to handle user request

@@ -165,6 +165,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 		case SSTACK_REMOVE_STORAGE:
 		case SSTACK_UPDATE_STORAGE: {
 			SfsdStorageT storage = SFSD_STORAGE_T__INIT;
+			SstackAddressT addr = SSTACK_ADDRESS_T__INIT;
 
 			// TODO
 			// For SSTACK_UPDATE_STORAGE, need to print previous and new
@@ -176,7 +177,8 @@ sstack_send_payload(sstack_client_handle_t handle,
 				__FUNCTION__, sstack_command_stringify(payload->command),
 				payload->storage.path,
 				(transport->transport_hdr.tcp.ipv4) ?
-					payload->storage.ipv4_addr : payload->storage.ipv6_addr);
+					payload->storage.address.ipv4_address :
+					payload->storage.address.ipv6_address);
 			if (payload->command == SSTACK_ADD_STORAGE)
 				msg.command =
 					SSTACK_PAYLOAD_T__SSTACK_NFS_COMMAND_T__SSTACK_ADD_STORAGE;	
@@ -194,16 +196,21 @@ sstack_send_payload(sstack_client_handle_t handle,
 			storage.weight = payload->storage.weight;
 			storage.nblocks = payload->storage.nblocks;
 			storage.protocol = payload->storage.protocol;
+			storage.num_chunks_written = payload->storage.num_chunks_written;
 			if (transport->transport_hdr.tcp.ipv4) {
-				storage.has_ipv4_addr = true;
-				storage.ipv4_addr.len = IPV4_ADDR_MAX;
-				strcpy((char *) storage.ipv4_addr.data,
-					payload->storage.ipv4_addr);
+				addr.protocol = IPV4;
+				addr.has_ipv4_address = true;
+				addr.ipv4_address.len = IPV4_ADDR_MAX;
+				strcpy((char *) addr.ipv4_address.data,
+					payload->storage.address.ipv4_address);
+				storage.address = &addr;
 			} else {
-				storage.has_ipv6_addr = true;
-				storage.ipv6_addr.len = IPV6_ADDR_MAX;
-				strcpy((char *) storage.ipv6_addr.data,
-					payload->storage.ipv6_addr);
+				addr.protocol = IPV6;
+				addr.has_ipv6_address = true;
+				addr.ipv6_address.len = IPV6_ADDR_MAX;
+				strcpy((char *) addr.ipv6_address.data,
+					payload->storage.address.ipv6_address);
+				storage.address = &addr;
 			}
 			msg.storage = &storage;
 			len = sstack_payload_t__get_packed_size(&msg);
@@ -226,8 +233,8 @@ sstack_send_payload(sstack_client_handle_t handle,
 					"path %s. Error = %d\n", __FUNCTION__, 
 					sstack_command_stringify(payload->command),
 					(transport->transport_hdr.tcp.ipv4) ?
-						payload->storage.ipv4_addr :
-						payload->storage.ipv6_addr,
+						payload->storage.address.ipv4_address :
+						payload->storage.address.ipv6_address,
 					payload->storage.path, ret);
 
 				free(buffer);
@@ -239,8 +246,8 @@ sstack_send_payload(sstack_client_handle_t handle,
 					"path %s \n", __FUNCTION__,
 					sstack_command_stringify(payload->command),
 					(transport->transport_hdr.tcp.ipv4) ?
-						payload->storage.ipv4_addr :
-						payload->storage.ipv6_addr,
+						payload->storage.address.ipv4_address :
+						payload->storage.address.ipv6_address,
 					payload->storage.path);
 
 				free(buffer);
@@ -401,22 +408,23 @@ sstack_send_payload(sstack_client_handle_t handle,
 			sfs_log(ctx, SFS_INFO, "%s: %s called \n", __FUNCTION__,
 					sstack_command_stringify(payload->command));
 			msg.command = SSTACK_PAYLOAD_T__SSTACK_NFS_COMMAND_T__NFS_READ;
+			readcmd.inode_no = payload->command_struct.read_cmd.inode_no;
 			readcmd.offset = payload->command_struct.read_cmd.offset;
 			readcmd.count = payload->command_struct.read_cmd.count;
-			attr.ver = payload->command_struct.read_cmd.entry.pe_attr.ver;
+			attr.ver = payload->command_struct.read_cmd.pe.pe_attr.ver;
 			attr.a_qoslevel =
-				payload->command_struct.read_cmd.entry.pe_attr.a_qoslevel;
+				payload->command_struct.read_cmd.pe.pe_attr.a_qoslevel;
 			attr.a_ishidden =
-				payload->command_struct.read_cmd.entry.pe_attr.a_ishidden;
+				payload->command_struct.read_cmd.pe.pe_attr.a_ishidden;
 			entry.pe_attr = &attr;
 			entry.pe_num_plugins =
-				payload->command_struct.read_cmd.entry.pe_num_plugins;
+				payload->command_struct.read_cmd.pe.pe_num_plugins;
 			entry.pe_refcount =
-				payload->command_struct.read_cmd.entry.pe_refcount;
+				payload->command_struct.read_cmd.pe.pe_refcount;
 			entry.pe_lock =
-				payload->command_struct.read_cmd.entry.pe_lock;
+				payload->command_struct.read_cmd.pe.pe_lock;
 			entry.pst_index =
-				payload->command_struct.read_cmd.entry.pst_index;
+				payload->command_struct.read_cmd.pe.pst_index;
 			plugins = (PolicyPlugin **) malloc(entry.pe_num_plugins *
 					sizeof(PolicyPlugin));
 			if (NULL == plugins) {
@@ -428,31 +436,31 @@ sstack_send_payload(sstack_client_handle_t handle,
 			}
 			for ( i = 0; i < entry.pe_num_plugins; i++ ) {
 				plugins[i]->ver =
-					payload->command_struct.read_cmd.entry.pe_policy[i]->ver;	
+					payload->command_struct.read_cmd.pe.pe_policy[i]->ver;	
 				plugins[i]->pp_refcount =
-					payload->command_struct.read_cmd.entry.pe_policy[i]
+					payload->command_struct.read_cmd.pe.pe_policy[i]
 						->pp_refcount;
 				plugins[i]->pp_policy_name.len =
-					strlen(payload->command_struct.read_cmd.entry.pe_policy[i]
+					strlen(payload->command_struct.read_cmd.pe.pe_policy[i]
 						->pp_policy_name);
 				strcpy((char *)&plugins[i]->pp_policy_name.data,
-					payload->command_struct.read_cmd.entry.pe_policy[i]
+					payload->command_struct.read_cmd.pe.pe_policy[i]
 						->pp_policy_name);	
 				plugins[i]->pp_sha_sum.len =
-					strlen(payload->command_struct.read_cmd.entry.pe_policy[i]
+					strlen(payload->command_struct.read_cmd.pe.pe_policy[i]
 						->pp_sha_sum);
 				strcpy((char *) &plugins[i]->pp_sha_sum.data,
-					payload->command_struct.read_cmd.entry.pe_policy[i]
+					payload->command_struct.read_cmd.pe.pe_policy[i]
 						->pp_sha_sum);	
 				plugins[i]->is_activated =
-					payload->command_struct.read_cmd.entry.pe_policy[i]
+					payload->command_struct.read_cmd.pe.pe_policy[i]
 						->is_activated;
 				plugins[i]->pp_lock =
-					payload->command_struct.read_cmd.entry.pe_policy[i]
+					payload->command_struct.read_cmd.pe.pe_policy[i]
 						->pp_lock;
 			}
 			entry.pe_policy = plugins;
-			readcmd.entry = &entry;
+			readcmd.pe = &entry;
 			cmd.read_cmd = &readcmd;
 			msg.command_struct = &cmd;
 			len = sstack_payload_t__get_packed_size(&msg);
@@ -504,23 +512,24 @@ sstack_send_payload(sstack_client_handle_t handle,
 			strncpy((char *) &data.data_val.data,
 				(char *) &payload->command_struct.write_cmd.data.data_val,
 				data.data_len);
+			writecmd.inode_no = payload->command_struct.write_cmd.inode_no;
 			writecmd.offset = payload->command_struct.write_cmd.offset;
 			writecmd.count = payload->command_struct.write_cmd.count;
 			writecmd.data = &data;
-			attr.ver = payload->command_struct.write_cmd.entry.pe_attr.ver;
+			attr.ver = payload->command_struct.write_cmd.pe.pe_attr.ver;
 			attr.a_qoslevel =
-				payload->command_struct.write_cmd.entry.pe_attr.a_qoslevel;
+				payload->command_struct.write_cmd.pe.pe_attr.a_qoslevel;
 			attr.a_ishidden =
-				payload->command_struct.write_cmd.entry.pe_attr.a_ishidden;
+				payload->command_struct.write_cmd.pe.pe_attr.a_ishidden;
 			entry.pe_attr = &attr;
 			entry.pe_num_plugins =
-				payload->command_struct.write_cmd.entry.pe_num_plugins;
+				payload->command_struct.write_cmd.pe.pe_num_plugins;
 			entry.pe_refcount =
-				payload->command_struct.write_cmd.entry.pe_refcount;
+				payload->command_struct.write_cmd.pe.pe_refcount;
 			entry.pe_lock =
-				payload->command_struct.write_cmd.entry.pe_lock;
+				payload->command_struct.write_cmd.pe.pe_lock;
 			entry.pst_index =
-				payload->command_struct.write_cmd.entry.pst_index;
+				payload->command_struct.write_cmd.pe.pst_index;
 			plugins = (PolicyPlugin **) malloc(entry.pe_num_plugins *
 					sizeof(PolicyPlugin));
 			if (NULL == plugins) {
@@ -532,31 +541,31 @@ sstack_send_payload(sstack_client_handle_t handle,
 			}
 			for ( i = 0; i < entry.pe_num_plugins; i++ ) {
 				plugins[i]->ver =
-					payload->command_struct.write_cmd.entry.pe_policy[i]->ver;	
+					payload->command_struct.write_cmd.pe.pe_policy[i]->ver;	
 				plugins[i]->pp_refcount =
-					payload->command_struct.write_cmd.entry.pe_policy[i]
+					payload->command_struct.write_cmd.pe.pe_policy[i]
 						->pp_refcount;
 				plugins[i]->pp_policy_name.len =
-					strlen(payload->command_struct.write_cmd.entry.pe_policy[i]
+					strlen(payload->command_struct.write_cmd.pe.pe_policy[i]
 						->pp_policy_name);
 				strcpy((char *)&plugins[i]->pp_policy_name.data,
-					payload->command_struct.write_cmd.entry.pe_policy[i]
+					payload->command_struct.write_cmd.pe.pe_policy[i]
 						->pp_policy_name);	
 				plugins[i]->pp_sha_sum.len =
-					strlen(payload->command_struct.write_cmd.entry.pe_policy[i]
+					strlen(payload->command_struct.write_cmd.pe.pe_policy[i]
 						->pp_sha_sum);
 				strcpy((char *) &plugins[i]->pp_sha_sum.data,
-					payload->command_struct.write_cmd.entry.pe_policy[i]
+					payload->command_struct.write_cmd.pe.pe_policy[i]
 						->pp_sha_sum);	
 				plugins[i]->is_activated =
-					payload->command_struct.write_cmd.entry.pe_policy[i]
+					payload->command_struct.write_cmd.pe.pe_policy[i]
 						->is_activated;
 				plugins[i]->pp_lock =
-					payload->command_struct.write_cmd.entry.pe_policy[i]
+					payload->command_struct.write_cmd.pe.pe_policy[i]
 						->pp_lock;
 			}
 			entry.pe_policy = plugins;
-			writecmd.entry = &entry;
+			writecmd.pe = &entry;
 			cmd.write_cmd = &writecmd;
 			msg.command_struct = &cmd;
 			len = sstack_payload_t__get_packed_size(&msg);
@@ -608,22 +617,23 @@ sstack_send_payload(sstack_client_handle_t handle,
 			strncpy((char *) &data.data_val.data,
 				(char *) &payload->command_struct.create_cmd.data.data_val,
 				data.data_len);
+			createcmd.inode_no = payload->command_struct.create_cmd.inode_no;
 			createcmd.mode = payload->command_struct.create_cmd.mode;
 			createcmd.data = &data;
-			attr.ver = payload->command_struct.create_cmd.entry.pe_attr.ver;
+			attr.ver = payload->command_struct.create_cmd.pe.pe_attr.ver;
 			attr.a_qoslevel =
-				payload->command_struct.create_cmd.entry.pe_attr.a_qoslevel;
+				payload->command_struct.create_cmd.pe.pe_attr.a_qoslevel;
 			attr.a_ishidden =
-				payload->command_struct.create_cmd.entry.pe_attr.a_ishidden;
+				payload->command_struct.create_cmd.pe.pe_attr.a_ishidden;
 			entry.pe_attr = &attr;
 			entry.pe_num_plugins =
-				payload->command_struct.create_cmd.entry.pe_num_plugins;
+				payload->command_struct.create_cmd.pe.pe_num_plugins;
 			entry.pe_refcount =
-				payload->command_struct.create_cmd.entry.pe_refcount;
+				payload->command_struct.create_cmd.pe.pe_refcount;
 			entry.pe_lock =
-				payload->command_struct.create_cmd.entry.pe_lock;
+				payload->command_struct.create_cmd.pe.pe_lock;
 			entry.pst_index =
-				payload->command_struct.create_cmd.entry.pst_index;
+				payload->command_struct.create_cmd.pe.pst_index;
 			plugins = (PolicyPlugin **) malloc(entry.pe_num_plugins *
 					sizeof(PolicyPlugin));
 			if (NULL == plugins) {
@@ -635,31 +645,31 @@ sstack_send_payload(sstack_client_handle_t handle,
 			}
 			for ( i = 0; i < entry.pe_num_plugins; i++ ) {
 				plugins[i]->ver =
-					payload->command_struct.create_cmd.entry.pe_policy[i]->ver;	
+					payload->command_struct.create_cmd.pe.pe_policy[i]->ver;	
 				plugins[i]->pp_refcount =
-					payload->command_struct.create_cmd.entry.pe_policy[i]
+					payload->command_struct.create_cmd.pe.pe_policy[i]
 						->pp_refcount;
 				plugins[i]->pp_policy_name.len =
-					strlen(payload->command_struct.create_cmd.entry.pe_policy[i]
+					strlen(payload->command_struct.create_cmd.pe.pe_policy[i]
 						->pp_policy_name);
 				strcpy((char *)&plugins[i]->pp_policy_name.data,
-					payload->command_struct.create_cmd.entry.pe_policy[i]
+					payload->command_struct.create_cmd.pe.pe_policy[i]
 						->pp_policy_name);	
 				plugins[i]->pp_sha_sum.len =
-					strlen(payload->command_struct.create_cmd.entry.pe_policy[i]
+					strlen(payload->command_struct.create_cmd.pe.pe_policy[i]
 						->pp_sha_sum);
 				strcpy((char *) &plugins[i]->pp_sha_sum.data,
-					payload->command_struct.create_cmd.entry.pe_policy[i]
+					payload->command_struct.create_cmd.pe.pe_policy[i]
 						->pp_sha_sum);	
 				plugins[i]->is_activated =
-					payload->command_struct.create_cmd.entry.pe_policy[i]
+					payload->command_struct.create_cmd.pe.pe_policy[i]
 						->is_activated;
 				plugins[i]->pp_lock =
-					payload->command_struct.create_cmd.entry.pe_policy[i]
+					payload->command_struct.create_cmd.pe.pe_policy[i]
 						->pp_lock;
 			}
 			entry.pe_policy = plugins;
-			createcmd.entry = &entry;
+			createcmd.pe = &entry;
 			cmd.create_cmd = &createcmd;
 			msg.command_struct = &cmd;
 			len = sstack_payload_t__get_packed_size(&msg);
@@ -1318,11 +1328,13 @@ sstack_recv_payload(sstack_client_handle_t handle,
 			payload->storage.nblocks = msg->storage->nblocks;
 			payload->storage.protocol = msg->storage->protocol;
 			if (transport->transport_hdr.tcp.ipv4) {
-				data = msg->storage->ipv4_addr;
-				strcpy(payload->storage.ipv4_addr, (char *) &data.data);
+				data = msg->storage->address->ipv4_address;
+				strcpy(payload->storage.address.ipv4_address,
+								(char *) &data.data);
 			} else {
-				data = msg->storage->ipv6_addr;
-				strcpy(payload->storage.ipv6_addr, (char *) &data.data);
+				data = msg->storage->address->ipv6_address;
+				strcpy(payload->storage.address.ipv6_address,
+								(char *) &data.data);
 			}
 
 			return payload;
@@ -1374,38 +1386,40 @@ sstack_recv_payload(sstack_client_handle_t handle,
 			Attribute *attr = NULL;
 			int i = 0;
 
+			payload->command_struct.read_cmd.inode_no =
+					msg->command_struct->read_cmd->inode_no;
 			payload->command_struct.read_cmd.offset =
 					msg->command_struct->read_cmd->offset;
 			payload->command_struct.read_cmd.count =
 					msg->command_struct->read_cmd->count;
-			entry = msg->command_struct->read_cmd->entry;
+			entry = msg->command_struct->read_cmd->pe;
 			attr = entry->pe_attr;
-			memcpy( (void *) &payload->command_struct.read_cmd.entry.pe_attr,
+			memcpy( (void *) &payload->command_struct.read_cmd.pe.pe_attr,
 							(void *) &attr->ver, sizeof(struct attribute));
-			payload->command_struct.read_cmd.entry.pe_num_plugins =
+			payload->command_struct.read_cmd.pe.pe_num_plugins =
 					entry->pe_num_plugins;
-			payload->command_struct.read_cmd.entry.pe_refcount =
+			payload->command_struct.read_cmd.pe.pe_refcount =
 					entry->pe_refcount;
-			payload->command_struct.read_cmd.entry.pe_lock =
+			payload->command_struct.read_cmd.pe.pe_lock =
 					entry->pe_lock;
-			payload->command_struct.read_cmd.entry.pst_index =
+			payload->command_struct.read_cmd.pe.pst_index =
 					entry->pst_index;
-			plugins = msg->command_struct->read_cmd->entry->pe_policy;
+			plugins = msg->command_struct->read_cmd->pe->pe_policy;
 			for ( i = 0; i < entry->pe_num_plugins; i++ ) {
-				payload->command_struct.read_cmd.entry.pe_policy[i]->ver =
+				payload->command_struct.read_cmd.pe.pe_policy[i]->ver =
 						plugins[i]->ver;
-				payload->command_struct.read_cmd.entry.
+				payload->command_struct.read_cmd.pe.
 					pe_policy[i]->pp_refcount = plugins[i]->pp_refcount;
-				strcpy(payload->command_struct.read_cmd.entry.
+				strcpy(payload->command_struct.read_cmd.pe.
 					pe_policy[i]->pp_policy_name,
 					(char*) &plugins[i]->pp_policy_name.data);
-				strcpy(payload->command_struct.read_cmd.entry.
+				strcpy(payload->command_struct.read_cmd.pe.
 					pe_policy[i]->pp_sha_sum,
 					(char *) &plugins[i]->pp_sha_sum.data);
 
-				payload->command_struct.read_cmd.entry.
+				payload->command_struct.read_cmd.pe.
 					pe_policy[i]->is_activated = plugins[i]->is_activated;
-				payload->command_struct.read_cmd.entry.pe_policy[i]->pp_lock =
+				payload->command_struct.read_cmd.pe.pe_policy[i]->pp_lock =
 					plugins[i]->pp_lock;
 			}
 
@@ -1419,6 +1433,8 @@ sstack_recv_payload(sstack_client_handle_t handle,
 			ProtobufCBinaryData data1;
 			int i = 0;
 
+			payload->command_struct.write_cmd.inode_no =
+					msg->command_struct->write_cmd->inode_no;
 			payload->command_struct.write_cmd.offset =
 					msg->command_struct->write_cmd->offset;
 			payload->command_struct.write_cmd.count =
@@ -1429,34 +1445,34 @@ sstack_recv_payload(sstack_client_handle_t handle,
 			strcpy((char *) &payload->command_struct.write_cmd.data.data_val,
 							(char *) &data1.data);
 
-			entry = msg->command_struct->write_cmd->entry;
+			entry = msg->command_struct->write_cmd->pe;
 			attr = entry->pe_attr;
-			memcpy( (void *) &payload->command_struct.write_cmd.entry.pe_attr,
+			memcpy( (void *) &payload->command_struct.write_cmd.pe.pe_attr,
 							(void *) &attr->ver, sizeof(struct attribute));
-			payload->command_struct.write_cmd.entry.pe_num_plugins =
+			payload->command_struct.write_cmd.pe.pe_num_plugins =
 					entry->pe_num_plugins;
-			payload->command_struct.write_cmd.entry.pe_refcount =
+			payload->command_struct.write_cmd.pe.pe_refcount =
 					entry->pe_refcount;
-			payload->command_struct.write_cmd.entry.pe_lock =
+			payload->command_struct.write_cmd.pe.pe_lock =
 					entry->pe_lock;
-			payload->command_struct.write_cmd.entry.pst_index =
+			payload->command_struct.write_cmd.pe.pst_index =
 					entry->pst_index;
-			plugins = msg->command_struct->write_cmd->entry->pe_policy;
+			plugins = msg->command_struct->write_cmd->pe->pe_policy;
 			for ( i = 0; i < entry->pe_num_plugins; i++ ) {
-				payload->command_struct.write_cmd.entry.pe_policy[i]->ver =
+				payload->command_struct.write_cmd.pe.pe_policy[i]->ver =
 						plugins[i]->ver;
-				payload->command_struct.write_cmd.entry.
+				payload->command_struct.write_cmd.pe.
 					pe_policy[i]->pp_refcount = plugins[i]->pp_refcount;
-				strcpy(payload->command_struct.write_cmd.entry.
+				strcpy(payload->command_struct.write_cmd.pe.
 					pe_policy[i]->pp_policy_name,
 					(char*) &plugins[i]->pp_policy_name.data);
-				strcpy(payload->command_struct.write_cmd.entry.
+				strcpy(payload->command_struct.write_cmd.pe.
 					pe_policy[i]->pp_sha_sum,
 					(char *) &plugins[i]->pp_sha_sum.data);
 
-				payload->command_struct.write_cmd.entry.
+				payload->command_struct.write_cmd.pe.
 					pe_policy[i]->is_activated = plugins[i]->is_activated;
-				payload->command_struct.write_cmd.entry.pe_policy[i]->pp_lock =
+				payload->command_struct.write_cmd.pe.pe_policy[i]->pp_lock =
 					plugins[i]->pp_lock;
 			}
 
@@ -1470,6 +1486,8 @@ sstack_recv_payload(sstack_client_handle_t handle,
 			ProtobufCBinaryData data1;
 			int i = 0;
 
+			payload->command_struct.create_cmd.inode_no =
+					msg->command_struct->create_cmd->inode_no;
 			payload->command_struct.create_cmd.mode =
 					msg->command_struct->create_cmd->mode;
 			data = msg->command_struct->create_cmd->data;
@@ -1478,34 +1496,34 @@ sstack_recv_payload(sstack_client_handle_t handle,
 			strcpy((char *) &payload->command_struct.create_cmd.data.data_val,
 							(char *) &data1.data);
 
-			entry = msg->command_struct->create_cmd->entry;
+			entry = msg->command_struct->create_cmd->pe;
 			attr = entry->pe_attr;
-			memcpy( (void *) &payload->command_struct.create_cmd.entry.pe_attr,
+			memcpy( (void *) &payload->command_struct.create_cmd.pe.pe_attr,
 							(void *) &attr->ver, sizeof(struct attribute));
-			payload->command_struct.create_cmd.entry.pe_num_plugins =
+			payload->command_struct.create_cmd.pe.pe_num_plugins =
 					entry->pe_num_plugins;
-			payload->command_struct.create_cmd.entry.pe_refcount =
+			payload->command_struct.create_cmd.pe.pe_refcount =
 					entry->pe_refcount;
-			payload->command_struct.create_cmd.entry.pe_lock =
+			payload->command_struct.create_cmd.pe.pe_lock =
 					entry->pe_lock;
-			payload->command_struct.create_cmd.entry.pst_index =
+			payload->command_struct.create_cmd.pe.pst_index =
 					entry->pst_index;
-			plugins = msg->command_struct->create_cmd->entry->pe_policy;
+			plugins = msg->command_struct->create_cmd->pe->pe_policy;
 			for ( i = 0; i < entry->pe_num_plugins; i++ ) {
-				payload->command_struct.create_cmd.entry.pe_policy[i]->ver =
+				payload->command_struct.create_cmd.pe.pe_policy[i]->ver =
 						plugins[i]->ver;
-				payload->command_struct.create_cmd.entry.
+				payload->command_struct.create_cmd.pe.
 					pe_policy[i]->pp_refcount = plugins[i]->pp_refcount;
-				strcpy(payload->command_struct.create_cmd.entry.
+				strcpy(payload->command_struct.create_cmd.pe.
 					pe_policy[i]->pp_policy_name,
 					(char*) &plugins[i]->pp_policy_name.data);
-				strcpy(payload->command_struct.create_cmd.entry.
+				strcpy(payload->command_struct.create_cmd.pe.
 					pe_policy[i]->pp_sha_sum,
 					(char *) &plugins[i]->pp_sha_sum.data);
 
-				payload->command_struct.create_cmd.entry.
+				payload->command_struct.create_cmd.pe.
 					pe_policy[i]->is_activated = plugins[i]->is_activated;
-				payload->command_struct.create_cmd.entry.pe_policy[i]->pp_lock =
+				payload->command_struct.create_cmd.pe.pe_policy[i]->pp_lock =
 					plugins[i]->pp_lock;
 			}
 

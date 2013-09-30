@@ -138,7 +138,6 @@ sfsd_add_chunk(sfs_chunk_domain_t *chunk, sfsd_storage_t *storage)
 	// Handling only TCP/IP for now
 	if (storage->protocol == NFS) {
 		char *updated_storage = NULL;
-		sfsd_storage_t *ptr = NULL;
 
 		strcpy(path, "/tmp/tempXXXXXX");
 		fd = mkstemp(path);
@@ -171,7 +170,8 @@ sfsd_add_chunk(sfs_chunk_domain_t *chunk, sfsd_storage_t *storage)
 			return NULL;
 		}
 		sfs_log(chunk->ctx, SFS_INFO, "%s: Mounting chunk path %s:%s to "
-			"local path %s successded\n", __FUNCTION__, storage->address.ipv6_address,
+			"local path %s successded\n", __FUNCTION__,
+			storage->address.ipv6_address,
 			storage->path, path);
 
 		// Update the chunk domain data structure
@@ -197,14 +197,14 @@ sfsd_add_chunk(sfs_chunk_domain_t *chunk, sfsd_storage_t *storage)
 		if (chunk->num_chunks)
 			free(chunk->storage);
 		chunk->storage = (sfsd_storage_t *)updated_storage;
-		ptr = (sfsd_storage_t *) updated_storage;
-		chunk->num_chunks ++;
 		chunk->size_in_blks += storage->nblocks;
-		ptr = chunk->storage + chunk->num_chunks;
 		strncpy((void *)storage->mount_point, (void *) path,
 			MAX_MOUNT_POINT_LEN);
+		// Copy new storage to chunk->num_chunks index.
+		// This is bacuse we start at 0.
 		memcpy(chunk->storage + chunk->num_chunks, storage,
 			sizeof(sfsd_storage_t));
+		chunk->num_chunks ++;
 
 		return path;
 	} else {

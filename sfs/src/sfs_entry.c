@@ -129,7 +129,7 @@ sfs_readlink(const char *path, char *buf, size_t size)
 	char *inodestr = NULL;
 	sstack_inode_t inode;
 	sstack_extent_t *extent = NULL;
-	extent_path_t *p = NULL;
+	sstack_file_handle_t *p = NULL;
 	
 	// Parameter validation
 	if (NULL == path || NULL == buf || size == 0) {
@@ -184,7 +184,7 @@ sfs_readlink(const char *path, char *buf, size_t size)
 	}
 	// Copy first extent's path
 	p = extent->e_path;
-	strncpy(buf, (char *) p->extent_path, size);
+	strncpy(buf, (char *) p->name, p->name_len);
 
 	// Free up dynamically allocated fields in inode structure
 	free(inode.i_xattr);

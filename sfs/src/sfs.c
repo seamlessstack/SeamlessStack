@@ -97,7 +97,7 @@ add_inodes(const char *path)
 	struct stat status;
 	char inode_str[MAX_INODE_LEN] = { '\0' };
 	int ret = -1;
-	extent_path_t *ep = NULL;
+	sstack_file_handle_t *ep = NULL;
 
     sfs_log(sfs_ctx, SFS_DEBUG, "%s: path = %s\n", __FUNCTION__, path);
     if (lstat(path, &status) == -1) {
@@ -195,7 +195,12 @@ add_inodes(const char *path)
 	} else
 		attr.e_cksum = 0; // Place holder
 	ep = attr.e_path;
-	strcpy(ep->extent_path, path);
+	ep->name_len = strlen(path);
+	strncpy((char *)&ep->name, path, ep->name_len);
+	ep->proto = NFS;
+	ep->address.protocol = IPV4;
+	strncpy((char *) ep->address.ipv4_address, "127.0.0.1",
+					strlen("127.0.0.1")+1);
 	memcpy((buffer+sizeof(sstack_inode_t)), &attr, sizeof(sstack_extent_t));
 
 	// Now inode is ready to be placed in DB
