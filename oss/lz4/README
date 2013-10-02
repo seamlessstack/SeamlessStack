@@ -1,0 +1,6 @@
+This impl is directly taken from https://code.google.com/p/lz4/. 
+
+Files are modified to follow our coding standard. There could still be
+coding standard issues as the whole file got reformatted.
+
+
