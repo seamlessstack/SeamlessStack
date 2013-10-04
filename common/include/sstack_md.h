@@ -63,10 +63,8 @@ typedef struct extent {
 	// Used in get_extent_fixed_fields_len()
 	struct {
 		sstack_offset_t e_offset; // Offset within the file
-		// e_size is not required any more as we are goig to use
-		// 64KiB as extent size. If the file is smaller, e_realsize
-		// takes care of extent size.
-		//	uint64_t e_size; // in bytes. So max chunk size is 16 exa bytes
+		uint64_t e_size; // Though current extent size is fixed at 64KiB, we 
+		// still need this field to figure out partially filled up extent.
 		uint64_t e_realsize; // Real size of the extent
 		unsigned long e_cksum; // Checksum of the extent
 		unsigned int e_numreplicas; // Avoid reading sstack_inode_t again
@@ -87,7 +85,7 @@ typedef struct extent {
 static inline int
 get_extent_fixed_fields_len(void)
 {
-	return (sizeof(sstack_offset_t) + sizeof(uint64_t) +
+	return (sizeof(sstack_offset_t) + sizeof(uint64_t) + sizeof(uint64_t) +
 			sizeof(unsigned long) + sizeof(unsigned int));
 }
 
