@@ -28,9 +28,11 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <policy.h>
+#include <sys/mman.h>
+//#include <policy.h>
 #define COMPRESSION_PLUGIN_VERSION 1
 #define TMPNAME_MAX 16
+#define BUFSIZE 4096
 
 /* BSS */
 static lzma_stream strm = LZMA_STREAM_INIT;
@@ -38,96 +40,29 @@ static lzma_stream strm = LZMA_STREAM_INIT;
 /* Function signatures */
 static bool init_encoder(lzma_stream *);
 static bool init_decoder(lzma_stream *);
-static bool compress(lzma_stream *, FILE *, FILE *);
-static bool decompress(lzma_stream *, const char *,
-	FILE *, FILE *);
-policy_plugin_t *compression_plugin_init(void);
-void compression_plugin_deinit(policy_plugin_t *);
-uint32_t compression_plugin_compress(const char *);
-uint32_t compression_plugin_decompress(const char *, char *);
+static size_t compress(lzma_stream *, char *, char *, size_t );
+static size_t decompress(lzma_stream *, char *, char *, size_t );
+size_t compression_plugin_compress(char *, char *, size_t );
+size_t compression_plugin_decompress(char *, char *, size_t );
 
 /* Functions */
 
-policy_plugin_t *
-compression_plugin_init(void)
+size_t
+compression_plugin_compress(char *buf, char *outbuf, size_t size)
 {
-	policy_plugin_t *plugin = NULL;
+	size_t ret;
 
-	plugin = (policy_plugin_t *) malloc(sizeof(policy_plugin_t));
-	if (NULL == plugin) 
-		return (policy_plugin_t *) NULL;
-	plugin->ver = COMPRESSION_PLUGIN_VERSION;
-	plugin->is_activated = 0;
-	plugin->pp_refcount = 0;
-	pthread_spin_init(&plugin->pp_lock, PTHREAD_PROCESS_PRIVATE);
-
-	return plugin;
-}
-
-void
-compression_plugin_deinit(policy_plugin_t *plugin)
-{
-	if (plugin)
-		free(plugin);
-}
-
-/*
- * compression_plugin_compress - apply_policy entry point for compression
- *								plugin
- *
- * path - Full path of the file to be compressed. Final output will also
- * 			be stored in the same file
- *
- * Returns 0 on success and negative number on failure.
- */
-
-uint32_t
-compression_plugin_compress(const char *path)
-{
-	FILE *input = NULL;
-	FILE *output = NULL;
-	char tmpnam[TMPNAME_MAX] = { '\0' };
-	int fd = -1;
-	int ret = -1;
-
-	if (access(path, R_OK))
-		return -1;
 	if (!init_encoder(&strm))
 		return -1;
-	/*
-	 * Create a new temporary file to store compressed data.
-	 * This file will be renamed to path later
-	 */
-	strcpy((char *) tmpnam, "/tmp/tempXXXXXX");
-	fd = mkostemp(tmpnam, O_RDWR);
-	if (fd == -1) 
-		return -1;
-	input = fopen(path, "r");
-	if (NULL == input)
-		return -1;
-	output = fdopen(fd, "rw");
-	if (NULL == output)
-		return -1;
 
-	ret = compress(&strm, input, output);
-	if (ret != true)
-		return -2;
-
+	ret = compress(&strm, buf, outbuf, size);
 	lzma_end(&strm);
-	fclose(input);
-	if (fclose(output)) {
-		fprintf(stderr, "Write error: %s\n", strerror(errno));
-		return -2;
-	}
 
-	if (rename(tmpnam, path) == -1)
-		return -errno;
-
-	return 0;
-}	
+	return ret;
+}
 
 /*
- * compression_plugin_compress - apply_policy entry point for compression
+ * compression_plugin_decompress - apply_policy entry point for compression
  *								plugin
  *
  * path - Full path of the file to be compressed.
@@ -137,76 +72,20 @@ compression_plugin_compress(const char *path)
  * Returns size of uncompressed data on success and negative number on failure.
  */
 
-uint32_t
-compression_plugin_decompress(const char *path, char *buffer)
+size_t
+compression_plugin_decompress(char *buf, char *outbuf, size_t size)
 {
-	FILE *input = NULL;
-	FILE *output = NULL;
-	char tmpnam[TMPNAME_MAX] = { '\0' };
-	int fd = -1;
-	int ret = -1;
-	struct stat statbuf = { '\0' };
-	size_t size;
+	size_t ret;
 
-	if (access(path, R_OK))
-		return -1;
 	if (!init_decoder(&strm))
 		return -1;
-	/*
-	 * Create a new temporary file to store compressed data.
-	 * This file will be renamed to path later
-	 */
-	strcpy(tmpnam, "/tmp/tempXXXXXX");
-	fd = mkostemp(tmpnam, O_RDWR);
-	if (fd == -1) 
-		return -1;
-	input = fopen(path, "r");
-	if (NULL == input)
-		return -1;
-	output = fdopen(fd, "rw");
-	if (NULL == output)
-		return -1;
 
-	ret = decompress(&strm, path, input, output);
-	if (ret != true)
-		return -2;
-
+	ret = decompress(&strm, buf, outbuf, size);
 	lzma_end(&strm);
-	fclose(input);
-	if (fclose(output)) {
-		fprintf(stderr, "Write error: %s\n", strerror(errno));
-		return -2;
-	}
-	close(fd);
 
-	// Return size of the decompressed output and return buffer
-	if (stat(tmpnam, &statbuf) == -1) {
-		fprintf(stderr, "Failed to stat: %s\n", strerror(errno));
-		return -3;
-	}
-	buffer = malloc(statbuf.st_size);
-	if (NULL == buffer)
-		return -ENOMEM;
-
-	fd = open(tmpnam, O_RDONLY);
-	if (fd == -1)
-		return -errno;
-	size = read(fd, buffer, statbuf.st_size);
-	// Try once more if read was interrupted
-	if (size == 0 && errno == EINTR) {
-		size = read(fd, buffer, statbuf.st_size);
-	}
-
-	if (size < statbuf.st_size) {
-		close(fd);
-		return -1;
-	}
-	close(fd);		
-
-	unlink(tmpnam);
-
-	return statbuf.st_size;
+	return ret;
 }
+
 
 static bool
 init_encoder(lzma_stream *strm)
@@ -287,75 +166,73 @@ init_encoder(lzma_stream *strm)
 
 
 // This function is identical to the one in 01_compress_easy.c.
-static bool
-compress(lzma_stream *strm, FILE *infile, FILE *outfile)
+static size_t
+compress(lzma_stream *strm, char *buf, char *out_buf,  size_t size)
 {
 	lzma_action action = LZMA_RUN;
+	int covered = 0;
+	int total_written = 0;
+	int ret = -1;
+	char outbuf[BUFSIZE];
 
-	uint8_t inbuf[BUFSIZ];
-	uint8_t outbuf[BUFSIZ];
-
-	strm->next_in = NULL;
+	strm->next_in = (uint8_t *) NULL;
 	strm->avail_in = 0;
-	strm->next_out = outbuf;
+
+	strm->next_out = (uint8_t *) outbuf;
 	strm->avail_out = sizeof(outbuf);
 
-	while (true) {
-		if (strm->avail_in == 0 && !feof(infile)) {
-			strm->next_in = inbuf;
-			strm->avail_in = fread(inbuf, 1, sizeof(inbuf),
-					infile);
+	while(1) {
+		if (covered == size)
+			action = LZMA_FINISH;
 
-			if (ferror(infile)) {
-				fprintf(stderr, "Read error: %s\n",
-						strerror(errno));
-				return false;
-			}
+		if (strm->avail_in == 0 && covered < size) {
+			if ((size - covered) < BUFSIZE)
+				strm->avail_in = (size - covered);
+			else
+				strm->avail_in = BUFSIZE;
+			strm->next_in = buf + covered;
 
-			if (feof(infile))
+			if (covered == size)
 				action = LZMA_FINISH;
-		}
 
+			covered +=  strm->avail_in;
+		}
 		lzma_ret ret = lzma_code(strm, action);
 
 		if (strm->avail_out == 0 || ret == LZMA_STREAM_END) {
-			size_t write_size = sizeof(outbuf) - strm->avail_out;
 
-			if (fwrite(outbuf, 1, write_size, outfile)
-					!= write_size) {
-				fprintf(stderr, "Write error: %s\n",
-						strerror(errno));
-				return false;
-			}
-
+			memcpy(out_buf + total_written , outbuf, sizeof(outbuf) -
+							strm->avail_out);
+			total_written += ((sizeof(outbuf) - strm->avail_out));
 			strm->next_out = outbuf;
 			strm->avail_out = sizeof(outbuf);
 		}
 
 		if (ret != LZMA_OK) {
+
 			if (ret == LZMA_STREAM_END)
-				return true;
+				return strm->total_out;
 
-			const char *msg;
 			switch (ret) {
-			case LZMA_MEM_ERROR:
-				msg = "Memory allocation failed";
-				break;
-
-			case LZMA_DATA_ERROR:
-				msg = "File size limits exceeded";
-				break;
-
-			default:
-				msg = "Unknown error, possibly a bug";
-				break;
+				case LZMA_MEM_ERROR:
+					fprintf(stderr, "%s:Memory allocation failed\n",
+									__FUNCTION__);
+					return -1;
+	
+				case LZMA_DATA_ERROR:
+					fprintf(stderr, "%s: File size limits exceeded \n",
+									__FUNCTION__);
+					return -1;
+	
+				default:
+					fprintf(stderr, "%s: Unknown error, possibly a bug \n",
+									__FUNCTION__);
+					return -1;
 			}
-
-			fprintf(stderr, "Encoder error: %s (error code %u)\n",
-					msg, ret);
-			return false;
 		}
 	}
+
+	return -1;
 }
 
 
@@ -437,8 +314,8 @@ init_decoder(lzma_stream *strm)
 }
 
 
-static bool
-decompress(lzma_stream *strm, const char *inname, FILE *infile, FILE *outfile)
+static size_t
+decompress(lzma_stream *strm, char *buf, char *out_buf, size_t size)
 {
 	// When LZMA_CONCATENATED flag was used when initializing the decoder,
 	// we need to tell lzma_code() when there will be no more input.
@@ -451,48 +328,45 @@ decompress(lzma_stream *strm, const char *inname, FILE *infile, FILE *outfile)
 	// used, the decoder will stop after the first .xz stream. In that
 	// case some unused data may be left in strm->next_in.
 	lzma_action action = LZMA_RUN;
+	int covered = 0;
+	int total_written = 0;
+	int ret = -1;
+	char outbuf[BUFSIZE];
 
-	uint8_t inbuf[BUFSIZ];
-	uint8_t outbuf[BUFSIZ];
-
-	strm->next_in = NULL;
+	strm->next_in = (uint8_t *) NULL;
 	strm->avail_in = 0;
-	strm->next_out = outbuf;
+	strm->next_out =(uint8_t *) outbuf;
 	strm->avail_out = sizeof(outbuf);
 
-	while (true) {
-		if (strm->avail_in == 0 && !feof(infile)) {
-			strm->next_in = inbuf;
-			strm->avail_in = fread(inbuf, 1, sizeof(inbuf),
-					infile);
+	while (1) {
+		if (covered == size)
+			action = LZMA_FINISH;
 
-			if (ferror(infile)) {
-				fprintf(stderr, "%s: Read error: %s\n",
-						inname, strerror(errno));
-				return false;
-			}
+		if ((strm->avail_in == 0) && (covered < size)) {
+			if ((size - covered) < BUFSIZE)
+				strm->avail_in = (size - covered);
+			else
+				strm->avail_in = BUFSIZE;
+			strm->next_in = buf + covered;
 
-			// Once the end of the input file has been reached,
+			// Once the end of the input has been reached,
 			// we need to tell lzma_code() that no more input
 			// will be coming. As said before, this isn't required
 			// if the LZMA_CONATENATED flag isn't used when
 			// initializing the decoder.
-			if (feof(infile))
+			if (covered == size)
 				action = LZMA_FINISH;
+
+			covered += strm->avail_in;
 		}
 
 		lzma_ret ret = lzma_code(strm, action);
 
 		if (strm->avail_out == 0 || ret == LZMA_STREAM_END) {
-			size_t write_size = sizeof(outbuf) - strm->avail_out;
 
-			if (fwrite(outbuf, 1, write_size, outfile)
-					!= write_size) {
-				fprintf(stderr, "Write error: %s\n",
-						strerror(errno));
-				return false;
-			}
-
+			memcpy(out_buf + total_written, outbuf, sizeof(outbuf) -
+							strm->avail_out);
+			total_written += ((sizeof(outbuf) - strm->avail_out));
 			strm->next_out = outbuf;
 			strm->avail_out = sizeof(outbuf);
 		}
@@ -507,7 +381,7 @@ decompress(lzma_stream *strm, const char *inname, FILE *infile, FILE *outfile)
 			// getting more output it must have successfully
 			// decoded everything.
 			if (ret == LZMA_STREAM_END)
-				return true;
+				return strm->total_out;
 
 			// It's not LZMA_OK nor LZMA_STREAM_END,
 			// so it must be an error code. See lzma/base.h
@@ -521,13 +395,16 @@ decompress(lzma_stream *strm, const char *inname, FILE *infile, FILE *outfile)
 			const char *msg;
 			switch (ret) {
 			case LZMA_MEM_ERROR:
-				msg = "Memory allocation failed";
-				break;
+				// Memory allocation failed
+				errno = ENOMEM;
+
+				return -1;
 
 			case LZMA_FORMAT_ERROR:
 				// .xz magic bytes weren't found.
-				msg = "The input is not in the .xz format";
-				break;
+				errno = EINVAL;
+
+				return -1;
 
 			case LZMA_OPTIONS_ERROR:
 				// For example, the headers specify a filter
@@ -544,12 +421,13 @@ decompress(lzma_stream *strm, const char *inname, FILE *infile, FILE *outfile)
 				// always verified with a CRC32, so
 				// unintentionally corrupt files can be
 				// distinguished from unsupported files.
-				msg = "Unsupported compression options";
-				break;
+				errno = EINVAL;
+				return -1;
 
 			case LZMA_DATA_ERROR:
-				msg = "Compressed file is corrupt";
-				break;
+				errno = EIO;
+
+				return -1;
 
 			case LZMA_BUF_ERROR:
 				// Typically this error means that a valid
@@ -558,21 +436,16 @@ decompress(lzma_stream *strm, const char *inname, FILE *infile, FILE *outfile)
 				// the decoder think the file is truncated.
 				// If you prefer, you can use the same error
 				// message for this as for LZMA_DATA_ERROR.
-				msg = "Compressed file is truncated or "
-						"otherwise corrupt";
-				break;
+				errno = EIO;
+
+				return -1;
 
 			default:
 				// This is most likely LZMA_PROG_ERROR.
-				msg = "Unknown error, possibly a bug";
-				break;
-			}
+				errno = EINVAL;
 
-			fprintf(stderr, "%s: Decoder error: "
-					"%s (error code %u)\n",
-					inname, msg, ret);
-			return false;
+				return -1;
+			}
 		}
 	}
 }
-
