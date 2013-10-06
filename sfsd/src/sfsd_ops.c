@@ -253,7 +253,7 @@ static int32_t read_extent(sstack_file_handle_t *extent_handle,
 			__FUNCTION__, p);
 		ret = errno;;
 	}
-	nbytes = read(fd, buffer, extent->e_realsize);
+	nbytes = read(fd, buffer, extent->e_size);
 	if (nbytes == 0) {
 		sfs_log(ctx, SFS_ERR, "%s(): Read returned 0\n",
 			__FUNCTION__);
@@ -287,6 +287,10 @@ sstack_payload_t *sstack_read(sstack_payload_t *payload,
 		goto error;
 	}
 
+	if (cmd.read_ecode) {
+		/* Read erasure coded data and send response */
+	}
+		
 	/* Now time for reading. Allocate a repsonse structure */
 	response = bds_cache_alloc(sfsd_global_cache_arr[PAYLOAD_CACHE_OFFSET]);
 	if (response == NULL) {

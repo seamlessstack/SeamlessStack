@@ -123,6 +123,7 @@ struct sstack_nfs_read_cmd {
 	uint64_t inode_no;
 	off_t offset;
 	size_t count;
+	int32_t read_ecode;
 	struct policy_entry pe;
 };
 
