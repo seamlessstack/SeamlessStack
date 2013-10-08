@@ -29,6 +29,7 @@ COMPRESSION_PLUGIN = lib/storage/plugins/compression
 OSS_INSTALL_DIR = $(PWD)/oss_install
 PROTOBUF_DIR = $(PWD)/protobuf-template/proto
 SERDES_DIR = $(PWD)/lib/serdes
+VALIDATE_DIR= $(PWD)/lib/validate
 MKDIR = mkdir
 PROTOC = protoc-c
 LN = ln -s
@@ -51,6 +52,7 @@ all:
 	$(MAKE) -C $(COMPRESSION_PLUGIN)
 	$(MAKE) -C $(SERDES_DIR)
 	$(MAKE) -C $(COMMONDIR)
+	$(MAKE) -C $(VALIDATE_DIR)
 	$(MAKE) -C $(SFSDDIR)
 	$(MAKE) -C $(SFSDIR)
 
@@ -66,6 +68,7 @@ clean:
 	$(MAKE) -C $(SFSDDIR) clean
 	$(MAKE) -C $(SFSDIR) clean
 	$(MAKE) -C $(COMMONDIR) clean
+	$(MAKE) -C $(VALIDATE_DIR) clean
 	$(RM) -rf $(OSS_INSTALL_DIR)
 	$(RM) -f $(PROTOBUF_DIR)/jobs.pb-c.h  $(PROTOBUF_DIR)/jobs.pb-c.c
 	$(RM) -f $(PROTOBUF_DIR)/cli.pb-c.h  $(PROTOBUF_DIR)/cli.pb-c.c

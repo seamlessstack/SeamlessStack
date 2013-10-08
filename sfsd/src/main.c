@@ -34,7 +34,7 @@
 /* sstack log directory */
 char sstack_log_directory[PATH_MAX];
 struct handle_payload_params;
-static sfsd_t sfsd;
+sfsd_t sfsd;
 bds_cache_desc_t sfsd_global_cache_arr[MAX_CACHE_OFFSET];
 
 struct cache_entry {

@@ -132,8 +132,8 @@ sfs_data_stripes_encode_2(void **data, void **code, int size)
 {
  int i = 0;
        
- jerasure_bitmatrix_encode(2, 2, NUM_PKT_STRIPS, bitmatrix_2, data, 
-				code, size, PACKET_SIZE(size));
+ jerasure_bitmatrix_encode(2, 2, NUM_PKT_STRIPS, bitmatrix_2, (char **) data, 
+				(char **) code, size, PACKET_SIZE(size));
  
  for (i = 0; i < CODE_STRIPES/2; i++) {
          memcpy((char *)code[CODE_STRIPES/2 + i],
@@ -148,8 +148,8 @@ sfs_data_stripes_encode_3(void **data, void **code, int size)
 {
  int i = 0;
        
- jerasure_bitmatrix_encode(3, 3, NUM_PKT_STRIPS, bitmatrix_3, data, 
-				code, size, PACKET_SIZE(size));
+ jerasure_bitmatrix_encode(3, 3, NUM_PKT_STRIPS, bitmatrix_3, (char **) data, 
+				(char **) code, size, PACKET_SIZE(size));
  
  memcpy((char *)code[CODE_STRIPES - i], (char *)data[0], size);
  
@@ -160,8 +160,7 @@ static int
 sfs_data_stripes_encode_gen(void **data, void **code, int num_stripes,
 				int size)
 {
- int i = 0;
- int	*bmatrix;
+ int	*bmatrix = NULL;
 
  switch (num_stripes) {
 
@@ -184,8 +183,8 @@ sfs_data_stripes_encode_gen(void **data, void **code, int num_stripes,
 		return (-1);
  }	   	      
  
- jerasure_bitmatrix_encode(num_stripes, 4, NUM_PKT_STRIPS, bmatrix, data, 
-				code, size, PACKET_SIZE(size));
+ jerasure_bitmatrix_encode(num_stripes, 4, NUM_PKT_STRIPS, bmatrix,
+				 (char **) data, (char **) code, size, PACKET_SIZE(size));
  
  return (CODE_STRIPES);
 }
@@ -252,7 +251,6 @@ sfs_esure_decode(void **data, int num_dstripes, void **code,
 		 int strp_size)
 {
  int size, i = 0, j = 0;
- int ret = 0;
  int *erasures, *bmatrix;
 		
  if (num_dstripes >  MAX_DATA_STRIPES || num_dstripes <=0) {
@@ -337,8 +335,8 @@ sfs_esure_decode(void **data, int num_dstripes, void **code,
 		erasures[j] = -1;
 		bmatrix = bitmatrix_2;
  		jerasure_bitmatrix_decode(num_dstripes, num_cstripes-2,
-				 NUM_PKT_STRIPS, bmatrix, 0, erasures, data,
-				 code, strp_size, PACKET_SIZE(strp_size));
+				 NUM_PKT_STRIPS, bmatrix, 0, erasures, (char **) data,
+				 (char **) code, strp_size, PACKET_SIZE(strp_size));
 		for (i = 0; i < CODE_STRIPES/2; i++) {
 		         memcpy((char *)code[CODE_STRIPES/2 + i],
                                 (char *)code[i], size);
@@ -355,8 +353,8 @@ sfs_esure_decode(void **data, int num_dstripes, void **code,
 		erasures[j] = -1;
 		bmatrix = bitmatrix_3;
  		jerasure_bitmatrix_decode(num_dstripes, num_cstripes-1,
-				 NUM_PKT_STRIPS, bmatrix, 0, erasures, data,
-				 code, strp_size, PACKET_SIZE(strp_size));
+				 NUM_PKT_STRIPS, bmatrix, 0, erasures, (char **) data,
+				 (char **) code, strp_size, PACKET_SIZE(strp_size));
 		memcpy((char *)code[CODE_STRIPES-1], data[0], strp_size); 
 		return (ESURE_SUCCESS);
 		}
@@ -386,15 +384,15 @@ sfs_esure_decode(void **data, int num_dstripes, void **code,
  }    
  erasures[j] = -1;
  jerasure_bitmatrix_decode(num_dstripes, num_cstripes, NUM_PKT_STRIPS,
-			bmatrix, 0, erasures, data, code, strp_size,
+			bmatrix, 0, erasures, (char **) data, (char **) code, strp_size,
 				PACKET_SIZE(strp_size));
  return (ESURE_SUCCESS); 	
 }		
 
-#if 0
+#if VALIDATE_JERASURE
 int
 main(void)
 {
 return (0);
 }	
-#endif
+#endif // VALIDATE_JERASURE

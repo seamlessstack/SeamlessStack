@@ -30,6 +30,11 @@
 #include <sstack_helper.h>
 
 extern bds_cache_desc_t sfsd_global_cache_arr[];
+extern char *get_mount_path(sfs_chunk_domain_t * , sstack_file_handle_t * ,
+				char ** );
+extern int32_t match_address(sstack_address_t * , sstack_address_t * );
+extern sfsd_t sfsd;
+
 sstack_payload_t* sstack_getattr(sstack_payload_t *payload, log_ctx_t *ctx)
 {
 
@@ -231,7 +236,7 @@ static int32_t read_extent(sstack_file_handle_t *extent_handle,
 		goto ret;
 	}
 
-	if ((q = get_mount_path(extent_handle, &r)) == NULL) {
+	if ((q = get_mount_path(sfsd.chunk, extent_handle, &r)) == NULL) {
 		sfs_log(ctx, SFS_ERR, "%s(): Invalid mount path for:%s\n", p);
 		ret = -EINVAL;
 		goto ret;
@@ -287,7 +292,7 @@ sstack_payload_t *sstack_read(sstack_payload_t *payload,
 		goto error;
 	}
 
-	if (cmd.read_ecode) {
+	if (cmd->read_ecode) {
 		/* Read erasure coded data and send response */
 	}
 		
