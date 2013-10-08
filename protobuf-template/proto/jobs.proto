@@ -92,7 +92,8 @@ message sstack_nfs_read_cmd
 	required uint64 inode_no = 1;
 	required uint64 offset = 2;
 	required uint64 count = 3;
-	required policy_entry pe = 4;
+	required int32 read_ecode = 4;
+	required policy_entry pe = 5;
 }
 
 message sstack_nfs_data

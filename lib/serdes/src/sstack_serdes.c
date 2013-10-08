@@ -411,6 +411,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 			readcmd.inode_no = payload->command_struct.read_cmd.inode_no;
 			readcmd.offset = payload->command_struct.read_cmd.offset;
 			readcmd.count = payload->command_struct.read_cmd.count;
+			readcmd.read_ecode = payload->command_struct.read_cmd.read_ecode;
 			attr.ver = payload->command_struct.read_cmd.pe.pe_attr.ver;
 			attr.a_qoslevel =
 				payload->command_struct.read_cmd.pe.pe_attr.a_qoslevel;
@@ -1392,6 +1393,8 @@ sstack_recv_payload(sstack_client_handle_t handle,
 					msg->command_struct->read_cmd->offset;
 			payload->command_struct.read_cmd.count =
 					msg->command_struct->read_cmd->count;
+			payload->command_struct.read_cmd.read_ecode =
+					msg->command_struct->read_cmd->read_ecode;
 			entry = msg->command_struct->read_cmd->pe;
 			attr = entry->pe_attr;
 			memcpy( (void *) &payload->command_struct.read_cmd.pe.pe_attr,
