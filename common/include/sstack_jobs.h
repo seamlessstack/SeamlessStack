@@ -29,8 +29,7 @@
 #include <sstack_thread_pool.h>
 #include <bds_slab.h>
 
-#define SFSD_MAGIC 0x11101974
-#define MAX_SFSD_CLIENTS 8
+#define MAX_SFSD_CLIENTS 8 // Max clients per request
 #define IPV4_ADDR_MAX 16
 #define IPV6_ADDR_MAX 40
 #define MAX_QUEUE_SIZE 1024

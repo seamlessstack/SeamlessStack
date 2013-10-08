@@ -26,6 +26,8 @@
 #include <netdb.h>
 #include <sstack_log.h>
 #include <sstack_db.h>
+#include <sstack_types.h>
+#include <sstack_transport.h>
 #define ROOT_SEP ":"
 #define MINIMUM_WEIGHT 0
 #define DEFAULT_WEIGHT 5
@@ -41,6 +43,7 @@
 #define IPV6_ADDR_LEN 40
 // Form is <ipaddr>,<path>,<[r|rw]>,<weight>
 #define BRANCH_MAX (IPV6_ADDR_LEN + 1 + PATH_MAX + 1 + 2 + 1 + 6)
+#define SFS_MAGIC 0x11101974 // A unique number to differentiate FS
 
 typedef enum {
 	KEY_BRANCHES,
@@ -59,13 +62,13 @@ typedef struct sfs_chunk_entry {
 	uint8_t	inuse;
 } sfs_chunk_entry_t;
 
-typedef struct sfs_clinet_request_hdr {
+typedef struct sfs_client_request_hdr {
 	uint32_t magic;
 	int type;
-} sfs_clinet_request_hdr_t;
+} sfs_client_request_hdr_t;
 
 typedef struct sfs_client_request {
-	sfs_clinet_request_hdr_t hdr;
+	sfs_client_request_hdr_t hdr;
 	union {
 		struct branch_struct_cli {
 			char branches[PATH_MAX + IPV6_ADDR_LEN + 1];
@@ -118,5 +121,23 @@ extern uint32_t sstack_checksum(log_ctx_t *, const char *);
 extern log_ctx_t *sfs_ctx;
 extern db_t *db;
 
+/*
+ * A simple structure that holds infomation on how to contact sfsd
+ */
+
+typedef struct sfsd_info {
+	sstack_transport_t *transport;
+	sstack_client_handle_t handle;
+} sfsd_info_t;
+
+/*
+ * File system metadata. Required for commands like df that issue statvfs(2).
+ */
+
+typedef struct sfs_metadata {
+	unsigned long num_clients; // Number of sfsds taling to this sfs
+	sfsd_info_t *info;
+	// TBD
+} sfs_metadata_t;
 
 #endif // __SFS_H_

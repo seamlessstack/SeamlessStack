@@ -41,6 +41,7 @@
 #define MAX_REPLICAS 10
 #define INODE_NUM_START 2
 #define SSTACK_EXTENT_SIZE 65536
+#define MAX_INODE_NUMBER 340282366920938463463374607431768211456L // 2^128
 
 typedef enum type {
 	REGFILE = 1,
@@ -176,6 +177,7 @@ get_inode_size(uint64_t inode_num, db_t *db)
 #endif
 
 extern unsigned long long  inode_number;
+extern unsigned long long  active_inodes;
 //extern struct hashtable *reverse_lookup;
 extern pthread_mutex_t inode_mutex;
 
@@ -185,6 +187,10 @@ extern pthread_mutex_t inode_mutex;
 static inline void
 release_inode(uint64_t inode_num)
 {
+	pthread_mutex_lock(&inode_mutex);
+	active_inodes --;
+	pthread_mutex_unlock(&inode_mutex);
+
 	return;
 }
 

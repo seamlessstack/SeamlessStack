@@ -65,6 +65,7 @@ db_t *db = NULL;
 memcached_st *mc = NULL;
 pthread_mutex_t inode_mutex = PTHREAD_MUTEX_INITIALIZER;
 unsigned long long inode_number = INODE_NUM_START;
+unsigned long long active_inodes = 0;
 
 
 /* Structure definitions */
@@ -226,6 +227,7 @@ add_inodes(const char *path)
 	}
 
 	free(buffer);
+	active_inodes ++;
 
 	return 0;
 }

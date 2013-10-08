@@ -29,6 +29,7 @@
 #include <sfs_entry.h>
 #include <sstack_helper.h>
 #include <sstack_cache_api.h>
+#include <sstack_md.h>
 
 #define MAX_KEY_LEN 128
 
@@ -299,9 +300,48 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 	return 0;	
 }
 
+/*
+ * sfs_statfs - Provide file system statistics
+ */
+
 int
-sfs_statfs(const char *path, struct statvfs *stbuf)
+sfs_statfs(const char *path, struct statvfs *buf)
 {
+
+	// Parameter validation
+	if (NULL == path || NULL == buf) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters specified\n",
+						__FUNCTION__);
+		errno = -EINVAL;
+
+		return -1;
+	}
+	// Fill in some fields
+	buf->f_bsize = 4096;
+	buf->f_frsize = 4096; // Does not support fragments
+	// TODO
+	// f_blocks and f_bfree are to calculated after contacting sfsds
+	// Pseudocode:
+	// 1> Create a job structure with GET_STATS operation. This will be
+	// a new storage operation
+	// 2> Loop through all the sfsds registered with this sfs by going through
+	// sfs_metadata->info. Transport information of each sfsd is embedded
+	// in sfs_info which is inturn embedded in sfs_metadata
+	// 3> sfsds need to provide total blocks and free blocks to sfs. This
+	// information is available in chunk domain structure.
+	// 4> sfs then adds up total blocks and free blocks and fills up
+	// buf->f_blocks and buf->f_bfree.
+	buf->f_bavail = ((buf->f_blocks * 95) / 100); // Assuming 5% quota for root
+	pthread_mutex_lock(&inode_mutex);
+	buf->f_files = active_inodes;
+	pthread_mutex_unlock(&inode_mutex);
+	buf->f_bfree = (unsigned int) (MAX_INODE_NUMBER - buf->f_files);
+	buf->f_favail = ((buf->f_bfree * 95) / 100); // 5% exclusive quota for root
+	buf->f_fsid = SFS_MAGIC; // ambiguous in man page
+	// TBD
+	// buf->f_flag contains mount flags
+	buf->f_flag = 0; // ST_RDONLY to be set only if mounted readonly
+	buf->f_namemax = 4096;
 
 	return 0;	
 }
@@ -940,8 +980,8 @@ sfs_utimens(const char *path, const struct timespec tv[2])
 int
 sfs_bmap(const char *path, size_t blocksize, uint64_t *idx)
 {
-
-	return 0;	
+	errno = ENOSYS;
+	return -1;
 }
 
 int
