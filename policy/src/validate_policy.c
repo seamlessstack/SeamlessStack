@@ -37,12 +37,14 @@ int32_t validate_plugin(const char *plugin_path, log_ctx_t *ctx)
 	plugin_name = basename(local_plugin_path);
 	start = strstr(plugin_name, "lib");
 	end = strstr(plugin_name, ".so");
-	if ((start == NULL) || (end == NULL) || (start >= end )) {
+	if ((start != plugin_name) || (end == NULL) || ((start + 3) >= end )) {
 		sfs_log(ctx, SFR_ERR, "Invalid plugin name");
 		return -EINVAL;
 	} else {
 		char function_name[64];
 		int32_t i = 0;
+		start = start + 3; /* ignore the string "lib" from the
+					 plugin lib name */	
 		strncpy(plugin_prefix, start, (end - start)/sizeof(char));
 		/* Check the *_init, *_deinit, *_apply, *_remove functions */
 		sprintf (function_name, "%s_init", plugin_prefix);
@@ -57,6 +59,7 @@ int32_t validate_plugin(const char *plugin_path, log_ctx_t *ctx)
 			if (function[i] == NULL) {
 				sfs_log(log_ctx,
 					SFS_ERR, "Invalid function name");
+				return -EINVAL;
 			}
 		}
 	}

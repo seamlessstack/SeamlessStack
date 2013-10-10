@@ -236,12 +236,16 @@ uint32_t unregister_plugin(uint32_t plugin_id)
 	plugin = policy_tab.pt_table[plugin_id];
 	if (plugin) {
 		policy_tab.pt_table[plugin_id] = NULL;
-		policy_tab.policy_slots ^= 1 << (plugin_id + 1);
+		policy_tab.policy_slots ^= (1 << plugin_id);
 		pthread_rwlock_unlock(&policy_tab.pt_table_lock);
 		/* if the reference count of the plugin is 0, remove it */
 		if (plugin->pp_refcount == 0) {
 			free(plugin);
 		}
+	} else {
+		pthread_rwlock_unlock(&policy_tab.pt_table_lock);
+		sfs_log(policy_ctx, SFS_ERR, "%s(), line: %d: %s\n",
+			__FUNCTION__, __LINE__, "Plugin doesn't Exist");
 	}
 	return 0;
 }
