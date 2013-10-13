@@ -24,6 +24,7 @@ CONFIGURE = conf
 OSS_DIR = $(PWD)
 OSS_INSTALL_DIR = $(OSS_DIR)/oss_install
 OSS_LIBSDIR = $(OSS_INSTALL_DIR)/lib
+OPENSSL_DIR = openssl-1.0.1c
 RM = rm
 CC = gcc
 CP = cp
@@ -39,12 +40,16 @@ all: $(CONFIGURE)
 	$(CP) $(MONGOCDIR)/*.so $(OSS_LIBSDIR)
 	$(MAKE) -C $(LZ4DIR) 
 	$(CP) $(LZ4DIR)/*.so $(OSS_LIBSDIR)
+	$(MAKE) -C $(OPENSSL_DIR)
+	$(CP) $(OPENSSL_DIR)/*.so $(OSS_LIBSDIR)
 
 $(CONFIGURE):
 	$(CD) $(MEMCACHEDDIR) && ./configure --prefix=$(OSS_INSTALL_DIR)
+	$(CD) $(OPENSSL_DIR) && ./config shared
 
 clean:
 	$(MAKE) -C $(JERASUREDIR) clean
 	$(MAKE) -C $(MEMCACHEDDIR) clean
 	$(MAKE) -C $(MONGOCDIR) clean
 	$(MAKE) -C $(LZ4DIR) clean
+	$(MAKE) -C $(OPENSSL_DIR) clean

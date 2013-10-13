@@ -1,0 +1,15 @@
+Description: Add arm64 support
+ Add 'debian-arm64' to configure so it at least tries to build 
+Author: Wookey <wookey@wookware.org>, Riku Voipio <riku.voipio@linaro.org>
+Last-Update: <2013-01-20>
+
+--- openssl-1.0.1c.orig/Configure
++++ openssl-1.0.1c/Configure
+@@ -346,6 +346,7 @@ my %table=(
+ "debian-alpha","gcc:-DTERMIO ${debian_cflags}::-D_REENTRANT::-ldl:SIXTY_FOUR_BIT_LONG RC4_CHUNK DES_RISC1 DES_UNROLL:${alpha_asm}:dlfcn:linux-shared:-fPIC::.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
+ "debian-alpha-ev4","gcc:-DTERMIO ${debian_cflags} -mcpu=ev4::-D_REENTRANT::-ldl:SIXTY_FOUR_BIT_LONG RC4_CHUNK DES_RISC1 DES_UNROLL:${alpha_asm}:dlfcn:linux-shared:-fPIC::.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
+ "debian-alpha-ev5","gcc:-DTERMIO ${debian_cflags} -mcpu=ev5::-D_REENTRANT::-ldl:SIXTY_FOUR_BIT_LONG RC4_CHUNK DES_RISC1 DES_UNROLL:${alpha_asm}:dlfcn:linux-shared:-fPIC::.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
++"debian-arm64","gcc:-DL_ENDIAN -DTERMIO ${debian_cflags}::-D_REENTRANT::-ldl:SIXTY_FOUR_BIT RC4_CHAR RC4_CHUNK DES_INT DES_UNROLL BF_PTR:${no_asm}:dlfcn:linux-shared:-fPIC::.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
+ "debian-armel","gcc:-DL_ENDIAN -DTERMIO ${debian_cflags}::-D_REENTRANT::-ldl:BN_LLONG RC4_CHAR RC4_CHUNK DES_INT DES_UNROLL BF_PTR:${armv4_asm}:dlfcn:linux-shared:-fPIC::.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
+ "debian-armhf","gcc:-DL_ENDIAN -DTERMIO ${debian_cflags}::-D_REENTRANT::-ldl:BN_LLONG RC4_CHAR RC4_CHUNK DES_INT DES_UNROLL BF_PTR:${armv4_asm}:dlfcn:linux-shared:-fPIC::.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR)",
+ "debian-amd64", "gcc:-m64 -DL_ENDIAN -DTERMIO ${debian_cflags} -DMD32_REG_T=int::-D_REENTRANT::-ldl:SIXTY_FOUR_BIT_LONG RC4_CHUNK DES_INT DES_UNROLL:${x86_64_asm}:elf:dlfcn:linux-shared:-fPIC:-m64:.so.\$(SHLIB_MAJOR).\$(SHLIB_MINOR):::",

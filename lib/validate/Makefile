@@ -26,7 +26,7 @@ VALIDATE_LIB_NAME = libvalidate.so
 VALIDATE_OBJECTS = src/sfs_validate.o
 LDFLAGS = -shared -o
 CC = gcc
-LIBS =
+LIBS = -L$(TOPDIR)/oss_install -lcrypto -lssl
 
 all:: $(VALIDATE_LIB_NAME)
 
