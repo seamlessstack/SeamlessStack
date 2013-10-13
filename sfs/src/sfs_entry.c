@@ -393,6 +393,7 @@ replace_xattr(sstack_inode_t *inode, const char *name, const char *value,
 	char *p = NULL;
 	char key[MAX_KEY_LEN] = { '\0' };
 	int j;
+	int ret = -1;
 
 	// Parameter validation
 	if (NULL == inode ||  NULL == name || NULL == value || len == 0) {
@@ -474,6 +475,15 @@ replace_xattr(sstack_inode_t *inode, const char *name, const char *value,
 		inode->i_xattr = temp;
 	}
 
+	// Store the updated inode
+	ret = put_inode(inode, db);
+	if (ret != 0) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: put inode failed. Error = %d\n",
+						__FUNCTION__, errno);
+		// Don't modify errno set by put_inode
+		return -1;
+	}
+
 	return 0;
 }
 
@@ -495,6 +505,7 @@ append_xattr(sstack_inode_t *inode, const char * name, const char * value,
 	char *p = NULL;
 	int key_len = 0;
 	int cur_len = 0;
+	int ret = -1;
 
 	// Parameter validation
 	if (NULL == inode || NULL == name || NULL == value || len == 0) {
@@ -537,6 +548,15 @@ append_xattr(sstack_inode_t *inode, const char * name, const char * value,
 
 	inode->i_xattrlen = cur_len;
 	inode->i_xattr = p;
+
+	// Store the updated inode
+	ret = put_inode(inode, db);
+	if (ret != 0) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: put inode failed. Error = %d\n",
+						__FUNCTION__, errno);
+		// Don't modify errno set by put_inode
+		return -1;
+	}
 
 	return 0;
 }
@@ -721,6 +741,17 @@ sfs_setxattr(const char *path, const char *name, const char *value,
 	}
 }
 
+
+/*
+ * sfs_getxattr - Get extended attributes
+ *
+ * path - Path name of the target file
+ * name - Name of the attribute
+ * value - Value to be read
+ * size - size of the value
+ *
+ * Returns 0 on success and -1 on failure and sets errno.
+ */
 int
 sfs_getxattr(const char *path, const char *name, char *value, size_t size)
 {
@@ -813,6 +844,16 @@ sfs_getxattr(const char *path, const char *name, char *value, size_t size)
 	return -1;
 }
 
+/*
+ * sfs_listxattr - Get extended attributes in a buffer
+ *
+ * path - Path name of the target file
+ * list - Pre-allocated buffer to hold xattrs
+ * size - size of the value
+ *
+ * Returns 0 on success and -1 on failure and sets errno.
+ */
+
 int
 sfs_listxattr(const char *path, char *list, size_t size)
 {
@@ -882,7 +923,7 @@ sfs_listxattr(const char *path, char *list, size_t size)
 			strcpy((char *) (list + bytes_copied), key);
 			bytes_copied += (j + 1);
 		} else {
-			// Value filled up.
+			// List filled up.
 			break;
 		}
 
@@ -895,11 +936,181 @@ sfs_listxattr(const char *path, char *list, size_t size)
 	return bytes_copied;
 }
 
+/*
+ * xattr_remove - Remove the specified attribute from inode
+ *
+ * inode - Inode structure . Should be non-NULL. 
+ * name - attribute name. Should be non-NULL.
+ *
+ * Removes the specified attribute from the extended attributes stored in the 
+ * inode.
+ *
+ * Returns size of updated xattr array upon success and -1 upon failure.
+ * Sets errno accordingly.
+ */
+
+static int
+xattr_remove(sstack_inode_t *inode, const char *name)
+{
+	int i = 0;
+	char key[MAX_KEY_LEN] = { '\0' };
+	int key_size = 0;
+	int value_size = 0;
+	int pos = 0;
+	int pair_len = 0;
+	int len = 0;
+	char *p = NULL;
+	int found = 0;
+
+	// Parameter validation
+	if (NULL == inode || NULL == name) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters specified \n",
+						__FUNCTION__);
+		errno = EINVAL;
+		return -1;
+	}
+
+	if (NULL == inode->i_xattr || inode->i_xattrlen <= 0) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters specified \n",
+						__FUNCTION__);
+		errno = EINVAL;
+		return -1;
+	}
+
+
+	len = inode->i_xattrlen;
+	p = inode->i_xattr;
+
+	while ( i < len) {
+		int j;
+
+		j = 0;
+		memset(key, '\0', MAX_KEY_LEN);
+		if (*(p + i) == '\0') {
+			i++;
+			continue;
+		}
+		pos = i; // Position of key
+		// Read in the key
+		while (*(p + i) != '=') {
+			*(key + j) = *(p + i);
+			i++;
+			j++;
+		}
+		key[j + 1] = '\0';
+		key_size = strlen(key);
+
+		// Check if this the attr to be removed
+		if (strcmp(name, key) == 0) {
+			// Found
+			found = 1;
+			break;
+		}
+		i += key_size;
+		// Skip the value field
+		while (*(p + i) != '\0')
+			i++;
+	}
+
+	if (found == 0) {
+		// Key not found
+		errno = ENOATTR;
+		return -1;
+	}
+
+	// Key found
+	// Check size of value
+	i++; // Step over '='
+	value_size = 0;
+	while (*(p + i) != '\0') {
+		value_size ++;
+		i++;
+	}
+	// Remove this {key, value} pair
+	// Adjust i_xattr and i_xattrlen
+	pair_len = key_size + 1 + value_size + 1; // One for '=' and one for '\0'
+	if (i == (len - 1)) {
+		// This key=value pair is the last one in i_xattr
+		// Simply adjust i_xattrlen;
+		return (len - pair_len);
+	} else if (key[0] ==*p) {
+		// This key=value pair is the first one in i_xattr
+		// shift the rest by pair_len and adjust i_xattrlen
+		memmove((void *) p, (void *) (p + pair_len), (len - pair_len));
+		return (len - pair_len);
+	} else {
+		// This key=value pair is neitherthe fist nor the last
+		memmove((void *) (p + pos), (void *) (p + pos + pair_len),
+						(len - pair_len));
+		return (len - pair_len);
+	}
+}
+
+/*
+ * sfs_removexattr - Remove an extended attribute
+ *
+ * path - Path name of the target file
+ * name - Extended attribute name to be removed
+ *
+ * Returns 0 on success and -1 on failure and sets errno accordingly.
+ */
 int
 sfs_removexattr(const char *path, const char *name)
 {
+	int ret = -1;
+	unsigned long long inode_num = 0;
+	char *inodestr = NULL;
+	sstack_inode_t inode;
+	size_t size;
 
-	return 0;	
+	// Parameter validation
+	if (NULL == path || NULL == name) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters passed. \n",
+					__FUNCTION__);
+		errno = EINVAL;
+
+		return -1;
+	}
+
+	// Get the inode number for the file.
+	inodestr = sstack_cache_read_one(mc, path, strlen(path), &size);
+	if (NULL == inodestr) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
+					"for path %s.\n", __FUNCTION__, path);
+		errno = ENOENT;
+
+		return -1;
+	}
+	inode_num = atoll((const char *)inodestr);
+	// Get inode from DB
+	ret = get_inode(inode_num, &inode, db);
+	if (ret != 0) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to get inode %lld. Path = %s "
+						"error = %d\n", __FUNCTION__, inode_num, path, ret);
+		errno = ret;
+
+		return -1;
+	}
+
+
+	ret = xattr_remove(&inode, name);
+	if (ret == -1) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Removing xattr %s failed for file %s\n",
+						__FUNCTION__, name, path);
+		errno = ENOATTR;
+		return -1;
+	}
+
+	// Update inode
+	ret = put_inode(&inode, db);
+	if (ret != 0) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: put inode failed. Error = %d\n",
+						__FUNCTION__, errno);
+		// Don't modify errno set by put_inode
+		return -1;
+	}
+
+	return 0;
 }
 
 int
