@@ -21,15 +21,20 @@
 #define __SSTACK_CACHE_API_H_
 #include <libmemcached/memcached.h>
 #include <sys/types.h>
+#include <sstack_log.h>
 
 // Check sstack_cache_api.c for details
 
-memcached_st * sstack_cache_init(const char *, int );
-void sstack_cache_destroy(memcached_st *);
-int sstack_cache_store(memcached_st *, const char *, const char *, size_t );
-char * sstack_cache_read_one(memcached_st *, const char *, size_t , size_t *);
-int sstack_cache_read_multiple(memcached_st *, const char **, size_t *, int);
+memcached_st * sstack_cache_init(const char *, int , log_ctx_t *);
+void sstack_cache_destroy(memcached_st *, log_ctx_t *);
+int sstack_cache_store(memcached_st *, const char *, const char *, size_t ,
+				log_ctx_t *);
+int sstack_cache_remove(memcached_st *, const char * , log_ctx_t *);
+char * sstack_cache_read_one(memcached_st *, const char *, size_t , size_t *,
+				log_ctx_t *);
+int sstack_cache_read_multiple(memcached_st *, const char **, size_t *, int ,
+				log_ctx_t *);
 int sstack_cache_replace(memcached_st *, const char *, const char *,
-		size_t , int , int );
+		size_t , int , int , log_ctx_t *);
 
 #endif // __SSTACK_CACHE_API_H_

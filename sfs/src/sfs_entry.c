@@ -69,7 +69,7 @@ sfs_getattr(const char *path, struct stat *stbuf)
 	}
 
 	// Get the inode number for the file.
-	inodestr = sstack_cache_read_one(mc, path, strlen(path), &size);
+	inodestr = sstack_cache_read_one(mc, path, strlen(path), &size, sfs_ctx);
 	if (NULL == inodestr) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
 					"for path %s.\n", __FUNCTION__, path);
@@ -142,7 +142,7 @@ sfs_readlink(const char *path, char *buf, size_t size)
 	}
 
 	// Get the inode number for the file.
-	inodestr = sstack_cache_read_one(mc, path, strlen(path), &size);
+	inodestr = sstack_cache_read_one(mc, path, strlen(path), &size, sfs_ctx);
 	if (NULL == inodestr) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
 					"for path %s.\n", __FUNCTION__, path);
@@ -353,12 +353,47 @@ sfs_flush(const char *path, struct fuse_file_info *fi)
 	return 0;	
 }
 
+/*
+ * sfs_release - Release the file handle
+ *
+ * path - Pathname of the file
+ * fi - FUSE file handle
+ *
+ * Close the file handle stored in fi
+ * Retrun 0 if parameters are valid. Otherwise retruns -1 and sets errno
+ */
 int
 sfs_release(const char *path, struct fuse_file_info *fi)
 {
+	int res = -1;
+
+	// Parameter validation
+	if (NULL == path || NULL == fi) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters specified.\n",
+						__FUNCTION__);
+		errno = EINVAL;
+
+		return -1;
+	}
+
+	// Close the file descriptor
+	res = close(fi->fh);
+	if (res == -1) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Close on file %s failed with "
+						"error %d\n", __FUNCTION__, path, errno);
+
+		return -1;
+	}
+	// Remove the reverse mapping for the path
+	res = sstack_cache_remove(mc, path, sfs_ctx);
+	if (res != 0) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Reverse lookup for path %s failed. "
+						"Return value = %d\n", __FUNCTION__, path, res);
+	}
 
 	return 0;	
 }
+
 
 int
 sfs_fsync(const char *path, int isdatasync, struct fuse_file_info *fi)
@@ -652,7 +687,7 @@ sfs_setxattr(const char *path, const char *name, const char *value,
 	}
 
 	// Get the inode number for the file.
-	inodestr = sstack_cache_read_one(mc, path, strlen(path), &size);
+	inodestr = sstack_cache_read_one(mc, path, strlen(path), &size, sfs_ctx);
 	if (NULL == inodestr) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
 					"for path %s.\n", __FUNCTION__, path);
@@ -776,7 +811,7 @@ sfs_getxattr(const char *path, const char *name, char *value, size_t size)
 	}
 
 	// Get the inode number for the file.
-	inodestr = sstack_cache_read_one(mc, path, strlen(path), &size1);
+	inodestr = sstack_cache_read_one(mc, path, strlen(path), &size1, sfs_ctx);
 	if (NULL == inodestr) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
 					"for path %s.\n", __FUNCTION__, path);
@@ -878,7 +913,7 @@ sfs_listxattr(const char *path, char *list, size_t size)
 	}
 
 	// Get the inode number for the file.
-	inodestr = sstack_cache_read_one(mc, path, strlen(path), &size1);
+	inodestr = sstack_cache_read_one(mc, path, strlen(path), &size1, sfs_ctx);
 	if (NULL == inodestr) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
 					"for path %s.\n", __FUNCTION__, path);
@@ -1073,7 +1108,7 @@ sfs_removexattr(const char *path, const char *name)
 	}
 
 	// Get the inode number for the file.
-	inodestr = sstack_cache_read_one(mc, path, strlen(path), &size);
+	inodestr = sstack_cache_read_one(mc, path, strlen(path), &size, sfs_ctx);
 	if (NULL == inodestr) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
 					"for path %s.\n", __FUNCTION__, path);
