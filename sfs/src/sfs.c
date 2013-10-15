@@ -91,14 +91,13 @@ static int sfs_remove_branch(char *branch);
 static int
 add_inodes(const char *path)
 {
-	char *buffer = NULL;
-	sstack_extent_t attr;
-	sstack_inode_t *inode;
+	sstack_extent_t extent;
+	sstack_inode_t inode;
 	policy_entry_t *policy = NULL;
 	struct stat status;
-	char inode_str[MAX_INODE_LEN] = { '\0' };
 	int ret = -1;
 	sstack_file_handle_t *ep = NULL;
+	char inode_str[MAX_INODE_LEN] = { '\0' };
 
     sfs_log(sfs_ctx, SFS_DEBUG, "%s: path = %s\n", __FUNCTION__, path);
     if (lstat(path, &status) == -1) {
@@ -108,74 +107,65 @@ add_inodes(const char *path)
 		return -errno;
     }
 
-	buffer = calloc((sizeof(sstack_inode_t) + sizeof(sstack_extent_t)), 1);
-	if (NULL == buffer) {
-		// TBD
-		sfs_log(sfs_ctx,SFS_CRIT,
-				"Out of memory at line %d function %s \n",
-				__LINE__, __FUNCTION__);
-		return -1;
-	}
 
-	// Use buffer as (inode + extent)
-	inode = (sstack_inode_t *)buffer;
 	// Populate inode structure
-	inode->i_num = get_free_inode();
-	strcpy(inode->i_name, path);
-	inode->i_uid = status.st_uid;
-	inode->i_gid = status.st_gid;
-	inode->i_mode = status.st_mode;
+	inode.i_num = get_free_inode();
+	strcpy(inode.i_name, path);
+	inode.i_uid = status.st_uid;
+	inode.i_gid = status.st_gid;
+	inode.i_mode = status.st_mode;
 	switch (status.st_mode & S_IFMT) {
 		case S_IFDIR:
-			inode->i_type = DIRECTORY;
+			inode.i_type = DIRECTORY;
 			break;
 		case S_IFREG:
-			inode->i_type = REGFILE;
+			inode.i_type = REGFILE;
 			break;
 		case S_IFLNK:
-			inode->i_type = SYMLINK;
+			inode.i_type = SYMLINK;
 			break;
 		case S_IFBLK:
-			inode->i_type = BLOCKDEV;
+			inode.i_type = BLOCKDEV;
 			break;
 		case S_IFCHR:
-			inode->i_type = CHARDEV;
+			inode.i_type = CHARDEV;
 			break;
 		case S_IFIFO:
-			inode->i_type = FIFO;
+			inode.i_type = FIFO;
 			break;
 		case S_IFSOCK:
-			inode->i_type = SOCKET_TYPE;
+			inode.i_type = SOCKET_TYPE;
 			break;
 		default:
-			inode->i_type = UNKNOWN;
+			inode.i_type = UNKNOWN;
 			break;
 	}
 
 	// Make sure we are not looping
 	// TBD
 
-	memcpy(&inode->i_atime, &status.st_atime, sizeof(struct timespec));
-	memcpy(&inode->i_ctime, &status.st_ctime, sizeof(struct timespec));
-	memcpy(&inode->i_mtime, &status.st_mtime, sizeof(struct timespec));
-	inode->i_size = status.st_size;
-	inode->i_ondisksize = (status.st_blocks * 512);
-	inode->i_numreplicas = 1; // For now, single copy
+	memcpy(&inode.i_atime, &status.st_atime, sizeof(struct timespec));
+	memcpy(&inode.i_ctime, &status.st_ctime, sizeof(struct timespec));
+	memcpy(&inode.i_mtime, &status.st_mtime, sizeof(struct timespec));
+	inode.i_size = status.st_size;
+	inode.i_ondisksize = (status.st_blocks * 512);
+	inode.i_numreplicas = 1; // For now, single copy
 	// Since the file already exists, done't split it now. Split it when
 	// next write arrives
-	inode->i_numextents = 1;
-	inode->i_links = status.st_nlink;
+	inode.i_numextents = 1;
+	inode.i_numerasure = 0; // No erasure code segments
+	inode.i_xattrlen = 0; // No extended attributes
+	inode.i_links = status.st_nlink;
 	sfs_log(sfs_ctx, SFS_INFO,
-		"%s: nlinks for %s are %d\n", __FUNCTION__, path,
-		inode->i_links);
+		"%s: nlinks for %s are %d\n", __FUNCTION__, path, inode.i_links);
 	// Populate size of each extent
 	policy = get_policy(path);
 	if (NULL == policy) {
 		sfs_log(sfs_ctx, SFS_INFO,
 			"%s: No policies specified. Default policy applied\n",
 			__FUNCTION__);
-		inode->i_policy.pe_attr.a_qoslevel = QOS_LOW;
-		inode->i_policy.pe_attr.a_ishidden = 0;
+		inode.i_policy.pe_attr.a_qoslevel = QOS_LOW;
+		inode.i_policy.pe_attr.a_ishidden = 0;
 	} else {
 		// Got the policy
 		sfs_log(sfs_ctx, SFS_INFO,
@@ -184,41 +174,48 @@ add_inodes(const char *path)
 			__FUNCTION__, path, policy->pe_attr.ver,
 			policy->pe_attr.a_qoslevel,
 			policy->pe_attr.a_ishidden);
-		memcpy(&inode->i_policy, policy, sizeof(policy_entry_t));
+		memcpy(&inode.i_policy, policy, sizeof(policy_entry_t));
 	}
 	// Populate the extent
-	memset(&attr, 0, sizeof(sstack_extent_t));
-	attr.e_realsize = status.st_size;
-	if (inode->i_type == REGFILE) {
-		attr.e_cksum = sstack_checksum(sfs_ctx, path); // CRC32
+	memset((void *) &extent, 0, sizeof(sstack_extent_t));
+	extent.e_realsize = status.st_size;
+	if (inode.i_type == REGFILE) {
+		extent.e_cksum = sstack_checksum(sfs_ctx, path); // CRC32
 		sfs_log(sfs_ctx, SFS_INFO, "%s: checksum of %s is %lu \n",
-			__FUNCTION__, path, attr.e_cksum);
+			__FUNCTION__, path, extent.e_cksum);
 	} else
-		attr.e_cksum = 0; // Place holder
-	ep = attr.e_path;
+		extent.e_cksum = 0; // Place holder
+
+	ep = malloc(sizeof(sstack_file_handle_t));
+	if (NULL == ep) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Allocation failed for e_path\n",
+						__FUNCTION__);
+		return -errno;
+	}
 	ep->name_len = strlen(path);
 	strncpy((char *)&ep->name, path, ep->name_len);
 	ep->proto = NFS;
 	ep->address.protocol = IPV4;
 	strncpy((char *) ep->address.ipv4_address, "127.0.0.1",
 					strlen("127.0.0.1")+1);
-	memcpy((buffer+sizeof(sstack_inode_t)), &attr, sizeof(sstack_extent_t));
+	
+	extent.e_path = ep;
+	inode.i_extent = &extent;
+	inode.i_erasure = NULL; // No erasure coding info for now
+	inode.i_xattr = NULL; // No extended attributes carried over
 
-	// Now inode is ready to be placed in DB
-	// Put it in DB
-	sprintf(inode_str, "%lld", inode->i_num);
-	if (db->db_ops.db_insert && (db->db_ops.db_insert(inode_str, buffer,
-		(sizeof(sstack_inode_t) + sizeof(sstack_extent_t)),
-		INODE_TYPE, sfs_ctx) != 1)) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to add inode to db . \n",
-			__FUNCTION__);
-		free(buffer);
-		/* Though the operation failed. nothing much can be done. */
-		return 0;
+	// Store inode
+	ret = put_inode(&inode, db);
+	if (ret != 0) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to store inode #%lld for "
+				"path %s. Error %d\n", __FUNCTION__, inode.i_num,
+				inode.i_name, errno);
+		return -errno;
 	}
 
-	// Insert into reverse lookup db
-	// TBD
+	free(ep);
+	// Store inode <-> path into reverse lookup
+	sprintf(inode_str, "%lld", inode.i_num);	
 	ret = sstack_cache_store(mc, path, inode_str, strlen(inode_str) + 1);
 	if (ret != 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to store object into memcached."
@@ -226,8 +223,7 @@ add_inodes(const char *path)
 		return 0;
 	}
 
-	free(buffer);
-	active_inodes ++;
+	active_inodes ++; // Called during initialization and in single thread.
 
 	return 0;
 }
