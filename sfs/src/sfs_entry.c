@@ -1175,11 +1175,76 @@ sfs_destroy(void *arg)
 
 }
 
+/*
+ * sfs_access - Check access permissions for the file
+ *
+ * path - Path name of the target file
+ * mode - access permissions to be checked
+ *
+ * Returns 0 is access permissions specified in mode are set. 
+ * If mode is F_OK, returns 0 if path exists.
+ * Returns -1 on failure and sets errno accordingly.
+ */
 int
 sfs_access(const char *path, int mode)
 {
+	unsigned long long inode_num = 0;
+	char *inodestr = NULL;
+	sstack_inode_t inode;
+	size_t size = 0;
+	int ret = -1;
 
-	return 0;	
+	// Parameter validation
+	if (NULL == path || mode == 0) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters specified \n",
+						__FUNCTION__);
+		errno = EINVAL;
+
+		return -1;
+	}
+
+	// Get the inode number for the file
+	inodestr = sstack_cache_read_one(mc, path, strlen(path), &size, sfs_ctx);
+	if (NULL == inodestr) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
+						"for path %s.\n", __FUNCTION__, path);
+		errno = ENOENT;
+
+		return -1;
+	}
+	inode_num = atoll((const char *) inodestr);
+	// Get inode from db
+	ret = get_inode(inode_num, &inode, db);
+	if (ret != 0) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to get inode %lld. Path = %s "
+						"error = %d\n", __FUNCTION__, inode_num, path, ret);
+		errno = ret;
+
+		return -1;
+	}
+
+	if (mode & F_OK) {
+		// Application is checking whether file exists
+		// Since file info is in db, file exists.
+		free(inode.i_xattr);
+		free(inode.i_extent);
+
+		return 0;
+	}
+
+	if (inode.i_mode & mode) {
+		// Mode is a subset of what is set in inode
+		free(inode.i_xattr);
+		free(inode.i_extent);
+
+		return 0;
+	 } else {
+		free(inode.i_xattr);
+		free(inode.i_extent);
+		errno = EACCES;
+
+		return  -1;
+	}
 }
 
 int
