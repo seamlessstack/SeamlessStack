@@ -131,7 +131,7 @@ sfs_readlink(const char *path, char *buf, size_t size)
 	sstack_inode_t inode;
 	sstack_extent_t *extent = NULL;
 	sstack_file_handle_t *p = NULL;
-	
+
 	// Parameter validation
 	if (NULL == path || NULL == buf || size == 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters passed \n",
@@ -192,7 +192,7 @@ sfs_readlink(const char *path, char *buf, size_t size)
 	free(inode.i_extent);
 	sstack_free_erasure(sfs_ctx, inode.i_erasure, inode.i_numerasure);
 
-	return 0;	
+	return 0;
 }
 
 
@@ -201,21 +201,21 @@ sfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 	off_t offset, struct fuse_file_info *fi)
 {
 
-	return 0;	
+	return 0;
 }
 
 int
 sfs_mknod(const char *path, mode_t mode, dev_t rdev)
 {
 
-	return 0;	
+	return 0;
 }
 
 int
 sfs_mkdir(const char *path, mode_t mode)
 {
 
-	return 0;	
+	return 0;
 }
 
 
@@ -223,7 +223,7 @@ int
 sfs_unlink(const char *path)
 {
 
-	return 0;	
+	return 0;
 }
 
 
@@ -231,49 +231,49 @@ int
 sfs_rmdir(const char * path)
 {
 
-	return 0;	
+	return 0;
 }
 
 int
 sfs_symlink(const char *from, const char *to)
 {
 
-	return 0;	
+	return 0;
 }
 
 int
 sfs_rename(const char *from, const char *to)
 {
 
-	return 0;	
+	return 0;
 }
 
 int
 sfs_link(const char *from, const char *to)
 {
 
-	return 0;	
+	return 0;
 }
 
 int
 sfs_chmod(const char *path, mode_t mode)
 {
 
-	return 0;	
+	return 0;
 }
 
 int
 sfs_chown(const char *path, uid_t uid, gid_t gid)
 {
 
-	return 0;	
+	return 0;
 }
 
 int
 sfs_truncate(const char *path, off_t size)
 {
 
-	return 0;	
+	return 0;
 }
 
 
@@ -281,7 +281,7 @@ int
 sfs_open(const char *path, struct fuse_file_info *fi)
 {
 
-	return 0;	
+	return 0;
 }
 
 int
@@ -289,7 +289,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 	struct fuse_file_info *fi)
 {
 
-	return 0;	
+	return 0;
 }
 
 int
@@ -297,7 +297,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 	struct fuse_file_info *fi)
 {
 
-	return 0;	
+	return 0;
 }
 
 /*
@@ -343,14 +343,14 @@ sfs_statfs(const char *path, struct statvfs *buf)
 	buf->f_flag = 0; // ST_RDONLY to be set only if mounted readonly
 	buf->f_namemax = 4096;
 
-	return 0;	
+	return 0;
 }
 
 int
 sfs_flush(const char *path, struct fuse_file_info *fi)
 {
 
-	return 0;	
+	return 0;
 }
 
 /*
@@ -391,7 +391,7 @@ sfs_release(const char *path, struct fuse_file_info *fi)
 						"Return value = %d\n", __FUNCTION__, path, res);
 	}
 
-	return 0;	
+	return 0;
 }
 
 
@@ -399,7 +399,7 @@ int
 sfs_fsync(const char *path, int isdatasync, struct fuse_file_info *fi)
 {
 
-	return 0;	
+	return 0;
 }
 
 /*
@@ -484,7 +484,7 @@ replace_xattr(sstack_inode_t *inode, const char *name, const char *value,
 		i += len;
 		memmove((void *) (p + i), (void *) (p + i + j - len),
 						(inode->i_xattrlen - (j - len)));
-		
+
 		inode->i_xattrlen = inode->i_xattrlen -j + len;
 	} else if (len == j) {
 		memmove((void *) (p + i) , (void *) value, len);
@@ -564,7 +564,7 @@ append_xattr(sstack_inode_t *inode, const char * name, const char * value,
 
 		return -1;
 	}
-	// Append 
+	// Append
 	// This can be rewritten to use sprintf
 	cur_len = inode->i_xattrlen;
 	// Append key
@@ -621,7 +621,7 @@ xattr_exists(sstack_inode_t *inode, const char * name)
 		return -1;
 	}
 	p = inode->i_xattr;
-	// Walk through the xattrs 
+	// Walk through the xattrs
 	while ( i < inode->i_xattrlen) {
 		int j;
 
@@ -661,7 +661,7 @@ xattr_exists(sstack_inode_t *inode, const char * name)
  * path - Path name of the target file
  * name - Name of the attribute
  * value - Value to be assigned to attribute
- * size - size of the attribute 
+ * size - size of the attribute
  * flags - XATTR_CREATE or XATTR_REPLACE or 0
  *
  * Returns 0 on success and -1 on failure.
@@ -708,7 +708,7 @@ sfs_setxattr(const char *path, const char *name, const char *value,
 
 	// Walk through the inode.i_xattr list if flags is non-zero
 	switch (flags) {
-		case XATTR_CREATE: 
+		case XATTR_CREATE:
 			// Check if the attribute exists already
 			// If so, return
 			if (xattr_exists(&inode, name) == 1) {
@@ -756,7 +756,7 @@ sfs_setxattr(const char *path, const char *name, const char *value,
 								" file %s inode %lld . Error = %d \n",
 								__FUNCTION__, path, inode_num, errno);
 					return -1;
-				} else 
+				} else
 					return 0;
 			} else {
 				ret = append_xattr(&inode, name, value, len);
@@ -831,7 +831,7 @@ sfs_getxattr(const char *path, const char *name, char *value, size_t size)
 	}
 
 	p = inode.i_xattr;
-	// Walk through the xattrs 
+	// Walk through the xattrs
 	while ( i < inode.i_xattrlen) {
 		int j;
 
@@ -863,7 +863,7 @@ sfs_getxattr(const char *path, const char *name, char *value, size_t size)
 				k ++;
 			}
 
-			return k;	
+			return k;
 		}
 		i += j;
 		// Skip over value
@@ -901,7 +901,7 @@ sfs_listxattr(const char *path, char *list, size_t size)
 	char *p = NULL;
 	char key[MAX_KEY_LEN] = { '\0' };
 	int bytes_copied = 0;
-	
+
 
 	// Parameter validation
 	if (NULL == path || NULL == list || size == 0) {
@@ -933,7 +933,7 @@ sfs_listxattr(const char *path, char *list, size_t size)
 	}
 
 	p = inode.i_xattr;
-	// Walk through the xattrs 
+	// Walk through the xattrs
 	while ( i < inode.i_xattrlen) {
 		int j;
 
@@ -974,10 +974,10 @@ sfs_listxattr(const char *path, char *list, size_t size)
 /*
  * xattr_remove - Remove the specified attribute from inode
  *
- * inode - Inode structure . Should be non-NULL. 
+ * inode - Inode structure . Should be non-NULL.
  * name - attribute name. Should be non-NULL.
  *
- * Removes the specified attribute from the extended attributes stored in the 
+ * Removes the specified attribute from the extended attributes stored in the
  * inode.
  *
  * Returns size of updated xattr array upon success and -1 upon failure.
@@ -1152,21 +1152,21 @@ int
 sfs_opendir(const char *path, struct fuse_file_info *fi)
 {
 
-	return 0;	
+	return 0;
 }
 
 int
 sfs_releasedir(const char *path, struct fuse_file_info *fi)
 {
 
-	return 0;	
+	return 0;
 }
 
 int
 sfs_fsyncdir(const char *path, int isdatasync, struct fuse_file_info *fi)
 {
 
-	return 0;	
+	return 0;
 }
 
 void
@@ -1181,7 +1181,7 @@ sfs_destroy(void *arg)
  * path - Path name of the target file
  * mode - access permissions to be checked
  *
- * Returns 0 is access permissions specified in mode are set. 
+ * Returns 0 is access permissions specified in mode are set.
  * If mode is F_OK, returns 0 if path exists.
  * Returns -1 on failure and sets errno accordingly.
  */
@@ -1251,21 +1251,21 @@ int
 sfs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 {
 
-	return 0;	
+	return 0;
 }
 
 int
 sfs_ftruncate(const char *path, off_t offset, struct fuse_file_info *fi)
 {
 
-	return 0;	
+	return 0;
 }
 
 int
 sfs_fgetattr(const char *path, struct stat *stbuf, struct fuse_file_info *fi)
 {
 
-	return 0;	
+	return 0;
 }
 
 
@@ -1274,14 +1274,14 @@ sfs_lock(const char *path, struct fuse_file_info *fi, int cmd,
 			struct flock *flock)
 {
 
-	return 0;	
+	return 0;
 }
 
 int
 sfs_utimens(const char *path, const struct timespec tv[2])
 {
 
-	return 0;	
+	return 0;
 }
 
 /*
@@ -1300,7 +1300,7 @@ sfs_ioctl(const char *path, int cmd, void *arg, struct fuse_file_info *fi,
 				unsigned int flags, void *data)
 {
 
-	return 0;	
+	return 0;
 }
 
 int
@@ -1308,7 +1308,7 @@ sfs_poll(const char *path, struct fuse_file_info *fi,
 				struct fuse_pollhandle *ph, unsigned *reventsp)
 {
 
-	return 0;	
+	return 0;
 }
 
 int
@@ -1316,7 +1316,7 @@ sfs_write_buf(const char *path, struct fuse_bufvec *buf, off_t off,
 				struct fuse_file_info *fi)
 {
 
-	return 0;	
+	return 0;
 }
 
 int
@@ -1324,12 +1324,12 @@ sfs_read_buf(const char *path, struct fuse_bufvec **bufp, size_t size,
 				off_t off, struct fuse_file_info *fi)
 {
 
-	return 0;	
+	return 0;
 }
 
 int
 sfs_flock(const char *path, struct fuse_file_info *fi, int op)
 {
 
-	return 0;	
+	return 0;
 }
