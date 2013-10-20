@@ -68,6 +68,7 @@ pthread_mutex_t inode_mutex = PTHREAD_MUTEX_INITIALIZER;
 unsigned long long inode_number = INODE_NUM_START;
 unsigned long long active_inodes = 0;
 sstack_client_handle_t sfs_handle = 0;
+sstack_thread_pool_t *sfs_thread_pool = NULL;
 
 
 /* Structure definitions */
@@ -388,7 +389,7 @@ sigchld_handler(int signal)
 }
 
 static void *
-handle_requests(void * arg)
+handle_cli_requests(void * arg)
 {
 	int sockfd, new_fd;
 	socklen_t sin_size;
@@ -501,29 +502,86 @@ handle_requests(void * arg)
 	return NULL;
 }
 
+/*
+ * sfs_handle_connction - Thread function to listen to requests from sfsds
+ *
+ * arg - argument (not used)
+ *
+ * Never returns unless an error. On error, returns NULL.
+ */
+
+static void *
+sfs_handle_connection(void * arg)
+{
+
+	return NULL;
+}
+
+
+static int
+sfs_init_thread_pool(void)
+{
+	pthread_attr_t attr;
+
+	// Create thread pool to handle sfsd requests/responses
+	pthread_attr_init(&attr);
+	pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
+	pthread_attr_setstacksize(&attr, 65536);
+	// Create SSTACK_BACKLOG threads at max
+	// Current value is 1024 which is quite big
+	sfs_thread_pool = sstack_thread_pool_create(4, SSTACK_BACKLOG, 30, &attr);
+	if (NULL == sfs_thread_pool) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to create sfs threadpool. "
+					"Connection handling is implausible. Error = %d \n ",
+					__FUNCTION__, errno);
+		return -1;
+	}
+
+	sfs_log(sfs_ctx, SFS_INFO, "%s: SFS thread pool successfully created \n",
+						__FUNCTION__);
+
+	return 0;
+}
+
+
 
 static void *
 sfs_init(struct fuse_conn_info *conn)
 {
 	pthread_t thread;
 	pthread_attr_t attr;
+	pthread_t recv_thread;
+	pthread_attr_t recv_attr;
 	int ret = -1;
 	int chunk_index = 0;
 	sstack_transport_ops_t ops;
 	sstack_transport_t transport;
 	sstack_transport_type_t type;
+	char *intf_addr = NULL;
 
-	// Create a thread t handle client requests
+	// Create a thread to handle client requests
 	if(pthread_attr_init(&attr) == 0) {
 		pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
 		pthread_attr_setstacksize(&attr, 65536);
 		pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-		ret = pthread_create(&thread, &attr, handle_requests, NULL);
+		ret = pthread_create(&thread, &attr, handle_cli_requests, NULL);
 	}
 
 	ASSERT((ret == 0),"Unable to create thread to handle cli requests",
 			0, 0, 0);
-	(void) conn->max_readahead;
+
+	// Create a thread to handle sfs<->sfsd communication
+	if(pthread_attr_init(&recv_attr) == 0) {
+		pthread_attr_setscope(&recv_attr, PTHREAD_SCOPE_SYSTEM);
+		pthread_attr_setstacksize(&recv_attr, 131072); // 128KiB
+		pthread_attr_setdetachstate(&recv_attr, PTHREAD_CREATE_DETACHED);
+		ret = pthread_create(&recv_thread, &recv_attr,
+						sfs_handle_connection, NULL);
+	}
+
+	ASSERT((ret == 0),"Unable to create thread to handle sfs<->sfsd comm",
+			0, 0, 0);
+
 	// Create db instance
 	db = create_db();
 	ASSERT((db != NULL), "Unable to create db. FATAL ERROR", 0, 1, NULL);
@@ -553,8 +611,15 @@ sfs_init(struct fuse_conn_info *conn)
 	transport.transport_ops = ops;
 	// get local ip address
 	// eth0 is the assumed interface
-	strcpy((char *) &transport.transport_hdr.tcp.ipv4_addr,
-					get_local_ip("eth0"));
+
+	ret = get_local_ip("eth0", intf_addr, IPv4);
+	if (ret == -1) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Please enable eth0 interface "
+						"and retry.\n", __FUNCTION__);
+		return NULL;
+	}
+
+	strcpy((char *) &transport.transport_hdr.tcp.ipv4_addr, intf_addr);
 	transport.transport_hdr.tcp.port = SFS_SERVER_PORT;
 	ret = sstack_transport_register(type, &transport, ops);
 	// Call server setup
@@ -563,6 +628,15 @@ sfs_init(struct fuse_conn_info *conn)
 		// Server socket creation failed.
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to create sfs socket. "
 					"Error = %d \n", __FUNCTION__, errno);
+		return NULL;
+	}
+
+	ret = sfs_init_thread_pool();
+	if (ret != 0) {
+		// Thread pool creation failed.
+		// Exit out as we can't handle requests anyway
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to create thread pool. "
+						"Exiting ...\n", __FUNCTION__);
 		return NULL;
 	}
 
