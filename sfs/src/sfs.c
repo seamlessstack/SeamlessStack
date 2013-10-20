@@ -48,6 +48,7 @@
 #include <sstack_version.h>
 #include <sstack_bitops.h>
 #include <sstack_cache_api.h>
+#include <sstack_transport_tcp.h>
 #include <policy.h>
 #include <sfs.h>
 #include <sfs_entry.h>
@@ -66,6 +67,7 @@ memcached_st *mc = NULL;
 pthread_mutex_t inode_mutex = PTHREAD_MUTEX_INITIALIZER;
 unsigned long long inode_number = INODE_NUM_START;
 unsigned long long active_inodes = 0;
+sstack_client_handle_t sfs_handle = 0;
 
 
 /* Structure definitions */
@@ -507,6 +509,9 @@ sfs_init(struct fuse_conn_info *conn)
 	pthread_attr_t attr;
 	int ret = -1;
 	int chunk_index = 0;
+	sstack_transport_ops_t ops;
+	sstack_transport_t transport;
+	sstack_transport_type_t type;
 
 	// Create a thread t handle client requests
 	if(pthread_attr_init(&attr) == 0) {
@@ -538,10 +543,28 @@ sfs_init(struct fuse_conn_info *conn)
 	}
 
 	// Other init()s go here
-
-	// TBD
-	// Need to create one more collection for reverse lookup table
-	// This is to get inode number given pathname
+	// Initialize TCP transport
+	type = TCPIP;
+	ops.rx = tcp_rx;
+	ops.tx = tcp_tx;
+	ops.client_init = tcp_client_init;
+	ops.server_setup = tcp_server_setup;
+	transport.transport_hdr.tcp.ipv4 = 1; // IPv4 adress for now
+	transport.transport_ops = ops;
+	// get local ip address
+	// eth0 is the assumed interface
+	strcpy((char *) &transport.transport_hdr.tcp.ipv4_addr,
+					get_local_ip("eth0"));
+	transport.transport_hdr.tcp.port = SFS_SERVER_PORT;
+	ret = sstack_transport_register(type, &transport, ops);
+	// Call server setup
+	sfs_handle = transport.transport_ops.server_setup(&transport);
+	if (sfs_handle == -1) {
+		// Server socket creation failed.
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to create sfs socket. "
+					"Error = %d \n", __FUNCTION__, errno);
+		return NULL;
+	}
 
 	// Populate the INODE collection of the DB with all the files found
 	// in chunks added so far

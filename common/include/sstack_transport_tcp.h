@@ -17,26 +17,20 @@
  * from SeamlessStack Incorporated.
  */
 
+#ifndef _SSTACK_TRANSPORT_TCP_H__
+#define _SSTACK_TRANSPORT_TCP_H__
 #include <stdint.h>
-#include <sstack_log.h>
 #include <sstack_transport.h>
+#include <sstack_types.h>
 
-/*
- * TBD
- * Need to maintain a list of transports - one for each transport type
- * transport_register should return -1 (failure) is transport type is
- * already registered.
- */
+extern sstack_client_handle_t tcp_client_init(sstack_transport_t *);
+extern int tcp_rx(sstack_client_handle_t , size_t , void * );
+extern int tcp_tx(sstack_client_handle_t , size_t , void * );
+extern int tcp_select(sstack_client_handle_t , uint32_t );
+extern sstack_client_handle_t tcp_server_setup(sstack_transport_t *);
+extern sstack_transport_t *get_tcp_transport(char *);
 
-inline int
-sstack_transport_register(sstack_transport_type_t type,
-					sstack_transport_t *transport,
-					sstack_transport_ops_t ops)
-{
-	transport->transport_ops.client_init = ops.client_init;
-	transport->transport_ops.rx = ops.rx;
-	transport->transport_ops.tx = ops.tx;
-	transport->transport_ops.server_setup = ops.server_setup;
+extern inline int sstack_transport_register(sstack_transport_type_t ,
+				sstack_transport_t *, sstack_transport_ops_t );
 
-	return 0;
-}
+#endif // _SSTACK_TRANSPORT_TCP_H__

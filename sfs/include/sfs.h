@@ -20,6 +20,14 @@
 #ifndef __SFS_H_
 #define __SFS_H_
 
+#include <stdio.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/ioctl.h>
+#include <netinet/in.h>
+#include <net/if.h>
+#include <arpa/inet.h>
 #include <sys/param.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -38,7 +46,8 @@
 #define DEL_POLICY 4
 #define TYPENAME_MAX 256
 #define SFS_MAGIC 0x11101974
-#define CLI_PORT "24496"
+#define CLI_PORT "24497"
+#define SFS_SERVER_PORT 24496
 #define LISTEN_QUEUE_SIZE 128
 #define IPV6_ADDR_LEN 40
 // Form is <ipaddr>,<path>,<[r|rw]>,<weight>
@@ -120,6 +129,7 @@ rep(char *src, char slash)
 extern uint32_t sstack_checksum(log_ctx_t *, const char *);
 extern log_ctx_t *sfs_ctx;
 extern db_t *db;
+extern sstack_client_handle_t sfs_handle;
 
 /*
  * A simple structure that holds infomation on how to contact sfsd
@@ -139,5 +149,27 @@ typedef struct sfs_metadata {
 	sfsd_info_t *info;
 	// TBD
 } sfs_metadata_t;
+
+
+static inline char *
+get_local_ip(char *interface)
+{
+	int fd;
+	struct ifreq ifr;
+
+	fd = socket(AF_INET, SOCK_DGRAM, 0);
+
+	// IPv4 IP address 
+	// For IPv6 address, use AF_INET6
+	ifr.ifr_addr.sa_family = AF_INET;
+
+	strncpy(ifr.ifr_name, interface, IFNAMSIZ - 1);
+
+	ioctl(fd, SIOCGIFADDR, &ifr);
+
+	close(fd);
+
+	return inet_ntoa(((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr);
+}
 
 #endif // __SFS_H_

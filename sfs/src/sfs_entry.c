@@ -1247,6 +1247,15 @@ sfs_access(const char *path, int mode)
 	}
 }
 
+/*
+ * sfs_create - create(2) handler for sfs
+ *
+ * path - Full path of the file to be created
+ * mode - Mode of creation
+ * fi -  FUSE file handle
+ *
+ */
+
 int
 sfs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 {
