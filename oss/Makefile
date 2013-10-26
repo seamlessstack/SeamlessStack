@@ -31,6 +31,8 @@ CC = gcc
 CP = cp
 MKDIR = mkdir
 CD = cd
+SED = sed
+MV = mv
 
 all: $(CONFIGURE)
 	$(MAKE) -C $(JERASUREDIR)
@@ -48,6 +50,9 @@ all: $(CONFIGURE)
 
 $(CONFIGURE):
 	$(CD) $(MEMCACHEDDIR) && ./configure --prefix=$(OSS_INSTALL_DIR)
+	$(SED) 's/-pthread/-lpthread/g' $(MEMCACHEDDIR)/Makefile > \
+		$(MEMCACHEDDIR)/Makefile1
+	$(MV) $(MEMCACHEDDIR)/Makefile1 $(MEMCACHEDDIR)/Makefile
 	$(CD) $(OPENSSL_DIR) && ./config shared
 
 clean:
