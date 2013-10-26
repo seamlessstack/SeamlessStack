@@ -17,7 +17,7 @@
 #
 
 JERASUREDIR = jerasure_lib
-MEMCACHEDDIR = libmemcached-1.0.17
+MEMCACHEDDIR = libmemcached-1.0.8
 MONGOCDIR = mongo-c-driver
 LZ4DIR = lz4
 CONFIGURE = conf
@@ -51,11 +51,6 @@ all: $(CONFIGURE)
 
 $(CONFIGURE):
 	$(CD) $(MEMCACHEDDIR) && ./configure --prefix=$(OSS_INSTALL_DIR)
-	$(SED) 's/-pthread/-lpthread/g' $(MEMCACHEDDIR)/Makefile > \
-		$(MEMCACHEDDIR)/Makefile1
-	sync
-	$(MV) $(MEMCACHEDDIR)/Makefile1 $(MEMCACHEDDIR)/Makefile
-	sync
 	$(CD) $(OPENSSL_DIR) && ./config shared
 
 clean:
