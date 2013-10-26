@@ -33,9 +33,11 @@ MKDIR = mkdir
 CD = cd
 SED = sed
 MV = mv
+CP = cp
 
 all: $(CONFIGURE)
 	$(MAKE) -C $(JERASUREDIR)
+	$(CP) $(MEMCACHEDDIR)/Makefile1 $(MEMCACHEDDIR)/Makefile
 	$(MAKE) -C $(MEMCACHEDDIR)
 	$(MAKE) -C $(MEMCACHEDDIR) install
 	$(MAKE) -C $(MONGOCDIR)
@@ -52,7 +54,6 @@ $(CONFIGURE):
 	$(CD) $(MEMCACHEDDIR) && ./configure --prefix=$(OSS_INSTALL_DIR)
 	$(SED) 's/-pthread/-lpthread/g' $(MEMCACHEDDIR)/Makefile > \
 		$(MEMCACHEDDIR)/Makefile1
-	$(MV) $(MEMCACHEDDIR)/Makefile1 $(MEMCACHEDDIR)/Makefile
 	$(CD) $(OPENSSL_DIR) && ./config shared
 
 clean:
