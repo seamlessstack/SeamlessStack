@@ -38,6 +38,7 @@ CP = cp
 all: $(CONFIGURE)
 	$(MAKE) -C $(JERASUREDIR)
 	$(CP) $(MEMCACHEDDIR)/Makefile1 $(MEMCACHEDDIR)/Makefile
+	sync
 	$(MAKE) -C $(MEMCACHEDDIR)
 	$(MAKE) -C $(MEMCACHEDDIR) install
 	$(MAKE) -C $(MONGOCDIR)
