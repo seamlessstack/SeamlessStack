@@ -177,4 +177,36 @@ sfs_job_list_init(sfs_job_queue_t *job_list)
 	return 0;
 }
 
+/*
+ * sfs_enqueue_job - Enqueue new job in the queue
+ *
+ * priority - priority of the job
+ * job - a non-NULL job structure to be queued
+ *
+ * Returns 0 on success and -1 on failure.
+ */
+
+static inline int
+sfs_enqueue_job(int priority, sfs_job_queue_t *job_list, sfs_job_t *job)
+{
+	// Parameter validation
+	if (priority < HIGH_PRIORITY || priority > NUM_PRIORITY_MAX ||
+				NULL == job_list || NULL == job) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters specified \n",
+						__FUNCTION__);
+		errno = EINVAL;
+
+		return -1;
+	}
+	job_list += priority; // Move to the specified priority list
+	// Add to tail to maintain FIFO semantics
+	bds_list_add_tail((bds_list_head_t ) &job->wait_list,
+					(bds_list_head_t ) &job_list->list);
+
+	return 0;
+/*
+ * TODO
+ * Should sfs_dequeue_job take priority as argument?
+ */
+
 #endif // __SFS_JOB_H__
