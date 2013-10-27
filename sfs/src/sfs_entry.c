@@ -27,9 +27,10 @@
 #include <stdlib.h>
 #include <sfs.h>
 #include <sfs_entry.h>
+#include <sstack_md.h>
+#include <sfs_job.h>
 #include <sstack_helper.h>
 #include <sstack_cache_api.h>
-#include <sstack_md.h>
 
 #define MAX_KEY_LEN 128
 

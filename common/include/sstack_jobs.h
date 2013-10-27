@@ -20,6 +20,7 @@
 #ifndef __SSTACK_JOBS_H_
 #define __SSTACK_JOBS_H_
 
+#include <pthread.h>
 #include <sstack_types.h>
 #include <sstack_transport.h>
 #include <sstack_nfs.h>
@@ -27,37 +28,43 @@
 #include <sstack_log.h>
 #include <sstack_db.h>
 #include <sstack_thread_pool.h>
+#include <bds_types.h>
 #include <bds_slab.h>
+#include <bds_list.h>
 
 #define MAX_SFSD_CLIENTS 8 // Max clients per request
 #define IPV4_ADDR_MAX 16
 #define IPV6_ADDR_MAX 40
 #define MAX_QUEUE_SIZE 1024
 #define MAX_EXTENT_SIZE 65536 /* (64 * 1024 bytes) */
+#define SFS_JOB_VERSION 1
 
 /* Forward declaration */
 struct sfs_chunk_domain;
 typedef struct sfs_chunk_domain sfs_chunk_domain_t;
 
 typedef enum {
-	SFSD_HANDSHAKE	= 1,
-	SFSD_IO	= 2,
-	SFSD_MAX_TYPE = 2,
+	SFSD_JOB_INIT = -1,
+	SFSD_HANDSHAKE	= 0,
+	SFSD_IO	= 1,
+	SFSD_MAX_JOB_TYPE = 1,
 } sstack_job_type_t;
 
 typedef enum {
-	JOB_STARTED	= 1,
-	JOB_COMPLETE	= 2,
-	JOB_ABORTED	= 3,
-	JOB_FAILED	= 4,
-	MAX_JOB_STATUS = 4,
+	JOB_INIT = -1,
+	JOB_STARTED	= 0,
+	JOB_COMPLETE = 1,
+	JOB_ABORTED	= 2,
+	JOB_FAILED	= 3,
+	MAX_JOB_STATUS = 3,
 } sstack_job_status_t;
 
 typedef enum {
-	HIGH_PRIORITY = 1,
-	MEDIUM_PRIORITY = 2,
-	LOW_PRIORITY = 3,
-	NUM_PRIORITY_MAX,
+	INVALID_PRIORITY = -1,
+	HIGH_PRIORITY = 0,
+	MEDIUM_PRIORITY = 1,
+	LOW_PRIORITY = 2,
+	NUM_PRIORITY_MAX = 2,
 } sfs_prio_t;
 
 typedef struct sstack_payload_hdr {
@@ -95,7 +102,7 @@ typedef struct sfsd {
 	bds_cache_desc_t *caches;
 } sfsd_t;
 
-typedef struct job {
+typedef struct sfs_job {
 	int version;
 	sstack_job_type_t job_type;
 	sstack_job_id_t	id;
@@ -104,18 +111,21 @@ typedef struct job {
 	sstack_job_status_t job_status[MAX_SFSD_CLIENTS]; // Status of each client
 	int payload_len;
 	int priority; /* Priority of the job */
-	sstack_payload_t	payload[0];
-} job_t;
+	pthread_mutex_t wait_mutex;
+	pthread_cond_t wait_cond;
+	bds_int_list_t wait_list;
+	sstack_payload_t payload[0];
+} sfs_job_t;
 
 /*
  * Multiple jobs queues in SFS, one for each priority level
  * exists. Scheduler threads each per sfsds pick one payload
  * at a time and send of to one of the actual sfsd.
  */
-typedef struct job_queue {
+typedef struct sfs_job_queue {
 	int priority; /* Priority of job queue */
-	sstack_payload_t *payload[MAX_QUEUE_SIZE]; /* The array of payloads */
-} job_queue_t;
+	bds_int_list_t list;
+} sfs_job_queue_t;
 
 
 #endif // __SSTACK_JOBS_H_

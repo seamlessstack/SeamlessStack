@@ -17,15 +17,44 @@
  * from SeamlessStack Incorporated.
  */
 
+/*
+ * This implementation is taken from http://c-faq.com/misc/bitsets.html
+ */
+
 #ifndef __SSTACK_BITOPS_H__
 #define __SSTACK_BITOPS_H__
+#include <limits.h>
+#include <stdlib.h>
+#include <sstack_types.h>
+#include <sstack_log.h>
 
-// Needs to pickup a standard implementation
-// Placeholder for compilation
+#define BITMASK(b) (1 << ((b) % CHAR_BIT))
+#define BITSLOT(b) ((b) / CHAR_BIT)
+#define BITSET(a, b) ((a)[BITSLOT(b)] |= BITMASK(b))
+#define BITCLEAR(a, b) ((a)[BITSLOT(b)] &= ~BITMASK(b))
+#define BITTEST(a, b) ((a)[BITSLOT(b)] & BITMASK(b))
+#define BITNSLOTS(nb) ((nb + CHAR_BIT - 1) / CHAR_BIT)
 
-static inline void set_bit(uint8_t number , int position)
+/*
+ * sfs_init_bitmap - Allocate bitmap and set the bits to 0
+ *
+ * bitmap - unalloacted bitmap
+ * num_bits - Number of bits in bitmap. Rounded off to next nultiple of 8
+ * ctx - log ctx
+ *
+ * Returns 0 on success and -1 on memory allocation failure.
+ */
+static inline int
+sfs_init_bitmap(sstack_bitmap_t *bitmap, int num_bits, log_ctx_t *ctx)
 {
-   number = number |(1<<position);
+	bitmap = (sstack_bitmap_t *) calloc(BITNSLOTS(num_bits), 1);
+	if (NULL == bitmap) {
+		sfs_log(ctx, SFS_ERR, "%s: Failed to allocate memory for bitmap \n",
+						__FUNCTION__);
+		return -1;
+	}
+
+	return 0;
 }
 
 #endif // __SSTACK_BITOPS_H__
