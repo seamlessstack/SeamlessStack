@@ -23,6 +23,7 @@
 #include <stdint.h>
 #include <sstack_cache_api.h>
 
+extern unsigned long long max_inode_number;
 extern memcached_st *mc;
 
 // SFS FUSE entry points

@@ -33,6 +33,7 @@
 
 #define MAX_KEY_LEN 128
 
+unsigned long long max_inode_number = 18446744073709551615ULL; // 2^64 -1
 /*
  * NOTE:
  * Since these routines map to their POSIX counterparts, return values are
@@ -335,7 +336,7 @@ sfs_statfs(const char *path, struct statvfs *buf)
 	pthread_mutex_lock(&inode_mutex);
 	buf->f_files = active_inodes;
 	pthread_mutex_unlock(&inode_mutex);
-	buf->f_bfree = (unsigned int) (MAX_INODE_NUMBER - buf->f_files);
+	buf->f_bfree = (unsigned int) (max_inode_number - buf->f_files);
 	buf->f_favail = ((buf->f_bfree * 95) / 100); // 5% exclusive quota for root
 	buf->f_fsid = SFS_MAGIC; // ambiguous in man page
 	// TBD

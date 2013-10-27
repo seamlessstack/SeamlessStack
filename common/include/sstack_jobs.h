@@ -43,7 +43,7 @@ typedef enum {
 	SFSD_HANDSHAKE	= 1,
 	SFSD_IO	= 2,
 	SFSD_MAX_TYPE = 2,
-} sfsd_job_type_t;
+} sstack_job_type_t;
 
 typedef enum {
 	JOB_STARTED	= 1,
@@ -51,7 +51,7 @@ typedef enum {
 	JOB_ABORTED	= 3,
 	JOB_FAILED	= 4,
 	MAX_JOB_STATUS = 4,
-} sfsd_job_status_t;
+} sstack_job_status_t;
 
 typedef enum {
 	HIGH_PRIORITY = 1,
@@ -97,10 +97,11 @@ typedef struct sfsd {
 
 typedef struct job {
 	int version;
-	sfsd_job_type_t job_type;
+	sstack_job_type_t job_type;
+	sstack_job_id_t	id;
 	int num_clients; // Number of valid clients
 	sfsd_t sfsd_t[MAX_SFSD_CLIENTS];
-	sfsd_job_status_t job_status[MAX_SFSD_CLIENTS]; // Status of each client
+	sstack_job_status_t job_status[MAX_SFSD_CLIENTS]; // Status of each client
 	int payload_len;
 	int priority; /* Priority of the job */
 	sstack_payload_t	payload[0];
