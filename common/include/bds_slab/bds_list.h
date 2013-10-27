@@ -96,6 +96,7 @@ static inline void bds_list_del(bds_list_head_t entry)
 {
 	__bds_list_del(entry->prev, entry->next);
 }
+
 /* List iteration macros */
 
 /**
@@ -137,7 +138,7 @@ static inline void bds_list_del(bds_list_head_t entry)
              pos = list_entry(pos->member.next, typeof(*pos), member))
 
 /**
- * list_empty - tests whether a list is empty
+ * bds_list_empty - tests whether a list is empty
  * @head: the list to test.
  */
 static inline int list_empty(const bds_list_head_t head)

@@ -170,6 +170,7 @@ sfs_job_list_init(sfs_job_queue_t *job_list)
 	for (i = 0; i < NUM_PRIORITY_MAX; i++) {
 		temp->priority = priority;
 		INIT_LIST_HEAD((bds_list_head_t) &temp->list);
+		pthread_spin_init(&temp->lock, PTHREAD_PROCESS_PRIVATE);
 		priority ++;
 		job_list ++;
 	}
@@ -200,14 +201,72 @@ sfs_enqueue_job(int priority, sfs_job_queue_t *job_list, sfs_job_t *job)
 	}
 	job_list += priority; // Move to the specified priority list
 	// Add to tail to maintain FIFO semantics
+	pthread_spin_lock(&job_list->lock);
 	bds_list_add_tail((bds_list_head_t ) &job->wait_list,
 					(bds_list_head_t ) &job_list->list);
+	pthread_spin_unlock(&job_list->lock);
 
 	return 0;
 }
+
 /*
- * TODO
- * Should sfs_dequeue_job take priority as argument?
+ * sfs_dequeue_job - Remove the specified job from the job list
+ *
+ * priority - priority of the job. This is to minimize number of lists
+ *			  to look at
+ * job_list - global job list
+ * job - Job to be removed
+ *
+ * Returns 0 on success and -1 on failure.
  */
+
+static inline int
+sfs_dequeue_job(int priority, sfs_job_queue_t *job_list, sfs_job_t *job)
+{
+	bds_list_head_t head = NULL;
+	sfs_job_t *temp = NULL;
+	int found = -1;
+
+	// Parameter validation
+	if (priority < HIGH_PRIORITY ||  priority > NUM_PRIORITY_MAX ||
+					 NULL == job_list || NULL == job) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters specified \n",
+						__FUNCTION__);
+		errno = EINVAL;
+
+		return -1;
+	}
+	job_list += priority; // Move to the specified priority list
+	// Delete the job from job list
+	pthread_spin_lock(&job_list->lock);
+	if (list_empty((bds_list_head_t ) &job_list->list)) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Empty job list at priority %d . "
+						"This could indicate list corruption \n",
+						__FUNCTION__, priority);
+		pthread_spin_unlock(&job_list->lock);
+		return -1;
+	}
+	pthread_spin_unlock(&job_list->lock);
+	// Walk thorough the list and delete the element that matches
+	// the job id
+	head = (bds_list_head_t) &job_list->list;
+	pthread_spin_lock(&job_list->lock);
+	list_for_each_entry(temp, head, wait_list) {
+		if (temp->id == job->id) {
+			bds_list_del((bds_list_head_t) &temp->wait_list);
+			found = 1;
+			break;
+		}
+	}
+	pthread_spin_unlock(&job_list->lock);
+	if (found != 1) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Job not found in job list. "
+						"Possible job list corruption for priority %d \n",
+						__FUNCTION__, priority);
+		return -1;
+	}
+
+	return 0;
+}
 
 #endif // __SFS_JOB_H__

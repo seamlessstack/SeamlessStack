@@ -128,6 +128,7 @@ typedef struct sfs_job {
 typedef struct sfs_job_queue {
 	int priority; /* Priority of job queue */
 	bds_int_list_t list;
+	pthread_spinlock_t lock;
 } sfs_job_queue_t;
 
 
