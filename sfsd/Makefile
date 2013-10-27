@@ -25,6 +25,7 @@ CFLAGS += -I $(TOPDIR)/common/include/bds_slab
 CFLAGS += -I $(TOPDIR)/policy/include
 CFLAGS += -I ../oss/jerasure_lib
 CFLAGS += -I $(TOPDIR)/db/mongo/include
+CFLAGS += -I $(TOPDIR)/lib/serdes/include
 CFLAGS += -D_GNU_SOURCE -g
 CFLAGS += -Wall
 CFLAGS += -DMONGO_HAVE_STDINT
@@ -34,6 +35,7 @@ LIB = -lpthread
 LIB += -L$(TOPDIR)/common -lsstack_common
 LIB += -L$(OSS_LIBDIR) -ljerasure -lmongoc -lbson
 LIB += -L$(TOPDIR)/db/mongo -lmongo_db
+LIB += -L$(TOPDIR)/lib/serdes -lserdes
 
 SFSD_OBJS = src/main.o src/sfsd.o src/sfsd_signals.o src/sfsd_threads.o \
 	    src/sfsd_ops.o src/sfsd_transport.o src/sfsd_erasure.o \

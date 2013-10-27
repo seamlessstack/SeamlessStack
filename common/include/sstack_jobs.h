@@ -38,6 +38,7 @@
 #define MAX_QUEUE_SIZE 1024
 #define MAX_EXTENT_SIZE 65536 /* (64 * 1024 bytes) */
 #define SFS_JOB_VERSION 1
+#define MAX_OUTSTANDING_JOBS 2147483647 // 2^31 -1
 
 /* Forward declaration */
 struct sfs_chunk_domain;
@@ -70,6 +71,8 @@ typedef enum {
 typedef struct sstack_payload_hdr {
 	uint32_t sequence;
 	uint32_t payload_len;
+	sstack_job_id_t job_id;
+	int	priority;
 } sstack_payload_hdr_t;
 
 typedef struct sstack_payload {

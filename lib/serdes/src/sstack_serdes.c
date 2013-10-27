@@ -22,6 +22,7 @@
 #include <stdbool.h>
 #include <sys/errno.h>
 #include <sstack_serdes.h>
+#include <sstack_types.h>
 #include <jobs.pb-c.h>
 
 static uint32_t sequence = 1; // Sequence number for packets
@@ -145,7 +146,8 @@ int
 sstack_send_payload(sstack_client_handle_t handle,
 					sstack_payload_t * payload,
 					sstack_transport_t *transport,
-					log_ctx_t *ctx)
+					sstack_job_id_t job_id,
+					int priority, log_ctx_t *ctx)
 {
 
 	SstackPayloadT msg = SSTACK_PAYLOAD_T__INIT;
@@ -157,8 +159,18 @@ sstack_send_payload(sstack_client_handle_t handle,
 	size_t len = 0;
 	char *buffer = NULL;
 
+	// Parameter validation
+	if (handle == -1 || NULL == payload || NULL == transport ||
+					job_id < 0 || job_id >= MAX_OUTSTANDING_JOBS) {
+		sfs_log(ctx, SFS_ERR, "%s: Invalid paramaters specified \n",
+						__FUNCTION__);
+		return -EINVAL;
+	}
+
 	hdr.sequence = sequence++;
 	hdr.payload_len = 0; // Dummy . will be filled later
+	hdr.job_id = job_id;
+	hdr.priority = priority;
 	msg.hdr = &hdr;
 	switch (payload->command) {
 		case SSTACK_ADD_STORAGE:
@@ -1290,6 +1302,13 @@ sstack_recv_payload(sstack_client_handle_t handle,
 	sstack_payload_t *payload = NULL;
 	char temp_payload[sizeof(sstack_payload_t)]; // Max size of payload
 
+	// Parameter validation
+	if (handle == -1 || NULL == transport) {
+		sfs_log(ctx, SFS_ERR, "%s: Invalid paramaters specified \n",
+						__FUNCTION__);
+
+		return -EINVAL;
+	}
 
 	payload = (sstack_payload_t *) malloc(sizeof(sstack_payload_t));
 	if (NULL == payload) {
@@ -1314,6 +1333,8 @@ sstack_recv_payload(sstack_client_handle_t handle,
 	// Populate the payload structure with required fields
 	payload->hdr.sequence = msg->hdr->sequence;
 	payload->hdr.payload_len = msg->hdr->payload_len;
+	payload->hdr.job_id = msg->hdr->job_id;
+	payload->hdr.priority = msg->hdr->priority;
 	payload->command = msg->command;
 
 	switch(msg->command) {
@@ -1567,7 +1588,7 @@ sstack_recv_payload(sstack_client_handle_t handle,
 			payload->command_struct.remove_cmd.path_len =
 					msg->command_struct->remove_cmd->path_len;
 			path = msg->command_struct->remove_cmd->path;
-			strccpy((char *) &payload->command_struct.remove_cmd.path,
+			strcpy((char *) &payload->command_struct.remove_cmd.path,
 							(char *) &path.data);
 
 			return payload;

@@ -28,6 +28,7 @@ SERDES_LIB_NAME = libserdes.so
 SERDES_OBJECTS = src/sstack_serdes.o
 SERDES_OBJECTS += $(TOPDIR)/protobuf-template/proto/jobs.pb-c.o
 LDFLAGS = -shared -o
+LIBS = -lprotobuf-c
 CC = gcc
 RM = rm
 

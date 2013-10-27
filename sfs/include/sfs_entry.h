@@ -23,8 +23,6 @@
 #include <stdint.h>
 #include <sstack_cache_api.h>
 
-#define MAX_OUTSTANDING_JOBS 2147483647 // 2^31 -1
-
 extern unsigned long long max_inode_number;
 extern memcached_st *mc;
 

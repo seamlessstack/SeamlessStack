@@ -204,6 +204,7 @@ sfs_enqueue_job(int priority, sfs_job_queue_t *job_list, sfs_job_t *job)
 					(bds_list_head_t ) &job_list->list);
 
 	return 0;
+}
 /*
  * TODO
  * Should sfs_dequeue_job take priority as argument?
