@@ -31,7 +31,7 @@
 
 extern sstack_job_id_t  current_job_id; // Points to next job id to be returned
 extern pthread_mutex_t sfs_job_id_mutex;
-extern sstack_bitmap_t sstack_job_id_bitmap[];
+extern sstack_bitmap_t *sstack_job_id_bitmap;
 
 /*
  * get_next_job_id - Return next job id

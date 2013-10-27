@@ -25,6 +25,7 @@
 #include <attr/xattr.h>
 #include <string.h>
 #include <stdlib.h>
+#include <pthread.h>
 #include <sfs.h>
 #include <sfs_entry.h>
 #include <sstack_md.h>
@@ -35,6 +36,9 @@
 #define MAX_KEY_LEN 128
 
 unsigned long long max_inode_number = 18446744073709551615ULL; // 2^64 -1
+sstack_job_id_t curent_job_id = 0;
+pthread_mutex_t sfs_job_id_mutex;
+sstack_bitmap_t *sstack_job_id_bitmap = NULL;
 /*
  * NOTE:
  * Since these routines map to their POSIX counterparts, return values are
