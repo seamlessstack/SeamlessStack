@@ -49,12 +49,15 @@
 #include <sstack_bitops.h>
 #include <sstack_cache_api.h>
 #include <sstack_transport_tcp.h>
+#include <sstack_serdes.h>
 #include <policy.h>
 #include <sfs.h>
 #include <sfs_entry.h>
+#include <sfs_job.h>
 #include <mongo_db.h>
 /* Macros */
 #define MAX_INODE_LEN 40 // Maximum len of uint64_t is 39
+#define MAX_JOB_SUBMIT_RETRIES 10 // Maximum number of retries
 
 /* BSS */
 log_ctx_t *sfs_ctx = NULL;
@@ -69,6 +72,8 @@ unsigned long long inode_number = INODE_NUM_START;
 unsigned long long active_inodes = 0;
 sstack_client_handle_t sfs_handle = 0;
 sstack_thread_pool_t *sfs_thread_pool = NULL;
+sfs_job_queue_t *jobs = NULL;
+sstack_transport_t transport;
 
 
 /* Structure definitions */
@@ -503,6 +508,19 @@ handle_cli_requests(void * arg)
 }
 
 /*
+ * sfs_process_payload - Process received payload
+ *
+ * arg - payload structure
+ * 
+ */
+
+static void*
+sfs_process_payload(void *arg)
+{
+
+	return NULL;
+}
+/*
  * sfs_handle_connction - Thread function to listen to requests from sfsds
  *
  * arg - argument (not used)
@@ -513,6 +531,49 @@ handle_cli_requests(void * arg)
 static void *
 sfs_handle_connection(void * arg)
 {
+	int ret = -1;
+	uint32_t mask = READ_BLOCK_MASK;
+	sstack_payload_t *payload;
+	int num_retries = 0;
+
+	while (1) {
+		ret = transport.transport_ops.select(sfs_handle, mask);
+		if (ret != READ_NO_BLOCK) {
+			sfs_log(sfs_ctx, SFS_INFO, "%s: Connection down. Waiting for "
+							"retry \n", __FUNCTION__);
+			sleep(1);
+		}
+
+		// Receive a payload
+		payload = sstack_recv_payload(sfs_handle, &transport, sfs_ctx);
+		if (NULL == payload) {
+			sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to receive payload. "
+							"Error = %d\n", __FUNCTION__, errno);
+			continue;
+		}
+
+retry:
+		ret = sstack_thread_pool_queue(sfs_thread_pool, sfs_process_payload,
+						(void *)payload);
+		if (ret != 0) {
+			sfs_log(sfs_ctx, SFS_ERR, "%s: Queueing job failed. "
+							"Error = %d \n", __FUNCTION__, errno);
+			// Only ENOMEM is the possible errno
+			// Wait for sometime and retry back
+			sleep(2);
+			num_retries ++;
+			if (num_retries < MAX_JOB_SUBMIT_RETRIES)
+				goto retry;
+			else {
+				sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to submit job to thread "
+								"pool after %d retries. Quitting ...\n",
+								__FUNCTION__, num_retries);
+				return NULL;
+			}
+		}
+	}
+
+	// Ideally control should never reach here
 
 	return NULL;
 }
@@ -555,7 +616,6 @@ sfs_init(struct fuse_conn_info *conn)
 	int ret = -1;
 	int chunk_index = 0;
 	sstack_transport_ops_t ops;
-	sstack_transport_t transport;
 	sstack_transport_type_t type;
 	char *intf_addr = NULL;
 
@@ -628,6 +688,11 @@ sfs_init(struct fuse_conn_info *conn)
 		// Server socket creation failed.
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to create sfs socket. "
 					"Error = %d \n", __FUNCTION__, errno);
+		// cleanup	
+		db->db_ops.db_close(sfs_ctx);
+		pthread_kill(recv_thread, SIGKILL);
+		sstack_transport_deregister(type, &transport);
+
 		return NULL;
 	}
 
@@ -637,8 +702,26 @@ sfs_init(struct fuse_conn_info *conn)
 		// Exit out as we can't handle requests anyway
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to create thread pool. "
 						"Exiting ...\n", __FUNCTION__);
+		db->db_ops.db_close(sfs_ctx);
+		pthread_kill(recv_thread, SIGKILL);
+		sstack_transport_deregister(type, &transport);
+
 		return NULL;
 	}
+
+	// Initialize job queues
+	ret = sfs_job_list_init(jobs);
+	if (ret == -1) {
+		// Job list creation failed
+		// No point in continuing
+		db->db_ops.db_close(sfs_ctx);
+		pthread_kill(recv_thread, SIGKILL);
+		sstack_transport_deregister(type, &transport);
+		sstack_thread_pool_destroy(sfs_thread_pool);
+
+		return NULL;
+	}
+
 
 	// Populate the INODE collection of the DB with all the files found
 	// in chunks added so far

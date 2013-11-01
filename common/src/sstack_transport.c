@@ -40,3 +40,15 @@ sstack_transport_register(sstack_transport_type_t type,
 
 	return 0;
 }
+
+inline int
+sstack_transport_deregister(sstack_transport_type_t type,
+						sstack_transport_t *transport)
+{
+	transport->transport_ops.client_init = NULL;
+	transport->transport_ops.rx = NULL;
+	transport->transport_ops.tx = NULL;
+	transport->transport_ops.server_setup = NULL;
+
+	return 0;
+}

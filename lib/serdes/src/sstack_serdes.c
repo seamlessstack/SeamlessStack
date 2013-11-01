@@ -1307,7 +1307,8 @@ sstack_recv_payload(sstack_client_handle_t handle,
 		sfs_log(ctx, SFS_ERR, "%s: Invalid paramaters specified \n",
 						__FUNCTION__);
 
-		return -EINVAL;
+		errno = EINVAL;
+		return NULL;
 	}
 
 	payload = (sstack_payload_t *) malloc(sizeof(sstack_payload_t));
@@ -1315,6 +1316,7 @@ sstack_recv_payload(sstack_client_handle_t handle,
 		sfs_log(ctx, SFS_ERR, "%s: Failed to allocate memory for receiving"
 			" payload. Client handle = %"PRId64" \n",
 			__FUNCTION__, handle);
+
 		return NULL;
 	}
 
@@ -1326,6 +1328,7 @@ sstack_recv_payload(sstack_client_handle_t handle,
 		sfs_log(ctx, SFS_ERR, "%s: Recv failed for payload. "
 			"Client handle = %"PRId64" \n",
 			__FUNCTION__, handle);
+
 		return NULL;
 	}
 	// Parse temp_payload and populate payload
@@ -1628,8 +1631,8 @@ sstack_recv_payload(sstack_client_handle_t handle,
 			payload->response_struct.readlink_resp.real_file.name_len =
 				msg->response_struct->readlink_resp->real_file->name_len;
 			name = msg->response_struct->readlink_resp->real_file->name;
-			memcpy((void *) payload->response_struct.readlink_resp.real_file.name,
-				(void *) name.data, name.len);
+			memcpy((void *) payload->response_struct.readlink_resp.
+				real_file.name, (void *) name.data, name.len);
 			return payload;
 		}
 		case NFS_READ_RSP: {

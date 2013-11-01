@@ -32,5 +32,7 @@ extern sstack_transport_t *get_tcp_transport(char *);
 
 extern inline int sstack_transport_register(sstack_transport_type_t ,
 				sstack_transport_t *, sstack_transport_ops_t );
+extern inline int sstack_transport_deregister(sstack_transport_type_t ,
+				sstack_transport_t *);
 
 #endif // _SSTACK_TRANSPORT_TCP_H__
