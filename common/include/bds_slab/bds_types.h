@@ -21,8 +21,12 @@
 #ifndef _BDS_TYPES_H_
 #define _BDS_TYPES_H_
 
+#include <stddef.h>
+
+#if 0
 #define offsetof(TYPE,MEMBER)	\
 	((intptr_t)&(((TYPE*) 0)->MEMBER))
+#endif
 
 #define container_of(ptr,TYPE,MEMBER) 	\
 	((TYPE*)((intptr_t)(ptr) - offsetof(TYPE,MEMBER)))

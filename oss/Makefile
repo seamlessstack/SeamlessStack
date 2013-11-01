@@ -17,7 +17,7 @@
 #
 
 JERASUREDIR = jerasure_lib
-MEMCACHEDDIR = libmemcached-1.0.17
+MEMCACHEDDIR = libmemcached-1.0.8
 MONGOCDIR = mongo-c-driver
 LZ4DIR = lz4
 CONFIGURE = conf
@@ -25,11 +25,15 @@ OSS_DIR = $(PWD)
 OSS_INSTALL_DIR = $(OSS_DIR)/oss_install
 OSS_LIBSDIR = $(OSS_INSTALL_DIR)/lib
 OPENSSL_DIR = openssl-1.0.1c
+RBTREE_DIR = rbtree
 RM = rm
 CC = gcc
 CP = cp
 MKDIR = mkdir
 CD = cd
+SED = sed
+MV = mv
+CP = cp
 
 all: $(CONFIGURE)
 	$(MAKE) -C $(JERASUREDIR)
@@ -42,6 +46,8 @@ all: $(CONFIGURE)
 	$(CP) $(LZ4DIR)/*.so $(OSS_LIBSDIR)
 	$(MAKE) -C $(OPENSSL_DIR)
 	$(CP) $(OPENSSL_DIR)/*.so $(OSS_LIBSDIR)
+	$(MAKE) -C $(RBTREE_DIR)
+	$(CP) $(RBTREE_DIR)/*.so $(OSS_LIBSDIR)
 
 $(CONFIGURE):
 	$(CD) $(MEMCACHEDDIR) && ./configure --prefix=$(OSS_INSTALL_DIR)
@@ -53,3 +59,4 @@ clean:
 	$(MAKE) -C $(MONGOCDIR) clean
 	$(MAKE) -C $(LZ4DIR) clean
 	$(MAKE) -C $(OPENSSL_DIR) clean
+	$(MAKE) -C $(RBTREE_DIR) clean

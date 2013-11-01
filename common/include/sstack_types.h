@@ -24,6 +24,8 @@
 #define IPV4_ADDR_MAX 16
 #define IPV6_ADDR_MAX 40
 typedef uint64_t sstack_client_handle_t;
+typedef uint64_t sstack_job_id_t;
+typedef uint8_t sstack_bitmap_t;
 
 /* Supported Protocols */
 typedef enum {

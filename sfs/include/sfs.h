@@ -20,6 +20,14 @@
 #ifndef __SFS_H_
 #define __SFS_H_
 
+#include <stdio.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/ioctl.h>
+#include <netinet/in.h>
+#include <net/if.h>
+#include <arpa/inet.h>
 #include <sys/param.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -28,6 +36,7 @@
 #include <sstack_db.h>
 #include <sstack_types.h>
 #include <sstack_transport.h>
+#include <sstack_thread_pool.h>
 #define ROOT_SEP ":"
 #define MINIMUM_WEIGHT 0
 #define DEFAULT_WEIGHT 5
@@ -38,12 +47,16 @@
 #define DEL_POLICY 4
 #define TYPENAME_MAX 256
 #define SFS_MAGIC 0x11101974
-#define CLI_PORT "24496"
+#define CLI_PORT "24497"
+#define SFS_SERVER_PORT 24496
 #define LISTEN_QUEUE_SIZE 128
 #define IPV6_ADDR_LEN 40
+#define IPV4_ADDR_LEN 40
 // Form is <ipaddr>,<path>,<[r|rw]>,<weight>
 #define BRANCH_MAX (IPV6_ADDR_LEN + 1 + PATH_MAX + 1 + 2 + 1 + 6)
 #define SFS_MAGIC 0x11101974 // A unique number to differentiate FS
+#define IPv4 1
+#define IPv6 0
 
 typedef enum {
 	KEY_BRANCHES,
@@ -120,6 +133,8 @@ rep(char *src, char slash)
 extern uint32_t sstack_checksum(log_ctx_t *, const char *);
 extern log_ctx_t *sfs_ctx;
 extern db_t *db;
+extern sstack_client_handle_t sfs_handle;
+extern sstack_thread_pool_t *sfs_thread_pool;
 
 /*
  * A simple structure that holds infomation on how to contact sfsd
@@ -139,5 +154,70 @@ typedef struct sfs_metadata {
 	sfsd_info_t *info;
 	// TBD
 } sfs_metadata_t;
+
+
+/*
+ * get_local_ip - Return IP address of the interface specified.
+ *
+ * interface - string representing the interface. Should be non-NULL
+ * intf_addr - Return paramater. Can be NULL.
+ * type -  1 for IPv4 and 0 for IPv6
+ *
+ * Returns 0 on success. Returns -1 on error.
+ */
+
+static inline int
+get_local_ip(char *interface, char *intf_addr, int type)
+{
+	int fd;
+	struct ifreq ifr;
+	int family = -1;
+	int len = 0;
+
+	// Parameter validation
+	if (NULL == interface || type < 0 || type > IPv4) {
+		// Invalid parameters
+		errno = EINVAL;
+
+		return -1;
+	}
+
+
+	if (type == IPv6) {
+		len = IPV6_ADDR_LEN;
+		family = AF_INET6;
+	} else {
+		len = IPV4_ADDR_LEN; 
+		family = AF_INET;
+	}
+	intf_addr = (char *) malloc(len);
+	if (NULL == intf_addr) {
+		return -1;
+	}
+
+	fd = socket(family, SOCK_DGRAM, 0);
+	if (fd == -1) {
+		// Socket creation failed
+		return -1;
+	}
+	// IPv4 IP address 
+	// For IPv6 address, use AF_INET6
+	ifr.ifr_addr.sa_family = family;
+	strncpy(ifr.ifr_name, interface, IFNAMSIZ - 1);
+	ioctl(fd, SIOCGIFADDR, &ifr);
+	close(fd);
+
+	if (type == IPv4) {
+		strncpy(intf_addr,
+				inet_ntoa(((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr),
+				IPV4_ADDR_LEN); 
+	} else {
+		inet_ntop(family,
+				(void *) &((struct sockaddr_in6 *) &ifr.ifr_addr)->sin6_addr,
+				intf_addr, IPV6_ADDR_LEN);
+	}
+
+	return 0;
+}
 
 #endif // __SFS_H_

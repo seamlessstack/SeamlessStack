@@ -24,6 +24,8 @@
 #include <sstack_jobs.h>
 #include <sfsd_ops.h>
 #include <sstack_md.h>
+#include <sstack_types.h>
+#include <sstack_serdes.h>
 
 /* ===================== PRIVATE DECLARATIONS ============================ */
 
@@ -114,7 +116,24 @@ static sstack_payload_t* get_payload(sstack_transport_t *transport,
 int32_t send_payload(sstack_transport_t *transport,
 		sstack_client_handle_t handle, sstack_payload_t *payload)
 {
-	return 0;
+	int ret = -1;
+	sstack_job_id_t job_id = 0;
+	int priority = -1;
+
+	// Parameter validation
+	if (NULL == transport || handle == -1 || NULL == payload) {
+		// Failure
+		// Handle failure
+		return -1;
+	}
+	job_id = payload->hdr.job_id;
+	priority = payload->hdr.priority;
+
+	// TODO
+	// Get log_ctx. Needed for paramter validaion
+	ret = sstack_send_payload(handle, payload, transport, job_id, priority,
+					NULL);
+	return ret;
 }
 
 static void* do_process_payload(void *param)

@@ -28,7 +28,7 @@
  * already registered.
  */
 
-static inline int
+inline int
 sstack_transport_register(sstack_transport_type_t type,
 					sstack_transport_t *transport,
 					sstack_transport_ops_t ops)

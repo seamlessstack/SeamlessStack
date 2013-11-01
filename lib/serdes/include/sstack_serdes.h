@@ -23,6 +23,7 @@
 #include <stdint.h>
 #include <sstack_jobs.h>
 #include <sstack_transport.h>
+#include <sstack_types.h>
 
 /*
  * sstack_send_payload - Function that serializes payload and sends
@@ -31,7 +32,7 @@
 
 extern int sstack_send_payload(sstack_client_handle_t handle,
 				sstack_payload_t *payload, sstack_transport_t *transport,
-				log_ctx_t *ctx);
+				sstack_job_id_t job_id, int priority, log_ctx_t *ctx);
 
 /*
  * sstack_recv_payload - Function that receives a payload from transport
@@ -42,4 +43,3 @@ extern sstack_payload_t * sstack_recv_payload(sstack_client_handle_t handle,
 				sstack_transport_t *transport, log_ctx_t *ctx);
 
 #endif // __SSTACK_SERDES_H_	
-

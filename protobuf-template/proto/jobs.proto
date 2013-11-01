@@ -254,6 +254,8 @@ message sstack_payload_hdr_t
 {
 	required uint32 sequence = 1;
 	required uint32 payload_len = 2;
+	required int32	job_id = 3;
+	required int32	priority = 4;
 }
 
 message sstack_address_t

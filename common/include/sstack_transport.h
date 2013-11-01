@@ -23,7 +23,7 @@
 #include <sstack_log.h>
 #include <sstack_types.h>
 
-#define SSTACK_BACKLOG 5
+#define SSTACK_BACKLOG 1024
 
 #define READ_BLOCK_MASK	1
 #define WRITE_BLOCK_MASK 2
