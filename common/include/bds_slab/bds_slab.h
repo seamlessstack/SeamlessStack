@@ -1,11 +1,11 @@
-/* 
- * SLAB based allocator for BDS library. 
- * For more information please please visit 
+/*
+ * SLAB based allocator for BDS library.
+ * For more information please please visit
  * blueds.shubhalok.com
  * ----------------------
  * Copyright 2011 Shubhro Sinha
  * Author : Shubhro Sinha <shubhro@shubhalok.com>
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; Version 2 of the License.
@@ -26,6 +26,7 @@
 #include <pthread.h>
 #include "bds_types.h"
 #include "bds_sys.h"
+#include "bds_atomic.h"
 
 #define BDS_CACHE_NAME_MAX	32
 #define	CFS_CONFIG_OFF_SLAB	0x00000001;
@@ -46,55 +47,67 @@ typedef pthread_spinlock_t bds_spinlock_t;
 #define bds_spin_init(lock) pthread_spin_init(lock,0)
 #define bds_spin_lock(lock) pthread_spin_lock(lock)
 #define bds_spin_unlock(lock) pthread_spin_unlock(lock)
+typedef pthread_rwlock_t bds_rwlock_t;
+#define bds_rwlock_init(lock) pthread_rwlock_init(lock, NULL);
+#define bds_rwlock_wrlock(lock) pthread_rwlock_wrlock(lock);
+#define bds_rwlock_rdlock(lock) pthread_rwlock_rdlock(lock);
+#define bds_rwlock_unlock(lock) pthread_rwlock_unlock(lock);
 struct _array_cache_desc {
-	bds_int		available;	/* Number of object available */
-	bds_int		limit;		/* Limit*/
-	bds_int		batchcount;	/* Number of object to be allocated in one batch */
+	bds_int	available;	/* Number of object available */
+	bds_int	limit;		/* Limit*/
+	bds_int	batchcount;	/* Number of object to be allocated in one batch */
 	int_fast16_t	touched;	/* Indicates whether the cache is used or not */
 	bds_spinlock_t	lock;		/* Lock */
 	void		*entry[]; 	/* The LIFO array of objects */
-}; 
+};
 
 typedef struct _array_cache_desc array_cache_desc;
 
 struct _slab_list {
 	/* The slab lists. */
 	bds_int_list_t	slabs_partial, slabs_full, slabs_free;
-	/* Number of free object in the slab; Limit of free objects available in slab */
-	bds_int	free_objects, free_limit;	
+	/* Number of free object in the slab;
+	   Limit of free objects available in slab */
+	bds_int	free_objects, free_limit;
 	bds_int	colour_next;	/* The next colour to be allocated */
-	bds_mutex_t list_lock;
-	
+	bds_mutex_t partial_list_lock, full_list_lock, free_list_lock;
+
 };
 
 typedef	struct _slab_list bds_slab_list;
 
 struct _cache_desc {
-	/* Cache tunables; Same as values in array_cache_desc. Protected by cache_chain_lock */
-	bds_int	batchcount,limit,shared;	
+	/* Cache tunables;
+	   Same as values in array_cache_desc. Protected by cache_chain_lock */
+	bds_int	batchcount,limit,shared;
 
-	bds_int	flags;				/* Cache static and dynamic flags*/
-	bds_uint num;				/* Number of objects per slab */
-	bds_sint colour;			/* Cache colouring range */
-	bds_sint colour_offset;			/* Cache colouring offset */
-	bds_sint colour_next;			/* Next available colour */
-	bds_int page_order;			/* Size of cache in order of pages */	
-	bds_int_list_t	next;			/* Next cache in the cache chain */
-	bds_int slab_size;			/* Size of each slab */
-	bds_int	mgmt_size;			/* Size of the management data */
-	size_t	buffer_size;			/* Size of each object */
-	bds_uint slab_magic;			/* SLAB magic for the current slab */
-	bds_spinlock_t cache_lock;		/* Lock for cache desc structure */
+	bds_int  flags; /* Cache static and dynamic flags*/
+	bds_uint num;   /* Number of objects per slab */
+	bds_sint colour;/* Cache colouring range */
+	bds_sint colour_offset;/* Cache colouring offset */
+	bds_sint colour_next; /* Next available colour */
+	bds_int page_order; /* Size of cache in order of pages */
+	bds_int_list_t	next; /* Next cache in the cache chain */
+	bds_int slab_size;  /* Size of each slab */
+	bds_int mgmt_size;  /* Size of the management data */
+	size_t	buffer_size;  /* Size of each object */
+	bds_uint slab_magic;  /* SLAB magic for the current slab */
+	bds_spinlock_t cache_lock;  /* Lock for cache desc structure */
+	atomic_t refcount;    /* The reference count */
+	atomic_t free_slab_count, total_slab_count;
+	bds_uint linger; /* Minimum number of free slabs to be present in the cache */
 
 	/* Pointer to the constructor and desctructor function : Can be NULL */
-	void (*ctor)(void *obj);			
-	void (*dtor)(void *obj);		
-	char	name[BDS_CACHE_NAME_MAX];	/* Name of the cache */
-	
-	/* Offset where the first object starts; size of each object in the cache */
-	bds_int	obj_offset, obj_size;		
+	void (*ctor)(void *obj);
+	void (*dtor)(void *obj);
+	char	name[BDS_CACHE_NAME_MAX]; /* Name of the cache */
+
+	/* Offset where the first object
+	   starts; size of each object in the cache */
+	bds_int obj_offset, obj_size;
 	bds_slab_list slab_list;
-	/* Per CPU list of available objects. Number of rows = Number of CPUs in the system 
+	/* Per CPU list of available objects.
+	   Number of rows = Number of CPUs in the system
 	 * Determined at run time*/
 #ifdef BDS_CONFIG_SMP
 	array_cache_desc *array_cache[0];
@@ -107,21 +120,23 @@ typedef struct _cache_desc* bds_cache_desc_t;
 struct _slab_desc {
 	bds_uint slab_magic;		/* Slab magic */
 	bds_int_list_t	next;		/* The next slab in the list */
-	bds_int	colour_offset;		/* Offset to the first object */
+	bds_int colour_offset;		/* Offset to the first object */
 	void* s_mem;			/* Pointer to the slab memory */
-	bds_int	free;			/* Pointer to the first free object in the slab */
-	bds_cache_desc_t parent_cache;	/* Pointer to the cache desc to which this slab belongs to */
-	bds_int	in_use;			/* The number of active objects in the slab */
-	bds_spinlock_t slab_lock;
+	bds_int free;	/* Pointer to the first free object in the slab */
+	bds_cache_desc_t parent_cache;	/* Pointer to the cache
+					   desc to which this slab belongs to */
+	atomic_t refcount;  /* The number of active objects in the slab */
+	bds_mutex_t slab_lock;
 };
 
 typedef struct _slab_desc* bds_slab_desc_t;
 
 /* Function declarations for the SLAB allocator */
-bds_status_t bds_cache_create (const char *name, size_t size, 
-		bds_int flags, void (*ctor)(void*), 
-		void (*dtor)(void *), bds_cache_desc_t *cache_pp);
-void bds_cache_destroy (bds_cache_desc_t cache_p);
+bds_status_t bds_cache_create (const char *name, size_t size,
+		bds_int flags, void (*ctor)(void*),
+			       void (*dtor)(void *),
+			       bds_cache_desc_t *cache_pp);
+void bds_cache_destroy (bds_cache_desc_t cache_p, bds_int force);
 void bds_cache_shrink (bds_cache_desc_t cache_p);
 void* bds_alloc (size_t size);
 void bds_free (void *ptr);
