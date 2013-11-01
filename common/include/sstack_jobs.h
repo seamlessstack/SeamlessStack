@@ -110,7 +110,7 @@ typedef struct sfs_job {
 	sstack_job_type_t job_type;
 	sstack_job_id_t	id;
 	int num_clients; // Number of valid clients
-	sfsd_t sfsd_t[MAX_SFSD_CLIENTS];
+	sfsd_t sfsds[MAX_SFSD_CLIENTS];
 	sstack_job_status_t job_status[MAX_SFSD_CLIENTS]; // Status of each client
 	int payload_len;
 	int priority; /* Priority of the job */

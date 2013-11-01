@@ -191,6 +191,8 @@ static inline int
 sfs_enqueue_job(int priority, sfs_job_queue_t *job_list, sfs_job_t *job)
 {
 	// Parameter validation
+	// Though the caller checks the params, this is done to catch stack
+	// corruption issues. Can be thrown out later
 	if (priority < HIGH_PRIORITY || priority > NUM_PRIORITY_MAX ||
 				NULL == job_list || NULL == job) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters specified \n",
@@ -268,5 +270,8 @@ sfs_dequeue_job(int priority, sfs_job_queue_t *job_list, sfs_job_t *job)
 
 	return 0;
 }
+
+extern int sfs_submit_job(int , sfs_job_queue_t *, sfs_job_t *);
+
 
 #endif // __SFS_JOB_H__

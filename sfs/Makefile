@@ -35,7 +35,7 @@ LIB += -L$(TOPDIR)/common -lsstack_common
 LIB += -L$(TOPDIR)/oss_install/lib -lmemcached
 LIB += -L$(TOPDIR)/lib/serdes -lserdes
 
-SFS_OBJS = src/sfs.o src/sfs_entry.o
+SFS_OBJS = src/sfs.o src/sfs_entry.o src/sfs_job.o
 
 all:: sfs
 
