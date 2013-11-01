@@ -33,6 +33,8 @@ VALIDATE_DIR= $(PWD)/lib/validate
 MKDIR = mkdir
 PROTOC = protoc-c
 LN = ln -s
+CSCOPE = cscope
+CTAGS = ctags
 
 all:
 	$(MKDIR) -p $(OSS_INSTALL_DIR)
@@ -56,6 +58,12 @@ all:
 	$(MAKE) -C $(SFSDDIR)
 	$(MAKE) -C $(SFSDIR)
 
+cscope:
+	$(CSCOPE) -bR
+
+ctags:
+	$(CTAGS) -R
+
 clean:
 	$(MAKE) -C $(OSS) clean
 	$(MAKE) -C $(MONGODIR) clean
@@ -72,3 +80,5 @@ clean:
 	$(RM) -rf $(OSS_INSTALL_DIR)
 	$(RM) -f $(PROTOBUF_DIR)/jobs.pb-c.h  $(PROTOBUF_DIR)/jobs.pb-c.c
 	$(RM) -f $(PROTOBUF_DIR)/cli.pb-c.h  $(PROTOBUF_DIR)/cli.pb-c.c
+	$(RM) -f cscope.out
+	$(RM) -f tags
