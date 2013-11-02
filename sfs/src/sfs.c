@@ -58,6 +58,10 @@
 /* Macros */
 #define MAX_INODE_LEN 40 // Maximum len of uint64_t is 39
 #define MAX_JOB_SUBMIT_RETRIES 10 // Maximum number of retries
+#define MAX_HIGH_PRIO 64
+#define MAX_MEDIUM_PRIO 16
+#define MAX_LOW_PRIO 4
+#define SFS_JOB_SLEEP 5
 
 /* BSS */
 log_ctx_t *sfs_ctx = NULL;
@@ -524,9 +528,114 @@ sfs_process_payload(void *arg)
 	return NULL;
 }
 
+/*
+ * sfs_dispatcher - Job dispatcher thread
+ *
+ * arg - job queue list
+ * Reads the job queue and processes the requests
+ * Sends the IOs in following order in every loop iteration:
+ * Process MAX_HIGH_PRIO jobs first
+ * Process MAX_MEDIUM_PRIO jobs next
+ * Process MAX_LOW_PRIO jobs last
+ * These constants are chosen to honour QoS setting per file
+ */
 static void *
 sfs_dispatcher(void * arg)
 {
+	sfs_job_queue_t *job_list = (sfs_job_queue_t *) arg;
+	bds_list_head_t temp = NULL;
+
+	// Parameter validation
+	if (NULL == arg) {
+		// This is to catch BSS corruption only.
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters specified \n",
+						__FUNCTION__);
+		errno = EINVAL;
+		return NULL;
+	}
+
+	while(1) {
+		int i = 0;
+		sfs_job_t *job = NULL;
+		int j = 0;
+		sfsd_t *sfsd = NULL;
+		int ret = -1;
+
+		// TODO
+		// The following can be converted to a macro
+
+		// Process hi priority queue
+		temp = &job_list->list;
+		list_for_each_entry(job, temp, wait_list) {
+			if (i == MAX_HIGH_PRIO)
+				break;
+			// Detach the job
+			bds_list_del((bds_list_head_t) &job->wait_list);
+			// process the job
+			for (j = 0; j < job->num_clients; j++) {
+				sfsd = (sfsd_t *) &job->sfsds[j];
+				ret = sstack_send_payload(sfsd->handle, job->payload,
+							sfsd->transport, job->id, job, HIGH_PRIORITY,
+							sfs_ctx);
+				if (ret != 0) {
+					// TBD
+					// Handle failure
+				}
+			}
+			i++;
+			// TODO
+			// Add to the pending queue list
+		}
+
+		// Process medium priority queue
+		i = 0;	
+		temp ++;
+		list_for_each_entry(job, temp, wait_list) {
+			if (i == MAX_MEDIUM_PRIO)
+				break;
+			// Detach the job
+			bds_list_del((bds_list_head_t) &job->wait_list);
+			// process the job
+			for (j = 0; j < job->num_clients; j++) {
+				sfsd = (sfsd_t *) &job->sfsds[j];
+				ret = sstack_send_payload(sfsd->handle, job->payload,
+							sfsd->transport, job->id, job, MEDIUM_PRIORITY,
+							sfs_ctx);
+				if (ret != 0) {
+					// TBD
+					// Handle failure
+				}
+			}
+			i++;
+			// TODO
+			// Add to the pending queue list
+		}
+		// Process low priority queue
+		i = 0;	
+		temp ++;
+		list_for_each_entry(job, temp, wait_list) {
+			if (i == MAX_LOW_PRIO)
+				break;
+			// Detach the job
+			bds_list_del((bds_list_head_t) &job->wait_list);
+			// process the job
+			for (j = 0; j < job->num_clients; j++) {
+				sfsd = (sfsd_t *) &job->sfsds[j];
+				ret = sstack_send_payload(sfsd->handle, job->payload,
+							sfsd->transport, job->id, job, LOW_PRIORITY,
+							sfs_ctx);
+				if (ret != 0) {
+					// TBD
+					// Handle failure
+				}
+			}
+			i++;
+			// TODO
+			// Add to the pending queue list
+		}
+
+		sleep(SFS_JOB_SLEEP); // Yield
+	}
 
 	return NULL;
 }
@@ -668,7 +777,7 @@ sfs_init(struct fuse_conn_info *conn)
 		pthread_attr_setstacksize(&dispatcher_attr, 131072); // 128KiB
 		pthread_attr_setdetachstate(&dispatcher_attr, PTHREAD_CREATE_DETACHED);
 		ret = pthread_create(&dispatcher_thread, &dispatcher_attr,
-						sfs_dispatcher, NULL);
+						sfs_dispatcher, (void *) jobs);
 	}
 	ASSERT((ret == 0),"Unable to create job dispatcher thread", 0, 0, 0);
 
