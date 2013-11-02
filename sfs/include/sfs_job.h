@@ -153,8 +153,8 @@ sfs_job_init(void)
 static inline int
 sfs_job_list_init(sfs_job_queue_t *job_list)
 {
-	int priority = HIGH_PRIORITY;
 	int i;
+	int priority = HIGH_PRIORITY;
 	sfs_job_queue_t *temp = NULL;
 
 	job_list = (sfs_job_queue_t *) malloc(sizeof(sfs_job_queue_t) *
@@ -172,11 +172,46 @@ sfs_job_list_init(sfs_job_queue_t *job_list)
 		INIT_LIST_HEAD((bds_list_head_t) &temp->list);
 		pthread_spin_init(&temp->lock, PTHREAD_PROCESS_PRIVATE);
 		priority ++;
-		job_list ++;
+		temp ++;
 	}
 
 	return 0;
 }
+
+/*
+ * sfs_job_list_destroy - Destroy global job queue list
+ */
+
+static inline int
+sfs_job_queue_destroy(sfs_job_queue_t *job_list)
+{
+	int i = 0;
+	sfs_job_queue_t *temp = NULL;
+
+	// Parameter validation
+	if (NULL == job_list) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters specified \n",
+						__FUNCTION__);
+		return -1;
+	}
+
+	temp = job_list;
+	for (i = 0; i < NUM_PRIORITY_MAX; i++) {
+		temp->priority = -1;
+		// TODO
+		// Free all the entries in the list here.
+		INIT_LIST_HEAD((bds_list_head_t) &temp->list);
+		pthread_spin_destroy(&temp->lock);
+		temp ++;
+	}
+
+	free(job_list);
+	job_list = NULL;
+
+	return 0;
+}
+
+	
 
 /*
  * sfs_enqueue_job - Enqueue new job in the queue

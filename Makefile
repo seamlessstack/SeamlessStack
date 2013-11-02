@@ -35,6 +35,7 @@ PROTOC = protoc-c
 LN = ln -s
 CSCOPE = cscope
 CTAGS = ctags
+RM = rm
 
 all:
 	$(MKDIR) -p $(OSS_INSTALL_DIR)
@@ -59,9 +60,11 @@ all:
 	$(MAKE) -C $(SFSDIR)
 
 cscope:
+	$(RM) -f cscope.out
 	$(CSCOPE) -bR
 
 ctags:
+	$(RM) -f tags
 	$(CTAGS) -R
 
 clean:

@@ -76,8 +76,13 @@ unsigned long long inode_number = INODE_NUM_START;
 unsigned long long active_inodes = 0;
 sstack_client_handle_t sfs_handle = 0;
 sstack_thread_pool_t *sfs_thread_pool = NULL;
-sfs_job_queue_t *jobs = NULL;
 sstack_transport_t transport;
+/*
+ * jobs is the job list of unsubmitted (to sfsd) jobs
+ * pending_jobs is the list of jobs waiting for completion
+ */
+sfs_job_queue_t *jobs = NULL;
+sfs_job_queue_t *pending_jobs = NULL;
 
 
 /* Structure definitions */
@@ -531,7 +536,7 @@ sfs_process_payload(void *arg)
 /*
  * sfs_dispatcher - Job dispatcher thread
  *
- * arg - job queue list
+ * arg - job queue list which contains unsubmitted jobs
  * Reads the job queue and processes the requests
  * Sends the IOs in following order in every loop iteration:
  * Process MAX_HIGH_PRIO jobs first
@@ -581,10 +586,15 @@ sfs_dispatcher(void * arg)
 					// TBD
 					// Handle failure
 				}
+				job->job_status[j] = JOB_STARTED;
 			}
 			i++;
-			// TODO
-			// Add to the pending queue list
+			ret = sfs_enqueue_job(HIGH_PRIORITY, pending_jobs, job);
+			if (ret != 0) {
+				// TODO
+				// Handle failure
+				// This can happen only if there is memory corruption
+			}
 		}
 
 		// Process medium priority queue
@@ -605,10 +615,15 @@ sfs_dispatcher(void * arg)
 					// TBD
 					// Handle failure
 				}
+				job->job_status[j] = JOB_STARTED;
 			}
 			i++;
-			// TODO
-			// Add to the pending queue list
+			ret = sfs_enqueue_job(MEDIUM_PRIORITY, pending_jobs, job);
+			if (ret != 0) {
+				// TODO
+				// Handle failure
+				// This can happen only if there is memory corruption
+			}
 		}
 		// Process low priority queue
 		i = 0;	
@@ -628,10 +643,15 @@ sfs_dispatcher(void * arg)
 					// TBD
 					// Handle failure
 				}
+				job->job_status[j] = JOB_STARTED;
 			}
 			i++;
-			// TODO
-			// Add to the pending queue list
+			ret = sfs_enqueue_job(LOW_PRIORITY, pending_jobs, job);
+			if (ret != 0) {
+				// TODO
+				// Handle failure
+				// This can happen only if there is memory corruption
+			}
 		}
 
 		sleep(SFS_JOB_SLEEP); // Yield
@@ -858,6 +878,18 @@ sfs_init(struct fuse_conn_info *conn)
 		sstack_transport_deregister(type, &transport);
 		sstack_thread_pool_destroy(sfs_thread_pool);
 
+		return NULL;
+	}
+	// Initialize pending job queues
+	ret = sfs_job_list_init(pending_jobs);
+	if (ret == -1) {
+		// Job list creation failed
+		// No point in continuing
+		db->db_ops.db_close(sfs_ctx);
+		pthread_kill(recv_thread, SIGKILL);
+		sstack_transport_deregister(type, &transport);
+		sstack_thread_pool_destroy(sfs_thread_pool);
+		(void) sfs_job_queue_destroy(jobs);
 		return NULL;
 	}
 
