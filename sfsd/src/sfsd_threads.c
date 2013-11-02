@@ -133,8 +133,8 @@ int32_t send_payload(sstack_transport_t *transport,
 
 	// TODO
 	// Get log_ctx. Needed for paramter validaion
-	ret = sstack_send_payload(handle, payload, transport, job_id, priority,
-					job, NULL);
+	ret = sstack_send_payload(handle, payload, transport, job_id, job,
+					priority, NULL);
 	return ret;
 }
 
