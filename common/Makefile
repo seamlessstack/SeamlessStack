@@ -41,7 +41,7 @@ all: $(COMMON_OBJS)
 	$(CC)  $(LIB) $(LDFLAGS),$(SONAME) -o libsstack_common.so $(COMMON_OBJS)
 
 src/crc_pcl.o:
-	ln -s $(TOPDIR)/../arch/x86_64/crc_pcl.S src
+	ln -sf $(TOPDIR)/../arch/x86_64/crc_pcl.S src
 	$(ASM) -f x64 -f elf64 -X gnu -g dwarf2 -D LINUX -o src/crc_pcl.o \
 			src/crc_pcl.S
 	$(RM) -f src/crc_pcl.S
