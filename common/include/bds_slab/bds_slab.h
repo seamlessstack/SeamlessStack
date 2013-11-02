@@ -39,25 +39,12 @@
 #define BDS_MAX_NR_CPUS		256
 
 typedef uint16_t bds_bufctl_t;
-typedef pthread_mutex_t bds_mutex_t;
-#define bds_mutex_lock(lock) pthread_mutex_lock(lock)
-#define bds_mutex_unlock(lock) pthread_mutex_unlock (lock)
-#define bds_mutex_init(lock) pthread_mutex_init(lock, NULL)
-typedef pthread_spinlock_t bds_spinlock_t;
-#define bds_spin_init(lock) pthread_spin_init(lock,0)
-#define bds_spin_lock(lock) pthread_spin_lock(lock)
-#define bds_spin_unlock(lock) pthread_spin_unlock(lock)
-typedef pthread_rwlock_t bds_rwlock_t;
-#define bds_rwlock_init(lock) pthread_rwlock_init(lock, NULL);
-#define bds_rwlock_wrlock(lock) pthread_rwlock_wrlock(lock);
-#define bds_rwlock_rdlock(lock) pthread_rwlock_rdlock(lock);
-#define bds_rwlock_unlock(lock) pthread_rwlock_unlock(lock);
 struct _array_cache_desc {
 	bds_int	available;	/* Number of object available */
 	bds_int	limit;		/* Limit*/
 	bds_int	batchcount;	/* Number of object to be allocated in one batch */
 	int_fast16_t	touched;	/* Indicates whether the cache is used or not */
-	bds_spinlock_t	lock;		/* Lock */
+	pthread_spinlock_t	lock;		/* Lock */
 	void		*entry[]; 	/* The LIFO array of objects */
 };
 
@@ -70,7 +57,7 @@ struct _slab_list {
 	   Limit of free objects available in slab */
 	bds_int	free_objects, free_limit;
 	bds_int	colour_next;	/* The next colour to be allocated */
-	bds_mutex_t partial_list_lock, full_list_lock, free_list_lock;
+	pthread_mutex_t partial_list_lock, full_list_lock, free_list_lock;
 
 };
 
@@ -92,7 +79,7 @@ struct _cache_desc {
 	bds_int mgmt_size;  /* Size of the management data */
 	size_t	buffer_size;  /* Size of each object */
 	bds_uint slab_magic;  /* SLAB magic for the current slab */
-	bds_spinlock_t cache_lock;  /* Lock for cache desc structure */
+	pthread_spinlock_t cache_lock;  /* Lock for cache desc structure */
 	atomic_t refcount;    /* The reference count */
 	atomic_t free_slab_count, total_slab_count;
 	bds_uint linger; /* Minimum number of free slabs to be present in the cache */
@@ -126,7 +113,7 @@ struct _slab_desc {
 	bds_cache_desc_t parent_cache;	/* Pointer to the cache
 					   desc to which this slab belongs to */
 	atomic_t refcount;  /* The number of active objects in the slab */
-	bds_mutex_t slab_lock;
+	pthread_mutex_t slab_lock;
 };
 
 typedef struct _slab_desc* bds_slab_desc_t;

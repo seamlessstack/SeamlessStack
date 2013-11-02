@@ -36,7 +36,7 @@ struct arraycache_init {
 //static struct arraycache_init initarray_cache;
 //static bds_int bds_slab_break_order = BDS_SLAB_BREAK_ORDER_HIGH;
 static bds_int_list_t cache_chain;
-static bds_mutex_t cache_chain_lock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t cache_chain_lock = PTHREAD_ADAPTIVE_MUTEX_INITIALIZER_NP;
 /* Internal cache of cache descriptors */
 #define cache_cache cache_cache_w.cache
 struct cache_cache_desc {
@@ -154,15 +154,15 @@ bds_int __find_cache(const char *name)
 	bds_cache_desc_t cache_p;
 	/* Find out whether the cache exists or not.
 	 *  Must hold cache_chain_lock */
-	bds_mutex_lock(&cache_chain_lock);
+	pthread_mutex_lock(&cache_chain_lock);
 	for (head = cache_chain.next; head != &cache_chain; head = head->next) {
 		cache_p = container_of (head, struct _cache_desc, next);
 		if (!strncmp(cache_p->name,name, BDS_CACHE_NAME_MAX)) {
-			bds_mutex_unlock(&cache_chain_lock);
+			pthread_mutex_unlock(&cache_chain_lock);
 			return BDS_FOUND;
 		}
 	}
-	bds_mutex_unlock(&cache_chain_lock);
+	pthread_mutex_unlock(&cache_chain_lock);
 	return BDS_NOT_FOUND;
 }
 
@@ -297,6 +297,7 @@ __setup_cache_desc (bds_cache_desc_t cache_p, bds_int flags, size_t size)
 	size_t mgmt_size;
 	size_t page_size = getpagesize();
 	bds_uint left_over;
+	pthread_mutexattr_t mutex_attr;
 	/* Determine whether slab descriptor should sit on slab or off it */
 	if (size >= page_size >> 3) {
 		flags |= CFLGS_OFF_SLAB;
@@ -324,7 +325,7 @@ __setup_cache_desc (bds_cache_desc_t cache_p, bds_int flags, size_t size)
 		cache_p->colour_offset = 0;
 	/* In future change it to a random number */
 	cache_p->slab_magic = 0xdeadbeef;
-	bds_spin_init(&cache_p->cache_lock);
+	pthread_spin_init(&cache_p->cache_lock, PTHREAD_PROCESS_PRIVATE);
 	atomic_set(&cache_p->refcount, 0);
 	atomic_set(&cache_p->free_slab_count, 0);
 	atomic_set(&cache_p->total_slab_count, 0);
@@ -332,9 +333,11 @@ __setup_cache_desc (bds_cache_desc_t cache_p, bds_int flags, size_t size)
 	INIT_LIST_HEAD (&cache_p->slab_list.slabs_partial);
 	INIT_LIST_HEAD (&cache_p->slab_list.slabs_full);
 	INIT_LIST_HEAD (&cache_p->slab_list.slabs_free);
-	bds_mutex_init(&cache_p->slab_list.partial_list_lock);
-	bds_mutex_init(&cache_p->slab_list.full_list_lock);
-	bds_mutex_init(&cache_p->slab_list.free_list_lock);
+	pthread_mutexattr_init(&mutex_attr);
+	pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_ADAPTIVE_NP);
+	pthread_mutex_init(&cache_p->slab_list.partial_list_lock, &mutex_attr);
+	pthread_mutex_init(&cache_p->slab_list.full_list_lock, &mutex_attr);
+	pthread_mutex_init(&cache_p->slab_list.free_list_lock, &mutex_attr);
 	return 0;
 }
 /* bds_cache_create: Creates a BDS cache.
@@ -369,7 +372,7 @@ bds_status_t bds_cache_create (const char *name, size_t size,
 	strncpy (cache_p->name, name, BDS_CACHE_NAME_MAX);
 	/* Cache created : Add to list, Hold the cache_chain_lock */
 	bds_list_add (&cache_p->next, &cache_chain);
-	bds_mutex_unlock(&cache_chain_lock);
+	pthread_mutex_unlock(&cache_chain_lock);
 	*cache_pp = cache_p;
 	return 0;
 }
@@ -412,22 +415,22 @@ void bds_cache_destroy(bds_cache_desc_t cache_p, bds_int force)
 
 	/* Real free starts here.. First the free list, then the partial
 	   and then the full list , order is immaterial here */
-	if (bds_mutex_lock(&cache_p->slab_list.free_list_lock) == 0) {
+	if (pthread_mutex_lock(&cache_p->slab_list.free_list_lock) == 0) {
 		__destroy_slab_list(cache_p, &cache_p->slab_list.slabs_free);
-		bds_mutex_unlock(&cache_p->slab_list.free_list_lock);
+		pthread_mutex_unlock(&cache_p->slab_list.free_list_lock);
 	}
 
 	/* Now the partial list */
-	if (bds_mutex_lock(&cache_p->slab_list.partial_list_lock) == 0) {
+	if (pthread_mutex_lock(&cache_p->slab_list.partial_list_lock) == 0) {
 		__destroy_slab_list(cache_p, &cache_p->slab_list.slabs_partial);
-		bds_mutex_unlock(&cache_p->slab_list.partial_list_lock);
+		pthread_mutex_unlock(&cache_p->slab_list.partial_list_lock);
 	}
 
 	/* Now the full list */
 	list = &cache_p->slab_list.slabs_full;
-	if (bds_mutex_lock(&cache_p->slab_list.full_list_lock) == 0) {
+	if (pthread_mutex_lock(&cache_p->slab_list.full_list_lock) == 0) {
 		__destroy_slab_list(cache_p, &cache_p->slab_list.slabs_full);
-		bds_mutex_unlock(&cache_p->slab_list.full_list_lock);
+		pthread_mutex_unlock(&cache_p->slab_list.full_list_lock);
 	}
 
 	/* By this time all the slabs are free. Free the cache_descriptor
@@ -452,6 +455,7 @@ void bds_cache_init (void)
 	//char name[BDS_CACHE_NAME_MAX];
 	//bds_cache_desc_t cache_p = NULL;
 	bds_int bds_alloc_max_order = BDS_ALLOC_SHIFT_HIGH - __getpageshift();
+	pthread_mutexattr_t mutex_attr;
 	/* Initialization is tricky as we have to allocate a lot
 	 * of things from cache before even cache exists. The things
 	 * to be done as part of initialization are as follows
@@ -462,7 +466,7 @@ void bds_cache_init (void)
 	 */
 	//bds_generate_sysinfo();
 	INIT_LIST_HEAD (&cache_chain);
-	bds_spin_init(&cache_cache.cache_lock);
+	pthread_spin_init(&cache_cache.cache_lock, PTHREAD_PROCESS_PRIVATE);
 	cache_cache.colour_offset = __getcachelinesize();
 #ifdef BDS_CONFIG_SMP
 	cache_cache.buffer_size = sizeof (struct _cache_desc) +
@@ -487,9 +491,11 @@ void bds_cache_init (void)
 	INIT_LIST_HEAD (&cache_cache.slab_list.slabs_partial);
 	INIT_LIST_HEAD (&cache_cache.slab_list.slabs_full);
 	INIT_LIST_HEAD (&cache_cache.slab_list.slabs_free);
-	bds_mutex_init(&cache_cache.slab_list.partial_list_lock);
-	bds_mutex_init(&cache_cache.slab_list.free_list_lock);
-	bds_mutex_init(&cache_cache.slab_list.full_list_lock);
+	pthread_mutexattr_init(&mutex_attr);
+	pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_ADAPTIVE_NP);
+	pthread_mutex_init(&cache_cache.slab_list.partial_list_lock, &mutex_attr);
+	pthread_mutex_init(&cache_cache.slab_list.free_list_lock, &mutex_attr);
+	pthread_mutex_init(&cache_cache.slab_list.full_list_lock, &mutex_attr);
 	bds_list_add (&cache_cache.next, &cache_chain);
 	/* Create the garbage collector thread */
 	pthread_attr_init(&attr);
@@ -516,22 +522,25 @@ __setup_slab_desc(bds_cache_desc_t cache_p, void* mgmt_mem, void *s_mem)
 	bds_uint i;
 	bds_int colour_offset = cache_p->colour_offset;
 	bds_int colour = cache_p->colour;
+	pthread_mutexattr_t mutex_attr;
 	slab_p = (bds_slab_desc_t)mgmt_mem;
 	bufctl = (bds_bufctl_t*) BDS_BUFCTL(slab_p);
 	for (i=0; i<cache_p->num; ++i)
 		bufctl[i] = i+1;
-	bds_spin_lock(&cache_p->cache_lock);
+	pthread_spin_lock(&cache_p->cache_lock);
 	slab_p->colour_offset = cache_p->colour_next;
 	if (cache_p->colour)
 		cache_p->colour_next =
 			(cache_p->colour_next + colour_offset) %
 			(colour * colour_offset);
-	bds_spin_unlock(&cache_p->cache_lock);
+	pthread_spin_unlock(&cache_p->cache_lock);
 	slab_p->slab_magic = cache_p->slab_magic;
 	slab_p->free = 0;
 	slab_p->parent_cache = cache_p;
 	atomic_set(&slab_p->refcount, 0);
-	bds_mutex_init(&slab_p->slab_lock);
+	pthread_mutexattr_init(&mutex_attr);
+	pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_ADAPTIVE_NP);
+	pthread_mutex_init(&slab_p->slab_lock, &mutex_attr);
 	if (OFF_SLAB(cache_p))
 		slab_p->s_mem = (void*)((intptr_t)s_mem +
 				slab_p->colour_offset);
@@ -543,9 +552,9 @@ __setup_slab_desc(bds_cache_desc_t cache_p, void* mgmt_mem, void *s_mem)
 	   as we allocate a new slab only when we donot have memory to allocate
 	   from. So escape a few cycles here by directly adding to the partial
 	   list */
-	bds_mutex_lock(&cache_p->slab_list.partial_list_lock);
+	pthread_mutex_lock(&cache_p->slab_list.partial_list_lock);
 	bds_list_add (&slab_p->next, &(cache_p->slab_list.slabs_partial));
-	bds_mutex_unlock(&cache_p->slab_list.partial_list_lock);
+	pthread_mutex_unlock(&cache_p->slab_list.partial_list_lock);
 	atomic_inc(&cache_p->total_slab_count);
 	/* Call the constructors if available */
 	if (cache_p->ctor) {
@@ -608,17 +617,17 @@ void* bds_cache_alloc (bds_cache_desc_t cache_p)
 			cache_p->slab_list.slabs_partial.next,
 			struct _slab_desc, next);
 		/* Get the slab lock, we might allocate from it */
-		bds_mutex_lock(&slab_p->slab_lock);
+		pthread_mutex_lock(&slab_p->slab_lock);
 	} else if (likely(!list_empty(&cache_p->slab_list.slabs_free))) {
 		/* Remove the head of free list to head of partial list */
-		if (bds_mutex_lock(&cache_p->slab_list.free_list_lock) == 0) {
+		if (pthread_mutex_lock(&cache_p->slab_list.free_list_lock) == 0) {
 			bds_list_del(&slab_p->next);
-			bds_mutex_unlock(&cache_p->slab_list.free_list_lock);
+			pthread_mutex_unlock(&cache_p->slab_list.free_list_lock);
 		}
 		/* Move the slab to the head of the partial list */
-		if (bds_mutex_lock(&cache_p->slab_list.partial_list_lock) == 0) {
+		if (pthread_mutex_lock(&cache_p->slab_list.partial_list_lock) == 0) {
 			bds_list_add(&slab_p->next, &(cache_p->slab_list.slabs_partial));
-			bds_mutex_unlock(&cache_p->slab_list.partial_list_lock);
+			pthread_mutex_unlock(&cache_p->slab_list.partial_list_lock);
 		}
 		/* Take the head of the free list for allocation */
 		slab_p = container_of(
@@ -626,7 +635,7 @@ void* bds_cache_alloc (bds_cache_desc_t cache_p)
 			struct _slab_desc, next);
 
 		/* Get the lock, we might allocate from it */
-		bds_mutex_lock(&slab_p->slab_lock);
+		pthread_mutex_lock(&slab_p->slab_lock);
 	} else {
 		status = bds_cache_grow(cache_p);
 		if (status < 0) {
@@ -655,19 +664,19 @@ void* bds_cache_alloc (bds_cache_desc_t cache_p)
 			   moved to the full list. This can only happen
 			   when the slab is in partial list
 			*/
-			if (bds_mutex_lock(&cache_p->slab_list.partial_list_lock) == 0) {
+			if (pthread_mutex_lock(&cache_p->slab_list.partial_list_lock) == 0) {
 				bds_list_del(&slab_p->next);
-				bds_mutex_unlock(&cache_p->slab_list.partial_list_lock);
+				pthread_mutex_unlock(&cache_p->slab_list.partial_list_lock);
 			}
-			if (bds_mutex_lock(&cache_p->slab_list.full_list_lock) == 0) {
+			if (pthread_mutex_lock(&cache_p->slab_list.full_list_lock) == 0) {
 				bds_list_add(&slab_p->next, &cache_p->slab_list.slabs_full);
-				bds_mutex_unlock(&cache_p->slab_list.full_list_lock);
+				pthread_mutex_unlock(&cache_p->slab_list.full_list_lock);
 			}
 		}
 		printf ("Moved slab -> %p from partial to full\n", slab_p);
-		bds_mutex_unlock(&slab_p->slab_lock);
+		pthread_mutex_unlock(&slab_p->slab_lock);
 	} else {
-		bds_mutex_unlock(&slab_p->slab_lock);
+		pthread_mutex_unlock(&slab_p->slab_lock);
 		obj = bds_cache_alloc(cache_p);
 	}
 	return obj;
@@ -682,7 +691,7 @@ void __free_one(bds_cache_desc_t cache_p, bds_slab_desc_t slab_p, void *obj)
 	offset = ((intptr_t)obj -
 		  (intptr_t)slab_p->s_mem)/cache_p->buffer_size;
 	bufctl = (bds_bufctl_t*) BDS_BUFCTL(slab_p);
-	bds_mutex_lock(&slab_p->slab_lock);
+	pthread_mutex_lock(&slab_p->slab_lock);
 	bufctl[offset] = slab_p->free;
 	slab_p->free = offset;
 	atomic_dec(&cache_p->refcount);
@@ -699,35 +708,35 @@ void __free_one(bds_cache_desc_t cache_p, bds_slab_desc_t slab_p, void *obj)
 	if (value == (cache_p->num - 1)) {
 		/* The slab is in full list and needs to move to
 		   partial list */
-		if (bds_mutex_lock(&cache_p->slab_list.full_list_lock) == 0) {
+		if (pthread_mutex_lock(&cache_p->slab_list.full_list_lock) == 0) {
 			bds_list_del(&slab_p->next);
-			bds_mutex_unlock(&cache_p->slab_list.full_list_lock);
+			pthread_mutex_unlock(&cache_p->slab_list.full_list_lock);
 		}
-		if (bds_mutex_lock(&cache_p->slab_list.partial_list_lock)
+		if (pthread_mutex_lock(&cache_p->slab_list.partial_list_lock)
 		    == 0) {
 			bds_list_add(&slab_p->next,
 				     &cache_p->slab_list.slabs_partial);
-			bds_mutex_unlock(&cache_p->slab_list.partial_list_lock);
+			pthread_mutex_unlock(&cache_p->slab_list.partial_list_lock);
 		}
 		printf ("freeing - Moved slab -> %p from full to partial\n", slab_p);
 	}
 	if (value == 0) {
 		/* The slab is present in partial list and
 		   needs to be moved to free list */
-		if (bds_mutex_lock(&cache_p->slab_list.partial_list_lock)
+		if (pthread_mutex_lock(&cache_p->slab_list.partial_list_lock)
 		    == 0) {
 			bds_list_del(&slab_p->next);
-			bds_mutex_unlock(&cache_p->slab_list.partial_list_lock);
+			pthread_mutex_unlock(&cache_p->slab_list.partial_list_lock);
 		}
-		if (bds_mutex_lock(&cache_p->slab_list.free_list_lock) == 0) {
+		if (pthread_mutex_lock(&cache_p->slab_list.free_list_lock) == 0) {
 			bds_list_add(&slab_p->next,
 				     &cache_p->slab_list.slabs_free);
-			bds_mutex_unlock(&cache_p->slab_list.free_list_lock);
+			pthread_mutex_unlock(&cache_p->slab_list.free_list_lock);
 		}
 		atomic_inc(&cache_p->free_slab_count);
 		printf ("freeing - Moved slab -> %p from partial to free\n", slab_p);
 	}
-	bds_mutex_unlock(&slab_p->slab_lock);
+	pthread_mutex_unlock(&slab_p->slab_lock);
 	return;
 }
 void bds_cache_free (bds_cache_desc_t cache_p, void *obj)
@@ -780,7 +789,7 @@ void __destroy_free_slabs(bds_cache_desc_t cache_p, bds_uint gc_threshold)
 	bds_int i;
 	void *fmem;
 	bds_uint total_slabs, free_slabs, free_percentage;
-	if (bds_mutex_lock(&cache_p->slab_list.free_list_lock) == 0) {
+	if (pthread_mutex_lock(&cache_p->slab_list.free_list_lock) == 0) {
 		while (1) {
 			total_slabs = atomic_read(&cache_p->total_slab_count);
 			free_slabs = atomic_read(&cache_p->free_slab_count);
@@ -809,7 +818,7 @@ void __destroy_free_slabs(bds_cache_desc_t cache_p, bds_uint gc_threshold)
 				free(slab_p);
 			}
 		}
-		bds_mutex_unlock(&cache_p->slab_list.free_list_lock);
+		pthread_mutex_unlock(&cache_p->slab_list.free_list_lock);
 	}
 	return;
 }
@@ -829,7 +838,7 @@ void *bds_garbage_collect(void *params)
 	if (params == NULL || (gc_threshold = *((bds_uint *)(params))) > 99)
 		gc_threshold = 25;
 	while(1) {
-		if (bds_mutex_lock(&cache_chain_lock) == 0) {
+		if (pthread_mutex_lock(&cache_chain_lock) == 0) {
 			list_for_each_entry(cache_p, &cache_chain,  next) {
 				total = atomic_read(&cache_p->total_slab_count);
 				free = atomic_read(&cache_p->free_slab_count);
@@ -839,7 +848,7 @@ void *bds_garbage_collect(void *params)
 				__destroy_free_slabs(cache_p, gc_threshold);
 				}
 			}
-			bds_mutex_unlock(&cache_chain_lock);
+			pthread_mutex_unlock(&cache_chain_lock);
 		}
 		sleep(10);
 	}
