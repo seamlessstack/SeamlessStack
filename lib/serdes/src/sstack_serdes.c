@@ -131,6 +131,9 @@ _sendrecv_payload(sstack_transport_t *transport,
  * handle - client representation
  * payload - non-serialized payload
  * transport - transport between sfs and sfsd
+ * job_id - Job id as maintained by sfs. sfsd does not alter this
+ * job - back pointer to job structure. sfsd does not alter this
+ * priority - priority of the job. sfsd does not alter this
  * ctx - log context
  *
  * Takes payload , serializes the payload using Google protocol buffers
@@ -147,6 +150,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 					sstack_payload_t * payload,
 					sstack_transport_t *transport,
 					sstack_job_id_t job_id,
+					sfs_job_t *job,
 					int priority, log_ctx_t *ctx)
 {
 
@@ -171,6 +175,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 	hdr.payload_len = 0; // Dummy . will be filled later
 	hdr.job_id = job_id;
 	hdr.priority = priority;
+	hdr.arg = (uint64_t) job;
 	msg.hdr = &hdr;
 	switch (payload->command) {
 		case SSTACK_ADD_STORAGE:
@@ -1338,6 +1343,7 @@ sstack_recv_payload(sstack_client_handle_t handle,
 	payload->hdr.payload_len = msg->hdr->payload_len;
 	payload->hdr.job_id = msg->hdr->job_id;
 	payload->hdr.priority = msg->hdr->priority;
+	payload->hdr.arg = msg->hdr->arg;
 	payload->command = msg->command;
 
 	switch(msg->command) {

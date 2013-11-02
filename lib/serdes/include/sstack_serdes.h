@@ -32,7 +32,8 @@
 
 extern int sstack_send_payload(sstack_client_handle_t handle,
 				sstack_payload_t *payload, sstack_transport_t *transport,
-				sstack_job_id_t job_id, int priority, log_ctx_t *ctx);
+				sstack_job_id_t job_id, sfs_job_t *job,
+				int priority, log_ctx_t *ctx);
 
 /*
  * sstack_recv_payload - Function that receives a payload from transport

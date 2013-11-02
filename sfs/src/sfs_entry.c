@@ -1299,6 +1299,17 @@ sfs_utimens(const char *path, const struct timespec tv[2])
 	return 0;
 }
 
+int
+sfs_flock(const char *path, struct fuse_file_info *fi, int op)
+{
+
+	return 0;
+}
+
+//==========================================================================//
+// 		FOLLOWING ENTRY POINTS ARE NOT IMPLEMENTED
+//==========================================================================//
+
 /*
  *  Provide block map (as in FIBMAP) for the given offset
  *  Can not be implemented.
@@ -1331,20 +1342,16 @@ sfs_write_buf(const char *path, struct fuse_bufvec *buf, off_t off,
 				struct fuse_file_info *fi)
 {
 
-	return 0;
+	errno = ENOSYS;
+	return -1;
 }
 
 int
 sfs_read_buf(const char *path, struct fuse_bufvec **bufp, size_t size,
 				off_t off, struct fuse_file_info *fi)
 {
+	errno = ENOSYS;
+	return -1;
 
-	return 0;
 }
 
-int
-sfs_flock(const char *path, struct fuse_file_info *fi, int op)
-{
-
-	return 0;
-}

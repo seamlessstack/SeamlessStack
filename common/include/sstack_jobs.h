@@ -68,11 +68,23 @@ typedef enum {
 	NUM_PRIORITY_MAX = 2,
 } sfs_prio_t;
 
+/*
+ * NOTE
+ * arg field is a back pointer to the job structure. This is needed to get the
+ * job structure to send the response back to the calling thread.
+ * This can be accomplished by having a separate lookup. But that is an
+ * overhead which can be avoided.
+ * sfsd can also use sstack_send_payload(). If the original request is from
+ * sfs, then sfsd can use transport.transport_hdr.arg as job pointer. If sfsd
+ * needs to originate a request, then we can use 0xffffffff-ffffffff as this
+ * argument. This is an optimization.
+ */
 typedef struct sstack_payload_hdr {
 	uint32_t sequence;
 	uint32_t payload_len;
 	sstack_job_id_t job_id;
 	int	priority;
+	uint64_t arg;	// Contains back pointer to job strcuture
 } sstack_payload_hdr_t;
 
 typedef struct sstack_payload {

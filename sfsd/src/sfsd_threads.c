@@ -119,6 +119,7 @@ int32_t send_payload(sstack_transport_t *transport,
 	int ret = -1;
 	sstack_job_id_t job_id = 0;
 	int priority = -1;
+	sfs_job_t *job = NULL;
 
 	// Parameter validation
 	if (NULL == transport || handle == -1 || NULL == payload) {
@@ -128,11 +129,12 @@ int32_t send_payload(sstack_transport_t *transport,
 	}
 	job_id = payload->hdr.job_id;
 	priority = payload->hdr.priority;
+	job = (sfs_job_t *) payload->hdr.arg;
 
 	// TODO
 	// Get log_ctx. Needed for paramter validaion
 	ret = sstack_send_payload(handle, payload, transport, job_id, priority,
-					NULL);
+					job, NULL);
 	return ret;
 }
 

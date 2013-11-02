@@ -512,14 +512,25 @@ handle_cli_requests(void * arg)
  *
  * arg - payload structure
  * 
+ * This is called in worker thread context. Once the payload is handled,
+ * thread waiting on the job completion is woken up.
  */
 
 static void*
 sfs_process_payload(void *arg)
 {
+	sstack_payload_t *payload = (sstack_payload_t *) arg;
 
 	return NULL;
 }
+
+static void *
+sfs_dispatcher(void * arg)
+{
+
+	return NULL;
+}
+
 /*
  * sfs_handle_connction - Thread function to listen to requests from sfsds
  *
@@ -578,6 +589,14 @@ retry:
 	return NULL;
 }
 
+/*
+ * sfs_init_thread_pool - Create a thread pool to handle jobs
+ *
+ * Create thread pool with minimum 4 threads and maximum of number of
+ * entries in listen queue (currently 1024).
+ *
+ * Returns 0 on success and -1 on failure.
+ */
 
 static int
 sfs_init_thread_pool(void)
@@ -613,6 +632,8 @@ sfs_init(struct fuse_conn_info *conn)
 	pthread_attr_t attr;
 	pthread_t recv_thread;
 	pthread_attr_t recv_attr;
+	pthread_t dispatcher_thread;
+	pthread_attr_t dispatcher_attr;
 	int ret = -1;
 	int chunk_index = 0;
 	sstack_transport_ops_t ops;
@@ -641,6 +662,15 @@ sfs_init(struct fuse_conn_info *conn)
 
 	ASSERT((ret == 0),"Unable to create thread to handle sfs<->sfsd comm",
 			0, 0, 0);
+	// Create a dispatcher thread
+	if (pthread_attr_init(&dispatcher_attr) == 0) {
+		pthread_attr_setscope(&dispatcher_attr, PTHREAD_SCOPE_SYSTEM);
+		pthread_attr_setstacksize(&dispatcher_attr, 131072); // 128KiB
+		pthread_attr_setdetachstate(&dispatcher_attr, PTHREAD_CREATE_DETACHED);
+		ret = pthread_create(&dispatcher_thread, &dispatcher_attr,
+						sfs_dispatcher, NULL);
+	}
+	ASSERT((ret == 0),"Unable to create job dispatcher thread", 0, 0, 0);
 
 	// Create db instance
 	db = create_db();
