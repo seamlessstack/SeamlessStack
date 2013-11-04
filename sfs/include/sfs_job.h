@@ -85,6 +85,7 @@ get_next_job_id(void)
 		// No wrap around
 		job_id = current_job_id;
 		current_job_id ++;
+		BITSET(sstack_job_id_bitmap,job_id); // Make this bit busy
 	}
 
 	pthread_mutex_unlock(&sfs_job_id_mutex);
@@ -151,21 +152,21 @@ sfs_job_init(void)
  */
 
 static inline int
-sfs_job_list_init(sfs_job_queue_t *job_list)
+sfs_job_list_init(sfs_job_queue_t **job_list)
 {
 	int i;
 	int priority = HIGH_PRIORITY;
 	sfs_job_queue_t *temp = NULL;
 
-	job_list = (sfs_job_queue_t *) malloc(sizeof(sfs_job_queue_t) *
+	*job_list = (sfs_job_queue_t *) malloc(sizeof(sfs_job_queue_t) *
 					(NUM_PRIORITY_MAX + 1));
-	if (NULL == job_list) {
+	if (NULL == *job_list) {
 		sfs_log(sfs_ctx, SFS_CRIT, "%s: Failed to allocate memory for "
 						"sfs job list. FATAL ERROR \n",  __FUNCTION__);
 		return -1;
 	}
 
-	temp = job_list;
+	temp = *job_list;
 
 	for (i = 0; i < NUM_PRIORITY_MAX; i++) {
 		temp->priority = priority;

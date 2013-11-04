@@ -869,7 +869,7 @@ sfs_init(struct fuse_conn_info *conn)
 	}
 
 	// Initialize job queues
-	ret = sfs_job_list_init(jobs);
+	ret = sfs_job_list_init(&jobs);
 	if (ret == -1) {
 		// Job list creation failed
 		// No point in continuing
@@ -881,7 +881,7 @@ sfs_init(struct fuse_conn_info *conn)
 		return NULL;
 	}
 	// Initialize pending job queues
-	ret = sfs_job_list_init(pending_jobs);
+	ret = sfs_job_list_init(&pending_jobs);
 	if (ret == -1) {
 		// Job list creation failed
 		// No point in continuing
