@@ -1,11 +1,11 @@
 /*************************************************************************
- * 
+ *
  * SEAMLESSSTACK CONFIDENTIAL
  * __________________________
- * 
+ *
  *  [2012] - [2013]  SeamlessStack Inc
  *  All Rights Reserved.
- * 
+ *
  * NOTICE:  All information contained herein is, and remains
  * the property of SeamlessStack Incorporated and its suppliers,
  * if any.  The intellectual and technical concepts contained
@@ -183,7 +183,7 @@ get_local_ip(char *interface, char *intf_addr, int type)
 		len = IPV6_ADDR_LEN;
 		family = AF_INET6;
 	} else {
-		len = IPV4_ADDR_LEN; 
+		len = IPV4_ADDR_LEN;
 		family = AF_INET;
 	}
 	intf_addr = (char *) malloc(len);
@@ -196,7 +196,7 @@ get_local_ip(char *interface, char *intf_addr, int type)
 		// Socket creation failed
 		return -1;
 	}
-	// IPv4 IP address 
+	// IPv4 IP address
 	// For IPv6 address, use AF_INET6
 	ifr.ifr_addr.sa_family = family;
 	strncpy(ifr.ifr_name, interface, IFNAMSIZ - 1);
@@ -206,7 +206,7 @@ get_local_ip(char *interface, char *intf_addr, int type)
 	if (type == IPv4) {
 		strncpy(intf_addr,
 				inet_ntoa(((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr),
-				IPV4_ADDR_LEN); 
+				IPV4_ADDR_LEN);
 	} else {
 		inet_ntop(family,
 				(void *) &((struct sockaddr_in6 *) &ifr.ifr_addr)->sin6_addr,

@@ -217,7 +217,7 @@ add_inodes(const char *path)
 	ep->address.protocol = IPV4;
 	strncpy((char *) ep->address.ipv4_address, "127.0.0.1",
 					strlen("127.0.0.1")+1);
-	
+
 	extent.e_path = ep;
 	inode.i_extent = &extent;
 	inode.i_erasure = NULL; // No erasure coding info for now
@@ -234,7 +234,7 @@ add_inodes(const char *path)
 
 	free(ep);
 	// Store inode <-> path into reverse lookup
-	sprintf(inode_str, "%lld", inode.i_num);	
+	sprintf(inode_str, "%lld", inode.i_num);
 	ret = sstack_cache_store(mc, path, inode_str, (strlen(inode_str) + 1),
 					sfs_ctx);
 	if (ret != 0) {
@@ -522,7 +522,7 @@ handle_cli_requests(void * arg)
  * sfs_process_payload - Process received payload
  *
  * arg - payload structure
- * 
+ *
  * This is called in worker thread context. Once the payload is handled,
  * thread waiting on the job completion is woken up.
  */
@@ -600,7 +600,7 @@ sfs_dispatcher(void * arg)
 		}
 
 		// Process medium priority queue
-		i = 0;	
+		i = 0;
 		temp ++;
 		list_for_each_entry(job, temp, wait_list) {
 			if (i == MAX_MEDIUM_PRIO)
@@ -628,7 +628,7 @@ sfs_dispatcher(void * arg)
 			}
 		}
 		// Process low priority queue
-		i = 0;	
+		i = 0;
 		temp ++;
 		list_for_each_entry(job, temp, wait_list) {
 			if (i == MAX_LOW_PRIO)
@@ -849,7 +849,7 @@ sfs_init(struct fuse_conn_info *conn)
 		// Server socket creation failed.
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to create sfs socket. "
 					"Error = %d \n", __FUNCTION__, errno);
-		// cleanup	
+		// cleanup
 		db->db_ops.db_close(sfs_ctx);
 		pthread_kill(recv_thread, SIGKILL);
 		sstack_transport_deregister(type, &transport);

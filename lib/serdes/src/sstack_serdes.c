@@ -1,11 +1,11 @@
 /*************************************************************************
- * 
+ *
  * SEAMLESSSTACK CONFIDENTIAL
  * __________________________
- * 
+ *
  *  [2012] - [2013]  SeamlessStack Inc
  *  All Rights Reserved.
- * 
+ *
  * NOTICE:  All information contained herein is, and remains
  * the property of SeamlessStack Incorporated and its suppliers,
  * if any.  The intellectual and technical concepts contained
@@ -87,7 +87,7 @@ sstack_command_stringify(sstack_command_t command)
  *
  * Return 0 on success for xmit and number bytes received for recv.
  * Returns a negative number indicating error on failure.
- */ 
+ */
 
 static inline int
 _sendrecv_payload(sstack_transport_t *transport,
@@ -113,7 +113,7 @@ _sendrecv_payload(sstack_transport_t *transport,
 		// If it is unsuccessul, tx returns -1.
 		// So not checking for partial data transfer here.
 		// For recv, header is received first followed by the real payload.
-		// recv will keep trying till number of bytes mentioned in the 
+		// recv will keep trying till number of bytes mentioned in the
 		// payload heder are received. So no partial recvs are possible.
 		if (tx == 1)
 			return 0;
@@ -198,13 +198,13 @@ sstack_send_payload(sstack_client_handle_t handle,
 					payload->storage.address.ipv6_address);
 			if (payload->command == SSTACK_ADD_STORAGE)
 				msg.command =
-					SSTACK_PAYLOAD_T__SSTACK_NFS_COMMAND_T__SSTACK_ADD_STORAGE;	
+					SSTACK_PAYLOAD_T__SSTACK_NFS_COMMAND_T__SSTACK_ADD_STORAGE;
 			else if (payload->command == SSTACK_REMOVE_STORAGE)
 				msg.command =
-				 SSTACK_PAYLOAD_T__SSTACK_NFS_COMMAND_T__SSTACK_REMOVE_STORAGE;	
+				 SSTACK_PAYLOAD_T__SSTACK_NFS_COMMAND_T__SSTACK_REMOVE_STORAGE;
 			else
 				msg.command =
-				 SSTACK_PAYLOAD_T__SSTACK_NFS_COMMAND_T__SSTACK_UPDATE_STORAGE;	
+				 SSTACK_PAYLOAD_T__SSTACK_NFS_COMMAND_T__SSTACK_UPDATE_STORAGE;
 			storage.path.len = strlen(payload->storage.path);
 			strcpy((char *) storage.path.data, payload->storage.path);
 			storage.mount_point.len = strlen(payload->storage.mount_point);
@@ -232,7 +232,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 			msg.storage = &storage;
 			len = sstack_payload_t__get_packed_size(&msg);
 			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
-			msg.hdr = &hdr; // Parannoid 
+			msg.hdr = &hdr; // Parannoid
 			buffer = malloc(len);
 			if (NULL == buffer) {
 				sfs_log(ctx, SFS_ERR, "%s: Failed to allocate memory for "
@@ -247,7 +247,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 			if (ret != 0) {
 				sfs_log(ctx, SFS_ERR, "%s: Failed to xmit payload "
 					"for %s request for ipaddr %s "
-					"path %s. Error = %d\n", __FUNCTION__, 
+					"path %s. Error = %d\n", __FUNCTION__,
 					sstack_command_stringify(payload->command),
 					(transport->transport_hdr.tcp.ipv4) ?
 						payload->storage.address.ipv4_address :
@@ -271,7 +271,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 
 				return 0;
 			}
-		} 
+		}
 		case NFS_SETATTR: {
 			SstackNfsSetattrCmd setattrcmd = SSTACK_NFS_SETATTR_CMD__INIT;
 			SstackFileAttributeT fileattr = SSTACK_FILE_ATTRIBUTE_T__INIT;
@@ -286,13 +286,13 @@ sstack_send_payload(sstack_client_handle_t handle,
 			msg.command_struct = &cmd;
 			len = sstack_payload_t__get_packed_size(&msg);
 			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
-			msg.hdr = &hdr; // Parannoid 
+			msg.hdr = &hdr; // Parannoid
 			buffer = malloc(len);
 			if (NULL == buffer) {
 				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
 					"%s. Command aborted \n", __FUNCTION__,
 					sstack_command_stringify(payload->command));
-	
+
 				return -ENOMEM;
 			}
 			sstack_payload_t__pack(&msg, buffer);
@@ -300,7 +300,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 			if (ret != 0) {
 				sfs_log(ctx, SFS_ERR, "%s: Failed to xmit payload "
 					"for %s request. Error = %d \n",
-					 __FUNCTION__, 
+					 __FUNCTION__,
 					sstack_command_stringify(payload->command), ret);
 
 				free(buffer);
@@ -341,13 +341,13 @@ sstack_send_payload(sstack_client_handle_t handle,
 			msg.command_struct = &cmd;
 			len = sstack_payload_t__get_packed_size(&msg);
 			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
-			msg.hdr = &hdr; // Parannoid 
+			msg.hdr = &hdr; // Parannoid
 			buffer = malloc(len);
 			if (NULL == buffer) {
 				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
 					"%s. Command aborted \n", __FUNCTION__,
 					sstack_command_stringify(payload->command));
-	
+
 				return -ENOMEM;
 			}
 			sstack_payload_t__pack(&msg, buffer);
@@ -355,7 +355,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 			if (ret != 0) {
 				sfs_log(ctx, SFS_ERR, "%s: Failed to xmit payload "
 					"for %s request. Error = %d \n",
-					 __FUNCTION__, 
+					 __FUNCTION__,
 					sstack_command_stringify(payload->command), ret);
 
 				free(buffer);
@@ -384,13 +384,13 @@ sstack_send_payload(sstack_client_handle_t handle,
 			msg.command_struct = &cmd;
 			len = sstack_payload_t__get_packed_size(&msg);
 			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
-			msg.hdr = &hdr; // Parannoid 
+			msg.hdr = &hdr; // Parannoid
 			buffer = malloc(len);
 			if (NULL == buffer) {
 				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
 					"%s. Command aborted \n", __FUNCTION__,
 					sstack_command_stringify(payload->command));
-	
+
 				return -ENOMEM;
 			}
 			sstack_payload_t__pack(&msg, buffer);
@@ -398,7 +398,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 			if (ret != 0) {
 				sfs_log(ctx, SFS_ERR, "%s: Failed to xmit payload "
 					"for %s request. Error = %d \n",
-					 __FUNCTION__, 
+					 __FUNCTION__,
 					sstack_command_stringify(payload->command), ret);
 
 				free(buffer);
@@ -449,12 +449,12 @@ sstack_send_payload(sstack_client_handle_t handle,
 				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
 					"%s. Command aborted \n", __FUNCTION__,
 					sstack_command_stringify(payload->command));
-	
+
 				return -ENOMEM;
 			}
 			for ( i = 0; i < entry.pe_num_plugins; i++ ) {
 				plugins[i]->ver =
-					payload->command_struct.read_cmd.pe.pe_policy[i]->ver;	
+					payload->command_struct.read_cmd.pe.pe_policy[i]->ver;
 				plugins[i]->pp_refcount =
 					payload->command_struct.read_cmd.pe.pe_policy[i]
 						->pp_refcount;
@@ -463,13 +463,13 @@ sstack_send_payload(sstack_client_handle_t handle,
 						->pp_policy_name);
 				strcpy((char *)&plugins[i]->pp_policy_name.data,
 					payload->command_struct.read_cmd.pe.pe_policy[i]
-						->pp_policy_name);	
+						->pp_policy_name);
 				plugins[i]->pp_sha_sum.len =
 					strlen(payload->command_struct.read_cmd.pe.pe_policy[i]
 						->pp_sha_sum);
 				strcpy((char *) &plugins[i]->pp_sha_sum.data,
 					payload->command_struct.read_cmd.pe.pe_policy[i]
-						->pp_sha_sum);	
+						->pp_sha_sum);
 				plugins[i]->is_activated =
 					payload->command_struct.read_cmd.pe.pe_policy[i]
 						->is_activated;
@@ -483,13 +483,13 @@ sstack_send_payload(sstack_client_handle_t handle,
 			msg.command_struct = &cmd;
 			len = sstack_payload_t__get_packed_size(&msg);
 			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
-			msg.hdr = &hdr; // Parannoid 
+			msg.hdr = &hdr; // Parannoid
 			buffer = malloc(len);
 			if (NULL == buffer) {
 				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
 					"%s. Command aborted \n", __FUNCTION__,
 					sstack_command_stringify(payload->command));
-	
+
 				return -ENOMEM;
 			}
 			sstack_payload_t__pack(&msg, buffer);
@@ -497,7 +497,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 			if (ret != 0) {
 				sfs_log(ctx, SFS_ERR, "%s: Failed to xmit payload "
 					"for %s request. Error = %d \n",
-					 __FUNCTION__, 
+					 __FUNCTION__,
 					sstack_command_stringify(payload->command), ret);
 
 				free(buffer);
@@ -554,12 +554,12 @@ sstack_send_payload(sstack_client_handle_t handle,
 				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
 					"%s. Command aborted \n", __FUNCTION__,
 					sstack_command_stringify(payload->command));
-	
+
 				return -ENOMEM;
 			}
 			for ( i = 0; i < entry.pe_num_plugins; i++ ) {
 				plugins[i]->ver =
-					payload->command_struct.write_cmd.pe.pe_policy[i]->ver;	
+					payload->command_struct.write_cmd.pe.pe_policy[i]->ver;
 				plugins[i]->pp_refcount =
 					payload->command_struct.write_cmd.pe.pe_policy[i]
 						->pp_refcount;
@@ -568,13 +568,13 @@ sstack_send_payload(sstack_client_handle_t handle,
 						->pp_policy_name);
 				strcpy((char *)&plugins[i]->pp_policy_name.data,
 					payload->command_struct.write_cmd.pe.pe_policy[i]
-						->pp_policy_name);	
+						->pp_policy_name);
 				plugins[i]->pp_sha_sum.len =
 					strlen(payload->command_struct.write_cmd.pe.pe_policy[i]
 						->pp_sha_sum);
 				strcpy((char *) &plugins[i]->pp_sha_sum.data,
 					payload->command_struct.write_cmd.pe.pe_policy[i]
-						->pp_sha_sum);	
+						->pp_sha_sum);
 				plugins[i]->is_activated =
 					payload->command_struct.write_cmd.pe.pe_policy[i]
 						->is_activated;
@@ -588,13 +588,13 @@ sstack_send_payload(sstack_client_handle_t handle,
 			msg.command_struct = &cmd;
 			len = sstack_payload_t__get_packed_size(&msg);
 			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
-			msg.hdr = &hdr; // Parannoid 
+			msg.hdr = &hdr; // Parannoid
 			buffer = malloc(len);
 			if (NULL == buffer) {
 				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
 					"%s. Command aborted \n", __FUNCTION__,
 					sstack_command_stringify(payload->command));
-	
+
 				return -ENOMEM;
 			}
 			sstack_payload_t__pack(&msg, buffer);
@@ -602,7 +602,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 			if (ret != 0) {
 				sfs_log(ctx, SFS_ERR, "%s: Failed to xmit payload "
 					"for %s request. Error = %d \n",
-					 __FUNCTION__, 
+					 __FUNCTION__,
 					sstack_command_stringify(payload->command), ret);
 
 				free(buffer);
@@ -658,12 +658,12 @@ sstack_send_payload(sstack_client_handle_t handle,
 				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
 					"%s. Command aborted \n", __FUNCTION__,
 					sstack_command_stringify(payload->command));
-	
+
 				return -ENOMEM;
 			}
 			for ( i = 0; i < entry.pe_num_plugins; i++ ) {
 				plugins[i]->ver =
-					payload->command_struct.create_cmd.pe.pe_policy[i]->ver;	
+					payload->command_struct.create_cmd.pe.pe_policy[i]->ver;
 				plugins[i]->pp_refcount =
 					payload->command_struct.create_cmd.pe.pe_policy[i]
 						->pp_refcount;
@@ -672,13 +672,13 @@ sstack_send_payload(sstack_client_handle_t handle,
 						->pp_policy_name);
 				strcpy((char *)&plugins[i]->pp_policy_name.data,
 					payload->command_struct.create_cmd.pe.pe_policy[i]
-						->pp_policy_name);	
+						->pp_policy_name);
 				plugins[i]->pp_sha_sum.len =
 					strlen(payload->command_struct.create_cmd.pe.pe_policy[i]
 						->pp_sha_sum);
 				strcpy((char *) &plugins[i]->pp_sha_sum.data,
 					payload->command_struct.create_cmd.pe.pe_policy[i]
-						->pp_sha_sum);	
+						->pp_sha_sum);
 				plugins[i]->is_activated =
 					payload->command_struct.create_cmd.pe.pe_policy[i]
 						->is_activated;
@@ -692,13 +692,13 @@ sstack_send_payload(sstack_client_handle_t handle,
 			msg.command_struct = &cmd;
 			len = sstack_payload_t__get_packed_size(&msg);
 			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
-			msg.hdr = &hdr; // Parannoid 
+			msg.hdr = &hdr; // Parannoid
 			buffer = malloc(len);
 			if (NULL == buffer) {
 				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
 					"%s. Command aborted \n", __FUNCTION__,
 					sstack_command_stringify(payload->command));
-	
+
 				return -ENOMEM;
 			}
 			sstack_payload_t__pack(&msg, buffer);
@@ -706,7 +706,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 			if (ret != 0) {
 				sfs_log(ctx, SFS_ERR, "%s: Failed to xmit payload "
 					"for %s request. Error = %d \n",
-					 __FUNCTION__, 
+					 __FUNCTION__,
 					sstack_command_stringify(payload->command), ret);
 
 				free(buffer);
@@ -734,13 +734,13 @@ sstack_send_payload(sstack_client_handle_t handle,
 			msg.command_struct = &cmd;
 			len = sstack_payload_t__get_packed_size(&msg);
 			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
-			msg.hdr = &hdr; // Parannoid 
+			msg.hdr = &hdr; // Parannoid
 			buffer = malloc(len);
 			if (NULL == buffer) {
 				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
 					"%s. Command aborted \n", __FUNCTION__,
 					sstack_command_stringify(payload->command));
-	
+
 				return -ENOMEM;
 			}
 			sstack_payload_t__pack(&msg, buffer);
@@ -748,7 +748,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 			if (ret != 0) {
 				sfs_log(ctx, SFS_ERR, "%s: Failed to xmit payload "
 					"for %s request. Error = %d \n",
-					 __FUNCTION__, 
+					 __FUNCTION__,
 					sstack_command_stringify(payload->command), ret);
 
 				free(buffer);
@@ -783,13 +783,13 @@ sstack_send_payload(sstack_client_handle_t handle,
 			msg.command_struct = &cmd;
 			len = sstack_payload_t__get_packed_size(&msg);
 			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
-			msg.hdr = &hdr; // Parannoid 
+			msg.hdr = &hdr; // Parannoid
 			buffer = malloc(len);
 			if (NULL == buffer) {
 				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
 					"%s. Command aborted \n", __FUNCTION__,
 					sstack_command_stringify(payload->command));
-	
+
 				return -ENOMEM;
 			}
 			sstack_payload_t__pack(&msg, buffer);
@@ -797,7 +797,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 			if (ret != 0) {
 				sfs_log(ctx, SFS_ERR, "%s: Failed to xmit payload "
 					"for %s request. Error = %d \n",
-					 __FUNCTION__, 
+					 __FUNCTION__,
 					sstack_command_stringify(payload->command), ret);
 
 				free(buffer);
@@ -832,13 +832,13 @@ sstack_send_payload(sstack_client_handle_t handle,
 			msg.command_struct = &cmd;
 			len = sstack_payload_t__get_packed_size(&msg);
 			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
-			msg.hdr = &hdr; // Parannoid 
+			msg.hdr = &hdr; // Parannoid
 			buffer = malloc(len);
 			if (NULL == buffer) {
 				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
 					"%s. Command aborted \n", __FUNCTION__,
 					sstack_command_stringify(payload->command));
-	
+
 				return -ENOMEM;
 			}
 			sstack_payload_t__pack(&msg, buffer);
@@ -846,7 +846,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 			if (ret != 0) {
 				sfs_log(ctx, SFS_ERR, "%s: Failed to xmit payload "
 					"for %s request. Error = %d \n",
-					 __FUNCTION__, 
+					 __FUNCTION__,
 					sstack_command_stringify(payload->command), ret);
 
 				free(buffer);
@@ -879,13 +879,13 @@ sstack_send_payload(sstack_client_handle_t handle,
 			msg.command_struct = &cmd;
 			len = sstack_payload_t__get_packed_size(&msg);
 			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
-			msg.hdr = &hdr; // Parannoid 
+			msg.hdr = &hdr; // Parannoid
 			buffer = malloc(len);
 			if (NULL == buffer) {
 				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
 					"%s. Command aborted \n", __FUNCTION__,
 					sstack_command_stringify(payload->command));
-	
+
 				return -ENOMEM;
 			}
 			sstack_payload_t__pack(&msg, buffer);
@@ -893,7 +893,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 			if (ret != 0) {
 				sfs_log(ctx, SFS_ERR, "%s: Failed to xmit payload "
 					"for %s request. Error = %d \n",
-					 __FUNCTION__, 
+					 __FUNCTION__,
 					sstack_command_stringify(payload->command), ret);
 
 				free(buffer);
@@ -922,13 +922,13 @@ sstack_send_payload(sstack_client_handle_t handle,
 			msg.command_struct = &cmd;
 			len = sstack_payload_t__get_packed_size(&msg);
 			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
-			msg.hdr = &hdr; // Parannoid 
+			msg.hdr = &hdr; // Parannoid
 			buffer = malloc(len);
 			if (NULL == buffer) {
 				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
 					"%s. Command aborted \n", __FUNCTION__,
 					sstack_command_stringify(payload->command));
-	
+
 				return -ENOMEM;
 			}
 			sstack_payload_t__pack(&msg, buffer);
@@ -936,7 +936,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 			if (ret != 0) {
 				sfs_log(ctx, SFS_ERR, "%s: Failed to xmit payload "
 					"for %s request. Error = %d \n",
-					 __FUNCTION__, 
+					 __FUNCTION__,
 					sstack_command_stringify(payload->command), ret);
 
 				free(buffer);
@@ -960,13 +960,13 @@ sstack_send_payload(sstack_client_handle_t handle,
 			msg.response_struct = &response;
 			len = sstack_payload_t__get_packed_size(&msg);
 			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
-			msg.hdr = &hdr; // Parannoid 
+			msg.hdr = &hdr; // Parannoid
 			buffer = malloc(len);
 			if (NULL == buffer) {
 				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
 					"%s. Command aborted \n", __FUNCTION__,
 					sstack_command_stringify(payload->command));
-	
+
 				return -ENOMEM;
 			}
 			sstack_payload_t__pack(&msg, buffer);
@@ -974,7 +974,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 			if (ret != 0) {
 				sfs_log(ctx, SFS_ERR, "%s: Failed to xmit payload "
 					"for %s request. Error = %d \n",
-					 __FUNCTION__, 
+					 __FUNCTION__,
 					sstack_command_stringify(payload->command), ret);
 
 				free(buffer);
@@ -1002,13 +1002,13 @@ sstack_send_payload(sstack_client_handle_t handle,
 			msg.response_struct = &response;
 			len = sstack_payload_t__get_packed_size(&msg);
 			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
-			msg.hdr = &hdr; // Parannoid 
+			msg.hdr = &hdr; // Parannoid
 			buffer = malloc(len);
 			if (NULL == buffer) {
 				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
 					"%s. Command aborted \n", __FUNCTION__,
 					sstack_command_stringify(payload->command));
-	
+
 				return -ENOMEM;
 			}
 			sstack_payload_t__pack(&msg, buffer);
@@ -1016,7 +1016,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 			if (ret != 0) {
 				sfs_log(ctx, SFS_ERR, "%s: Failed to xmit payload "
 					"for %s request. Error = %d \n",
-					 __FUNCTION__, 
+					 __FUNCTION__,
 					sstack_command_stringify(payload->command), ret);
 
 				free(buffer);
@@ -1046,13 +1046,13 @@ sstack_send_payload(sstack_client_handle_t handle,
 			msg.response_struct = &response;
 			len = sstack_payload_t__get_packed_size(&msg);
 			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
-			msg.hdr = &hdr; // Parannoid 
+			msg.hdr = &hdr; // Parannoid
 			buffer = malloc(len);
 			if (NULL == buffer) {
 				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
 					"%s. Command aborted \n", __FUNCTION__,
 					sstack_command_stringify(payload->command));
-	
+
 				return -ENOMEM;
 			}
 			sstack_payload_t__pack(&msg, buffer);
@@ -1060,7 +1060,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 			if (ret != 0) {
 				sfs_log(ctx, SFS_ERR, "%s: Failed to xmit payload "
 					"for %s request. Error = %d \n",
-					 __FUNCTION__, 
+					 __FUNCTION__,
 					sstack_command_stringify(payload->command), ret);
 
 				free(buffer);
@@ -1085,13 +1085,13 @@ sstack_send_payload(sstack_client_handle_t handle,
 			msg.response_struct = &response;
 			len = sstack_payload_t__get_packed_size(&msg);
 			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
-			msg.hdr = &hdr; // Parannoid 
+			msg.hdr = &hdr; // Parannoid
 			buffer = malloc(len);
 			if (NULL == buffer) {
 				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
 					"%s. Command aborted \n", __FUNCTION__,
 					sstack_command_stringify(payload->command));
-	
+
 				return -ENOMEM;
 			}
 			sstack_payload_t__pack(&msg, buffer);
@@ -1099,7 +1099,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 			if (ret != 0) {
 				sfs_log(ctx, SFS_ERR, "%s: Failed to xmit payload "
 					"for %s request. Error = %d \n",
-					 __FUNCTION__, 
+					 __FUNCTION__,
 					sstack_command_stringify(payload->command), ret);
 
 				free(buffer);
@@ -1131,13 +1131,13 @@ sstack_send_payload(sstack_client_handle_t handle,
 			msg.response_struct = &response;
 			len = sstack_payload_t__get_packed_size(&msg);
 			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
-			msg.hdr = &hdr; // Parannoid 
+			msg.hdr = &hdr; // Parannoid
 			buffer = malloc(len);
 			if (NULL == buffer) {
 				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
 					"%s. Command aborted \n", __FUNCTION__,
 					sstack_command_stringify(payload->command));
-	
+
 				return -ENOMEM;
 			}
 			sstack_payload_t__pack(&msg, buffer);
@@ -1145,7 +1145,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 			if (ret != 0) {
 				sfs_log(ctx, SFS_ERR, "%s: Failed to xmit payload "
 					"for %s request. Error = %d \n",
-					 __FUNCTION__, 
+					 __FUNCTION__,
 					sstack_command_stringify(payload->command), ret);
 
 				free(buffer);
@@ -1172,13 +1172,13 @@ sstack_send_payload(sstack_client_handle_t handle,
 			msg.response_struct = &response;
 			len = sstack_payload_t__get_packed_size(&msg);
 			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
-			msg.hdr = &hdr; // Parannoid 
+			msg.hdr = &hdr; // Parannoid
 			buffer = malloc(len);
 			if (NULL == buffer) {
 				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
 					"%s. Command aborted \n", __FUNCTION__,
 					sstack_command_stringify(payload->command));
-	
+
 				return -ENOMEM;
 			}
 			sstack_payload_t__pack(&msg, buffer);
@@ -1186,7 +1186,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 			if (ret != 0) {
 				sfs_log(ctx, SFS_ERR, "%s: Failed to xmit payload "
 					"for %s request. Error = %d \n",
-					 __FUNCTION__, 
+					 __FUNCTION__,
 					sstack_command_stringify(payload->command), ret);
 
 				free(buffer);
@@ -1219,13 +1219,13 @@ sstack_send_payload(sstack_client_handle_t handle,
 			msg.response_struct = &response;
 			len = sstack_payload_t__get_packed_size(&msg);
 			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
-			msg.hdr = &hdr; // Parannoid 
+			msg.hdr = &hdr; // Parannoid
 			buffer = malloc(len);
 			if (NULL == buffer) {
 				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
 					"%s. Command aborted \n", __FUNCTION__,
 					sstack_command_stringify(payload->command));
-	
+
 				return -ENOMEM;
 			}
 			sstack_payload_t__pack(&msg, buffer);
@@ -1233,7 +1233,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 			if (ret != 0) {
 				sfs_log(ctx, SFS_ERR, "%s: Failed to xmit payload "
 					"for %s request. Error = %d \n",
-					 __FUNCTION__, 
+					 __FUNCTION__,
 					sstack_command_stringify(payload->command), ret);
 
 				free(buffer);
@@ -1260,13 +1260,13 @@ sstack_send_payload(sstack_client_handle_t handle,
 			msg.response_struct = &response;
 			len = sstack_payload_t__get_packed_size(&msg);
 			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
-			msg.hdr = &hdr; // Parannoid 
+			msg.hdr = &hdr; // Parannoid
 			buffer = malloc(len);
 			if (NULL == buffer) {
 				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
 					"%s. Command aborted \n", __FUNCTION__,
 					sstack_command_stringify(payload->command));
-	
+
 				return -ENOMEM;
 			}
 			sstack_payload_t__pack(&msg, buffer);
@@ -1274,7 +1274,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 			if (ret != 0) {
 				sfs_log(ctx, SFS_ERR, "%s: Failed to xmit payload "
 					"for %s request. Error = %d \n",
-					 __FUNCTION__, 
+					 __FUNCTION__,
 					sstack_command_stringify(payload->command), ret);
 
 				free(buffer);
@@ -1667,7 +1667,7 @@ sstack_recv_payload(sstack_client_handle_t handle,
 			payload->response_struct.create_resp.file_wc =
 				msg->response_struct->create_resp->file_wc;
 			return payload;
-			
+
 	}
 	return NULL;
 }

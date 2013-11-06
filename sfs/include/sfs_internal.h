@@ -1,11 +1,11 @@
 /*************************************************************************
- * 
+ *
  * SEAMLESSSTACK CONFIDENTIAL
  * __________________________
- * 
+ *
  *  [2012] - [2013]  SeamlessStack Inc
  *  All Rights Reserved.
- * 
+ *
  * NOTICE:  All information contained herein is, and remains
  * the property of SeamlessStack Incorporated and its suppliers,
  * if any.  The intellectual and technical concepts contained
@@ -147,7 +147,7 @@ sstack_sfsd_pool_destroy(sstack_sfsd_pool_t *pools)
  * pools - Global sfsd pool
  * sfsd - sfsd to be added to the pool
  *
- * Returns 0 on success and -1 on failure. 
+ * Returns 0 on success and -1 on failure.
  */
 
 
