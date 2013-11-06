@@ -102,6 +102,7 @@ typedef struct sfsd {
 	log_ctx_t *log_ctx;
 	sstack_transport_t *transport;
 	sstack_client_handle_t handle;
+	bds_int_list_t list; // This is for queueing sfsd to sfsd pool
 	/* To be used in sfsd;
 	   Undefined if accessed in sfs */
 

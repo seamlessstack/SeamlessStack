@@ -51,6 +51,7 @@
 #include <sstack_transport_tcp.h>
 #include <sstack_serdes.h>
 #include <policy.h>
+#include <sfs_internal.h>
 #include <sfs.h>
 #include <sfs_entry.h>
 #include <sfs_job.h>
@@ -83,6 +84,7 @@ sstack_transport_t transport;
  */
 sfs_job_queue_t *jobs = NULL;
 sfs_job_queue_t *pending_jobs = NULL;
+sstack_sfsd_pool_t *sfsd_pool = NULL;
 
 
 /* Structure definitions */
@@ -890,6 +892,21 @@ sfs_init(struct fuse_conn_info *conn)
 		sstack_transport_deregister(type, &transport);
 		sstack_thread_pool_destroy(sfs_thread_pool);
 		(void) sfs_job_queue_destroy(jobs);
+		return NULL;
+	}
+
+	// Initialize sfsd_pool
+	sfsd_pool = sstack_sfsd_pool_init();
+	if (NULL == sfsd_pool) {
+		// sfsd_pool creation failed.
+		// Product is not scalable and useless.
+		// Exit
+		db->db_ops.db_close(sfs_ctx);
+		pthread_kill(recv_thread, SIGKILL);
+		sstack_transport_deregister(type, &transport);
+		sstack_thread_pool_destroy(sfs_thread_pool);
+		(void) sfs_job_queue_destroy(jobs);
+		(void) sfs_job_queue_destroy(pending_jobs);
 		return NULL;
 	}
 

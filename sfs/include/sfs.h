@@ -38,9 +38,6 @@
 #include <sstack_transport.h>
 #include <sstack_thread_pool.h>
 #define ROOT_SEP ":"
-#define MINIMUM_WEIGHT 0
-#define DEFAULT_WEIGHT 5
-#define MAXIMUM_WEIGHT 65536
 #define ADD_BRANCH 1
 #define DEL_BRANCH 2
 #define ADD_POLICY 3
@@ -131,7 +128,6 @@ rep(char *src, char slash)
 }
 
 extern uint32_t sstack_checksum(log_ctx_t *, const char *);
-extern log_ctx_t *sfs_ctx;
 extern db_t *db;
 extern sstack_client_handle_t sfs_handle;
 extern sstack_thread_pool_t *sfs_thread_pool;

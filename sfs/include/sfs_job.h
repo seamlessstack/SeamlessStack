@@ -28,6 +28,7 @@
 #include <sstack_types.h>
 #include <sstack_bitops.h>
 #include <sfs_entry.h>
+#include <sfs_internal.h>
 
 extern sstack_job_id_t  current_job_id; // Points to next job id to be returned
 extern pthread_mutex_t sfs_job_id_mutex;
@@ -240,8 +241,8 @@ sfs_enqueue_job(int priority, sfs_job_queue_t *job_list, sfs_job_t *job)
 	job_list += priority; // Move to the specified priority list
 	// Add to tail to maintain FIFO semantics
 	pthread_spin_lock(&job_list->lock);
-	bds_list_add_tail((bds_list_head_t ) &job->wait_list,
-					(bds_list_head_t ) &job_list->list);
+	bds_list_add_tail((bds_list_head_t) &job->wait_list,
+					(bds_list_head_t) &job_list->list);
 	pthread_spin_unlock(&job_list->lock);
 
 	return 0;
@@ -277,7 +278,7 @@ sfs_dequeue_job(int priority, sfs_job_queue_t *job_list, sfs_job_t *job)
 	job_list += priority; // Move to the specified priority list
 	// Delete the job from job list
 	pthread_spin_lock(&job_list->lock);
-	if (list_empty((bds_list_head_t ) &job_list->list)) {
+	if (list_empty((bds_list_head_t) &job_list->list)) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Empty job list at priority %d . "
 						"This could indicate list corruption \n",
 						__FUNCTION__, priority);
