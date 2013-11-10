@@ -197,7 +197,7 @@ add_inodes(const char *path)
 	}
 	// Populate the extent
 	memset((void *) &extent, 0, sizeof(sstack_extent_t));
-	extent.e_realsize = status.st_size;
+	extent.e_sizeondisk = status.st_size;
 	if (inode.i_type == REGFILE) {
 		extent.e_cksum = sstack_checksum(sfs_ctx, path); // CRC32
 		sfs_log(sfs_ctx, SFS_INFO, "%s: checksum of %s is %lu \n",

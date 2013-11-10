@@ -26,6 +26,7 @@
 typedef uint64_t sstack_client_handle_t;
 typedef uint64_t sstack_job_id_t;
 typedef uint8_t sstack_bitmap_t;
+typedef uint32_t sstack_cksum_t;
 
 /* Supported Protocols */
 typedef enum {
