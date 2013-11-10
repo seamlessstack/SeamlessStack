@@ -123,6 +123,10 @@ int main(int argc, char **argv)
 		mongo_db_seekread, mongo_db_update, mongo_db_delete,
 		mongo_db_cleanup, ctx);
 	sfsd.db = db;
+	if (sfsd.db->db_ops.db_init(sfsd.log_ctx) != 0) {
+	ASSERT ((0 == register_signals(&sfsd)),
+			"Signal regisration failed", 1, 1, 0);
+	}
 
 	ASSERT((0 == sfsd_create_caches(&sfsd, caches)),
 			"Cache creation failed", 1, 1, 0);

@@ -1270,6 +1270,7 @@ sfs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 	struct stat status;
 	int ret = -1;
 	sstack_file_handle_t *ep = NULL;
+	char inode_str[MAX_INODE_LEN] = { '\0' };
 
     sfs_log(sfs_ctx, SFS_DEBUG, "%s: path = %s\n", __FUNCTION__, path);
 	// Parameter validation
@@ -1367,11 +1368,21 @@ sfs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to store inode #%lld for "
 				"path %s. Error %d\n", __FUNCTION__, inode.i_num,
 				inode.i_name, errno);
-		return -errno;
+		return -1;
 	}
 
 	free(ep);
-	
+
+	// Populate memcahed for reverse lookup
+	sprintf(inode_str, "%lld", inode.i_num);
+	ret = sstack_cache_store(mc, path, inode_str, (strlen(inode_str) + 1),
+					sfs_ctx);
+	if (ret != 0) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to store object into memcached."
+				" Key = %s value = %s \n", __FUNCTION__, path, inode_str);
+		return -1;
+	}
+
 	return 0;
 }
 

@@ -815,11 +815,6 @@ sfs_init(struct fuse_conn_info *conn)
 			__FUNCTION__, errno);
 		return NULL;
 	}
-	if (db->db_ops.db_open(sfs_ctx) != 0) {
-		sfs_log(sfs_ctx, SFS_CRIT, "%s: DB open faled with error %d\n",
-			__FUNCTION__, errno);
-		return NULL;
-	}
 
 	// Other init()s go here
 	// Initialize TCP transport

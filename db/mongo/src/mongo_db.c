@@ -36,6 +36,15 @@ mongo conn[1];
 int
 mongo_db_open(log_ctx_t * ctx)
 {
+	int ret = -1;
+
+	// Initialize the connection
+	ret = mongo_client(conn, MONGO_IP, MONGO_PORT);
+	if (ret != MONGO_OK) {
+		sfs_log(ctx, SFS_ERR, "%s: Failed to connect to mongodb. "
+			"Error = %d\n", __FUNCTION__, ret);
+		return -1;
+	}
 	return 0;
 }
 
@@ -52,13 +61,26 @@ int
 mongo_db_init(log_ctx_t *ctx)
 {
 	int ret = -1;
+	char *mongo_ip = NULL;
 
-	// Initialize the connection
-	ret = mongo_client(conn, MONGO_IP, MONGO_PORT);
-	if (ret != MONGO_OK) {
-		sfs_log(ctx, SFS_ERR, "%s: Failed to connect to mongodb. "
-			"Error = %d\n", __FUNCTION__, ret);
-		return -1;
+	// Get Mongo DB IP address from environment
+	mongo_ip = getenv("MONGO_IPADDR");
+	if (NULL == mongo_ip) {
+		// Initialize the connection
+		ret = mongo_client(conn, MONGO_IP, MONGO_PORT);
+		if (ret != MONGO_OK) {
+			sfs_log(ctx, SFS_ERR, "%s: Failed to connect to mongodb. "
+					"Error = %d\n", __FUNCTION__, ret);
+			return -1;
+		}
+	} else {
+		// Initialize the connection
+		ret = mongo_client(conn, mongo_ip, MONGO_PORT);
+		if (ret != MONGO_OK) {
+			sfs_log(ctx, SFS_ERR, "%s: Failed to connect to mongodb. "
+					"Error = %d\n", __FUNCTION__, ret);
+			return -1;
+		}
 	}
 
 #ifdef MONGO_TEST
