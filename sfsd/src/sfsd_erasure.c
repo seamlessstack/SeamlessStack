@@ -25,9 +25,7 @@
 
 #define NUM_PKT_STRIPS	8
 #define PACKET_SIZE(size)	(size/NUM_PKT_STRIPS)
-#define CODE_STRIPES	4
 #define MAX_ERROR_STRIPES	CODE_STRIPES
-#define MAX_DATA_STRIPES 8	
 
 /* Bitmatrices derived upfront from GF(2^8) */   
 static int *bitmatrix_2; /* For 2 data stripes and 2 code stripes */

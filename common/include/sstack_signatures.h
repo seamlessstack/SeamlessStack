@@ -16,30 +16,12 @@
  * is strictly forbidden unless prior written permission is obtained
  * from SeamlessStack Incorporated.
  */
+#ifndef __SSTACK_SIGNATURES_H__
+#define __SSTACK_SIGNATURES_H__
+// Put all the function signatures in this file
+// TODo
+// Remove the above two line and this line :-)
 
-#ifndef __SFS_ERASURE_H__
-#define __SFS_ERASURE_H__
+extern uint32_t crc_pcl(const char *, size_t , uint32_t );
 
-typedef enum {
-        ESURE_SUCCESS = 0,
-        ESURE_NO_MEM = -128,
-        ESURE_INV_DATA_STRP,
-        ESURE_INV_CODE_STRP,
-        ESURE_NUM_ERR_STRP_INVLD,
-        ESURE_INV_BITMATRIX,
-        ESURE_SIZE_MISMATCH,
-        ESURE_INIT_FAIL,
-        ESURE_ERR
-} esure_err_t;
-
-#define CODE_STRIPES 4
-#define MAX_DATA_STRIPES 8
-
-int sfs_erasure_init(void);
-int sfs_esure_encode(void **data, int num_dstripes, void **code, 
-			int num_cstripes, int strp_size);
-int sfs_esure_decode(void **data, int num_dstripes, void **code,
-                int num_cstripes, int *err_strips,  int num_err,
-                 int strp_size);
-
-#endif /* __SFS_ERASURE_H__ */
+#endif // __SSTACK_SIGNATURES_H__

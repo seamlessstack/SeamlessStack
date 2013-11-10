@@ -28,6 +28,8 @@
 #include <bds_slab.h>
 #include <sstack_md.h>
 #include <sstack_helper.h>
+#include <sstack_signatures.h>
+#include <sfsd_erasure.h>
 
 #define USE_INDEX 0
 #define USE_HANDLE 1
@@ -281,7 +283,7 @@ static int32_t read_and_check_extent(sstack_file_handle_t *extent_handle,
 		uint32_t crc;
 		crc = crc_pcl((const char *)buffer, nbytes, 0);
 		if (crc != extent->e_cksum) {
-			ret = -ECKSUM;
+			ret = -SSTACK_ECKSUM;
 		} else {
 			ret = 0;
 		}
@@ -294,13 +296,12 @@ static int32_t read_and_check_erasure(int32_t index, sstack_inode_t *inode,
 			void *buffer, int32_t chk_cksum, log_ctx_t *ctx)
 {
 	int32_t fd;
-	int32_t ret = 0, nbytes = 0, i = 0, len = 0;
+	int32_t ret = 0, nbytes = 0, len = 0;
 	sstack_erasure_t *erasure = NULL;
 	char *p = NULL;
 	char *q = NULL;
 	char *r;
 	char *path;
-	p[extent_handle->name_len - 1] = '\0';
 
 	erasure = &inode->i_erasure[index];
 	
@@ -347,7 +348,7 @@ static int32_t read_and_check_erasure(int32_t index, sstack_inode_t *inode,
 		uint32_t crc;
 		crc = crc_pcl((const char *)buffer, nbytes, 0);
 		if (crc != erasure->er_cksum) {
-			ret = -ECKSUM;
+			ret = -SSTACK_ECKSUM;
 		} else {
 			ret = 0;
 		}
@@ -363,7 +364,7 @@ sstack_payload_t *sstack_read(sstack_payload_t *payload,
 	sstack_inode_t *inode;
 	struct sstack_nfs_read_cmd *cmd = &payload->command_struct.read_cmd;
 	struct policy_entry *pe = &cmd->pe;
-	struct payload *response;
+	sstack_payload_t *response;
 	void *buffer1 = NULL, *buffer2 = NULL;
 	inode = bds_cache_alloc(sfsd_global_cache_arr[INODE_CACHE_OFFSET]);
 	if (inode == NULL) {
@@ -390,7 +391,7 @@ sstack_payload_t *sstack_read(sstack_payload_t *payload,
 		int32_t ecode_idx = 0, ret = 0;
 
 		for(i = 0; i < inode->i_numextents; ++i) {
-			if (TRUE == match_extent(extent_handle,
+			if (TRUE == match_extent(&payload->command_struct.extent_handle,
 					  inode->i_extent[i].e_path)) {
 				index = i;
 				break;
@@ -406,39 +407,39 @@ sstack_payload_t *sstack_read(sstack_payload_t *payload,
 		}
 		
 		for (i = index; i < final_dstripe_idx; i++) {
-			dstripes[i-index] = 
+			d_stripes[i-index] = 
 				bds_cache_alloc(sfsd_global_cache_arr[DATA64K_CACHE_OFFSET]);
-			if (dstripes[i-index] == NULL) {
+			if (d_stripes[i-index] == NULL) {
 				sfs_log(ctx, SFS_ERR, "%s(): Error getting read buffer\n",
 					__FUNCTION__);
 				command_stat = -ENOMEM;
 				goto error;
 			}
 			ret = read_and_check_extent(NULL, i, USE_INDEX, inode, 
-					dstripes[i-index], 1, ctx);
-			if (ret == -ECKSUM) {
+					d_stripes[i-index], 1, ctx);
+			if (ret == -SSTACK_ECKSUM) {
 				err_strps[num_err_strps++] = (i-index);
 			}
 			num_dstripes++;
 		}	
 		
 		for (i = er_index; i < er_index + CODE_STRIPES; i++) {
-			cstripes[i-er_index] = 
+			c_stripes[i-er_index] = 
 				bds_cache_alloc(sfsd_global_cache_arr[DATA64K_CACHE_OFFSET]);
-			if (cstripes[i-er_index] == NULL) {
+			if (c_stripes[i-er_index] == NULL) {
 				sfs_log(ctx, SFS_ERR, "%s(): Error getting read buffer\n",
 					__FUNCTION__);
 				command_stat = -ENOMEM;
 				goto error;
 			}
-			ret = read_and_check_erasure(i, inode, cstripes[i-er_index], 
+			ret = read_and_check_erasure(i, inode, c_stripes[i-er_index], 
 												1, ctx);
-			if (ret == -ECKSUM) {
+			if (ret == -SSTACK_ECKSUM) {
 				err_strps[num_err_strps++] = (i-er_index);
 			}
 		}
 			
-		ret = sfs_sure_decode(dstripes, num_dstripes, cstripes, CODE_STRIPES,
+		ret = sfs_esure_decode(d_stripes, num_dstripes, c_stripes, CODE_STRIPES,
 								err_strps, num_err_strps, ERASURE_STRIPE_SIZE);
 	}
 		
@@ -458,8 +459,8 @@ sstack_payload_t *sstack_read(sstack_payload_t *payload,
 		goto error;
 	}
 	/* Read the actual extent now */
-	command_stat = read_extent(&payload->command_struct.extent_handle,
-				   inode, buffer1, ctx);
+	command_stat = read_and_check_extent(&payload->command_struct.extent_handle,
+				   0, USE_HANDLE, inode, buffer1, 1, ctx);
 	if (command_stat != 0) {
 		sfs_log(ctx, SFS_ERR, "%s(): Error reading extent",
 			__FUNCTION__);
@@ -470,16 +471,21 @@ sstack_payload_t *sstack_read(sstack_payload_t *payload,
 		//Call the remove plugins from the dlsym/dlopen
 		//Finally buffer2 should have the data
 	}
+	
+	response = bds_cache_alloc(sfsd_global_cache_arr[PAYLOAD_CACHE_OFFSET]);
+	if (!response) {
+		sfs_log(ctx, SFS_ERR, "%s(): Memory allocation failed",
+				__FUNCTION__);
+		command_stat = -ENOMEM;
+		goto error;
+	}
+	
+	memcpy(response->response_struct.read_resp.data.data_val, buffer2,
+			MAX_EXTENT_SIZE);
 
-	// if erausre code required data required
-	// read erasure code and return
+	//TODO:Write back the erasure coded data 
+	return response;
 
-	// Read extent and remove policy
-
-	// calculate checksum(crc) . if correct data
-	// return else indicate sfs that data is not
-	// present
-	return NULL;
 error:
 
 	return NULL;
