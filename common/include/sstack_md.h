@@ -65,8 +65,8 @@ typedef struct extent {
 		sstack_offset_t e_offset; // Offset within the file
 		uint64_t e_size; // Though current extent size is fixed at 64KiB, we
 		// still need this field to figure out partially filled up extent.
-		uint64_t e_realsize; // Real size of the extent
-		unsigned long e_cksum; // Checksum of the extent
+		uint64_t e_sizeondisk; // On disk size after storage policy apply
+		sstack_cksum_t e_cksum; // Checksum of the extent
 		unsigned int e_numreplicas; // Avoid reading sstack_inode_t again
 	};
 	sstack_file_handle_t *e_path; // Pointer to an array of replica paths
@@ -94,8 +94,8 @@ get_extent_fixed_fields_len(void)
 // Defines erasure code location
 // For now, path is sufficient. This structure is for future enhancements.
 typedef struct erasure {
-	int path_len;
-	char *path;
+	sstack_file_handle_t *er_path;
+	sstack_cksum_t er_cksum; // Checksum for erasure codes
 } sstack_erasure_t;
 
 // Defines metadata structure for each inode
