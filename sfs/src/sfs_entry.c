@@ -1265,7 +1265,113 @@ sfs_access(const char *path, int mode)
 int
 sfs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 {
+	sstack_inode_t inode;
+	policy_entry_t *policy = NULL;
+	struct stat status;
+	int ret = -1;
+	sstack_file_handle_t *ep = NULL;
 
+    sfs_log(sfs_ctx, SFS_DEBUG, "%s: path = %s\n", __FUNCTION__, path);
+	// Parameter validation
+	if (NULL == path) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters specified \n",
+				__FUNCTION__);
+		errno = EINVAL;
+		return -1;
+	}
+
+	ret = creat(path, mode);
+	if (ret == -1) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Create failed with error %d \n",
+				__FUNCTION__, errno);
+		errno = EACCES;
+		return -1;
+	}
+
+	// Populate DB with new inode info
+	inode.i_num = get_free_inode();
+	strcpy(inode.i_name, path);
+	inode.i_uid = status.st_uid;
+	inode.i_gid = status.st_gid;
+	inode.i_mode = status.st_mode;
+	switch (status.st_mode & S_IFMT) {
+		case S_IFDIR:
+			inode.i_type = DIRECTORY;
+			break;
+		case S_IFREG:
+			inode.i_type = REGFILE;
+			break;
+		case S_IFLNK:
+			inode.i_type = SYMLINK;
+			break;
+		case S_IFBLK:
+			inode.i_type = BLOCKDEV;
+			break;
+		case S_IFCHR:
+			inode.i_type = CHARDEV;
+			break;
+		case S_IFIFO:
+			inode.i_type = FIFO;
+			break;
+		case S_IFSOCK:
+			inode.i_type = SOCKET_TYPE;
+			break;
+		default:
+			inode.i_type = UNKNOWN;
+			break;
+	}
+
+	// Make sure we are not looping
+	// TBD
+
+	memcpy(&inode.i_atime, &status.st_atime, sizeof(struct timespec));
+	memcpy(&inode.i_ctime, &status.st_ctime, sizeof(struct timespec));
+	memcpy(&inode.i_mtime, &status.st_mtime, sizeof(struct timespec));
+	inode.i_size = status.st_size;
+	inode.i_ondisksize = (status.st_blocks * 512);
+	inode.i_numreplicas = 1; // For now, single copy
+	// Since the file already exists, done't split it now. Split it when
+	// next write arrives
+	inode.i_numextents = 1;
+	inode.i_numerasure = 0; // No erasure code segments
+	inode.i_xattrlen = 0; // No extended attributes
+	inode.i_links = status.st_nlink;
+	sfs_log(sfs_ctx, SFS_INFO,
+		"%s: nlinks for %s are %d\n", __FUNCTION__, path, inode.i_links);
+	// Populate size of each extent
+	policy = get_policy(path);
+	if (NULL == policy) {
+		sfs_log(sfs_ctx, SFS_INFO,
+			"%s: No policies specified. Default policy applied\n",
+			__FUNCTION__);
+		inode.i_policy.pe_attr.a_qoslevel = QOS_LOW;
+		inode.i_policy.pe_attr.a_ishidden = 0;
+	} else {
+		// Got the policy
+		sfs_log(sfs_ctx, SFS_INFO,
+			"%s: Got policy for file %s\n", __FUNCTION__, path);
+		sfs_log(sfs_ctx, SFS_INFO, "%s: ver %s qoslevel %d hidden %d \n",
+			__FUNCTION__, path, policy->pe_attr.ver,
+			policy->pe_attr.a_qoslevel,
+			policy->pe_attr.a_ishidden);
+		memcpy(&inode.i_policy, policy, sizeof(policy_entry_t));
+	}
+	// Populate the extent
+	inode.i_extent = NULL;
+	inode.i_erasure = NULL; // No erasure coding info for now
+	inode.i_xattr = NULL; // No extended attributes carried over
+
+	// Store inode
+	ret = put_inode(&inode, db);
+	if (ret != 0) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to store inode #%lld for "
+				"path %s. Error %d\n", __FUNCTION__, inode.i_num,
+				inode.i_name, errno);
+		return -errno;
+	}
+
+	free(ep);
+	
 	return 0;
 }
 
