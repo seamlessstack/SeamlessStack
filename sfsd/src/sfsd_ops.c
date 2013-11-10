@@ -29,6 +29,10 @@
 #include <sstack_md.h>
 #include <sstack_helper.h>
 
+#define USE_INDEX 0
+#define USE_HANDLE 1
+#define ERASURE_STRIPE_SIZE (64*1024)
+
 extern bds_cache_desc_t sfsd_global_cache_arr[];
 extern char *get_mount_path(sfs_chunk_domain_t * , sstack_file_handle_t * ,
 				char ** );
@@ -206,8 +210,9 @@ static inline int32_t match_extent(sstack_file_handle_t *h1,
 	return FALSE;
 }
 
-static int32_t read_extent(sstack_file_handle_t *extent_handle,
-			   sstack_inode_t *inode, void *buffer, log_ctx_t *ctx)
+static int32_t read_and_check_extent(sstack_file_handle_t *extent_handle,
+			int32_t index, int32_t use_flag, sstack_inode_t *inode, 
+			void *buffer, int32_t chk_cksum, log_ctx_t *ctx)
 {
 	int32_t fd;
 	int32_t ret = 0, nbytes = 0, i = 0, len = 0;
@@ -218,15 +223,20 @@ static int32_t read_extent(sstack_file_handle_t *extent_handle,
 	char *path;
 	p[extent_handle->name_len - 1] = '\0';
 
+	if (use_flag == USE_INDEX) {
+		extent = &inode->i_extent[index];
+	}
+	
 	/* Search the IP address in the extent handle in the inode
 	   structure. Needed to find out the extent_t to get the full
 	   information about the particular extent */
-
-	for(i = 0; i < inode->i_numextents; ++i) {
-		if (TRUE == match_extent(extent_handle,
+	if (use_flag == USE_HANDLE) {
+		for(i = 0; i < inode->i_numextents; ++i) {
+			if (TRUE == match_extent(extent_handle,
 					  inode->i_extent[i].e_path)) {
-			extent = &inode->i_extent[i];
-			break;
+				extent = &inode->i_extent[i];
+				break;
+			}
 		}
 	}
 
@@ -257,13 +267,91 @@ static int32_t read_extent(sstack_file_handle_t *extent_handle,
 		sfs_log(ctx, SFS_ERR, "%s(): extent '%s' open failed",
 			__FUNCTION__, p);
 		ret = errno;;
+		goto ret;
 	}
 	nbytes = read(fd, buffer, extent->e_size);
 	if (nbytes == 0) {
 		sfs_log(ctx, SFS_ERR, "%s(): Read returned 0\n",
 			__FUNCTION__);
 		ret = errno;
+		goto ret;
 	}
+	
+	if (chk_cksum) {
+		uint32_t crc;
+		crc = crc_pcl((const char *)buffer, nbytes, 0);
+		if (crc != extent->e_cksum) {
+			ret = -ECKSUM;
+		} else {
+			ret = 0;
+		}
+	} 
+ret:
+	return ret;
+}
+
+static int32_t read_and_check_erasure(int32_t index, sstack_inode_t *inode, 
+			void *buffer, int32_t chk_cksum, log_ctx_t *ctx)
+{
+	int32_t fd;
+	int32_t ret = 0, nbytes = 0, i = 0, len = 0;
+	sstack_erasure_t *erasure = NULL;
+	char *p = NULL;
+	char *q = NULL;
+	char *r;
+	char *path;
+	p[extent_handle->name_len - 1] = '\0';
+
+	erasure = &inode->i_erasure[index];
+	
+	if (erasure == NULL) {
+		sfs_log(ctx, SFS_ERR, "%s(): Error reading erasure\n");
+		ret = -EINVAL;
+		goto ret;
+	}
+	
+	p = erasure->er_path->name;
+	p[erasure->er_path->name_len - 1] = '\0';
+	if ((q = get_mount_path(sfsd.chunk, erasure->er_path, &r)) == NULL) {
+		sfs_log(ctx, SFS_ERR, "%s(): Invalid mount path for:%s\n", p);
+		ret = -EINVAL;
+		goto ret;
+	}
+
+	/* Create the file path relative to the mount point */
+	len = strlen(r); /* r contains the nfs export */
+	p += len; /* p points to start of the path minus the nfs export */
+	path = bds_cache_alloc(sfsd_global_cache_arr[DATA4K_CACHE_OFFSET]);
+	if (path == NULL) {
+		ret = -ENOMEM;
+		sfs_log(ctx, SFS_ERR, "%s(): Error getting from path cache",
+			__FUNCTION__);
+		goto ret;
+	}
+	sprintf (path, "%s%s",q, p);
+	if ((fd = open(path, O_RDONLY)) < 0) {
+		sfs_log(ctx, SFS_ERR, "%s(): extent '%s' open failed",
+			__FUNCTION__, p);
+		ret = errno;;
+		goto ret;
+	}
+	nbytes = read(fd, buffer, ERASURE_STRIPE_SIZE);
+	if (nbytes == 0) {
+		sfs_log(ctx, SFS_ERR, "%s(): Read returned 0\n",
+			__FUNCTION__);
+		ret = errno;
+		goto ret;
+	}
+	
+	if (chk_cksum) {
+		uint32_t crc;
+		crc = crc_pcl((const char *)buffer, nbytes, 0);
+		if (crc != erasure->er_cksum) {
+			ret = -ECKSUM;
+		} else {
+			ret = 0;
+		}
+	} 
 ret:
 	return ret;
 }
@@ -294,6 +382,64 @@ sstack_payload_t *sstack_read(sstack_payload_t *payload,
 
 	if (cmd->read_ecode) {
 		/* Read erasure coded data and send response */
+		void	*d_stripes[MAX_DATA_STRIPES];
+		void	*c_stripes[CODE_STRIPES];
+		int32_t index = 0, er_index = 0,  final_dstripe_idx;
+		int32_t err_strps[MAX_DATA_STRIPES + CODE_STRIPES];
+		int32_t num_err_strps = 0, num_dstripes = 0;
+		int32_t ecode_idx = 0, ret = 0;
+
+		for(i = 0; i < inode->i_numextents; ++i) {
+			if (TRUE == match_extent(extent_handle,
+					  inode->i_extent[i].e_path)) {
+				index = i;
+				break;
+			}
+		}
+		er_index = ((index/MAX_DATA_STRIPES) * CODE_STRIPES);
+		ecode_idx = (index % MAX_DATA_STRIPES);
+		index -= ecode_idx;
+		if ((index + MAX_DATA_STRIPES) > inode->i_numextents) {
+			final_dstripe_idx = inode->i_numextents;
+		} else {
+			final_dstripe_idx = (index + MAX_DATA_STRIPES);
+		}
+		
+		for (i = index; i < final_dstripe_idx; i++) {
+			dstripes[i-index] = 
+				bds_cache_alloc(sfsd_global_cache_arr[DATA64K_CACHE_OFFSET]);
+			if (dstripes[i-index] == NULL) {
+				sfs_log(ctx, SFS_ERR, "%s(): Error getting read buffer\n",
+					__FUNCTION__);
+				command_stat = -ENOMEM;
+				goto error;
+			}
+			ret = read_and_check_extent(NULL, i, USE_INDEX, inode, 
+					dstripes[i-index], 1, ctx);
+			if (ret == -ECKSUM) {
+				err_strps[num_err_strps++] = (i-index);
+			}
+			num_dstripes++;
+		}	
+		
+		for (i = er_index; i < er_index + CODE_STRIPES; i++) {
+			cstripes[i-er_index] = 
+				bds_cache_alloc(sfsd_global_cache_arr[DATA64K_CACHE_OFFSET]);
+			if (cstripes[i-er_index] == NULL) {
+				sfs_log(ctx, SFS_ERR, "%s(): Error getting read buffer\n",
+					__FUNCTION__);
+				command_stat = -ENOMEM;
+				goto error;
+			}
+			ret = read_and_check_erasure(i, inode, cstripes[i-er_index], 
+												1, ctx);
+			if (ret == -ECKSUM) {
+				err_strps[num_err_strps++] = (i-er_index);
+			}
+		}
+			
+		ret = sfs_sure_decode(dstripes, num_dstripes, cstripes, CODE_STRIPES,
+								err_strps, num_err_strps, ERASURE_STRIPE_SIZE);
 	}
 		
 	/* Now time for reading. Allocate a repsonse structure */
