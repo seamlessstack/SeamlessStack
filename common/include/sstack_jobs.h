@@ -127,8 +127,6 @@ typedef struct sfs_job {
 	sstack_job_status_t job_status[MAX_SFSD_CLIENTS]; // Status of each client
 	int payload_len;
 	int priority; /* Priority of the job */
-	pthread_mutex_t wait_mutex;
-	pthread_cond_t wait_cond;
 	bds_int_list_t wait_list;
 	sstack_payload_t payload[0];
 } sfs_job_t;

@@ -136,8 +136,6 @@ sfs_job_init(void)
 	}
 	job->version = SFS_JOB_VERSION;
 	job->id = get_next_job_id();
-	pthread_mutex_init(&job->wait_mutex, NULL);
-	pthread_cond_init(&job->wait_cond, NULL);
 	job->priority = INVALID_PRIORITY;
 	INIT_LIST_HEAD((bds_list_head_t) &job->wait_list);
 
@@ -335,14 +333,73 @@ typedef struct job_map {
 	pthread_t thread_id;
 	int num_jobs;
 	pthread_spnlock_t lock;
-	sstack_job_id_t *jobs_ids;
+	sstack_job_id_t *job_ids;
 	sstack_job_status_t *job_status;
+	pthread_spinlock_t wait_lock;
+	pthread_cond_t condition;
 } sstack_job_map_t;
+
+/*
+ * create_job_map - Allocates memory for job_map structure and initializes
+ *					all the fields
+ *
+ * Returns initialized job_map structure upon success and NULL upon failure
+ */
+
+static inline sstack_job_map_t *
+create_job_map(void)
+{
+	sstack_job_map_t *job_map = NULL;
+
+	job_map = malloc(sizeof(sstack_job_map_t));
+	if (NULL == job_map)
+		return NULL;
+
+	// Initialize job_map
+	job_map->thread_id = pthread_self();
+	job_map->num_jobs = 0;
+	pthread_spin_init(&job_map->lock, PTHREAD_PROCESS_PRIVATE);
+	job_map->job_ids = NULL;
+	job_map->job_status = NULL;
+	pthread_spin_init(&job_map->wait_lock, PTHREAD_PROCESS_PRIVATE);
+	pthread_cond_init(&job_map->condition, NULL);
+
+	return job_map;
+}
+
+/*
+ * free_job_map - Free all the resources used by job_map
+ */
+
+static inline void
+free_job_map(sstack_job_map_t *job_map)
+{
+	if (job_map != NULL) {
+		pthread_spin_destroy(&job_map->lock);	
+		pthread_spin_destroy(&job_map->wait_lock);	
+		pthread_cond_destroy(&job_map->condition);	
+		free(job_map);
+		job_map = NULL;
+	}
+}
 	
+extern int sfs_wait_for_completion(sstack_job_map_t *);
+
+// TODO
+// Following functions need to be implemented
+
 extern sfsd_info_t * get_sfsd_info(sstack_inode_t *);
 /*
  * Reverse map function to get pthread is given the job id
  */
 extern pthread_t get_thread_id(sstack_job_id_t );
+// Insert into RB tree
+extern int sfs_job_context_insert(pthread_t, sstack_job_map_t *);
+// Remove from RB tree
+extern int sfs_job_context_remove(pthread_t);
+// Insert into another RB tree
+extern int sfs_job2thread_map_insert(pthread_t, sstack_job_id_t);
+// Remove from RB tree
+extern int sfs_job2thread_map_remove(sstack_job_id_t);
 
 #endif // __SFS_JOB_H__

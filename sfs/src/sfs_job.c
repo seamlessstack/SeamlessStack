@@ -1,12 +1,12 @@
 
 /*************************************************************************
- * 
+ *
  * SEAMLESSSTACK CONFIDENTIAL
  * __________________________
- * 
+ *
  *  [2012] - [2013]  SeamlessStack Inc
  *  All Rights Reserved.
- * 
+ *
  * NOTICE:  All information contained herein is, and remains
  * the property of SeamlessStack Incorporated and its suppliers,
  * if any.  The intellectual and technical concepts contained
@@ -61,21 +61,40 @@ sfs_submit_job(int priority, sfs_job_queue_t *job_list, sfs_job_t *job)
 						__FUNCTION__);
 		return -1;
 	}
+
+	return 0;
+}
+
+/*
+ * sfs_wait_for_completion - Waits for all the submitted jobs
+ *						to be completed for the thread
+ *
+ * job_map - All the jobs associated with the thread. Should be non-NULL
+ *
+ * Returns 0 on success and -1 upon failure
+ */
+
+int
+sfs_wait_for_completion(sstack_job_map_t *job_map);
+{
 	// Wait on condition variable
-	pthread_mutex_lock(&job->wait_mutex);
-	pthread_cond_wait(&job->wait_cond, &job->wait_mutex);
+	pthread_mutex_lock(job_map->wait_lock);
+	pthread_cond_wait(job_map->condition, job_map->wait_lock);
 	// Calling thread is waiting indefinitely for the completion status
 	// of the submitted job.
 	// This thread will be woken up when one of the worker threads condition
 	// signals on jobs->wait_cond.
 	// job->wait_mutex is still locked.
-	pthread_mutex_unlock(&job->wait_mutex);
+	pthread_mutex_unlock(job_map->wait_lock);
+#if 0
+	// This code should be moved to worker thread
 	ret = sfs_dequeue_job(priority, job_list, job);
 	if (ret != 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failure in job handling \n",
 						__FUNCTION__);
 		return -1;
 	}
+#endif
 
 	// TODO
 	// Send the status back to the application

@@ -35,10 +35,54 @@
 
 #define MAX_KEY_LEN 128
 
+
 unsigned long long max_inode_number = 18446744073709551615ULL; // 2^64 -1
 sstack_job_id_t curent_job_id = 0;
 pthread_mutex_t sfs_job_id_mutex;
 sstack_bitmap_t *sstack_job_id_bitmap = NULL;
+
+/*
+ * create_payload - Allocate payload structure from payload slab and zeroizes
+ *					the allocated memory.
+ *
+ * Retrurns valid pointer on success and NULL upon failure.
+ */
+
+static inline sstack_payload_t *
+create_payload(void)
+{
+	sstack_payload_t *payload = NULL;
+
+	payload = bds_cache_alloc(sfs_global_cache[PAYLOAD_CACHE_INDEX]);
+	if (NULL == payload) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to allocate payload from "
+						"payload slab.\n", __FUNCTION__);
+		return NULL;
+	}
+
+	memset((void *) payload, '\0', sizeof(sstack_payload_t));
+
+	return payload;
+}
+
+/*
+ * free_payload - Free the payload structure back to slab
+ *
+ * payload - Valid payload pointer. Should be non-NULL
+ */
+
+static inline void
+free_payload(sstack_payload_t *payload)
+{
+	// Parameter validation
+	if (NULL == payload) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Payload passed is NULL \n");
+		return;
+	}
+	bds_cache_free(sfs_global_cache[PAYLOAD_CACHE_INDEX], (void *) payload);
+}
+
+
 /*
  * NOTE:
  * Since these routines map to their POSIX counterparts, return values are
@@ -303,6 +347,10 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 	int bytes_to_read = 0;
 	sfsd_t *sfsds = NULL;
 	sstack_payload_t *payload = NULL;
+	pthread_t thread_id;
+	sstack_job_map_t *job_map = NULL;
+	off_t relative_offset = 0;
+	size_t bytes_issued = 0;
 
 	// Paramater validation
 	if (NULL == path || NULL == buf || size < 0 || offset < 0) {
@@ -353,6 +401,8 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 		return -1;
 	}
 
+	thread_id = pthread_self();
+
 	// Get the extent covering the request
 	for(i = 0; i < inode.i_numextents; i++) {
 		extent = inode->i_extent;
@@ -365,17 +415,35 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 	}
 
 	bytes_to_read = size;
+	// Create job_map for this job.
+	// This is required to track multiple sub-jobs to a single request
+	// This is safe to do as async IO from applications are not part of
+	// FUSE framework. So this is the only outstanding request from the
+	// thread. Moreover the thread waits on a condition variable after
+	// submitting jobs.
+	// This is useful only in case of requests that span across multiple
+	// extents. Idea is to simplify sfsd functionality by splitting the
+	// IO at extent boundary
+	job_map = create_job_map();
+	if (NULL == job_map) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed allocate memory for "
+						"job map \n", __FUNCTION__);
+		return -1;
+	}
 
 	while (bytes_to_read) {
 		sfs_job_t *job = NULL;
 		int j = -1;
-
+		size_t read_size = 0;
+		char *temp = NULL;
+		int ret = -1;
 
 		// Submit job
 		job = sfs_job_init();
 		if (NULL == job) {
 			sfs_log(sfs_ctx, SFS_ERR, "%s: Failed allocate memory for job.\n",
 					__FUNCTION__);
+			free_job_map(job_map);
 			return -1;
 		}
 
@@ -388,22 +456,117 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 			job->job_status[j] =  JOB_STARTED;
 
 		job->priority = inode.i_policy.pe_attr.a_qoslevel;
-		// TODO
-		// Create payload needs to alloc from slab
-		payload = create_paylod();
-		// TODO
-		// Checkout sfs_job.h for details.
+		// Create new payload
+		payload = create_payload();
+		// Populate payload
+		payload->hdr.sequence = 0; // Reinitialized by transport
+		payload->hdr.payload_len = sizeof(sstack_payload_t);
+		payload->hdr.job_id = job->id;
+		payload->hdr.priority = job->priority;
+		payload->hdr.arg = (uint64_t) job;
+		payload->command = NFS_READ;
+		payload->command_struct.read_cmd.inode_no = inode->i_no;
+		payload->command_struct.read_cmd.offset = offset;
+		if ((offset + size) > (extent->e_offset + extent->e_size))
+			read_size = (extent->e_offset + extent->e_size) - offset;
+		payload->command_struct.read_cmd.count = read_size;
+		payload->command_struct.read_cmd.read_ecode = 0;
+		memcpy((void *) &payload->command_struct.read_cmd.pe, (void *)
+						&inode.i_policy, sizeof(struct policy_entry));
+		job->payload_len = sizeof(sstack_payload_t);
+		job->payload = payload;
+		// Add this job to job_map
+		job_map->num_jobs ++;
+		temp = realloc(job_map->job_ids, job_map->num_jobs *
+						sizeof(sstack_job_id_t));
+		if (NULL == temp) {
+			sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to allocate memory for "
+							"job_ids \n", __FUNCTION__);
+			if (job_map->job_ids)
+				free(job_map->job_ids);
+			free_job_map(job_map);
+			free_payload(payload);
 
+			return -1;
+		}
+		job_map->job_ids = (sstack_job_id_t *) temp;
 
+		pthread_spin_lock(&job_map->lock);
+		job_map->job_ids[job_map->num_jobs - 1] = job->id;
+		pthread_spin_unlock(&job_map->lock);
 
+		temp = realloc(job_map->job_status, job_map->num_jobs *
+						sizeof(sstack_status_t));
+		if (NULL == temp) {
+			sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to allocate memory for "
+							"job_status \n", __FUNCTION__);
+			free(job_map->job_ids);
+			if (job_map->job_status)
+				free(job_map->job_status);
+			free_job_map(job_map);
+			free_payload(payload);
 
+			return -1;
+		}
+		pthread_spin_lock(&job_map->lock);
+		job_map->job_status[job_map->num_jobs - 1] = JOB_STARTED;
+		pthread_spin_unlock(&job_map->lock);
 
+		// Add job_map to the data structure
+		ret = sfs_job_context_insert(thread_id, job_map);
+		if (ret == -1) {
+			sfs_log(sfs_ctx, SFS_ERR, "%s: Failed insert the job context "
+							"into RB tree \n", __FUNCTION__);
+			free(job_map->job_ids);
+			free(job_map->job_status);
+			free_job_map(job_map);
+			free_payload(payload);
 
+			return -1;
+		}
 
+		ret = sfs_job2thread_map_insert(thread_id, job->id);
+		if (ret == -1) {
+			sfs_log(sfs_ctx, SFS_ERR, "%s: Failed insert the job context "
+							"into RB tree \n", __FUNCTION__);
+			free(job_map->job_ids);
+			free(job_map->job_status);
+			sfs_job_context_remove(thread_id);
+			free_job_map(job_map);
+			free_payload(payload);
 
+			return -1;
+		}
+		// Add this job to job queue
+		ret = sfs_submit_job(job->priority, jobs, job);
+		if (ret == -1) {
+			free(job_map->job_ids);
+			free(job_map->job_status);
+			sfs_job_context_remove(thread_id);
+			sfs_job2thread_map_remove(thread_id);
+			free_job_map(job_map);
+			free_payload(payload);
 
+			return -1;
+		}
 
+		bytes_issued += read_size;
+		// Check whether we are done with original request
+		if ((offset + size) > (extent->e_offset + extent->e_size)) {
+			// Request spans multiple extents
+			extent ++;
+			// TODO
+			// Check for sparse file condition
+			relative_offset = extent->e_offset;
+			bytes_to_read = size - bytes_issued;
+		} else {
+			bytes_to_read = size - bytes_isued;
+		}
+	}
 
+	ret = sfs_wait_for_completion(job_map);
+	// TODO
+	// Handle completion status
 
 	return 0;
 }

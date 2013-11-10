@@ -31,6 +31,8 @@
 #define MAXIMUM_WEIGHT 0
 #define DEFAULT_WEIGHT 50
 #define MINIMUM_WEIGHT 100
+#define CACHE_NAME_MAX 32
+#define PAYLOAD_CACHE_INDEX 0
 
 
 // Represents storage weight range per pool
@@ -270,5 +272,10 @@ sstack_sfsd_remove(uint32_t weight, sstack_sfsd_pool_t *pools,
 
 	return 0;
 }
+
+struct sfs_cache_entry {
+	char name[CACHE_NAME_MAX];
+	size_t size;
+};
 
 #endif // __SFS_INTERNAL_H__

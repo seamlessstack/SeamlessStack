@@ -63,6 +63,7 @@
 #define MAX_MEDIUM_PRIO 16
 #define MAX_LOW_PRIO 4
 #define SFS_JOB_SLEEP 5
+#define MAX_CACHES 1
 
 /* BSS */
 log_ctx_t *sfs_ctx = NULL;
@@ -85,6 +86,8 @@ sstack_transport_t transport;
 sfs_job_queue_t *jobs = NULL;
 sfs_job_queue_t *pending_jobs = NULL;
 sstack_sfsd_pool_t *sfsd_pool = NULL;
+// Slabs
+bds_cache_desc_t sfs_global_cache[MAX_CACHES];
 
 
 /* Structure definitions */
@@ -98,6 +101,10 @@ static struct fuse_opt sfs_opts[] = {
 	FUSE_OPT_KEY("-v", KEY_VERSION),
 	FUSE_OPT_KEY("log_level=%d", KEY_LOG_LEVEL),
 	FUSE_OPT_END
+};
+
+struct sfs_cache_entry slabs[MAX_CACHES] = {
+	{"payload-cache", sizeof(sstack_payload_t)},
 };
 
 /* Forward declarations */
@@ -770,6 +777,7 @@ sfs_init(struct fuse_conn_info *conn)
 	sstack_transport_ops_t ops;
 	sstack_transport_type_t type;
 	char *intf_addr = NULL;
+	int i = 0;
 
 	// Create a thread to handle client requests
 	if(pthread_attr_init(&attr) == 0) {
@@ -905,6 +913,24 @@ sfs_init(struct fuse_conn_info *conn)
 		return NULL;
 	}
 
+	// Create pool for payload structure
+	for (i = 0; i < MAX_CACHES; i++) {
+		int ret = -1;
+
+		ret = bds_cache_create(slabs[i].name, slabs[i].size, 0, NULL,
+						NULL, &sfs_global_cache);
+		if (ret != 0) {
+			sfs_log(sfs_ctx, SFS_ERR, "%s: Could not allocate cache for %s\n",
+							slabs[i].name);
+			db->db_ops.db_close(sfs_ctx);
+			pthread_kill(recv_thread, SIGKILL);
+			sstack_transport_deregister(type, &transport);
+			sstack_thread_pool_destroy(sfs_thread_pool);
+			(void) sfs_job_queue_destroy(jobs);
+			(void) sfs_job_queue_destroy(pending_jobs);
+			return NULL;
+		}
+	}
 
 	// Populate the INODE collection of the DB with all the files found
 	// in chunks added so far
