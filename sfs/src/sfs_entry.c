@@ -294,6 +294,116 @@ int
 sfs_read(const char *path, char *buf, size_t size, off_t offset,
 	struct fuse_file_info *fi)
 {
+	unsigned long long inode_num = 0;
+	char *inodestr = NULL;
+	sstack_inode_t inode;
+	size_t size = 0;
+	sstack_extent_t *extent = NULL;
+	int i = 0;
+	int bytes_to_read = 0;
+	sfsd_t *sfsds = NULL;
+	sstack_payload_t *payload = NULL;
+
+	// Paramater validation
+	if (NULL == path || NULL == buf || size < 0 || offset < 0) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters \n",
+				__FUNCTION__);
+		errno = EINVAL;
+
+		return -1;
+	}
+
+	// Get the inode number for the file.
+	inodestr = sstack_cache_read_one(mc, path, strlen(path), &size, sfs_ctx);
+	if (NULL == inodestr) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
+					"for path %s.\n", __FUNCTION__, path);
+		errno = ENOENT;
+
+		return -1;
+	}
+	inode_num = atoll((const char *)inodestr);
+	// Get inode from DB
+	ret = get_inode(inode_num, &inode, db);
+	if (ret != 0) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to get inode %lld. Path = %s "
+						"error = %d\n", __FUNCTION__, inode_num, path, ret);
+		errno = ret;
+
+		return -1;
+	}
+
+	// Parameter validation; AGAIN :-)
+	if (inode.i_size < size || (offset + size ) > inode.i_size ) {
+		// Appl asking for file offset greater tha real size
+		// Return error
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid offset/size specified \n",
+				__FUNCTION__);
+		errno = EINVAL;
+
+		return -1;
+	}
+
+	relative_offset = offset;
+	// Get the sfsd information from IDP
+	sfsds = get_sfsd_info();
+	if (NULL == sfsds) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: get_sfsd_info failed \n",
+				__FUNCTION__);
+		return -1;
+	}
+
+	// Get the extent covering the request
+	for(i = 0; i < inode.i_numextents; i++) {
+		extent = inode->i_extent;
+		if (extent->e_offset <= relative_offset &&
+				(extent->e_offset + extent->e_size >= relative_offset)) {
+			// Found the initial extent
+			break;
+		}
+		extent ++;
+	}
+
+	bytes_to_read = size;
+
+	while (bytes_to_read) {
+		sfs_job_t *job = NULL;
+		int j = -1;
+
+
+		// Submit job
+		job = sfs_job_init();
+		if (NULL == job) {
+			sfs_log(sfs_ctx, SFS_ERR, "%s: Failed allocate memory for job.\n",
+					__FUNCTION__);
+			return -1;
+		}
+
+		job->id = get_next_job_id();
+		job->job_type = SFSD_IO;
+		job->num_clients = sfsds->num_sfsds;
+		memcpy((void *) &job->sfsds, (void *) sfsds->sfsds, sizeof(sfsd_t) *
+				sfsds->num_sfsds);
+		for (j = 0; j < sfsds->num_sfsds; j++)
+			job->job_status[j] =  JOB_STARTED;
+
+		job->priority = inode.i_policy.pe_attr.a_qoslevel;
+		// TODO
+		// Create payload needs to alloc from slab
+		payload = create_paylod();
+		// TODO
+		// Checkout sfs_job.h for details.
+
+
+
+
+
+
+
+
+
+
+
 
 	return 0;
 }

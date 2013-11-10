@@ -9,9 +9,9 @@
 #define SHA256_DIGEST_LENGTH 32
 
 // QoS levels
-#define QOS_LOW 1 // Not cached in memory. Stored in slow/distant storage
-#define QOS_MEDIUM 2 // Cached . Not on SSD. Stored in nearline storage
-#define QOS_HIGH 3 // Cached in memory and SSD. Stored in nearby storage
+#define QOS_LOW 2 // Not cached in memory. Stored in slow/distant storage
+#define QOS_MEDIUM 1 // Cached . Not on SSD. Stored in nearline storage
+#define QOS_HIGH 0 // Cached in memory and SSD. Stored in nearby storage
 
 enum ret_code
 {

@@ -310,5 +310,39 @@ sfs_dequeue_job(int priority, sfs_job_queue_t *job_list, sfs_job_t *job)
 
 extern int sfs_submit_job(int , sfs_job_queue_t *, sfs_job_t *);
 
+/*
+ * This is the structure returned by IDP for reading/writing
+ */
+typedef struct sfsd_info {
+	int num_sfsds;
+	sfsd_t *sfsds;
+} sfsd_info_t;
+
+/*
+ * TODO
+ * There needs to be an association for each pthread id to set of jobs 
+ * submitted by it. This is because each read/write request can split
+ * into multiple jobs and the thread will sleep on a condition variable.
+ * When a job finishes, worker thread goes and fetches pthread id based
+ * structure(defined below) and marks the job complete/failed. In the same
+ * function, all the jobs are checked for completion. If all jobs submitted
+ * by a thread are complete, signal the condition variable.
+ * Use RB-tree for storing these structures:
+ * pthread is to jobs mapping
+ * job to pthread id mapping
+ */
+typedef struct job_map {
+	pthread_t thread_id;
+	int num_jobs;
+	pthread_spnlock_t lock;
+	sstack_job_id_t *jobs_ids;
+	sstack_job_status_t *job_status;
+} sstack_job_map_t;
+	
+extern sfsd_info_t * get_sfsd_info(sstack_inode_t *);
+/*
+ * Reverse map function to get pthread is given the job id
+ */
+extern pthread_t get_thread_id(sstack_job_id_t );
 
 #endif // __SFS_JOB_H__
