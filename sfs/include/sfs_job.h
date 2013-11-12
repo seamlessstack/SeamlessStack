@@ -311,10 +311,10 @@ extern int sfs_submit_job(int , sfs_job_queue_t *, sfs_job_t *);
 /*
  * This is the structure returned by IDP for reading/writing
  */
-typedef struct sfsd_info {
+typedef struct sfsd_list {
 	int num_sfsds;
 	sfsd_t *sfsds;
-} sfsd_info_t;
+} sfsd_list_t;
 
 /*
  * TODO
@@ -332,7 +332,7 @@ typedef struct sfsd_info {
 typedef struct job_map {
 	pthread_t thread_id;
 	int num_jobs;
-	pthread_spnlock_t lock;
+	pthread_spinlock_t lock;
 	sstack_job_id_t *job_ids;
 	sstack_job_status_t *job_status;
 	pthread_mutex_t wait_lock;
@@ -388,18 +388,10 @@ extern int sfs_wait_for_completion(sstack_job_map_t *);
 // TODO
 // Following functions need to be implemented
 
-extern sfsd_info_t * get_sfsd_info(sstack_inode_t *);
+extern sfsd_list_t * get_sfsd_list(sstack_inode_t *);
 /*
  * Reverse map function to get pthread is given the job id
  */
 extern pthread_t get_thread_id(sstack_job_id_t );
-// Insert into RB tree
-extern int sfs_job_context_insert(pthread_t, sstack_job_map_t *);
-// Remove from RB tree
-extern int sfs_job_context_remove(pthread_t);
-// Insert into another RB tree
-extern int sfs_job2thread_map_insert(pthread_t, sstack_job_id_t);
-// Remove from RB tree
-extern int sfs_job2thread_map_remove(sstack_job_id_t);
 
 #endif // __SFS_JOB_H__

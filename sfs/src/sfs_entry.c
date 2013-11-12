@@ -347,7 +347,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 	sstack_extent_t *extent = NULL;
 	int i = 0;
 	int bytes_to_read = 0;
-	sfsd_t *sfsds = NULL;
+	sfsd_list_t *sfsds = NULL;
 	sstack_payload_t *payload = NULL;
 	pthread_t thread_id;
 	sstack_job_map_t *job_map = NULL;
@@ -396,9 +396,9 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 
 	relative_offset = offset;
 	// Get the sfsd information from IDP
-	sfsds = get_sfsd_info();
+	sfsds = get_sfsd_list();
 	if (NULL == sfsds) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: get_sfsd_info failed \n",
+		sfs_log(sfs_ctx, SFS_ERR, "%s: get_sfsd_list failed \n",
 				__FUNCTION__);
 		return -1;
 	}

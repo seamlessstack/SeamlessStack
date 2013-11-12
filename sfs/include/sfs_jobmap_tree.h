@@ -37,7 +37,9 @@ struct jobmap_tree_node {
 	sstack_job_map_t *job_map;
 };
 typedef rbt(sstack_jm_t) jobmap_tree_t;
-rbgen(static, jobmap_tree_, jobmap_tree_t, link, jobmap_tree_cmp);
+static inline int jobmap_tree_cmp(sstack_jm_t *node1, sstack_jm_t *node2);
+
+rb_gen(static, jobmap_tree_, jobmap_tree_t, sstack_jm_t, link, jobmap_tree_cmp);
 
 // BSS
 

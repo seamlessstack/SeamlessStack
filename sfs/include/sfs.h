@@ -146,7 +146,7 @@ typedef struct sfsd_info {
  */
 
 typedef struct sfs_metadata {
-	unsigned long num_clients; // Number of sfsds taling to this sfs
+	unsigned long num_clients; // Number of sfsds talking to this sfs
 	sfsd_info_t *info;
 	// TBD
 } sfs_metadata_t;

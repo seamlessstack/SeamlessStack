@@ -34,7 +34,7 @@ struct job2thread_tree {
 	pthread_t thread_id;
 }
 typedef rbt(sstack_jt_t) jobid_tree_t;
-rbgen(static, jobid_tree_, jobid_tree_t, link, jobid_tree_cmp);
+rb_gen(static, jobid_tree_, jobid_tree_t, sstack_jt_t, link, jobid_tree_cmp);
 
 // BSS
 
