@@ -335,7 +335,7 @@ typedef struct job_map {
 	pthread_spnlock_t lock;
 	sstack_job_id_t *job_ids;
 	sstack_job_status_t *job_status;
-	pthread_spinlock_t wait_lock;
+	pthread_mutex_t wait_lock;
 	pthread_cond_t condition;
 } sstack_job_map_t;
 
@@ -361,7 +361,7 @@ create_job_map(void)
 	pthread_spin_init(&job_map->lock, PTHREAD_PROCESS_PRIVATE);
 	job_map->job_ids = NULL;
 	job_map->job_status = NULL;
-	pthread_spin_init(&job_map->wait_lock, PTHREAD_PROCESS_PRIVATE);
+	pthread_mutex_init(&job_map->wait_lock, NULL);
 	pthread_cond_init(&job_map->condition, NULL);
 
 	return job_map;
@@ -376,7 +376,7 @@ free_job_map(sstack_job_map_t *job_map)
 {
 	if (job_map != NULL) {
 		pthread_spin_destroy(&job_map->lock);	
-		pthread_spin_destroy(&job_map->wait_lock);	
+		pthread_mutex_destroy(&job_map->wait_lock);	
 		pthread_cond_destroy(&job_map->condition);	
 		free(job_map);
 		job_map = NULL;
