@@ -32,6 +32,8 @@
 #include <sfs_job.h>
 #include <sstack_helper.h>
 #include <sstack_cache_api.h>
+#include <sfs_jobmap_tree.h>
+#include <sfs_jobid_tree.h>
 
 #define MAX_KEY_LEN 128
 
