@@ -381,6 +381,7 @@ sstack_payload_t *sstack_read(sstack_payload_t *payload,
 		goto error;
 	}
 
+	/* TODO: Make it a function */
 	if (cmd->read_ecode) {
 		/* Read erasure coded data and send response */
 		void	*d_stripes[MAX_DATA_STRIPES];
