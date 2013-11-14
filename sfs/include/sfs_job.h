@@ -27,6 +27,7 @@
 #include <sstack_jobs.h>
 #include <sstack_types.h>
 #include <sstack_bitops.h>
+#include <sstack_md.h>
 #include <sfs_entry.h>
 #include <sfs_internal.h>
 

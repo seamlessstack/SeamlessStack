@@ -128,7 +128,7 @@ typedef struct sfs_job {
 	int payload_len;
 	int priority; /* Priority of the job */
 	bds_int_list_t wait_list;
-	sstack_payload_t payload[0];
+	sstack_payload_t *payload;
 } sfs_job_t;
 
 /*

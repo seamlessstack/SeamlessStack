@@ -25,6 +25,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <pthread.h>
+#include <sfs_job.h>
 
 #define JMNODE_MAGIC 0x5a5a5a5a
 
@@ -36,14 +37,9 @@ struct jobmap_tree_node {
 	pthread_t thread_id; // Key
 	sstack_job_map_t *job_map;
 };
-typedef rbt(sstack_jm_t) jobmap_tree_t;
-static inline int jobmap_tree_cmp(sstack_jm_t *node1, sstack_jm_t *node2);
-
-rb_gen(static, jobmap_tree_, jobmap_tree_t, sstack_jm_t, link, jobmap_tree_cmp);
 
 // BSS
 
-extern jobmap_tree_t *jobmap_tree;
 
 // FUNCTIONS
 
@@ -85,13 +81,17 @@ jobmap_tree_cmp(sstack_jm_t *node1, sstack_jm_t *node2)
 	return ret;
 }
 
+typedef rbt(sstack_jm_t) jobmap_tree_t;
+rb_gen(static, jobmap_tree_, jobmap_tree_t, sstack_jm_t, link, jobmap_tree_cmp);
+extern jobmap_tree_t *jobmap_tree;
+
 /*
  * jobmap_tree_init - Initialize jobmap tree
  *
  * Returns newly intialized jobtree upon success and returns NULL upon failure
  */
 
-static inline sstack_jm_t *
+static inline jobmap_tree_t *
 jobmap_tree_init(void)
 {
 	jobmap_tree_t *tree = NULL;
@@ -177,6 +177,7 @@ static inline void
 sfs_job_context_remove(pthread_t thread_id)
 {
 	sstack_jm_t *node = NULL;
+	sstack_jm_t snode;
 
 	// Parameter validation
 	if (thread_id < 0) {
@@ -187,7 +188,10 @@ sfs_job_context_remove(pthread_t thread_id)
 		return;
 	}
 
-	node = jobmap_tree_search(jobmap_tree, thread_id);
+	snode.magic = JMNODE_MAGIC;
+	snode.thread_id = thread_id;
+
+	node = jobmap_tree_search(jobmap_tree, &snode);
 	if (NULL == node) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Node with key %d not present in "
 						"jobmap tree \n", __FUNCTION__, (int) thread_id);

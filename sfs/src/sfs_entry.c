@@ -42,6 +42,9 @@ unsigned long long max_inode_number = 18446744073709551615ULL; // 2^64 -1
 sstack_job_id_t curent_job_id = 0;
 pthread_mutex_t sfs_job_id_mutex;
 sstack_bitmap_t *sstack_job_id_bitmap = NULL;
+jobmap_tree_t *jobmap_tree = NULL;
+jobid_tree_t *jobid_tree = NULL;
+sstack_job_id_t current_job_id = 0;
 
 /*
  * create_payload - Allocate payload structure from payload slab and zeroizes
@@ -343,7 +346,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 	unsigned long long inode_num = 0;
 	char *inodestr = NULL;
 	sstack_inode_t inode;
-	size_t size = 0;
+	size_t size1 = 0;
 	sstack_extent_t *extent = NULL;
 	int i = 0;
 	int bytes_to_read = 0;
@@ -353,6 +356,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 	sstack_job_map_t *job_map = NULL;
 	off_t relative_offset = 0;
 	size_t bytes_issued = 0;
+	int ret = -1;
 
 	// Paramater validation
 	if (NULL == path || NULL == buf || size < 0 || offset < 0) {
@@ -364,7 +368,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 	}
 
 	// Get the inode number for the file.
-	inodestr = sstack_cache_read_one(mc, path, strlen(path), &size, sfs_ctx);
+	inodestr = sstack_cache_read_one(mc, path, strlen(path), &size1, sfs_ctx);
 	if (NULL == inodestr) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
 					"for path %s.\n", __FUNCTION__, path);
@@ -396,7 +400,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 
 	relative_offset = offset;
 	// Get the sfsd information from IDP
-	sfsds = get_sfsd_list();
+	sfsds = get_sfsd_list(&inode);
 	if (NULL == sfsds) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: get_sfsd_list failed \n",
 				__FUNCTION__);
@@ -407,7 +411,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 
 	// Get the extent covering the request
 	for(i = 0; i < inode.i_numextents; i++) {
-		extent = inode->i_extent;
+		extent = inode.i_extent;
 		if (extent->e_offset <= relative_offset &&
 				(extent->e_offset + extent->e_size >= relative_offset)) {
 			// Found the initial extent
@@ -467,7 +471,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 		payload->hdr.priority = job->priority;
 		payload->hdr.arg = (uint64_t) job;
 		payload->command = NFS_READ;
-		payload->command_struct.read_cmd.inode_no = inode->i_no;
+		payload->command_struct.read_cmd.inode_no = inode.i_num;
 		payload->command_struct.read_cmd.offset = offset;
 		if ((offset + size) > (extent->e_offset + extent->e_size))
 			read_size = (extent->e_offset + extent->e_size) - offset;
@@ -498,7 +502,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 		pthread_spin_unlock(&job_map->lock);
 
 		temp = realloc(job_map->job_status, job_map->num_jobs *
-						sizeof(sstack_status_t));
+						sizeof(sstack_job_status_t));
 		if (NULL == temp) {
 			sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to allocate memory for "
 							"job_status \n", __FUNCTION__);
@@ -562,7 +566,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 			relative_offset = extent->e_offset;
 			bytes_to_read = size - bytes_issued;
 		} else {
-			bytes_to_read = size - bytes_isued;
+			bytes_to_read = size - bytes_issued;
 		}
 	}
 

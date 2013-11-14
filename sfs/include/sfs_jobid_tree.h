@@ -17,6 +17,9 @@
  * from SeamlessStack Incorporated.
  */
 
+#ifndef __SFS_JOBID_TREE_H__
+#define __SFS_JOBID_TREE_H__
+
 #include <stdio.h>
 #include <rb.h>
 #include <stdbool.h>
@@ -32,13 +35,10 @@ struct job2thread_tree {
 	rb_node(sstack_jt_t) link;
 	sstack_job_id_t job_id; // Key
 	pthread_t thread_id;
-}
-typedef rbt(sstack_jt_t) jobid_tree_t;
-rb_gen(static, jobid_tree_, jobid_tree_t, sstack_jt_t, link, jobid_tree_cmp);
+};
 
 // BSS
 
-extern jobid_tree_t *jobid_tree;
 
 // FUNCTIONS
 
@@ -78,6 +78,11 @@ jobid_tree_cmp(sstack_jt_t *node1, sstack_jt_t *node2)
 	return ret;
 }
 
+typedef rbt(sstack_jt_t) jobid_tree_t;
+rb_gen(static, jobid_tree_, jobid_tree_t, sstack_jt_t, link, jobid_tree_cmp);
+extern jobid_tree_t *jobid_tree;
+
+
 /*
  * jobid_tree_init - Initialize jobid tree
  *
@@ -85,7 +90,7 @@ jobid_tree_cmp(sstack_jt_t *node1, sstack_jt_t *node2)
  * upon failure
  */
 
-static inline sstack_jt_t *
+static inline jobid_tree_t *
 jobid_tree_init(void)
 {
 	jobid_tree_t *tree = NULL;
@@ -171,6 +176,7 @@ static inline void
 sfs_job2thread_map_remove(sstack_job_id_t job_id)
 {
 	sstack_jt_t *node = NULL;
+	sstack_jt_t snode;
 
 	// Parameter validation
 	if (job_id < 0) {
@@ -180,8 +186,10 @@ sfs_job2thread_map_remove(sstack_job_id_t job_id)
 
 		return;
 	}
+	snode.magic = JTNODE_MAGIC;
+	snode.job_id = job_id;
 
-	node = jobid_tree_search(jobid_tree, job_id);
+	node = jobid_tree_search(jobid_tree, &snode);
 	if (NULL == node) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Node with key %d not present in "
 						"jobmap tree \n", __FUNCTION__, (int) job_id);

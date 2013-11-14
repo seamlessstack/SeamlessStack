@@ -60,6 +60,9 @@ typedef struct sstack_sfsd_pool {
 
 extern log_ctx_t *sfs_ctx;
 extern sstack_sfsd_pool_t *sfsd_pool;
+extern bds_cache_desc_t sfs_global_cache[];
+extern sfs_job_queue_t *jobs;
+extern sfs_job_queue_t *pending_jobs;
 
 /*
  * sstack_sfsd_pool_init - Initialize sfsd pool
