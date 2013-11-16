@@ -16,6 +16,7 @@ s * patents in process, and are protected by trade secret or copyright law.
  * is strictly forbidden unless prior written permission is obtained
  * from SeamlessStack Incorporated.
  */
+#define __POSIX_SOURCE
 
 #include <stdio.h>
 #include <stdint.h>
@@ -30,12 +31,19 @@ s * patents in process, and are protected by trade secret or copyright law.
 #include <policy.h>
 #include <sstack_db.h>
 #include <sstack_log.h>
+#include <sfs_validate.h>
+#include <openssl/sha.h>
+#include <sys/types.h>
+#include <dirent.h>
 
 
 #define NUM_BUCKETS 16
 #define TYPE_LEN 8
 
 #define POLICY_FILE "/home/shubhro/policy/policy.conf"
+extern int32_t validate_plugin(const char *plugin_path,
+				struct plugin_entry_points *entry, char *plugin_name,
+				log_ctx_t *ctx);
 /*=================== PRIVATE STRUCTURES AND FUNCTIONS ===================*/
 struct policy_input
 {
@@ -57,6 +65,10 @@ struct policy_db_entry
 	struct attribute pdb_attr;
 };
 
+struct plugin_entry_point_tab
+{
+	Pvoid_t entries;
+};
 #if 0
 static uint32_t read_policy_configuration(db_t db_type,
 					  struct policy_search_table *pst);
@@ -78,11 +90,14 @@ static void  get_pe_from_tags(const char *tags[], size_t num_tags,
 				struct policy_entry *pe);
 static void policy_iterate(void *params, char *key,
 			   void *data, ssize_t data_len);
+static void free_policy_pst(void);
+void unload_free_plugins(void);
 
 /* ================ PRIVATE GLOBALS ==================*/
 
 static struct policy_table policy_tab;
 static struct policy_search_table pst;
+static struct plugin_entry_point_tab entry_point_tab;
 static log_ctx_t *policy_ctx;
 static uint8_t policy_initialized = 0;
 
@@ -527,7 +542,34 @@ static char *get_file_type(const char *fpath)
 	return ftype;
 }
 
+static void free_policy_pst(void)
+{
+	char key[PATH_MAX + 16 /* UID + GID */
+		+ TYPE_LEN + 4 /* \0 + 3 guard characters */] = "";
+	Word_t *pvalue;
+	int ret, index;
+	JSLI(pvalue, pst.pst_head[index], (uint8_t *)key);
+	for(index = 0; index < NUM_BUCKETS; ++index) {
+		strcpy(key, "");
+		JSLF(pvalue, pst.pst_head[index], (uint8_t*)key);
+		if (pvalue)
+			free((void*)(*pvalue));
+		while(pvalue != NULL) {
+			JSLN(pvalue, pst.pst_head[index], (uint8_t*)key);
+			if (pvalue)
+				free((void*)(*pvalue));
+		}
+		/* Release all the memory allocated by Judy array */
+		JSLFA(ret, pst.pst_head[index]);
+	}
+}
 /* ==================== POLICY ACCESS PUBLIC APIs ====================*/
+void reset_policy(void)
+{
+	free_policy_pst();
+	unload_free_plugins();
+}
+
 struct policy_entry* get_policy(const char* path)
 {
 	int32_t i;
@@ -584,6 +626,90 @@ struct policy_entry* get_policy(const char* path)
 	}
 	return pe;
 }
+/* ====== Function to be called from SFSD. No need to call _init()  ====== */
+
+#define POLICY_INIT_OFFSET 0
+#define POLICY_DEINIT_OFFSET 1
+#define POLICY_APPLY_OFFSET 2
+#define POLICY_REMOVE_OFFSET 3
+
+void unload_free_plugins(void)
+{
+	char index[256] = "";
+	Word_t *pvalue;
+	int ret;
+	JSLF(pvalue, entry_point_tab.entries, (uint8_t*)index);
+	if (pvalue)
+		free((void*)(*pvalue));
+	while(pvalue != NULL) {
+		JSLN(pvalue, entry_point_tab.entries, (uint8_t*)index);
+		if (pvalue)
+			free((void*)(*pvalue));
+	}
+	/* Release all the memory allocated by Judy array */
+	JSLFA(ret, entry_point_tab.entries);
+}
+
+void read_load_plugins(const char **paths, size_t num_paths, RSA *priv_key,
+				  int reload)
+{
+	size_t i;
+	DIR *dir;
+	int ret = 0;
+	char local_path[PATH_MAX];
+	char plugin_name[256];
+	struct dirent entry, *result = NULL;
+	struct plugin_entry_points *plugin_ent;
+	Word_t *pvalue;
+
+	if (reload)
+		unload_free_plugins();
+
+	/* Go through each of the paths being passed and list down all the 
+	 * plugins there */
+	for(i = 0; i < num_paths; ++i) {
+		dir = opendir(paths[i]);
+		if (dir == NULL)
+			continue;	/* Continue to the next path */
+		do {
+			ret = readdir_r(dir, &entry, &result);
+			if (result != NULL) {
+				sprintf(local_path, "%s/%s", paths[i], entry.d_name);
+				/* Check the elf for validation */
+				if (sfs_elf_validate(local_path, priv_key)) {
+					/* validate entry points of the plugin */
+					if ((plugin_ent = malloc(sizeof(*plugin_ent))) == NULL) {
+						sfs_log(policy_ctx, SFS_ERR,
+								"%s()-Could not allocate memory for plugin",
+								__FUNCTION__);
+					}
+					if (0 == validate_plugin(local_path,
+										   	 plugin_ent, plugin_name,
+											 policy_ctx)) {
+						JSLI(pvalue, entry_point_tab.entries,
+							 (uint8_t*)plugin_name);
+						if (pvalue)
+							*pvalue = (Word_t) plugin_ent;
+					}
+					else {
+						free(plugin_ent);
+					}
+				}
+			}
+		} while(ret == 0 && result != NULL);
+	}
+	return;
+}
+
+struct plugin_entry_points *get_plugin_entry_points(const char *plugin_name)
+{
+	struct plugin_entry_points *entry= NULL;
+	Word_t *pvalue;
+	JSLG(pvalue, entry_point_tab.entries, (uint8_t*)plugin_name);
+	if (pvalue)
+		entry = (struct plugin_entry_points*)(*pvalue);
+	return entry;
+}
 
 #ifdef POLICY_TEST
 int main(void)
@@ -618,4 +744,5 @@ int main(void)
 	}
 	return 0;
 }
+
 #endif

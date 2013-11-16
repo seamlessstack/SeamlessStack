@@ -86,6 +86,19 @@ struct policy_search_table
 	pthread_rwlock_t pst_lock[NUM_BUCKETS];
 };
 
+/**
+ * Structure containing the entry points of the
+ * policy plugins (storage only)
+ **/
+
+struct plugin_entry_points
+{
+	void *init;   /* TODO: Put prototypes */
+	void *deinit; /* TODO: Put prototypes */
+	size_t (*apply)(void *in_buf, void **out_buf, size_t size);
+	size_t (*remove)(void *in_buf, void **out_buf, size_t size);
+};
+
 
 /* Policy framework functions */
 uint32_t register_plugin(const char *plugin_path,

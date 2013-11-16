@@ -20,9 +20,10 @@ CFLAGS += -Wall
 CFLAGS += -g
 #CFLAGS += -O3
 CFLAGS += -D_GNU_SOURCE -fPIC
-CFLAGS += -I ./include -I ../db/include/ -I ../common/include/
+CFLAGS += -I ./include -I ../db/include/ -I ../common/include/ \
+		  -I ../lib/validate/include/
 POLICY_LIB_NAME = libpolicy.so
-POLICY_OBJS = src/policy.o
+POLICY_OBJS = src/policy.o src/validate_policy.o
 LDFLAGS = -shared -o
 LIBS = $(shell pkg-config --libs fuse) -lpthread -lJudy 
 CC = gcc
