@@ -48,7 +48,6 @@ typedef struct {
 		char ipv6_address[IPV6_ADDR_MAX];
 	};
 } sstack_address_t;
-
 typedef enum sstack_return_code {
 	SSTACK_SUCCESS = 100,
 	SSTACK_FAILURE = 101,

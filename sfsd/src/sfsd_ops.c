@@ -213,6 +213,67 @@ static inline int32_t match_extent(sstack_file_handle_t *h1,
 	return FALSE;
 }
 
+/*
+ * This function modifies *extent_handle*
+ */
+static sstack_extent_t *get_extent(sstack_inode_t *inode,
+								  sstack_file_handle_t *extent_handle,
+								  sfsd_t *sfsd)
+{
+	int32_t i;
+	char *p = extent_handle->name;
+	char *q = NULL;
+	char *r;
+
+	sstack_extent_t *extent = NULL;
+
+	for(i = 0; i < inode->i_numextents; ++i) {
+		if (TRUE == match_extent(extent_handle,
+								 inode->i_extent[i].e_path)) {
+			extent = &inode->i_extent[i];
+			break;
+		}
+	}
+
+	if (extent == NULL) {
+		sfs_log(ctx, SFS_ERR, "%s(): Error getting extent\n");
+		ret = -EINVAL;
+		goto ret;
+	}
+
+	if ((q = get_mount_path(sfsd.chunk, extent_handle, &r)) == NULL) {
+		sfs_log(ctx, SFS_ERR, "%s(): Invalid mount path for:%s\n", p);
+		ret = -EINVAL;
+		goto ret;
+	}
+
+	/* Create the file path relative to the mount point */
+	len = strlen(r); /* r contains the nfs export */
+	p += len; /* p points to start of the path minus the nfs export */
+	path = bds_cache_alloc(sfsd_global_cache_arr[DATA4K_CACHE_OFFSET]);
+	if (path == NULL) {
+		ret = -ENOMEM;
+		sfs_log(ctx, SFS_ERR, "%s(): Error getting from path cache",
+				__FUNCTION__);
+		goto ret;
+	}
+
+	/* Create the file path relative to the mount point */
+	len = strlen(r); /* r contains the nfs export */
+	p += len; /* p points to start of the path minus the nfs export */
+	path = bds_cache_alloc(sfsd_global_cache_arr[DATA4K_CACHE_OFFSET]);
+	if (path == NULL) {
+		ret = -ENOMEM;
+		sfs_log(ctx, SFS_ERR, "%s(): Error getting from path cache",
+				__FUNCTION__);
+		goto ret;
+	}
+	sprintf (path, "%s%s",q, p);
+
+ret:
+	return ret;
+}
+
 static int32_t read_and_check_extent(sstack_file_handle_t *extent_handle,
 			int32_t index, int32_t use_flag, sstack_inode_t *inode,
 			void *buffer, int32_t chk_cksum, log_ctx_t *ctx)
@@ -468,7 +529,7 @@ sstack_payload_t *sstack_read(sstack_payload_t *payload,
 			goto error;
 		}
 	}
-	
+
 	in_size = 64 * 1024; /* 64K */
 	run_buf = buffer;
 	out_size = 0;
@@ -513,6 +574,9 @@ sstack_payload_t *sstack_write(sstack_payload_t *payload,
 	void *buffer = NULL, *run_buf = NULL, *policy_buf = NULL;
 	size_t in_size, out_size;
 	int chunk_index = -1;
+	char *mount_path = NULL;
+	char extent_name[PATH_MAX];
+	int fd;
 
 	inode = bds_cache_alloc(sfsd_global_cache_arr[INODE_CACHE_OFFSET]);
 	if (inode == NULL) {
@@ -551,20 +615,80 @@ sstack_payload_t *sstack_write(sstack_payload_t *payload,
 	 Apply erasure code here */
 
 	if (payload->command_struct.extent_handle.name_len == 0) {
+		void *temp;
+		sstack_extent_t *prev_extent;
+		sstack_file_handle_t extent_handle;
+
 		chunk_index = sfsd->chunk->schedule(sfsd->chunk);
-		/* Find its mount path */
-		/* get a extent name */
-		/* Write the data */
-		/* Calculate offset */
-		/* realloc inode->i_extent */
-		/* update mongo db */
-		/* Write mongo db */
+		mount_path = sfsd->chunk->storage[chunk_index].mount_path;
+		sprintf(extent_name, "%s/%u-XXXXXX", mount_path, time(NULL));
+		fd = mkostemp(extent_name, O_DIRECT|O_WRONLY);
+
+		pthread_mutex_lock(inode->i_lock);
+		temp = realloc(inode->i_extent, sizeof(*(inode->i_extent))
+					   * (inode->i_numextents + 1));
+		if (temp) {
+			inode->i_extent = temp;
+			extent = inode->i_extent[inode->i_numextents];
+			extent->e_size = cmd->data.data_len;
+			extent->e_sizeondisk = out_size;
+			extent->e_cksum =
+				crc_pcl((const char *)policy_buf, out_size, 0);
+			sprintf (extent_handle.name, "%s/%s",
+					 sfsd->chunk->storage[chunk_index].path,
+					 basename(extent_name));
+			extent_handle.name_len = strlen(extent_handle.name);
+			if (inode->i_size) {
+				prev_extent = extent - 1;
+				extent->e_offset = prev_extent->e_offset + prev_extent->e_size;
+				extent_handle.proto = prev_extent->e_path->proto;
+				memcpy(&extent_handle.address,&prev_extent->e_path->address,
+					   sizeof(sstack_address_t));
+			} else {
+				extent->e_offset = 0;
+				extent_handle.proto =
+					sfsd->chunk->storage[chunk_index].protocol;
+				memcpy(&extent_handle.address,
+					   &sfsd->chunk->storage[chunk_index].address,
+					   sizeof(sstack_address_t));
+			}
+			inode->i_numextents++;
+			/* Update storage */
+			sfsd->chunk->storage[chunk_index].num_chunks_written++;
+			sfsd->chunk->storage[chunk_index].nblocks-=
+				(int32_t)ceil((1.0) * (out_size/4096));
+			inode->i_size += cmd->data.data_len;
+			inode->i_sizeondisk += out_size;
+			put_inode(inode,sfsd->db);
+			if (fd > 0) {
+				ret =  write(fd, policy_buf, out_size);
+				if (ret < out_size) {
+					//TODO: Roll back the meta data update
+					command_stat = errno;
+					goto ret;
+				}
+				close(fd);
+			}
+		} else {
+			command_stat = errno;
+			goto ret;
+		}
 	} else {
-		/* Find the mount path
-		   write the data
-		   modify inode->i_extent
-		   update mongo db */
+		extent = get_extent(inode, extent_handle, sfsd);
+		fd = open(extent_handle->name, O_DIRECT|O_WRONLY);
+		if (fd > 0) {
+			ret = write(fd, policy_buf, out_size);
+			if (ret < out_size) {
+				command_stat = errno;
+				goto ret;
+			}
+		close(fd);
+		}
 	}
+
+
+}
+
 error:
 	sfs_log(ctx, SFS_INFO, "%s(): function not implemented", __FUNCTION__);
 	return NULL;
