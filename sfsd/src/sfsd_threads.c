@@ -325,9 +325,9 @@ void handle_command(sstack_payload_t *command, sstack_payload_t **response,
 
 	(*response)->hdr.sequence = command->hdr.sequence;
 	/* Send off response from here */
-	sstack_send_payload(sfsd->handle, payload, sfsd->transport,
-						payload->hdr.job_id, (sfs_job_t*)payload->hdr.arg,
-						payload->hdr.priority, log_ctx);
-	free_payload(payload);
+	sstack_send_payload(sfsd->handle, command, sfsd->transport,
+						command->hdr.job_id, (sfs_job_t*)command->hdr.arg,
+						command->hdr.priority, log_ctx);
+	free_payload(command);
 					
 }

@@ -65,6 +65,8 @@ message attribute
 	required uint32 ver = 1;
 	required uint32 a_qoslevel = 2;
 	required uint32 a_ishidden = 3;
+	required uint32 a_numreplicas = 4;
+	required uint32 a_enable_dr = 5;
 }
 
 message policy_plugin
@@ -99,7 +101,7 @@ message sstack_nfs_read_cmd
 message sstack_nfs_data
 {
 	required uint64 data_len = 1;
-	required bytes data_val = 2;
+	required bytes data_buf = 2;
 }
 
 message sstack_nfs_write_cmd
