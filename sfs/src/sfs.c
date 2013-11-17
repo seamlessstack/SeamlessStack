@@ -185,6 +185,7 @@ add_inodes(const char *path)
 	inode.i_links = status.st_nlink;
 	sfs_log(sfs_ctx, SFS_INFO,
 		"%s: nlinks for %s are %d\n", __FUNCTION__, path, inode.i_links);
+#if 0
 	// Populate size of each extent
 	policy = get_policy(path);
 	if (NULL == policy) {
@@ -203,6 +204,7 @@ add_inodes(const char *path)
 			policy->pe_attr.a_ishidden);
 		memcpy(&inode.i_policy, policy, sizeof(policy_entry_t));
 	}
+#endif
 	// Populate the extent
 	memset((void *) &extent, 0, sizeof(sstack_extent_t));
 	extent.e_sizeondisk = status.st_size;

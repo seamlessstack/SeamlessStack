@@ -93,10 +93,10 @@ struct policy_search_table
 
 struct plugin_entry_points
 {
-	void *init;   /* TODO: Put prototypes */
-	void *deinit; /* TODO: Put prototypes */
-	size_t (*apply)(void *in_buf, void **out_buf, size_t size);
-	size_t (*remove)(void *in_buf, void **out_buf, size_t size);
+	void (*init) (void);
+	void (*deinit) (void);
+	size_t (*apply) (void *in_buf, void **out_buf, size_t size);
+	size_t (*remove) (void *in_buf, void **out_buf, size_t size);
 };
 
 

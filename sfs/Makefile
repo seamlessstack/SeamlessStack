@@ -35,6 +35,7 @@ LIB += -L$(TOPDIR)/policy -lpolicy
 LIB += -L$(TOPDIR)/common -lsstack_common
 LIB += -L$(TOPDIR)/oss_install/lib -lmemcached
 LIB += -L$(TOPDIR)/lib/serdes -lserdes
+LIB += -L$(TOPDIR)/lib/validate -lvalidate
 
 SFS_OBJS = src/sfs.o src/sfs_entry.o src/sfs_job.o
 
