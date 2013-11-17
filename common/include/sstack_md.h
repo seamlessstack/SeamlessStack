@@ -116,7 +116,6 @@ typedef struct inode {
 		mode_t	i_mode; // Permissions
 		type_t	i_type; // Type of file
 		int		i_links; // Number of references. Used for unlink()
-		policy_entry_t i_policy;
 		struct timespec i_atime; // Last access time
 		struct timespec i_ctime; // Creation time
 		struct timespec i_mtime; // Modification time
@@ -145,7 +144,7 @@ get_inode_fixed_fields_len(void)
 {
 	return (sizeof(pthread_mutex_t) +  sizeof(unsigned long long) +
 			PATH_MAX + sizeof(uid_t) + sizeof(gid_t) + sizeof(mode_t) +
-			sizeof(type_t) + 4 + sizeof(policy_entry_t) +
+			sizeof(type_t) + sizeof(int)  +
 			(3 * sizeof(struct timespec)) + sizeof(sstack_size_t) +
 			sizeof(sstack_size_t) + 4 + 8 + 4 + 4 + 4);
 }

@@ -38,8 +38,8 @@ CTAGS = ctags
 RM = rm
 
 all:
-	#$(MKDIR) -p $(OSS_INSTALL_DIR)
-	#$(MAKE) -C $(OSS)
+	$(MKDIR) -p $(OSS_INSTALL_DIR)
+	$(MAKE) -C $(OSS)
 	# Following dirty hack is because --proto_path does not work !!
 	$(LN) $(PROTOBUF_DIR)/jobs.proto jobs.proto
 	$(PROTOC) --c_out=$(PROTOBUF_DIR) jobs.proto

@@ -34,6 +34,7 @@
 #include <sstack_cache_api.h>
 #include <sfs_jobmap_tree.h>
 #include <sfs_jobid_tree.h>
+#include <policy.h>
 
 #define MAX_KEY_LEN 128
 
@@ -357,6 +358,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 	off_t relative_offset = 0;
 	size_t bytes_issued = 0;
 	int ret = -1;
+	policy_entry_t *policy = NULL;
 
 	// Paramater validation
 	if (NULL == path || NULL == buf || size < 0 || offset < 0) {
@@ -436,6 +438,21 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 						"job map \n", __FUNCTION__);
 		return -1;
 	}
+	/*
+	 * Note: Don't free policy. It is just a pointer to original DS
+	 * and no copies are made by get_policy.
+	 */
+	policy = get_policy(path);
+	if (NULL == policy) {
+		sfs_log(sfs_ctx, SFS_INFO, "%s: No policies specified for the file"
+				". Default policy applied \n", __FUNCTION__);
+		policy->pe_attr.a_qoslevel = QOS_LOW;
+		policy->pe_attr.a_ishidden = 0;
+	} else {
+		sfs_log(sfs_ctx, SFS_INFO, "%s: path %s ver %s qoslevel %d "
+				"hidden %d \n", __FUNCTION__, path, policy->pe_attr.ver,
+				policy->pe_attr.a_qoslevel, policy->pe_attr.a_ishidden);
+	}
 
 	while (bytes_to_read) {
 		sfs_job_t *job = NULL;
@@ -461,7 +478,8 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 		for (j = 0; j < sfsds->num_sfsds; j++)
 			job->job_status[j] =  JOB_STARTED;
 
-		job->priority = inode.i_policy.pe_attr.a_qoslevel;
+
+		job->priority = policy->pe_attr.a_qoslevel;
 		// Create new payload
 		payload = create_payload();
 		// Populate payload
@@ -478,7 +496,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 		payload->command_struct.read_cmd.count = read_size;
 		payload->command_struct.read_cmd.read_ecode = 0;
 		memcpy((void *) &payload->command_struct.read_cmd.pe, (void *)
-						&inode.i_policy, sizeof(struct policy_entry));
+						policy, sizeof(struct policy_entry));
 		job->payload_len = sizeof(sstack_payload_t);
 		job->payload = payload;
 		// Add this job to job_map
@@ -1545,7 +1563,6 @@ int
 sfs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 {
 	sstack_inode_t inode;
-	policy_entry_t *policy = NULL;
 	struct stat status;
 	int ret = -1;
 	sstack_file_handle_t *ep = NULL;
@@ -1618,24 +1635,6 @@ sfs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 	inode.i_links = status.st_nlink;
 	sfs_log(sfs_ctx, SFS_INFO,
 		"%s: nlinks for %s are %d\n", __FUNCTION__, path, inode.i_links);
-	// Populate size of each extent
-	policy = get_policy(path);
-	if (NULL == policy) {
-		sfs_log(sfs_ctx, SFS_INFO,
-			"%s: No policies specified. Default policy applied\n",
-			__FUNCTION__);
-		inode.i_policy.pe_attr.a_qoslevel = QOS_LOW;
-		inode.i_policy.pe_attr.a_ishidden = 0;
-	} else {
-		// Got the policy
-		sfs_log(sfs_ctx, SFS_INFO,
-			"%s: Got policy for file %s\n", __FUNCTION__, path);
-		sfs_log(sfs_ctx, SFS_INFO, "%s: ver %s qoslevel %d hidden %d \n",
-			__FUNCTION__, path, policy->pe_attr.ver,
-			policy->pe_attr.a_qoslevel,
-			policy->pe_attr.a_ishidden);
-		memcpy(&inode.i_policy, policy, sizeof(policy_entry_t));
-	}
 	// Populate the extent
 	inode.i_extent = NULL;
 	inode.i_erasure = NULL; // No erasure coding info for now
