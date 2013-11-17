@@ -29,6 +29,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
+#include <sstack_log.h>
 //#include <policy.h>
 #define COMPRESSION_PLUGIN_VERSION 1
 #define TMPNAME_MAX 16
@@ -36,24 +37,59 @@
 
 /* BSS */
 static lzma_stream strm = LZMA_STREAM_INIT;
+static log_ctx_t *ctx = NULL;
 
 /* Function signatures */
 static bool init_encoder(lzma_stream *);
 static bool init_decoder(lzma_stream *);
-static size_t compress(lzma_stream *, char *, char *, size_t );
-static size_t decompress(lzma_stream *, char *, char *, size_t );
-size_t compression_plugin_compress(char *, char *, size_t );
-size_t compression_plugin_decompress(char *, char *, size_t );
+static size_t compress(lzma_stream *, char *, char **, size_t );
+static size_t decompress(lzma_stream *, char *, char **, size_t );
+void compression_init(void);
+void compression_deinit(void);
+size_t compression_apply(char *, char **, size_t );
+size_t compression_remove(char *, char **, size_t );
 
 /* Functions */
 
+void
+compression_init(void)
+{
+	// Placeholder for now
+	// At present, this function only initializes logging
+	// Revisit
+	ctx = sfs_create_log_ctx();
+	if (ctx) {
+		(void) sfs_log_init(ctx, SFS_INFO, "compression_plugin");
+	}
+}
+
+void
+compression_deinit(void)
+{
+	(void) sfs_log_close(ctx);
+	(void) sfs_destroy_log_ctx(ctx);	
+}
+
+
+/*
+ * compression_apply - Compress plugin "apply"
+ *
+ * buf - input buffer
+ * outbuf - Output buffer (will be allocated inside)
+ * size - input buffer size
+ *
+ * Returns output buffer size if successful. Otherwise returns -1.
+ */
+
 size_t
-compression_plugin_compress(char *buf, char *outbuf, size_t size)
+compression_apply(char *buf, char **outbuf, size_t size)
 {
 	size_t ret;
 
-	if (!init_encoder(&strm))
+	if (!init_encoder(&strm)) {
+		sfs_log(ctx, SFS_ERR, "%s: init_encoder failed \n", __FUNCTION__);
 		return -1;
+	}
 
 	ret = compress(&strm, buf, outbuf, size);
 	lzma_end(&strm);
@@ -62,7 +98,7 @@ compression_plugin_compress(char *buf, char *outbuf, size_t size)
 }
 
 /*
- * compression_plugin_decompress - apply_policy entry point for compression
+ * compression_remove - apply_policy entry point for compression
  *								plugin
  *
  * path - Full path of the file to be compressed.
@@ -73,12 +109,14 @@ compression_plugin_compress(char *buf, char *outbuf, size_t size)
  */
 
 size_t
-compression_plugin_decompress(char *buf, char *outbuf, size_t size)
+compression_remove(char *buf, char **outbuf, size_t size)
 {
 	size_t ret;
 
-	if (!init_decoder(&strm))
+	if (!init_decoder(&strm)) {
+		sfs_log(ctx, SFS_ERR, "%s: init_decoder failed \n", __FUNCTION__);
 		return -1;
+	}
 
 	ret = decompress(&strm, buf, outbuf, size);
 	lzma_end(&strm);
@@ -106,7 +144,8 @@ init_encoder(lzma_stream *strm)
 		// still fail due to unsupported preset *if* the features
 		// required by the preset have been disabled at build time,
 		// but no-one does such things except on embedded systems.)
-		fprintf(stderr, "Unsupported preset, possibly a bug\n");
+		sfs_log(ctx, SFS_ERR, "%s:Unsupported preset, possibly a bug\n",
+			   __FUNCTION__);
 		return false;
 	}
 
@@ -159,27 +198,40 @@ init_encoder(lzma_stream *strm)
 		break;
 	}
 
-	fprintf(stderr, "Error initializing the encoder: %s (error code %u)\n",
-			msg, ret);
+	sfs_log(ctx, SFS_ERR, "%s: Error initializing the encoder: "
+			"%s (error code %u) \n", __FUNCTION__, msg, ret);
 	return false;
 }
 
 
 // This function is identical to the one in 01_compress_easy.c.
+/*
+ * compress - Compress the input buffer using LZMA algorithm
+ *
+ * strm - LZMA strem. Should be non-NULL.
+ * buf - input buffer. Should be non-NULL
+ * out_buf - Output buffer. Allocated inside the function
+ *
+ * Returns output bufer size if successful. Otherwise returns -1.
+ */
+
 static size_t
-compress(lzma_stream *strm, char *buf, char *out_buf,  size_t size)
+compress(lzma_stream *strm, char *buf, char **out_buf,  size_t size)
 {
 	lzma_action action = LZMA_RUN;
 	int covered = 0;
 	int total_written = 0;
 	int ret = -1;
 	char outbuf[BUFSIZE];
+	char *local_buf = NULL;
 
 	strm->next_in = (uint8_t *) NULL;
 	strm->avail_in = 0;
 
 	strm->next_out = (uint8_t *) outbuf;
 	strm->avail_out = sizeof(outbuf);
+
+	*out_buf = NULL;
 
 	while(1) {
 		if (covered == size)
@@ -200,8 +252,15 @@ compress(lzma_stream *strm, char *buf, char *out_buf,  size_t size)
 		lzma_ret ret = lzma_code(strm, action);
 
 		if (strm->avail_out == 0 || ret == LZMA_STREAM_END) {
-
-			memcpy(out_buf + total_written , outbuf, sizeof(outbuf) -
+			local_buf = realloc(*out_buf, (sizeof(outbuf) - strm->avail_out));
+			if (NULL == local_buf) {
+				sfs_log(ctx, SFS_ERR, "%s: Realloc failed on loca_buf \n",
+						__FUNCTION__);
+				free (*out_buf);
+				return -1;
+			}
+			*out_buf = local_buf;
+			memcpy(*out_buf + total_written , outbuf, sizeof(outbuf) -
 							strm->avail_out);
 			total_written += ((sizeof(outbuf) - strm->avail_out));
 			strm->next_out = outbuf;
@@ -215,18 +274,18 @@ compress(lzma_stream *strm, char *buf, char *out_buf,  size_t size)
 
 			switch (ret) {
 				case LZMA_MEM_ERROR:
-					fprintf(stderr, "%s:Memory allocation failed\n",
-									__FUNCTION__);
+					sfs_log(ctx, SFS_ERR, "%s: Memory allocation failed \n",
+							__FUNCTION__);
 					return -1;
 	
 				case LZMA_DATA_ERROR:
-					fprintf(stderr, "%s: File size limits exceeded \n",
-									__FUNCTION__);
+					sfs_log(ctx, SFS_ERR, "%s: File size limits exceeded \n",
+							__FUNCTION__);
 					return -1;
 	
 				default:
-					fprintf(stderr, "%s: Unknown error, possibly a bug \n",
-									__FUNCTION__);
+					sfs_log(ctx, SFS_ERR, "%s: Unknown error, possibly a bug \n",
+							__FUNCTION__);
 					return -1;
 			}
 		}
@@ -308,14 +367,14 @@ init_decoder(lzma_stream *strm)
 		break;
 	}
 
-	fprintf(stderr, "Error initializing the decoder: %s (error code %u)\n",
-			msg, ret);
+	sfs_log(ctx, SFS_ERR, "%s: Error initializing the decoder: "
+			"%s (error code %u) \n", __FUNCTION__, msg, ret);
 	return false;
 }
 
 
 static size_t
-decompress(lzma_stream *strm, char *buf, char *out_buf, size_t size)
+decompress(lzma_stream *strm, char *buf, char **out_buf, size_t size)
 {
 	// When LZMA_CONCATENATED flag was used when initializing the decoder,
 	// we need to tell lzma_code() when there will be no more input.
@@ -332,6 +391,7 @@ decompress(lzma_stream *strm, char *buf, char *out_buf, size_t size)
 	int total_written = 0;
 	int ret = -1;
 	char outbuf[BUFSIZE];
+	char *local_buf = NULL;
 
 	strm->next_in = (uint8_t *) NULL;
 	strm->avail_in = 0;
@@ -363,8 +423,16 @@ decompress(lzma_stream *strm, char *buf, char *out_buf, size_t size)
 		lzma_ret ret = lzma_code(strm, action);
 
 		if (strm->avail_out == 0 || ret == LZMA_STREAM_END) {
+			local_buf = realloc(*out_buf, (sizeof(outbuf) - strm->avail_out));
+			if (NULL == local_buf) {
+				sfs_log(ctx, SFS_ERR, "%s: Failed to allocate memory for "
+						"local_buf \n", __FUNCTION__);
+				free (*out_buf);
+				return -1;
+			}
+			*out_buf = local_buf;
 
-			memcpy(out_buf + total_written, outbuf, sizeof(outbuf) -
+			memcpy(*out_buf + total_written, outbuf, sizeof(outbuf) -
 							strm->avail_out);
 			total_written += ((sizeof(outbuf) - strm->avail_out));
 			strm->next_out = outbuf;
