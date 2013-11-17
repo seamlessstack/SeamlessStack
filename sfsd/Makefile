@@ -36,6 +36,10 @@ LIB += -L$(TOPDIR)/common -lsstack_common
 LIB += -L$(OSS_LIBDIR) -ljerasure -lmongoc -lbson
 LIB += -L$(TOPDIR)/db/mongo -lmongo_db
 LIB += -L$(TOPDIR)/lib/serdes -lserdes
+LIB += -L$(TOPDIR)/policy -lpolicy
+LIB += -L$(TOPDIR)/lib/validate -lvalidate
+LIB += -ldl
+
 
 SFSD_OBJS = src/main.o src/sfsd.o src/sfsd_signals.o src/sfsd_threads.o \
 	    src/sfsd_ops.o src/sfsd_transport.o src/sfsd_erasure.o \

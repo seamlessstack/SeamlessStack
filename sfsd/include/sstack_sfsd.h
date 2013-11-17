@@ -25,16 +25,6 @@
 #include <sstack_thread_pool.h>
 #include <bds_slab.h>
 
-/* To add a new cache define a 
-   new offset here and add an
-   entry to the sstack_create_cache
-   function */
-#define PAYLOAD_CACHE_OFFSET 1
-#define HANDLE_PARAM_OFFSET 2
-#define INODE_CACHE_OFFSET 3
-#define DATA4K_CACHE_OFFSET 4
-#define DATA64K_CACHE_OFFSET 5
-#define MAX_CACHE_OFFSET DATA64K_CACHE_OFFSET
 
 /** Structure to pass multiple
  *  parameters to a function

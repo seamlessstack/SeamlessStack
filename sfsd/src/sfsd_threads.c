@@ -27,6 +27,7 @@
 #include <sstack_types.h>
 #include <sstack_serdes.h>
 
+extern bds_cache_desc_t sfsd_global_cache_arr[];
 /* ===================== PRIVATE DECLARATIONS ============================ */
 
 static void* do_receive_thread (void *params);
@@ -328,6 +329,6 @@ void handle_command(sstack_payload_t *command, sstack_payload_t **response,
 	sstack_send_payload(sfsd->handle, command, sfsd->transport,
 						command->hdr.job_id, (sfs_job_t*)command->hdr.arg,
 						command->hdr.priority, log_ctx);
-	free_payload(command);
+	free_payload(sfsd_global_cache_arr,command);
 					
 }

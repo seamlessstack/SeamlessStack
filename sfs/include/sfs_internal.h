@@ -32,7 +32,6 @@
 #define DEFAULT_WEIGHT 50
 #define MINIMUM_WEIGHT 100
 #define CACHE_NAME_MAX 32
-#define PAYLOAD_CACHE_INDEX 0
 
 
 // Represents storage weight range per pool

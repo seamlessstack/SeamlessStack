@@ -30,6 +30,7 @@
 #include <sstack_helper.h>
 #include <sstack_signatures.h>
 #include <sfsd_erasure.h>
+#include <policy.h>
 
 #define USE_INDEX 0
 #define USE_HANDLE 1
@@ -370,8 +371,8 @@ sstack_payload_t *sstack_read(sstack_payload_t *payload,
 	int32_t err_strps[MAX_DATA_STRIPES + CODE_STRIPES];
 	int32_t num_err_strps = 0, num_dstripes = 0;
 	int32_t ecode_idx = 0, ret = 0;
-	void *buffer, *policy_buf = NULL, run_buf = NULL, out_buf = NULL;
-	size_t in_size;
+	void *buffer, *policy_buf = NULL, *run_buf = NULL, *out_buf = NULL;
+	size_t in_size, out_size;
 
 	inode = bds_cache_alloc(sfsd_global_cache_arr[INODE_CACHE_OFFSET]);
 	if (inode == NULL) {
@@ -472,8 +473,8 @@ sstack_payload_t *sstack_read(sstack_payload_t *payload,
 	run_buf = buffer;
 	out_size = 0;
 	for(i = pe->pe_num_plugins; i >= 0; i--) {
-		struct plugin_entry_ponts *entry =
-			get_plugin_entry_points(pe->pe_policy[i].pp_policy_name);
+		struct plugin_entry_points *entry =
+			get_plugin_entry_points(pe->pe_policy[i]->pp_policy_name);
 		if (entry) {
 			if ((out_size = entry->remove(run_buf, &policy_buf, in_size)) > 0) {
 				if (bds_cache_free(sfsd_global_cache_arr[DATA64K_CACHE_OFFSET],
@@ -509,8 +510,10 @@ sstack_payload_t *sstack_write(sstack_payload_t *payload,
 	sstack_inode_t *inode;
 	struct sstack_nfs_write_cmd *cmd = &payload->command_struct.write_cmd;
 	struct policy_entry *pe = &cmd->pe;
-	void *buffer = NULL, run_buf = NULL, policy_buf = NULL;
+	void *buffer = NULL, *run_buf = NULL, *policy_buf = NULL;
 	size_t in_size, out_size;
+	int chunk_index = -1;
+
 	inode = bds_cache_alloc(sfsd_global_cache_arr[INODE_CACHE_OFFSET]);
 	if (inode == NULL) {
 		command_stat = -ENOMEM;
@@ -530,8 +533,8 @@ sstack_payload_t *sstack_write(sstack_payload_t *payload,
 	run_buf = buffer;
 	out_size = 0;
 	for(i = 0; i < pe->pe_num_plugins; ++i) {
-		struct plugin_entry_ponts *entry =
-			get_plugin_entry_points(pe->pe_policy[i].pp_policy_name);
+		struct plugin_entry_points *entry =
+			get_plugin_entry_points(pe->pe_policy[i]->pp_policy_name);
 		if (entry) {
 			if ((out_size = entry->apply(run_buf, &policy_buf, in_size)) > 0) {
 				if (bds_cache_free(sfsd_global_cache_arr[DATA64K_CACHE_OFFSET],

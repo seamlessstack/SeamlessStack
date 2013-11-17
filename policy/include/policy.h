@@ -110,6 +110,7 @@ uint32_t activate_plugin(uint32_t plugin_id);
 
 /* Get policy, to be called from read/write ops */
 struct policy_entry* get_policy(const char *path);
+struct plugin_entry_points *get_plugin_entry_points(const char *);
 
 /* Configuration , get, set routines */
 #endif /* __POLICY_H__ */
