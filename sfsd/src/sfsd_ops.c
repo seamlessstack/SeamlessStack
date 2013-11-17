@@ -364,7 +364,6 @@ sstack_payload_t *sstack_read(sstack_payload_t *payload,
 	sstack_inode_t *inode;
 	struct sstack_nfs_read_cmd *cmd = &payload->command_struct.read_cmd;
 	struct policy_entry *pe = &cmd->pe;
-	sstack_payload_t *response;
 	void	*d_stripes[MAX_DATA_STRIPES];
 	void	*c_stripes[CODE_STRIPES];
 	int32_t index = 0, er_index = 0,  final_dstripe_idx;
@@ -469,14 +468,6 @@ sstack_payload_t *sstack_read(sstack_payload_t *payload,
 		}
 	}
 	
-	response = bds_cache_alloc(sfsd_global_cache_arr[PAYLOAD_CACHE_OFFSET]);
-	if (response == NULL) {
-			command_stat = -ENOMEM;
-			sfs_log(ctx, SFS_ERR, "%s(): No memory for response struct\n",
-					__FUNCTION__);
-			goto error;
-	}
-
 	in_size = 64 * 1024; /* 64K */
 	run_buf = buffer;
 	out_size = 0;
@@ -485,7 +476,8 @@ sstack_payload_t *sstack_read(sstack_payload_t *payload,
 			get_plugin_entry_points(pe->pe_policy[i].pp_policy_name);
 		if (entry) {
 			if ((out_size = entry->remove(run_buf, &policy_buf, in_size)) > 0) {
-				if (bds_cache_free(sfsd_global_cache_arr[DATA64K_CACHE_OFFSET], run_buf) < 0) {
+				if (bds_cache_free(sfsd_global_cache_arr[DATA64K_CACHE_OFFSET],
+							run_buf) < 0) {
 					/* Memory allocated by malloc/realloc */
 					free(run_buf);
 				}
@@ -511,14 +503,14 @@ error:
 }
 
 sstack_payload_t *sstack_write(sstack_payload_t *payload,
-		sfsd_t *sfsd, log_ctx_t *ctx)
+							   sfsd_t *sfsd, log_ctx_t *ctx)
 {
 	int32_t i, command_stat = 0;
 	sstack_inode_t *inode;
-	struct sstack_nfs_read_cmd *cmd = &payload->command_struct.read_write;
+	struct sstack_nfs_write_cmd *cmd = &payload->command_struct.write_cmd;
 	struct policy_entry *pe = &cmd->pe;
-	sstack_payload_t *response;
-	void *buffer1 = NULL, *buffer2 = NULL;
+	void *buffer = NULL, run_buf = NULL, policy_buf = NULL;
+	size_t in_size, out_size;
 	inode = bds_cache_alloc(sfsd_global_cache_arr[INODE_CACHE_OFFSET]);
 	if (inode == NULL) {
 		command_stat = -ENOMEM;
@@ -533,6 +525,44 @@ sstack_payload_t *sstack_write(sstack_payload_t *payload,
 			__FUNCTION__);
 		goto error;
 	}
+
+	in_size = 64 * 1024; /* 64K */
+	run_buf = buffer;
+	out_size = 0;
+	for(i = 0; i < pe->pe_num_plugins; ++i) {
+		struct plugin_entry_ponts *entry =
+			get_plugin_entry_points(pe->pe_policy[i].pp_policy_name);
+		if (entry) {
+			if ((out_size = entry->apply(run_buf, &policy_buf, in_size)) > 0) {
+				if (bds_cache_free(sfsd_global_cache_arr[DATA64K_CACHE_OFFSET],
+							run_buf) < 0) {
+					/* Memory allocated by malloc/realloc */
+					free(run_buf);
+				}
+				run_buf = policy_buf;
+				in_size = out_size;
+			}
+		}
+	}
+	/* I have the policy applied data in policy_buf and the size in out_size.
+	 Apply erasure code here */
+
+	if (payload->command_struct.extent_handle.name_len == 0) {
+		chunk_index = sfsd->chunk->schedule(sfsd->chunk);
+		/* Find its mount path */
+		/* get a extent name */
+		/* Write the data */
+		/* Calculate offset */
+		/* realloc inode->i_extent */
+		/* update mongo db */
+		/* Write mongo db */
+	} else {
+		/* Find the mount path
+		   write the data
+		   modify inode->i_extent
+		   update mongo db */
+	}
+error:
 	sfs_log(ctx, SFS_INFO, "%s(): function not implemented", __FUNCTION__);
 	return NULL;
 }
