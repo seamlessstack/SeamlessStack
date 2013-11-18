@@ -116,6 +116,7 @@ typedef struct sfsd {
 	sstack_thread_pool_t *thread_pool;
 	sstack_thread_pool_t *chunk_thread_pool;
 	bds_cache_desc_t *caches;
+	uint32_t sfs_pool_wgt;
 } sfsd_t;
 
 typedef struct sfs_job {

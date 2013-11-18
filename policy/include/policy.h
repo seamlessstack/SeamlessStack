@@ -27,7 +27,9 @@ struct attribute
 {
 	uint32_t ver;
 	uint8_t a_qoslevel;
+	uint8_t a_numreplicas;
 	uint8_t	a_ishidden:1;
+	uint8_t	a_enable_dr:1;
 };
 
 /**

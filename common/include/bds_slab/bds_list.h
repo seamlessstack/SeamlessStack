@@ -138,6 +138,22 @@ static inline void bds_list_del(bds_list_head_t entry)
              pos = list_entry(pos->member.next, typeof(*pos), member))
 
 /**
+ * Same as list_for_each_entry with an exception that this is a never
+ * ending loop. The caller needs to have a condition to break out of 
+ * the loop
+ */
+#define list_iter_entry(pos, head, member)                          \
+		for (pos = list_entry((head)->next, typeof(*pos), member);;      \
+			pos = list_entry(pos->member.next, typeof(*pos), member))
+
+/**
+ * Same as list_iter_entry but in reverse direction
+ */ 
+#define list_iter_entry_reverse(pos, head, member)                          \
+		for (pos = list_entry((head)->prev, typeof(*pos), member);;      \
+		pos = list_entry(pos->member.prev, typeof(*pos), member))
+
+/**
  * bds_list_empty - tests whether a list is empty
  * @head: the list to test.
  */

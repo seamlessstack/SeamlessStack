@@ -216,4 +216,7 @@ get_local_ip(char *interface, char *intf_addr, int type)
 	return 0;
 }
 
+extern int *
+sfs_idp_get_sfsd_list(sstack_inode_t *, sstack_sfsd_pool_t *, log_ctx_t *);
+
 #endif // __SFS_H_
