@@ -30,6 +30,7 @@
 #include <sstack_helper.h>
 #include <sstack_signatures.h>
 #include <sfsd_erasure.h>
+#include <policy.h>
 
 #define USE_INDEX 0
 #define USE_HANDLE 1
@@ -212,8 +213,69 @@ static inline int32_t match_extent(sstack_file_handle_t *h1,
 	return FALSE;
 }
 
+/*
+ * This function modifies *extent_handle*
+ */
+static sstack_extent_t *get_extent(sstack_inode_t *inode,
+								  sstack_file_handle_t *extent_handle,
+								  sfsd_t *sfsd)
+{
+	int32_t i;
+	char *p = extent_handle->name;
+	char *q = NULL;
+	char *r;
+
+	sstack_extent_t *extent = NULL;
+
+	for(i = 0; i < inode->i_numextents; ++i) {
+		if (TRUE == match_extent(extent_handle,
+								 inode->i_extent[i].e_path)) {
+			extent = &inode->i_extent[i];
+			break;
+		}
+	}
+
+	if (extent == NULL) {
+		sfs_log(ctx, SFS_ERR, "%s(): Error getting extent\n");
+		ret = -EINVAL;
+		goto ret;
+	}
+
+	if ((q = get_mount_path(sfsd.chunk, extent_handle, &r)) == NULL) {
+		sfs_log(ctx, SFS_ERR, "%s(): Invalid mount path for:%s\n", p);
+		ret = -EINVAL;
+		goto ret;
+	}
+
+	/* Create the file path relative to the mount point */
+	len = strlen(r); /* r contains the nfs export */
+	p += len; /* p points to start of the path minus the nfs export */
+	path = bds_cache_alloc(sfsd_global_cache_arr[DATA4K_CACHE_OFFSET]);
+	if (path == NULL) {
+		ret = -ENOMEM;
+		sfs_log(ctx, SFS_ERR, "%s(): Error getting from path cache",
+				__FUNCTION__);
+		goto ret;
+	}
+
+	/* Create the file path relative to the mount point */
+	len = strlen(r); /* r contains the nfs export */
+	p += len; /* p points to start of the path minus the nfs export */
+	path = bds_cache_alloc(sfsd_global_cache_arr[DATA4K_CACHE_OFFSET]);
+	if (path == NULL) {
+		ret = -ENOMEM;
+		sfs_log(ctx, SFS_ERR, "%s(): Error getting from path cache",
+				__FUNCTION__);
+		goto ret;
+	}
+	sprintf (path, "%s%s",q, p);
+
+ret:
+	return ret;
+}
+
 static int32_t read_and_check_extent(sstack_file_handle_t *extent_handle,
-			int32_t index, int32_t use_flag, sstack_inode_t *inode, 
+			int32_t index, int32_t use_flag, sstack_inode_t *inode,
 			void *buffer, int32_t chk_cksum, log_ctx_t *ctx)
 {
 	int32_t fd;
@@ -228,7 +290,7 @@ static int32_t read_and_check_extent(sstack_file_handle_t *extent_handle,
 	if (use_flag == USE_INDEX) {
 		extent = &inode->i_extent[index];
 	}
-	
+
 	/* Search the IP address in the extent handle in the inode
 	   structure. Needed to find out the extent_t to get the full
 	   information about the particular extent */
@@ -278,7 +340,7 @@ static int32_t read_and_check_extent(sstack_file_handle_t *extent_handle,
 		ret = errno;
 		goto ret;
 	}
-	
+
 	if (chk_cksum) {
 		uint32_t crc;
 		crc = crc_pcl((const char *)buffer, nbytes, 0);
@@ -287,12 +349,12 @@ static int32_t read_and_check_extent(sstack_file_handle_t *extent_handle,
 		} else {
 			ret = 0;
 		}
-	} 
+	}
 ret:
 	return ret;
 }
 
-static int32_t read_and_check_erasure(int32_t index, sstack_inode_t *inode, 
+static int32_t read_and_check_erasure(int32_t index, sstack_inode_t *inode,
 			void *buffer, int32_t chk_cksum, log_ctx_t *ctx)
 {
 	int32_t fd;
@@ -304,13 +366,13 @@ static int32_t read_and_check_erasure(int32_t index, sstack_inode_t *inode,
 	char *path;
 
 	erasure = &inode->i_erasure[index];
-	
+
 	if (erasure == NULL) {
 		sfs_log(ctx, SFS_ERR, "%s(): Error reading erasure\n");
 		ret = -EINVAL;
 		goto ret;
 	}
-	
+
 	p = erasure->er_path->name;
 	p[erasure->er_path->name_len - 1] = '\0';
 	if ((q = get_mount_path(sfsd.chunk, erasure->er_path, &r)) == NULL) {
@@ -343,7 +405,7 @@ static int32_t read_and_check_erasure(int32_t index, sstack_inode_t *inode,
 		ret = errno;
 		goto ret;
 	}
-	
+
 	if (chk_cksum) {
 		uint32_t crc;
 		crc = crc_pcl((const char *)buffer, nbytes, 0);
@@ -352,20 +414,27 @@ static int32_t read_and_check_erasure(int32_t index, sstack_inode_t *inode,
 		} else {
 			ret = 0;
 		}
-	} 
+	}
 ret:
 	return ret;
 }
 
 sstack_payload_t *sstack_read(sstack_payload_t *payload,
-	sfsd_t *sfsd, log_ctx_t *ctx)
+							  sfsd_t *sfsd, log_ctx_t *ctx)
 {
 	int32_t i, command_stat = 0;
 	sstack_inode_t *inode;
 	struct sstack_nfs_read_cmd *cmd = &payload->command_struct.read_cmd;
 	struct policy_entry *pe = &cmd->pe;
-	sstack_payload_t *response;
-	void *buffer1 = NULL, *buffer2 = NULL;
+	void	*d_stripes[MAX_DATA_STRIPES];
+	void	*c_stripes[CODE_STRIPES];
+	int32_t index = 0, er_index = 0,  final_dstripe_idx;
+	int32_t err_strps[MAX_DATA_STRIPES + CODE_STRIPES];
+	int32_t num_err_strps = 0, num_dstripes = 0;
+	int32_t ecode_idx = 0, ret = 0;
+	void *buffer, *policy_buf = NULL, *run_buf = NULL, *out_buf = NULL;
+	size_t in_size, out_size;
+
 	inode = bds_cache_alloc(sfsd_global_cache_arr[INODE_CACHE_OFFSET]);
 	if (inode == NULL) {
 		command_stat = -ENOMEM;
@@ -381,16 +450,10 @@ sstack_payload_t *sstack_read(sstack_payload_t *payload,
 		goto error;
 	}
 
-	/* TODO: Make it a function */
+	/* Read the erasure coded stripes since we are asked to
+	   do so :-)
+	*/
 	if (cmd->read_ecode) {
-		/* Read erasure coded data and send response */
-		void	*d_stripes[MAX_DATA_STRIPES];
-		void	*c_stripes[CODE_STRIPES];
-		int32_t index = 0, er_index = 0,  final_dstripe_idx;
-		int32_t err_strps[MAX_DATA_STRIPES + CODE_STRIPES];
-		int32_t num_err_strps = 0, num_dstripes = 0;
-		int32_t ecode_idx = 0, ret = 0;
-
 		for(i = 0; i < inode->i_numextents; ++i) {
 			if (TRUE == match_extent(&payload->command_struct.extent_handle,
 					  inode->i_extent[i].e_path)) {
@@ -406,9 +469,9 @@ sstack_payload_t *sstack_read(sstack_payload_t *payload,
 		} else {
 			final_dstripe_idx = (index + MAX_DATA_STRIPES);
 		}
-		
+
 		for (i = index; i < final_dstripe_idx; i++) {
-			d_stripes[i-index] = 
+			d_stripes[i-index] =
 				bds_cache_alloc(sfsd_global_cache_arr[DATA64K_CACHE_OFFSET]);
 			if (d_stripes[i-index] == NULL) {
 				sfs_log(ctx, SFS_ERR, "%s(): Error getting read buffer\n",
@@ -416,16 +479,16 @@ sstack_payload_t *sstack_read(sstack_payload_t *payload,
 				command_stat = -ENOMEM;
 				goto error;
 			}
-			ret = read_and_check_extent(NULL, i, USE_INDEX, inode, 
+			ret = read_and_check_extent(NULL, i, USE_INDEX, inode,
 					d_stripes[i-index], 1, ctx);
 			if (ret == -SSTACK_ECKSUM) {
 				err_strps[num_err_strps++] = (i-index);
 			}
 			num_dstripes++;
-		}	
-		
+		}
+
 		for (i = er_index; i < er_index + CODE_STRIPES; i++) {
-			c_stripes[i-er_index] = 
+			c_stripes[i-er_index] =
 				bds_cache_alloc(sfsd_global_cache_arr[DATA64K_CACHE_OFFSET]);
 			if (c_stripes[i-er_index] == NULL) {
 				sfs_log(ctx, SFS_ERR, "%s(): Error getting read buffer\n",
@@ -433,59 +496,68 @@ sstack_payload_t *sstack_read(sstack_payload_t *payload,
 				command_stat = -ENOMEM;
 				goto error;
 			}
-			ret = read_and_check_erasure(i, inode, c_stripes[i-er_index], 
+			ret = read_and_check_erasure(i, inode, c_stripes[i-er_index],
 												1, ctx);
 			if (ret == -SSTACK_ECKSUM) {
 				err_strps[num_err_strps++] = (i-er_index);
 			}
 		}
-			
+
 		ret = sfs_esure_decode(d_stripes, num_dstripes, c_stripes, CODE_STRIPES,
 								err_strps, num_err_strps, ERASURE_STRIPE_SIZE);
-	}
-		
-	/* Now time for reading. Allocate a repsonse structure */
-	response = bds_cache_alloc(sfsd_global_cache_arr[PAYLOAD_CACHE_OFFSET]);
-	if (response == NULL) {
-		command_stat = -ENOMEM;
-		sfs_log(ctx, SFS_ERR, "%s(): No memory for response struct\n",
-			__FUNCTION__);
-		goto error;
-	}
-	buffer1 = bds_cache_alloc(sfsd_global_cache_arr[DATA64K_CACHE_OFFSET]);
-	if (buffer1 == NULL) {
-		sfs_log(ctx, SFS_ERR, "%s(): Error getting read buffer\n",
-			__FUNCTION__);
-		command_stat = -ENOMEM;
-		goto error;
-	}
-	/* Read the actual extent now */
-	command_stat = read_and_check_extent(&payload->command_struct.extent_handle,
-				   0, USE_HANDLE, inode, buffer1, 1, ctx);
-	if (command_stat != 0) {
-		sfs_log(ctx, SFS_ERR, "%s(): Error reading extent",
-			__FUNCTION__);
-		goto error;
+		/* Data is placed at *index* */
+		if (ret == ESURE_SUCCESS)
+			buffer = d_stripes[index];
+	} else {
+		/* We are not required to read erasure code.
+		 * Just try to do a normal read
+		 * and report success or failure
+		 */
+		buffer = bds_cache_alloc(sfsd_global_cache_arr[DATA64K_CACHE_OFFSET]);
+		if (buffer == NULL) {
+			sfs_log(ctx, SFS_ERR, "%s(): Error getting read buffer\n",
+					__FUNCTION__);
+			command_stat = -ENOMEM;
+			goto error;
+		}
+		/* Read the actual extent now */
+		command_stat = read_and_check_extent(&payload->command_struct.extent_handle,
+											 0, USE_HANDLE, inode, buffer, 1, ctx);
+		if (command_stat != 0) {
+			sfs_log(ctx, SFS_ERR, "%s(): Error reading extent",
+					__FUNCTION__);
+			goto error;
+		}
 	}
 
+	in_size = 64 * 1024; /* 64K */
+	run_buf = buffer;
+	out_size = 0;
 	for(i = pe->pe_num_plugins; i >= 0; i--) {
-		//Call the remove plugins from the dlsym/dlopen
-		//Finally buffer2 should have the data
+		struct plugin_entry_points *entry =
+			get_plugin_entry_points(pe->pe_policy[i]->pp_policy_name);
+		if (entry) {
+			if ((out_size = entry->remove(run_buf, &policy_buf, in_size)) > 0) {
+				if (bds_cache_free(sfsd_global_cache_arr[DATA64K_CACHE_OFFSET],
+							run_buf) < 0) {
+					/* Memory allocated by malloc/realloc */
+					free(run_buf);
+				}
+				run_buf = policy_buf;
+				in_size = out_size;
+			}
+		}
 	}
-	
-	response = bds_cache_alloc(sfsd_global_cache_arr[PAYLOAD_CACHE_OFFSET]);
-	if (!response) {
-		sfs_log(ctx, SFS_ERR, "%s(): Memory allocation failed",
-				__FUNCTION__);
-		command_stat = -ENOMEM;
-		goto error;
-	}
-	
-	memcpy(response->response_struct.read_resp.data.data_val, buffer2,
-			MAX_EXTENT_SIZE);
-
-	//TODO:Write back the erasure coded data 
-	return response;
+	/* Modify the sent payload to make it a response.
+	 * Save an allocation here
+	 */
+	payload->command = NFS_READ_RSP;
+	payload->response_struct.read_resp.count = out_size;
+	payload->response_struct.read_resp.eof = 0;
+	payload->response_struct.read_resp.data.data_len = out_size;
+	payload->response_struct.read_resp.data.data_buf = policy_buf;
+	//TODO:Write back the erasure coded data
+	return payload;
 
 error:
 
@@ -493,9 +565,131 @@ error:
 }
 
 sstack_payload_t *sstack_write(sstack_payload_t *payload,
-		sfsd_t *sfsd, log_ctx_t *ctx)
+							   sfsd_t *sfsd, log_ctx_t *ctx)
 {
-	/* Not implemented */
+	int32_t i, command_stat = 0;
+	sstack_inode_t *inode;
+	struct sstack_nfs_write_cmd *cmd = &payload->command_struct.write_cmd;
+	struct policy_entry *pe = &cmd->pe;
+	void *buffer = NULL, *run_buf = NULL, *policy_buf = NULL;
+	size_t in_size, out_size;
+	int chunk_index = -1;
+	char *mount_path = NULL;
+	char extent_name[PATH_MAX];
+	int fd;
+
+	inode = bds_cache_alloc(sfsd_global_cache_arr[INODE_CACHE_OFFSET]);
+	if (inode == NULL) {
+		command_stat = -ENOMEM;
+		sfs_log(ctx, SFS_ERR, "%s(): %s\n",
+			__FUNCTION__, "Inode cache mem not available");
+		goto error;
+	}
+
+	if (get_inode(cmd->inode_no, inode, sfsd->db) != 0) {
+		command_stat = -EINVAL;
+		sfs_log(ctx, SFS_ERR, "%s(): Inode not available",
+			__FUNCTION__);
+		goto error;
+	}
+
+	in_size = 64 * 1024; /* 64K */
+	run_buf = buffer;
+	out_size = 0;
+	for(i = 0; i < pe->pe_num_plugins; ++i) {
+		struct plugin_entry_points *entry =
+			get_plugin_entry_points(pe->pe_policy[i]->pp_policy_name);
+		if (entry) {
+			if ((out_size = entry->apply(run_buf, &policy_buf, in_size)) > 0) {
+				if (bds_cache_free(sfsd_global_cache_arr[DATA64K_CACHE_OFFSET],
+							run_buf) < 0) {
+					/* Memory allocated by malloc/realloc */
+					free(run_buf);
+				}
+				run_buf = policy_buf;
+				in_size = out_size;
+			}
+		}
+	}
+	/* I have the policy applied data in policy_buf and the size in out_size.
+	 Apply erasure code here */
+
+	if (payload->command_struct.extent_handle.name_len == 0) {
+		void *temp;
+		sstack_extent_t *prev_extent;
+		sstack_file_handle_t extent_handle;
+
+		chunk_index = sfsd->chunk->schedule(sfsd->chunk);
+		mount_path = sfsd->chunk->storage[chunk_index].mount_path;
+		sprintf(extent_name, "%s/%u-XXXXXX", mount_path, time(NULL));
+		fd = mkostemp(extent_name, O_DIRECT|O_WRONLY);
+
+		pthread_mutex_lock(inode->i_lock);
+		temp = realloc(inode->i_extent, sizeof(*(inode->i_extent))
+					   * (inode->i_numextents + 1));
+		if (temp) {
+			inode->i_extent = temp;
+			extent = inode->i_extent[inode->i_numextents];
+			extent->e_size = cmd->data.data_len;
+			extent->e_sizeondisk = out_size;
+			extent->e_cksum =
+				crc_pcl((const char *)policy_buf, out_size, 0);
+			sprintf (extent_handle.name, "%s/%s",
+					 sfsd->chunk->storage[chunk_index].path,
+					 basename(extent_name));
+			extent_handle.name_len = strlen(extent_handle.name);
+			if (inode->i_size) {
+				prev_extent = extent - 1;
+				extent->e_offset = prev_extent->e_offset + prev_extent->e_size;
+				extent_handle.proto = prev_extent->e_path->proto;
+				memcpy(&extent_handle.address,&prev_extent->e_path->address,
+					   sizeof(sstack_address_t));
+			} else {
+				extent->e_offset = 0;
+				extent_handle.proto =
+					sfsd->chunk->storage[chunk_index].protocol;
+				memcpy(&extent_handle.address,
+					   &sfsd->chunk->storage[chunk_index].address,
+					   sizeof(sstack_address_t));
+			}
+			inode->i_numextents++;
+			/* Update storage */
+			sfsd->chunk->storage[chunk_index].num_chunks_written++;
+			sfsd->chunk->storage[chunk_index].nblocks-=
+				(int32_t)ceil((1.0) * (out_size/4096));
+			inode->i_size += cmd->data.data_len;
+			inode->i_sizeondisk += out_size;
+			put_inode(inode,sfsd->db);
+			if (fd > 0) {
+				ret =  write(fd, policy_buf, out_size);
+				if (ret < out_size) {
+					//TODO: Roll back the meta data update
+					command_stat = errno;
+					goto ret;
+				}
+				close(fd);
+			}
+		} else {
+			command_stat = errno;
+			goto ret;
+		}
+	} else {
+		extent = get_extent(inode, extent_handle, sfsd);
+		fd = open(extent_handle->name, O_DIRECT|O_WRONLY);
+		if (fd > 0) {
+			ret = write(fd, policy_buf, out_size);
+			if (ret < out_size) {
+				command_stat = errno;
+				goto ret;
+			}
+		close(fd);
+		}
+	}
+
+
+}
+
+error:
 	sfs_log(ctx, SFS_INFO, "%s(): function not implemented", __FUNCTION__);
 	return NULL;
 }

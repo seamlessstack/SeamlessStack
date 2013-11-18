@@ -64,7 +64,6 @@
 #define MAX_MEDIUM_PRIO 16
 #define MAX_LOW_PRIO 4
 #define SFS_JOB_SLEEP 5
-#define MAX_CACHES 1
 
 /* BSS */
 log_ctx_t *sfs_ctx = NULL;
@@ -88,7 +87,7 @@ sfs_job_queue_t *jobs = NULL;
 sfs_job_queue_t *pending_jobs = NULL;
 sstack_sfsd_pool_t *sfsd_pool = NULL;
 // Slabs
-bds_cache_desc_t sfs_global_cache[MAX_CACHES];
+bds_cache_desc_t sfs_global_cache[MAX_CACHE_OFFSET];
 
 
 /* Structure definitions */
@@ -104,7 +103,7 @@ static struct fuse_opt sfs_opts[] = {
 	FUSE_OPT_END
 };
 
-struct sfs_cache_entry slabs[MAX_CACHES] = {
+struct sfs_cache_entry slabs[MAX_CACHE_OFFSET] = {
 	{"payload-cache", sizeof(sstack_payload_t)},
 };
 
@@ -120,7 +119,6 @@ add_inodes(const char *path)
 {
 	sstack_extent_t extent;
 	sstack_inode_t inode;
-	policy_entry_t *policy = NULL;
 	struct stat status;
 	int ret = -1;
 	sstack_file_handle_t *ep = NULL;
@@ -917,7 +915,7 @@ sfs_init(struct fuse_conn_info *conn)
 	}
 
 	// Create pool for payload structure
-	for (i = 0; i < MAX_CACHES; i++) {
+	for (i = 0; i < MAX_CACHE_OFFSET; i++) {
 		int ret = -1;
 
 		ret = bds_cache_create(slabs[i].name, slabs[i].size, 0, NULL,

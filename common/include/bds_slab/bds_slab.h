@@ -130,6 +130,6 @@ void bds_free (void *ptr);
 void bds_cache_stats (bds_cache_desc_t cache_p);
 void* bds_cache_alloc (bds_cache_desc_t cache_p);
 void* bds_alloc_chunk (bds_cache_desc_t cache_p, bds_int *nr_objs);
-void bds_cache_free (bds_cache_desc_t cache_p, void *obj);
+int32_t bds_cache_free (bds_cache_desc_t cache_p, void *obj);
 
 #endif

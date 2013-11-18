@@ -434,6 +434,10 @@ sstack_send_payload(sstack_client_handle_t handle,
 				payload->command_struct.read_cmd.pe.pe_attr.a_qoslevel;
 			attr.a_ishidden =
 				payload->command_struct.read_cmd.pe.pe_attr.a_ishidden;
+			attr.a_numreplicas =
+				payload->command_struct.read_cmd.pe.pe_attr.a_numreplicas;
+			attr.a_enable_dr =
+				payload->command_struct.read_cmd.pe.pe_attr.a_enable_dr;
 			entry.pe_attr = &attr;
 			entry.pe_num_plugins =
 				payload->command_struct.read_cmd.pe.pe_num_plugins;
@@ -526,9 +530,9 @@ sstack_send_payload(sstack_client_handle_t handle,
 					sstack_command_stringify(payload->command));
 			msg.command = SSTACK_PAYLOAD_T__SSTACK_NFS_COMMAND_T__NFS_WRITE;
 			data.data_len = payload->command_struct.write_cmd.data.data_len;
-			data.data_val.len = data.data_len;
-			strncpy((char *) &data.data_val.data,
-				(char *) &payload->command_struct.write_cmd.data.data_val,
+			data.data_buf.len = data.data_len;
+			strncpy((char *) &data.data_buf.data,
+				(char *) &payload->command_struct.write_cmd.data.data_buf,
 				data.data_len);
 			writecmd.inode_no = payload->command_struct.write_cmd.inode_no;
 			writecmd.offset = payload->command_struct.write_cmd.offset;
@@ -539,6 +543,10 @@ sstack_send_payload(sstack_client_handle_t handle,
 				payload->command_struct.write_cmd.pe.pe_attr.a_qoslevel;
 			attr.a_ishidden =
 				payload->command_struct.write_cmd.pe.pe_attr.a_ishidden;
+			attr.a_numreplicas =
+				payload->command_struct.write_cmd.pe.pe_attr.a_numreplicas;
+			attr.a_enable_dr =
+				payload->command_struct.write_cmd.pe.pe_attr.a_enable_dr;
 			entry.pe_attr = &attr;
 			entry.pe_num_plugins =
 				payload->command_struct.write_cmd.pe.pe_num_plugins;
@@ -631,9 +639,9 @@ sstack_send_payload(sstack_client_handle_t handle,
 					sstack_command_stringify(payload->command));
 			msg.command = SSTACK_PAYLOAD_T__SSTACK_NFS_COMMAND_T__NFS_CREATE;
 			data.data_len = payload->command_struct.create_cmd.data.data_len;
-			data.data_val.len = data.data_len;
-			strncpy((char *) &data.data_val.data,
-				(char *) &payload->command_struct.create_cmd.data.data_val,
+			data.data_buf.len = data.data_len;
+			strncpy((char *) &data.data_buf.data,
+				(char *) &payload->command_struct.create_cmd.data.data_buf,
 				data.data_len);
 			createcmd.inode_no = payload->command_struct.create_cmd.inode_no;
 			createcmd.mode = payload->command_struct.create_cmd.mode;
@@ -643,6 +651,10 @@ sstack_send_payload(sstack_client_handle_t handle,
 				payload->command_struct.create_cmd.pe.pe_attr.a_qoslevel;
 			attr.a_ishidden =
 				payload->command_struct.create_cmd.pe.pe_attr.a_ishidden;
+			attr.a_numreplicas =
+				payload->command_struct.create_cmd.pe.pe_attr.a_numreplicas;
+			attr.a_enable_dr =
+				payload->command_struct.create_cmd.pe.pe_attr.a_enable_dr;
 			entry.pe_attr = &attr;
 			entry.pe_num_plugins =
 				payload->command_struct.create_cmd.pe.pe_num_plugins;
@@ -1123,9 +1135,10 @@ sstack_send_payload(sstack_client_handle_t handle,
 			read_resp.count = payload->response_struct.read_resp.count;
 			read_resp.eof = payload->response_struct.read_resp.eof;
 			data.data_len = payload->response_struct.read_resp.data.data_len;
-			data.data_val.len = data.data_len;
-			strcpy((char *) &data.data_val.data,
-							payload->response_struct.read_resp.data.data_val);
+			data.data_buf.len = data.data_len;
+			memcpy((void *) &data.data_buf.data,
+					(void*) payload->response_struct.read_resp.data.data_buf,
+					data.data_len);
 			read_resp.data = &data;
 			response.read_resp = &read_resp;
 			msg.response_struct = &response;
@@ -1474,8 +1487,8 @@ sstack_recv_payload(sstack_client_handle_t handle,
 					msg->command_struct->write_cmd->count;
 			data = msg->command_struct->write_cmd->data;
 			payload->command_struct.write_cmd.data.data_len = data->data_len;
-			data1 = msg->command_struct->write_cmd->data->data_val;
-			strcpy((char *) &payload->command_struct.write_cmd.data.data_val,
+			data1 = msg->command_struct->write_cmd->data->data_buf;
+			strcpy((char *) &payload->command_struct.write_cmd.data.data_buf,
 							(char *) &data1.data);
 
 			entry = msg->command_struct->write_cmd->pe;
@@ -1525,8 +1538,8 @@ sstack_recv_payload(sstack_client_handle_t handle,
 					msg->command_struct->create_cmd->mode;
 			data = msg->command_struct->create_cmd->data;
 			payload->command_struct.create_cmd.data.data_len = data->data_len;
-			data1 = msg->command_struct->create_cmd->data->data_val;
-			strcpy((char *) &payload->command_struct.create_cmd.data.data_val,
+			data1 = msg->command_struct->create_cmd->data->data_buf;
+			strcpy((char *) &payload->command_struct.create_cmd.data.data_buf,
 							(char *) &data1.data);
 
 			entry = msg->command_struct->create_cmd->pe;
@@ -1642,7 +1655,7 @@ sstack_recv_payload(sstack_client_handle_t handle,
 			return payload;
 		}
 		case NFS_READ_RSP: {
-			ProtobufCBinaryData data_val;
+			ProtobufCBinaryData data_buf;
 
 			payload->response_struct.read_resp.count =
 				msg->response_struct->read_resp->count;
@@ -1650,9 +1663,9 @@ sstack_recv_payload(sstack_client_handle_t handle,
 				msg->response_struct->read_resp->eof;
 			payload->response_struct.read_resp.data.data_len =
 				msg->response_struct->read_resp->data->data_len;
-			data_val = msg->response_struct->read_resp->data->data_val;
-			memcpy((void *) payload->response_struct.read_resp.data.data_val,
-				(void *) data_val.data, data_val.len);
+			data_buf = msg->response_struct->read_resp->data->data_buf;
+			memcpy((void *) payload->response_struct.read_resp.data.data_buf,
+				(void *) data_buf.data, data_buf.len);
 			return payload;
 		}
 		case NFS_WRITE_RSP:

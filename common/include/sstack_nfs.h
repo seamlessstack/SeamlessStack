@@ -134,7 +134,7 @@ struct sstack_nfs_write_cmd {
 	size_t count;
 	struct {
 		size_t data_len;
-		uint8_t data_val[MAX_EXTENT_SIZE];
+		uint8_t *data_buf;
 	} data;
 	struct policy_entry pe;
 };
@@ -144,7 +144,7 @@ struct sstack_nfs_create_cmd {
 	uint32_t mode;
 	struct {
 		size_t data_len;
-		uint8_t data_val[MAX_EXTENT_SIZE];
+		uint8_t *data_buf;
 	} data;
 	struct policy_entry pe;
 };
@@ -248,7 +248,7 @@ struct sstack_nfs_read_resp {
 	int32_t eof;
 	struct {
 		size_t data_len;
-		uint8_t data_val[MAX_EXTENT_SIZE];
+		uint8_t *data_buf;
 	} data;
 };
 

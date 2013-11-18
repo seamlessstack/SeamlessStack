@@ -27,9 +27,9 @@ struct attribute
 {
 	uint32_t ver;
 	uint8_t a_qoslevel;
-	uint8_t a_numreplicas;
 	uint8_t	a_ishidden:1;
-	uint8_t	a_enable_dr:1;
+	uint8_t	a_numreplicas:1;
+	uint8_t a_enable_dr:1;
 };
 
 /**
@@ -95,10 +95,10 @@ struct policy_search_table
 
 struct plugin_entry_points
 {
-	void *init;   /* TODO: Put prototypes */
-	void *deinit; /* TODO: Put prototypes */
-	size_t (*apply)(void *in_buf, void **out_buf, size_t size);
-	size_t (*remove)(void *in_buf, void **out_buf, size_t size);
+	void (*init) (void);
+	void (*deinit) (void);
+	size_t (*apply) (void *in_buf, void **out_buf, size_t size);
+	size_t (*remove) (void *in_buf, void **out_buf, size_t size);
 };
 
 
@@ -110,6 +110,7 @@ uint32_t activate_plugin(uint32_t plugin_id);
 
 /* Get policy, to be called from read/write ops */
 struct policy_entry* get_policy(const char *path);
+struct plugin_entry_points *get_plugin_entry_points(const char *);
 
 /* Configuration , get, set routines */
 #endif /* __POLICY_H__ */

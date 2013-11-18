@@ -626,6 +626,7 @@ struct policy_entry* get_policy(const char* path)
 	}
 	return pe;
 }
+
 /* ====== Function to be called from SFSD. No need to call _init()  ====== */
 
 #define POLICY_INIT_OFFSET 0

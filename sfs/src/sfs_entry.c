@@ -59,7 +59,7 @@ create_payload(void)
 {
 	sstack_payload_t *payload = NULL;
 
-	payload = bds_cache_alloc(sfs_global_cache[PAYLOAD_CACHE_INDEX]);
+	payload = bds_cache_alloc(sfs_global_cache[PAYLOAD_CACHE_OFFSET]);
 	if (NULL == payload) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to allocate payload from "
 						"payload slab.\n", __FUNCTION__);
@@ -71,22 +71,6 @@ create_payload(void)
 	return payload;
 }
 
-/*
- * free_payload - Free the payload structure back to slab
- *
- * payload - Valid payload pointer. Should be non-NULL
- */
-
-static inline void
-free_payload(sstack_payload_t *payload)
-{
-	// Parameter validation
-	if (NULL == payload) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: Payload passed is NULL \n");
-		return;
-	}
-	bds_cache_free(sfs_global_cache[PAYLOAD_CACHE_INDEX], (void *) payload);
-}
 
 
 /*
@@ -509,7 +493,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 			if (job_map->job_ids)
 				free(job_map->job_ids);
 			free_job_map(job_map);
-			free_payload(payload);
+			free_payload(sfs_global_cache, payload);
 
 			return -1;
 		}
@@ -528,7 +512,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 			if (job_map->job_status)
 				free(job_map->job_status);
 			free_job_map(job_map);
-			free_payload(payload);
+			free_payload(sfs_global_cache, payload);
 
 			return -1;
 		}
@@ -544,7 +528,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 			free(job_map->job_ids);
 			free(job_map->job_status);
 			free_job_map(job_map);
-			free_payload(payload);
+			free_payload(sfs_global_cache, payload);
 
 			return -1;
 		}
@@ -557,7 +541,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 			free(job_map->job_status);
 			sfs_job_context_remove(thread_id);
 			free_job_map(job_map);
-			free_payload(payload);
+			free_payload(sfs_global_cache, payload);
 
 			return -1;
 		}
@@ -569,7 +553,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 			sfs_job_context_remove(thread_id);
 			sfs_job2thread_map_remove(thread_id);
 			free_job_map(job_map);
-			free_payload(payload);
+			free_payload(sfs_global_cache, payload);
 
 			return -1;
 		}

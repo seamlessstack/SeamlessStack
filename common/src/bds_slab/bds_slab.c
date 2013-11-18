@@ -739,12 +739,13 @@ void __free_one(bds_cache_desc_t cache_p, bds_slab_desc_t slab_p, void *obj)
 	pthread_mutex_unlock(&slab_p->slab_lock);
 	return;
 }
-void bds_cache_free (bds_cache_desc_t cache_p, void *obj)
+int32_t bds_cache_free (bds_cache_desc_t cache_p, void *obj)
 {
 	bds_bufctl_t *bufctl;
 	bds_slab_desc_t slab_p;
 	bds_int found = 0;
 	bds_list_head_t list;
+	int32_t ret = 0;
 	if (OFF_SLAB(cache_p)) {
 		if (__find_object_in_slab_list(
 			    &cache_p->slab_list.slabs_partial,
@@ -777,9 +778,11 @@ void bds_cache_free (bds_cache_desc_t cache_p, void *obj)
 	}
 	if (found == 1) {
 		__free_one(cache_p, slab_p, obj);
+	} else {
+		ret = -1;
 	}
 	printf ("Total slab count: %d, free slab count: %d\n", atomic_read(&cache_p->total_slab_count), atomic_read(&cache_p->free_slab_count));
-	return;
+	return ret;
 }
 
 void __destroy_free_slabs(bds_cache_desc_t cache_p, bds_uint gc_threshold)

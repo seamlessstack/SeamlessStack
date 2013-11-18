@@ -28,6 +28,7 @@
 #include <sstack_log.h>
 #include <sstack_db.h>
 #include <sstack_thread_pool.h>
+#include <sstack_nfs.h>
 #include <bds_types.h>
 #include <bds_slab.h>
 #include <bds_list.h>
@@ -40,6 +41,17 @@
 #define SFS_JOB_VERSION 1
 #define MAX_OUTSTANDING_JOBS 2147483647 // 2^31 -1
 
+// Cache indexes
+/* To add a new cache define a 
+   new offset here and add an
+   entry to the sstack_create_cache
+   function */
+#define PAYLOAD_CACHE_OFFSET 1
+#define HANDLE_PARAM_OFFSET 2
+#define INODE_CACHE_OFFSET 3
+#define DATA4K_CACHE_OFFSET 4
+#define DATA64K_CACHE_OFFSET 5
+#define MAX_CACHE_OFFSET DATA64K_CACHE_OFFSET
 /* Forward declaration */
 struct sfs_chunk_domain;
 typedef struct sfs_chunk_domain sfs_chunk_domain_t;
@@ -143,5 +155,30 @@ typedef struct sfs_job_queue {
 	pthread_spinlock_t lock;
 } sfs_job_queue_t;
 
+/*
+ * free_payload - Free the payload structure back to slab
+ *
+ * payload - Valid payload pointer. Should be non-NULL
+ */
+
+static inline void
+free_payload(bds_cache_desc_t *caches, sstack_payload_t *payload)
+{
+	// Parameter validation
+	if (NULL == payload) {
+		return;
+	}
+	if (payload->command == NFS_READ_RSP &&
+			payload->response_struct.read_resp.data.data_buf != NULL) {
+		bds_cache_free(caches[DATA64K_CACHE_OFFSET],
+			payload->response_struct.read_resp.data.data_buf);
+	} else if (payload->command == NFS_WRITE &&
+			payload->command_struct.write_cmd.data.data_buf != NULL) {
+		bds_cache_free(caches[DATA64K_CACHE_OFFSET],
+			payload->command_struct.write_cmd.data.data_buf);
+	}
+
+	bds_cache_free(caches[PAYLOAD_CACHE_OFFSET], (void *) payload);
+}
 
 #endif // __SSTACK_JOBS_H_
