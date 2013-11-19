@@ -28,7 +28,6 @@
 #include <sstack_types.h>
 #include <sstack_bitops.h>
 #include <sstack_md.h>
-#include <sfs_entry.h>
 #include <sfs_internal.h>
 
 extern sstack_job_id_t  current_job_id; // Points to next job id to be returned
@@ -395,4 +394,6 @@ extern sfsd_list_t * get_sfsd_list(sstack_inode_t *);
  */
 extern pthread_t get_thread_id(sstack_job_id_t );
 
+extern sfsd_list_t * sfs_idp_get_sfsd_list(sstack_inode_t *,
+				sstack_sfsd_pool_t *, log_ctx_t *);
 #endif // __SFS_JOB_H__

@@ -26,6 +26,7 @@
 #include <sstack_jobs.h>
 #include <bds_list.h>
 #include <sstack_log.h>
+#include <sstack_md.h>
 
 #define MAX_SFSD_POOLS 8 // pools of different storage weight range
 #define MAXIMUM_WEIGHT 0

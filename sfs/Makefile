@@ -37,7 +37,7 @@ LIB += -L$(TOPDIR)/oss_install/lib -lmemcached
 LIB += -L$(TOPDIR)/lib/serdes -lserdes
 LIB += -L$(TOPDIR)/lib/validate -lvalidate
 
-SFS_OBJS = src/sfs.o src/sfs_entry.o src/sfs_job.o
+SFS_OBJS = src/sfs.o src/sfs_entry.o src/sfs_job.o src/sfs_idp.o
 
 all:: sfs
 

@@ -335,7 +335,6 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 	sstack_extent_t *extent = NULL;
 	int i = 0;
 	int bytes_to_read = 0;
-	sfsd_list_t *sfsds = NULL;
 	sstack_payload_t *payload = NULL;
 	pthread_t thread_id;
 	sstack_job_map_t *job_map = NULL;
@@ -343,6 +342,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 	size_t bytes_issued = 0;
 	int ret = -1;
 	policy_entry_t *policy = NULL;
+	sfsd_list_t *sfsds = NULL;
 
 	// Paramater validation
 	if (NULL == path || NULL == buf || size < 0 || offset < 0) {
@@ -386,9 +386,9 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 
 	relative_offset = offset;
 	// Get the sfsd information from IDP
-	sfsds = get_sfsd_list(&inode);
+	sfsds = sfs_idp_get_sfsd_list(&inode, sfsd_pool, sfs_ctx);
 	if (NULL == sfsds) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: get_sfsd_list failed \n",
+		sfs_log(sfs_ctx, SFS_ERR, "%s: sfs_idp_get_sfsd_list failed \n",
 				__FUNCTION__);
 		return -1;
 	}
@@ -443,7 +443,6 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 		int j = -1;
 		size_t read_size = 0;
 		char *temp = NULL;
-		int ret = -1;
 
 		// Submit job
 		job = sfs_job_init();
@@ -457,7 +456,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 		job->id = get_next_job_id();
 		job->job_type = SFSD_IO;
 		job->num_clients = sfsds->num_sfsds;
-		memcpy((void *) &job->sfsds, (void *) sfsds->sfsds, sizeof(sfsd_t) *
+		memcpy((void *) &job->sfsds, (void *) sfsds->sfsds, sizeof(sfsd_t *) *
 				sfsds->num_sfsds);
 		for (j = 0; j < sfsds->num_sfsds; j++)
 			job->job_status[j] =  JOB_STARTED;
@@ -520,19 +519,6 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 		job_map->job_status[job_map->num_jobs - 1] = JOB_STARTED;
 		pthread_spin_unlock(&job_map->lock);
 
-		// Add job_map to the data structure
-		ret = sfs_job_context_insert(thread_id, job_map);
-		if (ret == -1) {
-			sfs_log(sfs_ctx, SFS_ERR, "%s: Failed insert the job context "
-							"into RB tree \n", __FUNCTION__);
-			free(job_map->job_ids);
-			free(job_map->job_status);
-			free_job_map(job_map);
-			free_payload(sfs_global_cache, payload);
-
-			return -1;
-		}
-
 		ret = sfs_job2thread_map_insert(thread_id, job->id);
 		if (ret == -1) {
 			sfs_log(sfs_ctx, SFS_ERR, "%s: Failed insert the job context "
@@ -570,6 +556,18 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 		} else {
 			bytes_to_read = size - bytes_issued;
 		}
+	}
+	// Add job_map to the jobmap RB-tree
+	ret = sfs_job_context_insert(thread_id, job_map);
+	if (ret == -1) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed insert the job context "
+						"into RB tree \n", __FUNCTION__);
+		free(job_map->job_ids);
+		free(job_map->job_status);
+		free_job_map(job_map);
+		free_payload(sfs_global_cache, payload);
+
+		return -1;
 	}
 
 	ret = sfs_wait_for_completion(job_map);
