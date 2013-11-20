@@ -26,10 +26,12 @@ enum ret_code
 struct attribute
 {
 	uint32_t ver;
-	uint8_t a_qoslevel;
-	uint8_t	a_ishidden:1;
-	uint8_t	a_numreplicas:1;
-	uint8_t a_enable_dr:1;
+	uint32_t a_qoslevel:4;
+	uint32_t a_ishidden:1;
+	uint32_t a_res1:3;
+	uint32_t a_numreplicas:4;
+	uint32_t a_enable_dr:1;
+	uint32_t a_res2:19;
 };
 
 /**

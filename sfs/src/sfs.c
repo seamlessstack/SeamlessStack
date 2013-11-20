@@ -919,7 +919,7 @@ sfs_init(struct fuse_conn_info *conn)
 		int ret = -1;
 
 		ret = bds_cache_create(slabs[i].name, slabs[i].size, 0, NULL,
-						NULL, &sfs_global_cache);
+						NULL, &sfs_global_cache[i]);
 		if (ret != 0) {
 			sfs_log(sfs_ctx, SFS_ERR, "%s: Could not allocate cache for %s\n",
 							slabs[i].name);
