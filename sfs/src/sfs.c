@@ -40,9 +40,9 @@
 
 
 /* Local headers */
+#include <sstack_jobs.h>
 #include <sstack_md.h>
 #include <sstack_db.h>
-#include <sstack_jobs.h>
 #include <sstack_log.h>
 #include <sstack_helper.h>
 #include <sstack_version.h>

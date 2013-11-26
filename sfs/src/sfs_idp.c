@@ -22,11 +22,11 @@
 #include <stdint.h>
 #include <errno.h>
 #include <sfs.h>
+#include <sstack_jobs.h>
 #include <sstack_md.h>
 #include <policy.h>
 #include <bds_types.h>
 #include <bds_list.h>
-#include <sstack_jobs.h>
 #include <sstack_log.h>
 #include <sfs_internal.h>
 #include <sfs_job.h>

@@ -28,6 +28,7 @@
 #include <pthread.h>
 #include <sfs.h>
 #include <sfs_entry.h>
+#include <sstack_jobs.h>
 #include <sstack_md.h>
 #include <sfs_job.h>
 #include <sstack_helper.h>

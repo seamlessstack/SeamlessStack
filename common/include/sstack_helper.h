@@ -167,6 +167,22 @@ fill_inode(sstack_inode_t *inode, char *data, log_ctx_t *ctx)
 	}
 	inode->i_extent = (sstack_extent_t *) extents;
 
+	// 4. sfsd info
+	cur = (data + get_inode_fixed_fields_len() + covered);
+	covered = 0;
+
+	inode->i_sfsds = (sstack_sfsd_info_t *) malloc(sizeof(sstack_sfsd_info_t *)
+					* inode->i_numclients);
+	if (NULL == inode->i_sfsds) {
+		sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory \n",
+						__FUNCTION__);
+		return -ENOMEM;
+	}
+	// i_numclients includes primary sfsd
+	// Copy i_numclients - 1 sfsd pointers as primary sfsd is already part
+	// of the fixed fields
+	memcpy((void *) inode->i_sfsds, (void *) cur, sizeof(sstack_sfsd_info_t *)
+					* (inode->i_numclients - 1));
 
 	return 0;
 }
@@ -324,6 +340,11 @@ flatten_inode(sstack_inode_t *inode, size_t *len, log_ctx_t *ctx)
 		*len += (ex->e_numreplicas * sizeof(sstack_file_handle_t));
 		ex ++;
 	}
+
+	// 4. sfsd info
+	memcpy((void *) (data + (*len)), inode->i_sfsds,
+					(sizeof(sstack_sfsd_info_t *) * (inode->i_numclients - 1)));
+	*len += (sizeof(sstack_sfsd_info_t *) * inode->i_numclients);
 
 	return data;
 }

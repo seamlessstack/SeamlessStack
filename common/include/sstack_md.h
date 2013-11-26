@@ -35,6 +35,7 @@
 #include <sstack_bitops.h>
 #include <sstack_db.h>
 #include <sstack_nfs.h>
+#include <sstack_transport.h>
 
 // Recommended number of replicas in standard practice is 3.
 // Setting MAX_REPLICAS to 10 just to handle user request
@@ -98,6 +99,16 @@ typedef struct erasure {
 	sstack_cksum_t er_cksum; // Checksum for erasure codes
 } sstack_erasure_t;
 
+// Defines sfsds maintaining a file
+// transport uniquely identifies the sfsd. This is the only valid field
+// that is stored on DB. sfsd field is only valid when sfs is running.
+// sfsd field needs to be reinitialized when sfs restarts
+
+typedef struct sstack_sfsd_info {
+	sstack_transport_t transport; // Field that uniquely represents sfsd
+	sfsd_t *sfsd; // Transient field 
+} sstack_sfsd_info_t;
+
 // Defines metadata structure for each inode
 // If i_type is SYMLINK, first extent file name contains the real file name
 // to which this inode/file links.
@@ -122,14 +133,18 @@ typedef struct inode {
 		sstack_size_t	i_size; // Size of the file
 		sstack_size_t i_ondisksize;
 		int i_numreplicas; // Number of replicas
+		int i_numclients; // Number of sfsds maintaining this file
 		uint64_t i_erasure_stripe_size; // Erasure code stripe size
 		unsigned int i_numerasure; // Number of erasure code extents
 		int i_numextents; // Number of extents
 		size_t i_xattrlen; // Extended attibute len
+		sstack_sfsd_info_t i_primary_sfsd; // sfsd having erasure coded stripes
 	};
 	char *i_xattr; // Extended attributes
 	sstack_erasure_t *i_erasure; // Erasure code segment information
 	sstack_extent_t *i_extent; // extents
+	sstack_sfsd_info_t *i_sfsds; // sfsds maintaining this file other than
+								// primary sfsd
 } sstack_inode_t;
 
 /*
@@ -146,7 +161,8 @@ get_inode_fixed_fields_len(void)
 			PATH_MAX + sizeof(uid_t) + sizeof(gid_t) + sizeof(mode_t) +
 			sizeof(type_t) + sizeof(int)  +
 			(3 * sizeof(struct timespec)) + sizeof(sstack_size_t) +
-			sizeof(sstack_size_t) + 4 + 8 + 4 + 4 + 4);
+			sizeof(sstack_size_t) + 4 + 4 + 8 + 4 + 4 + 4 +
+			sizeof(sstack_sfsd_info_t));
 }
 
 extern int get_extents(unsigned long long  inode_num, sstack_extent_t *extent,
