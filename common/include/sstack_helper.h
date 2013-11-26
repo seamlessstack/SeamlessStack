@@ -127,6 +127,7 @@ fill_inode(sstack_inode_t *inode, char *data, log_ctx_t *ctx)
 		if (NULL == temp) {
 			sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory \n",
 					__FUNCTION__);
+			free(temp);
 			free(erasure);
 			return -ENOMEM;
 		}
@@ -142,14 +143,15 @@ fill_inode(sstack_inode_t *inode, char *data, log_ctx_t *ctx)
 	covered = 0;
 
 	for (i = 0; i < in->i_numextents; i++) {
-		sstack_extent_t *ex;
-		char *path;
+		sstack_extent_t *ex = NULL;
+		char *path = NULL;
 
 		ex = (sstack_extent_t *) ((char *)(cur + covered));
 		path = malloc(ex->e_numreplicas * sizeof(sstack_file_handle_t));
 		if(NULL == path) {
 			sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory \n",
 					__FUNCTION__);
+			free(inode->i_erasure);
 			return -ENOMEM;
 		}
 		memcpy(path, (cur + get_extent_fixed_fields_len() + covered),
@@ -159,6 +161,8 @@ fill_inode(sstack_inode_t *inode, char *data, log_ctx_t *ctx)
 		if (NULL == path) {
 			sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory \n",
 					__FUNCTION__);
+			free(inode->i_erasure);
+			free(path);
 			return -ENOMEM;
 		}
 		memcpy((extents + covered), ex, sizeof(sstack_extent_t));
@@ -176,6 +180,10 @@ fill_inode(sstack_inode_t *inode, char *data, log_ctx_t *ctx)
 	if (NULL == inode->i_sfsds) {
 		sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory \n",
 						__FUNCTION__);
+		free(inode->i_erasure);
+		// TODO
+		// Walk through i_extent and free each path
+		free(inode->i_extent);
 		return -ENOMEM;
 	}
 	// i_numclients includes primary sfsd
@@ -315,7 +323,7 @@ flatten_inode(sstack_inode_t *inode, size_t *len, log_ctx_t *ctx)
 		temp = realloc(data, ((*len) + fixed_len));
 		if (NULL == temp) {
 			sfs_log(ctx, SFS_ERR, "%s: Failed to allocate memory for "
-				"storing fixed fields of inode %lld\n",  __FUNCTION__,
+				"storing fixed fields of extent %lld\n",  __FUNCTION__,
 				inode->i_num);
 			free(data); // Freeup old 
 			return NULL;
@@ -329,7 +337,7 @@ flatten_inode(sstack_inode_t *inode, size_t *len, log_ctx_t *ctx)
 										sizeof(sstack_file_handle_t))));
 		if (NULL == temp) {
 			sfs_log(ctx, SFS_ERR, "%s: Failed to allocate memory for "
-				"storing fixed fields of inode %lld\n",  __FUNCTION__,
+				"storing extents of inode %lld\n",  __FUNCTION__,
 				inode->i_num);
 			free(data); // Freeup old 
 			return NULL;
@@ -342,6 +350,16 @@ flatten_inode(sstack_inode_t *inode, size_t *len, log_ctx_t *ctx)
 	}
 
 	// 4. sfsd info
+	temp = realloc(data, ((*len) + (sizeof(sstack_sfsd_info_t *) *
+									(inode->i_numclients - 1))));
+	if (NULL == temp) {
+		sfs_log(ctx, SFS_ERR, "%s: Failed to allocate memory for "
+			"storing sfsd info  of inode %lld\n",  __FUNCTION__,
+			inode->i_num);
+		free(data); // Freeup old 
+		return NULL;
+	}
+	data = temp;
 	memcpy((void *) (data + (*len)), inode->i_sfsds,
 					(sizeof(sstack_sfsd_info_t *) * (inode->i_numclients - 1)));
 	*len += (sizeof(sstack_sfsd_info_t *) * inode->i_numclients);
