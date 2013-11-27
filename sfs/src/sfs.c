@@ -816,7 +816,7 @@ sfs_init(struct fuse_conn_info *conn)
 	db = create_db();
 	ASSERT((db != NULL), "Unable to create db. FATAL ERROR", 0, 1, NULL);
 	db_register(db, mongo_db_init, mongo_db_open, mongo_db_close,
-		mongo_db_insert, mongo_db_iterate, mongo_db_get,
+		mongo_db_insert, mongo_db_remove, mongo_db_iterate, mongo_db_get,
 		mongo_db_seekread, mongo_db_update, mongo_db_delete,
 		mongo_db_cleanup, sfs_ctx);
 	if (db->db_ops.db_init(sfs_ctx) != 0) {

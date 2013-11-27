@@ -429,6 +429,61 @@ put_inode(sstack_inode_t *inode, db_t *db)
 }
 
 /*
+ * del_inode -  Delete inode from DB and release the inode num to cache
+ *
+ * inode - in-core inode structure . Should be non-NULL
+ * db - DB pointer. Should be non-NULL
+ *
+ * Returns 0 on success and negative number indicating error on failure.
+ */
+
+
+static inline int
+del_inode(sstack_inode_t *inode, db_t *db)
+{
+	char inode_str[MAX_INODE_LEN] = { '\0' };
+	char *data = NULL;
+	int ret = -1;
+	unsigned long long inode_num = 0;
+
+	// Parameter validation
+	if (NULL == inode || NULL == db) {
+		sfs_log(db->ctx, SFS_ERR, "%s: Invalid parameters specified.\n",
+						__FUNCTION__);
+		return -EINVAL;
+	}
+
+	inode_num = inode->i_num;
+	if (inode_num < INODE_NUM_START) {
+		sfs_log(db->ctx, SFS_ERR, "%s: Invalid parameters specified.\n",
+						__FUNCTION__);
+		return -EINVAL;
+	}
+
+	sprintf(inode_str, "%lld", inode_num);
+
+	if (db->db_ops.db_remove && ((db->db_ops.db_remove(inode_str, 
+					INODE_TYPE, db->ctx)) == 1)) {
+		sfs_log(db->ctx, SFS_INFO, "%s: Succeeded for inode %lld \n",
+				__FUNCTION__, inode_num);
+	
+		ret = 0;
+	} else {
+		sfs_log(db->ctx, SFS_ERR, "%s: Failed for inode %lld \n",
+				__FUNCTION__, inode_num);
+
+		ret = -2;
+	}
+
+	free(data);
+
+	release_inode(inode->i_num);
+
+	return ret;
+}
+
+
+/*
  * sstack_free_ersaure - Helper function to free up memory allocated
  * 						to i_sraure
  *

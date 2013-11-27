@@ -119,7 +119,7 @@ int main(int argc, char **argv)
 	db = create_db();
 	ASSERT((db != NULL), "DB create failed", 1, 1, 0);
 	db_register(db, mongo_db_init, mongo_db_open, mongo_db_close,
-		mongo_db_insert, mongo_db_iterate, mongo_db_get,
+		mongo_db_insert, mongo_db_remove, mongo_db_iterate, mongo_db_get,
 		mongo_db_seekread, mongo_db_update, mongo_db_delete,
 		mongo_db_cleanup, ctx);
 	sfsd.db = db;

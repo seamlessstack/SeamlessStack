@@ -46,6 +46,7 @@ typedef int (*db_init_t)(log_ctx_t *);
 typedef int (*db_open_t)(log_ctx_t *);
 typedef int (*db_close_t)(log_ctx_t *);
 typedef int (*db_insert_t)(char * , char * , size_t, db_type_t , log_ctx_t *);
+typedef int (*db_remove_t)(char * , db_type_t , log_ctx_t *);
 typedef void (*db_iterate_t)(db_type_t db_type, iterator_function_t iterator,
 			     void *params, log_ctx_t *);
 typedef int (*db_get_t)(char * , char * , db_type_t , log_ctx_t *);
@@ -62,6 +63,7 @@ typedef struct db_operations {
 	db_open_t db_open;
 	db_close_t db_close;
 	db_insert_t db_insert;
+	db_remove_t db_remove;
 	db_iterate_t db_iterate;
 	db_get_t db_get;
 	db_seekread_t db_seekread;
@@ -98,14 +100,15 @@ destroy_db(db_t * db)
 // DB registration function
 static inline void
 db_register(db_t *db, db_init_t db_init, db_open_t db_open, db_close_t db_close,
-	db_insert_t db_insert, db_iterate_t db_iterate, db_get_t db_get,
-	db_seekread_t db_seekread, db_update_t db_update, db_delete_t db_delete,
-	db_cleanup_t db_cleanup, log_ctx_t *ctx)
+	db_insert_t db_insert, db_remove_t db_remove, db_iterate_t db_iterate,
+	db_get_t db_get, db_seekread_t db_seekread, db_update_t db_update,
+	db_delete_t db_delete, db_cleanup_t db_cleanup, log_ctx_t *ctx)
 {
 	db->db_ops.db_init = db_init;
 	db->db_ops.db_open = db_open;
 	db->db_ops.db_close = db_close;
 	db->db_ops.db_insert = db_insert;
+	db->db_ops.db_remove = db_remove;
 	db->db_ops.db_iterate = db_iterate;
 	db->db_ops.db_get = db_get;
 	db->db_ops.db_seekread = db_seekread;

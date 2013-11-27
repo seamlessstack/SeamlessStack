@@ -233,6 +233,57 @@ mongo_db_insert(char *key, char *data, size_t len, db_type_t type,
 	return 1;
 }
 
+
+int
+mongo_db_remove(char *key, db_type_t type, log_ctx_t *ctx)
+{
+	bson b[1];
+	int ret = -1;
+	char db_and_collection[NAME_SIZE];
+	char record_name[REC_NAME_SIZE];
+
+	if (key == NULL) {
+		sfs_log(ctx, SFS_ERR, "%s: Key passed is NULL. \n", __FUNCTION__);
+		return -EINVAL;
+	}
+	bson_init(b);
+	ret = bson_append_string(b, "record_num", key);
+	if (ret != BSON_OK) {
+		sfs_log(ctx, SFS_ERR, "%s: Failed to append record_num to bson for "
+			"inode %s. Error = %d \n", __FUNCTION__, key, ret);
+		bson_destroy(b);
+		return -ret;
+	}
+	bson_finish(b);
+	ret = construct_db_name(db_and_collection, type);
+	if (ret != 0) {
+		sfs_log(ctx, SFS_ERR, "%s: Invalid type specified. db_type = %d\n",
+			__FUNCTION__, type);
+		bson_destroy(b);
+		return -1;
+	}
+
+	pthread_mutex_lock(&mongo_db_mutex);
+	ret = mongo_remove(conn, db_and_collection, b, NULL);
+	if (ret != MONGO_OK) {
+		sfs_log(ctx, SFS_ERR,
+			"%s: Failed to remove record %s of type %d"
+			"into db.collection %s. Error = %d\n",
+			__FUNCTION__, key, (int) type, db_and_collection, ret);
+		bson_destroy(b);
+		return -ret;
+	}
+	sfs_log(ctx, SFS_INFO,
+		"%s: Successfully removed record %s of type %d"
+		" into db.collection %s\n",
+		__FUNCTION__, key, (int) type, db_and_collection);
+	pthread_mutex_unlock(&mongo_db_mutex);
+	bson_destroy(b);
+
+	return 1;
+}
+
+
 // Seek to 'offset' from 'whence' and read data
 // Uses gzseek and gzread
 // Needed to read extents from inode
@@ -375,7 +426,7 @@ mongo_db_iterate(db_type_t type, iterator_function_t iterator_fn, void *params,
  * data - O/P parameter that holds read record. Can pass NULL
  * type - Type of the collection
  *
- * Returns number of bytes read  on success and negative number 
+ * Returns number of bytes read  on success and negative number
  * indicating error on failure.
  */
 

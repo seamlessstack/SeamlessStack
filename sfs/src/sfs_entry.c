@@ -378,11 +378,216 @@ sfs_mkdir(const char *path, mode_t mode)
 	return 0;
 }
 
-
+/*
+ * sfs_unlink - unlink a file
+ *
+ * path - File to be unlinked
+ *
+ * Returns 0 upon success and -1 on failure.
+ */
 
 int
 sfs_unlink(const char *path)
 {
+	unsigned long long inode_num = 0;
+	char *inodestr = NULL;
+	sstack_inode_t inode;
+	size_t size1 = 0;
+	sstack_payload_t *payload = NULL;
+	pthread_t thread_id;
+	sstack_job_map_t *job_map = NULL;
+	int ret = -1;
+	policy_entry_t *policy = NULL;
+	int i = 0;
+	int j = 0;
+	sfsd_t * temp = NULL;
+	sfs_job_t *job = NULL;
+
+	// Parameter validation
+	if (NULL == path) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameter specified \n",
+						__FUNCTION__);
+		errno = ENOENT;
+		return -1;
+	}
+
+	ret = unlink(path);
+	if (ret == -1) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: unlink of %s failed with error %d \n",
+						__FUNCTION__, path, errno);
+
+		return -1;
+	}
+
+	// Let all the involved sfsds know about this file's demise
+
+	// Get the inode number for the file.
+	inodestr = sstack_cache_read_one(mc, path, strlen(path), &size1, sfs_ctx);
+	if (NULL == inodestr) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
+					"for path %s.\n", __FUNCTION__, path);
+		errno = ENOENT;
+
+		return -1;
+	}
+	inode_num = atoll((const char *)inodestr);
+	// Get inode from DB
+	ret = get_inode(inode_num, &inode, db);
+	if (ret != 0) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to get inode %lld. Path = %s "
+						"error = %d\n", __FUNCTION__, inode_num, path, ret);
+		errno = ret;
+
+		return -1;
+	}
+
+	policy = get_policy(path);
+	if (NULL == policy) {
+		sfs_log(sfs_ctx, SFS_INFO, "%s: No policies specified for the file"
+				". Default policy applied \n", __FUNCTION__);
+		policy->pe_attr.a_qoslevel = QOS_LOW;
+		policy->pe_attr.a_ishidden = 0;
+	} else {
+		sfs_log(sfs_ctx, SFS_INFO, "%s: path %s ver %s qoslevel %d "
+				"hidden %d \n", __FUNCTION__, path, policy->pe_attr.ver,
+				policy->pe_attr.a_qoslevel, policy->pe_attr.a_ishidden);
+	}
+
+	// Track new job
+	thread_id = pthread_self();
+	job_map = create_job_map();
+	if (NULL == job_map) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed allocate memory for "
+						"job map \n", __FUNCTION__);
+		return -1;
+	}
+	job = sfs_job_init();
+	if (NULL == job) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed allocate memory for job.\n",
+						__FUNCTION__);
+		free_job_map(job_map);
+		return -1;
+	}
+
+	job->id = get_next_job_id();
+	job->job_type = SFSD_IO;
+	job->num_clients = inode.i_numclients;
+	job->sfsds[0] = inode.i_primary_sfsd.sfsd;
+
+	for (i = 1; i < job->num_clients; i++) {
+		job->sfsds[i] = inode.i_sfsds[i].sfsd;
+	}
+	for (j = 0; j < job->num_clients; j++)
+		job->job_status[j] =  JOB_STARTED;
+
+	// Create new payload
+	payload = create_payload();
+	// Populate payload
+	payload->hdr.sequence = 0; // Reinitialized by transport
+	payload->hdr.payload_len = sizeof(sstack_payload_t);
+	payload->hdr.job_id = job->id;
+	payload->hdr.priority = job->priority;
+	payload->hdr.arg = (uint64_t) job;
+	payload->command = NFS_REMOVE;
+	// TODO
+	// Should we add delimiter to size??
+	payload->command_struct.remove_cmd.path_len = (strlen(path) + 1);
+	payload->command_struct.remove_cmd.path = calloc((strlen(path) + 1), 1);
+	job->payload_len = sizeof(sstack_payload_t);
+	job->payload = payload;
+
+	// Add this job to job_map
+	job_map->num_jobs ++;
+	temp = realloc(job_map->job_ids, job_map->num_jobs *
+					sizeof(sstack_job_id_t));
+	if (NULL == temp) {
+			sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to allocate memory for "
+							"job_ids \n", __FUNCTION__);
+			if (job_map->job_ids)
+					free(job_map->job_ids);
+			free_job_map(job_map);
+			free_payload(sfs_global_cache, payload);
+
+			return -1;
+	}
+	job_map->job_ids = (sstack_job_id_t *) temp;
+
+	pthread_spin_lock(&job_map->lock);
+	job_map->job_ids[job_map->num_jobs - 1] = job->id;
+	pthread_spin_unlock(&job_map->lock);
+	temp = realloc(job_map->job_status, job_map->num_jobs *
+				sizeof(sstack_job_status_t));
+	if (NULL == temp) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to allocate memory for "
+							"job_status \n", __FUNCTION__);
+		free(job_map->job_ids);
+		if (job_map->job_status)
+			free(job_map->job_status);
+		free_job_map(job_map);
+		free_payload(sfs_global_cache, payload);
+
+		return -1;
+	}
+	pthread_spin_lock(&job_map->lock);
+	job_map->job_status[job_map->num_jobs - 1] = JOB_STARTED;
+	pthread_spin_unlock(&job_map->lock);
+
+	ret = sfs_job2thread_map_insert(thread_id, job->id);
+	if (ret == -1) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed insert the job context "
+							"into RB tree \n", __FUNCTION__);
+		free(job_map->job_ids);
+		free(job_map->job_status);
+		sfs_job_context_remove(thread_id);
+		free_job_map(job_map);
+		free_payload(sfs_global_cache, payload);
+
+		return -1;
+	}
+	// Add this job to job queue
+	ret = sfs_submit_job(job->priority, jobs, job);
+	if (ret == -1) {
+		free(job_map->job_ids);
+		free(job_map->job_status);
+		sfs_job_context_remove(thread_id);
+		sfs_job2thread_map_remove(thread_id);
+		free_job_map(job_map);
+		free_payload(sfs_global_cache, payload);
+
+		return -1;
+	}
+	// Add job_map to the jobmap RB-tree
+	ret = sfs_job_context_insert(thread_id, job_map);
+	if (ret == -1) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed insert the job context "
+						"into RB tree \n", __FUNCTION__);
+		free(job_map->job_ids);
+		free(job_map->job_status);
+		free_job_map(job_map);
+		free_payload(sfs_global_cache, payload);
+
+		return -1;
+	}
+	// Put the thread to wait
+	ret = sfs_wait_for_completion(job_map);
+	// TODO
+	// Handle failure scenarios (HOW??)
+	// Success is assumed
+
+	// Delete the inode from DB and free memcahed reverse lookup entry
+	ret = del_inode(&inode, db);
+	if (ret != 0) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to delete inode from DB for "
+						"file %s \n", __FUNCTION__, path);
+		return -1;
+	}
+
+	ret = sstack_cache_remove(mc, path, sfs_ctx);
+	if (ret != 0) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to delete reverse lookup "
+						"for file %s \n", __FUNCTION__, path);
+		return -1;
+	}
 
 	return 0;
 }

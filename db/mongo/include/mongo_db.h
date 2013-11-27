@@ -38,6 +38,7 @@ extern int mongo_db_open(log_ctx_t *);
 extern int mongo_db_close(log_ctx_t *);
 extern int mongo_db_init(log_ctx_t *);
 extern int mongo_db_insert(char * , char * , size_t , db_type_t , log_ctx_t *);
+extern int mongo_db_remove(char * , db_type_t , log_ctx_t *);
 extern int mongo_db_seekread(char * , char *, size_t , off_t ,
 		int , db_type_t , log_ctx_t *);
 extern int mongo_db_update(char * , char * , size_t , db_type_t , log_ctx_t *);
