@@ -26,6 +26,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <dirent.h>
 #include <sfs.h>
 #include <sfs_entry.h>
 #include <sstack_jobs.h>
@@ -236,21 +237,60 @@ sfs_readlink(const char *path, char *buf, size_t size)
 	return 0;
 }
 
+/*
+ * sfs_readdir - Display files under sfs file system
+ *
+ * path - Path from where directory listing is required
+ * buf - Buffer containing file information
+ * filler
+ * offset
+ * fi
+ *
+ * NOTE:
+ * Implementation is very simple here as all we need to do is perform normal
+ * readdir operation. This is because sfs already contains dummy files for each
+ * real file stored in the file system.
+ */
+
 
 int
 sfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 	off_t offset, struct fuse_file_info *fi)
 {
+	DIR *dirpath = NULL;
+	struct dirent *de = NULL;
+
+	// Parameter validation
+	if (NULL == path || NULL == buf || NULL == fi) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters specified \n",
+						__FUNCTION__);
+		errno = EINVAL;
+		return -1;
+	}
+
+	dirpath = opendir(path);
+	if (NULL == dirpath) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to open directory %s. "
+						"Error = %d \n", __FUNCTION__, path, errno);
+		return -1;
+	}
+
+	while ((de = readdir(dirpath)) != NULL) {
+		struct stat st;
+
+		memset(&st, '\0', sizeof(struct stat));
+		st.st_ino = de->d_ino;
+		st.st_mode = de->d_type << 12;
+
+		if (filler(buf, de->d_name, &st, 0))
+			break;
+	}
+
+	closedir(dirpath);
 
 	return 0;
 }
 
-int
-sfs_mknod(const char *path, mode_t mode, dev_t rdev)
-{
-
-	return 0;
-}
 
 int
 sfs_mkdir(const char *path, mode_t mode)
@@ -1731,5 +1771,11 @@ sfs_read_buf(const char *path, struct fuse_bufvec **bufp, size_t size,
 	errno = ENOSYS;
 	return -1;
 
+}
+int
+sfs_mknod(const char *path, mode_t mode, dev_t rdev)
+{
+	errno = ENOSYS;
+	return -1;
 }
 
