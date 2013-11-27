@@ -22,6 +22,7 @@
 #include <sys/stat.h>
 #include <stdint.h>
 #include <errno.h>
+#include <unistd.h>
 #include <attr/xattr.h>
 #include <string.h>
 #include <stdlib.h>
@@ -291,13 +292,92 @@ sfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 	return 0;
 }
 
+/*
+ * sfs_mkdir - mkdir entry point
+ *
+ * path - directory path
+ * mode - access permissions for the directory
+ *
+ * This entry point does not result in a call to sfsd as all it needs
+ * to do is to create a new inode and issue mknod(2)
+ */
 
 int
 sfs_mkdir(const char *path, mode_t mode)
 {
+	sstack_inode_t inode;
+	struct stat status;
+	int ret = -1;
+	char inode_str[MAX_INODE_LEN] = { '\0' };
+
+    sfs_log(sfs_ctx, SFS_DEBUG, "%s: path = %s\n", __FUNCTION__, path);
+	// Parameter validation
+	if (NULL == path) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters specified \n",
+				__FUNCTION__);
+		errno = EINVAL;
+		return -1;
+	}
+
+	ret = mkdir(path, mode);
+	if (ret == -1) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: mkdir of %s  mode %d failed with "
+						"error %d \n", __FUNCTION__, path, (int) mode, errno);
+		return -1;
+	}
+
+	// Populate DB with new inode info
+	inode.i_num = get_free_inode();
+	strcpy(inode.i_name, path);
+	inode.i_uid = getuid();
+	inode.i_gid = getgid();
+	inode.i_mode = mode;
+	inode.i_type = DIRECTORY;
+
+	memcpy(&inode.i_atime, &status.st_atime, sizeof(struct timespec));
+	memcpy(&inode.i_ctime, &status.st_ctime, sizeof(struct timespec));
+	memcpy(&inode.i_mtime, &status.st_mtime, sizeof(struct timespec));
+	ret = stat(path, &status);
+	if (ret == -1) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: stat failed on %s . Error = %d \n",
+						__FUNCTION__, path, errno);
+		errno = EACCES;
+		rmdir(path);
+		return -1;
+	}
+	inode.i_size = status.st_size;
+	inode.i_ondisksize = status.st_size;
+	inode.i_links = status.st_nlink;
+	// Following are dummy fields
+	inode.i_numreplicas = 0;
+	inode.i_numextents = 0;
+	inode.i_numerasure = 0;
+	inode.i_xattrlen = 0;
+	inode.i_extent = NULL;
+	inode.i_erasure = NULL; // No erasure coding info for now
+	inode.i_xattr = NULL; // No extended attributes carried over
+
+	// Store inode
+	ret = put_inode(&inode, db);
+	if (ret != 0) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to store inode #%lld for "
+				"path %s. Error %d\n", __FUNCTION__, inode.i_num,
+				inode.i_name, errno);
+		return -1;
+	}
+	// Populate memcahed for reverse lookup
+	sprintf(inode_str, "%lld", inode.i_num);
+	ret = sstack_cache_store(mc, path, inode_str, (strlen(inode_str) + 1),
+					sfs_ctx);
+	if (ret != 0) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to store object into memcached."
+				" Key = %s value = %s \n", __FUNCTION__, path, inode_str);
+		return -1;
+	}
 
 	return 0;
 }
+
 
 
 int
@@ -1588,7 +1668,6 @@ sfs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 	sstack_inode_t inode;
 	struct stat status;
 	int ret = -1;
-	sstack_file_handle_t *ep = NULL;
 	char inode_str[MAX_INODE_LEN] = { '\0' };
 
     sfs_log(sfs_ctx, SFS_DEBUG, "%s: path = %s\n", __FUNCTION__, path);
@@ -1652,7 +1731,7 @@ sfs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 	inode.i_numreplicas = 1; // For now, single copy
 	// Since the file already exists, done't split it now. Split it when
 	// next write arrives
-	inode.i_numextents = 1;
+	inode.i_numextents = 0;
 	inode.i_numerasure = 0; // No erasure code segments
 	inode.i_xattrlen = 0; // No extended attributes
 	inode.i_links = status.st_nlink;
@@ -1672,7 +1751,6 @@ sfs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 		return -1;
 	}
 
-	free(ep);
 
 	// Populate memcahed for reverse lookup
 	sprintf(inode_str, "%lld", inode.i_num);
