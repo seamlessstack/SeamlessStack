@@ -315,80 +315,6 @@ a_prefix##new(a_rbt_type *rbtree) {					\
     rb_new(a_type, a_field, rbtree);					\
 }									\
 a_attr a_type *								\
-a_prefix##first(a_rbt_type *rbtree) {					\
-    a_type *ret;							\
-    rbtn_first(a_type, a_field, rbtree, rbtree->rbt_root, ret);		\
-    if (ret == &rbtree->rbt_nil) {					\
-	ret = NULL;							\
-    }									\
-    return (ret);							\
-}									\
-a_attr a_type *								\
-a_prefix##last(a_rbt_type *rbtree) {					\
-    a_type *ret;							\
-    rbtn_last(a_type, a_field, rbtree, rbtree->rbt_root, ret);		\
-    if (ret == &rbtree->rbt_nil) {					\
-	ret = NULL;							\
-    }									\
-    return (ret);							\
-}									\
-a_attr a_type *								\
-a_prefix##next(a_rbt_type *rbtree, a_type *node) {			\
-    a_type *ret;							\
-    if (rbtn_right_get(a_type, a_field, node) != &rbtree->rbt_nil) {	\
-	rbtn_first(a_type, a_field, rbtree, rbtn_right_get(a_type,	\
-	  a_field, node), ret);						\
-    } else {								\
-	a_type *tnode = rbtree->rbt_root;				\
-	assert(tnode != &rbtree->rbt_nil);				\
-	ret = &rbtree->rbt_nil;						\
-	while (true) {							\
-	    int cmp = (a_cmp)(node, tnode);				\
-	    if (cmp < 0) {						\
-		ret = tnode;						\
-		tnode = rbtn_left_get(a_type, a_field, tnode);		\
-	    } else if (cmp > 0) {					\
-		tnode = rbtn_right_get(a_type, a_field, tnode);		\
-	    } else {							\
-		break;							\
-	    }								\
-	    assert(tnode != &rbtree->rbt_nil);				\
-	}								\
-    }									\
-    if (ret == &rbtree->rbt_nil) {					\
-	ret = (NULL);							\
-    }									\
-    return (ret);							\
-}									\
-a_attr a_type *								\
-a_prefix##prev(a_rbt_type *rbtree, a_type *node) {			\
-    a_type *ret;							\
-    if (rbtn_left_get(a_type, a_field, node) != &rbtree->rbt_nil) {	\
-	rbtn_last(a_type, a_field, rbtree, rbtn_left_get(a_type,	\
-	  a_field, node), ret);						\
-    } else {								\
-	a_type *tnode = rbtree->rbt_root;				\
-	assert(tnode != &rbtree->rbt_nil);				\
-	ret = &rbtree->rbt_nil;						\
-	while (true) {							\
-	    int cmp = (a_cmp)(node, tnode);				\
-	    if (cmp < 0) {						\
-		tnode = rbtn_left_get(a_type, a_field, tnode);		\
-	    } else if (cmp > 0) {					\
-		ret = tnode;						\
-		tnode = rbtn_right_get(a_type, a_field, tnode);		\
-	    } else {							\
-		break;							\
-	    }								\
-	    assert(tnode != &rbtree->rbt_nil);				\
-	}								\
-    }									\
-    if (ret == &rbtree->rbt_nil) {					\
-	ret = (NULL);							\
-    }									\
-    return (ret);							\
-}									\
-a_attr a_type *								\
 a_prefix##search(a_rbt_type *rbtree, a_type *key) {			\
     a_type *ret;							\
     int cmp;								\
@@ -399,50 +325,6 @@ a_prefix##search(a_rbt_type *rbtree, a_type *key) {			\
 	    ret = rbtn_left_get(a_type, a_field, ret);			\
 	} else {							\
 	    ret = rbtn_right_get(a_type, a_field, ret);			\
-	}								\
-    }									\
-    if (ret == &rbtree->rbt_nil) {					\
-	ret = (NULL);							\
-    }									\
-    return (ret);							\
-}									\
-a_attr a_type *								\
-a_prefix##nsearch(a_rbt_type *rbtree, a_type *key) {			\
-    a_type *ret;							\
-    a_type *tnode = rbtree->rbt_root;					\
-    ret = &rbtree->rbt_nil;						\
-    while (tnode != &rbtree->rbt_nil) {					\
-	int cmp = (a_cmp)(key, tnode);					\
-	if (cmp < 0) {							\
-	    ret = tnode;						\
-	    tnode = rbtn_left_get(a_type, a_field, tnode);		\
-	} else if (cmp > 0) {						\
-	    tnode = rbtn_right_get(a_type, a_field, tnode);		\
-	} else {							\
-	    ret = tnode;						\
-	    break;							\
-	}								\
-    }									\
-    if (ret == &rbtree->rbt_nil) {					\
-	ret = (NULL);							\
-    }									\
-    return (ret);							\
-}									\
-a_attr a_type *								\
-a_prefix##psearch(a_rbt_type *rbtree, a_type *key) {			\
-    a_type *ret;							\
-    a_type *tnode = rbtree->rbt_root;					\
-    ret = &rbtree->rbt_nil;						\
-    while (tnode != &rbtree->rbt_nil) {					\
-	int cmp = (a_cmp)(key, tnode);					\
-	if (cmp < 0) {							\
-	    tnode = rbtn_left_get(a_type, a_field, tnode);		\
-	} else if (cmp > 0) {						\
-	    ret = tnode;						\
-	    tnode = rbtn_right_get(a_type, a_field, tnode);		\
-	} else {							\
-	    ret = tnode;						\
-	    break;							\
 	}								\
     }									\
     if (ret == &rbtree->rbt_nil) {					\

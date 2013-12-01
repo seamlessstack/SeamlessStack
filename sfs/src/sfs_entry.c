@@ -400,7 +400,6 @@ sfs_unlink(const char *path)
 	pthread_t thread_id;
 	sstack_job_map_t *job_map = NULL;
 	int ret = -1;
-	policy_entry_t *policy = NULL;
 	int i = 0;
 	int j = 0;
 	sfsd_t * temp = NULL;
@@ -442,18 +441,6 @@ sfs_unlink(const char *path)
 		errno = ret;
 
 		return -1;
-	}
-
-	policy = get_policy(path);
-	if (NULL == policy) {
-		sfs_log(sfs_ctx, SFS_INFO, "%s: No policies specified for the file"
-				". Default policy applied \n", __FUNCTION__);
-		policy->pe_attr.a_qoslevel = QOS_LOW;
-		policy->pe_attr.a_ishidden = 0;
-	} else {
-		sfs_log(sfs_ctx, SFS_INFO, "%s: path %s ver %s qoslevel %d "
-				"hidden %d \n", __FUNCTION__, path, policy->pe_attr.ver,
-				policy->pe_attr.a_qoslevel, policy->pe_attr.a_ishidden);
 	}
 
 	// Track new job
@@ -597,19 +584,295 @@ sfs_unlink(const char *path)
 }
 
 
+/*
+ * sfs_rmdir - remove a directory
+ *
+ * path - Directory to be removed
+ *
+ * Returns 0 upon success and -1 on failure.
+ */
+
 int
-sfs_rmdir(const char * path)
+sfs_rmdir(const char *path)
 {
+	unsigned long long inode_num = 0;
+	char *inodestr = NULL;
+	sstack_inode_t inode;
+	size_t size1 = 0;
+	sstack_payload_t *payload = NULL;
+	pthread_t thread_id;
+	sstack_job_map_t *job_map = NULL;
+	int ret = -1;
+	int i = 0;
+	int j = 0;
+	sfsd_t * temp = NULL;
+	sfs_job_t *job = NULL;
+
+	// Parameter validation
+	if (NULL == path) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameter specified \n",
+						__FUNCTION__);
+		errno = ENOENT;
+		return -1;
+	}
+
+	ret = rmdir(path);
+	if (ret == -1) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: rmdir of %s failed with error %d \n",
+						__FUNCTION__, path, errno);
+
+		return -1;
+	}
+
+	// Let all the involved sfsds know about this directory's demise
+
+	// Get the inode number for the file.
+	inodestr = sstack_cache_read_one(mc, path, strlen(path), &size1, sfs_ctx);
+	if (NULL == inodestr) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
+					"for path %s.\n", __FUNCTION__, path);
+		errno = ENOENT;
+
+		return -1;
+	}
+	inode_num = atoll((const char *)inodestr);
+	// Get inode from DB
+	ret = get_inode(inode_num, &inode, db);
+	if (ret != 0) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to get inode %lld. Path = %s "
+						"error = %d\n", __FUNCTION__, inode_num, path, ret);
+		errno = ret;
+
+		return -1;
+	}
+
+	// Track new job
+	thread_id = pthread_self();
+	job_map = create_job_map();
+	if (NULL == job_map) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed allocate memory for "
+						"job map \n", __FUNCTION__);
+		return -1;
+	}
+	job = sfs_job_init();
+	if (NULL == job) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed allocate memory for job.\n",
+						__FUNCTION__);
+		free_job_map(job_map);
+		return -1;
+	}
+
+	job->id = get_next_job_id();
+	job->job_type = SFSD_IO;
+	job->num_clients = inode.i_numclients;
+	job->sfsds[0] = inode.i_primary_sfsd->sfsd;
+
+	for (i = 1; i < job->num_clients; i++) {
+		job->sfsds[i] = inode.i_sfsds[i].sfsd;
+	}
+	for (j = 0; j < job->num_clients; j++)
+		job->job_status[j] =  JOB_STARTED;
+
+	// Create new payload
+	payload = create_payload();
+	// Populate payload
+	payload->hdr.sequence = 0; // Reinitialized by transport
+	payload->hdr.payload_len = sizeof(sstack_payload_t);
+	payload->hdr.job_id = job->id;
+	payload->hdr.priority = job->priority;
+	payload->hdr.arg = (uint64_t) job;
+	payload->command = NFS_RMDIR;
+	// TODO
+	// Should we add delimiter to size??
+	payload->command_struct.remove_cmd.path_len = (strlen(path) + 1);
+	payload->command_struct.remove_cmd.path = calloc((strlen(path) + 1), 1);
+	job->payload_len = sizeof(sstack_payload_t);
+	job->payload = payload;
+
+	// Add this job to job_map
+	job_map->num_jobs ++;
+	temp = realloc(job_map->job_ids, job_map->num_jobs *
+					sizeof(sstack_job_id_t));
+	if (NULL == temp) {
+			sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to allocate memory for "
+							"job_ids \n", __FUNCTION__);
+			if (job_map->job_ids)
+					free(job_map->job_ids);
+			free_job_map(job_map);
+			free_payload(sfs_global_cache, payload);
+
+			return -1;
+	}
+	job_map->job_ids = (sstack_job_id_t *) temp;
+
+	pthread_spin_lock(&job_map->lock);
+	job_map->job_ids[job_map->num_jobs - 1] = job->id;
+	job_map->num_jobs_left ++;
+	pthread_spin_unlock(&job_map->lock);
+	temp = realloc(job_map->job_status, job_map->num_jobs *
+				sizeof(sstack_job_status_t));
+	if (NULL == temp) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to allocate memory for "
+							"job_status \n", __FUNCTION__);
+		free(job_map->job_ids);
+		if (job_map->job_status)
+			free(job_map->job_status);
+		free_job_map(job_map);
+		free_payload(sfs_global_cache, payload);
+
+		return -1;
+	}
+	pthread_spin_lock(&job_map->lock);
+	job_map->job_status[job_map->num_jobs - 1] = JOB_STARTED;
+	pthread_spin_unlock(&job_map->lock);
+
+	ret = sfs_job2thread_map_insert(thread_id, job->id);
+	if (ret == -1) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed insert the job context "
+							"into RB tree \n", __FUNCTION__);
+		free(job_map->job_ids);
+		free(job_map->job_status);
+		sfs_job_context_remove(thread_id);
+		free_job_map(job_map);
+		free_payload(sfs_global_cache, payload);
+
+		return -1;
+	}
+	// Add this job to job queue
+	ret = sfs_submit_job(job->priority, jobs, job);
+	if (ret == -1) {
+		free(job_map->job_ids);
+		free(job_map->job_status);
+		sfs_job_context_remove(thread_id);
+		sfs_job2thread_map_remove(thread_id);
+		free_job_map(job_map);
+		free_payload(sfs_global_cache, payload);
+
+		return -1;
+	}
+	// Add job_map to the jobmap RB-tree
+	ret = sfs_job_context_insert(thread_id, job_map);
+	if (ret == -1) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed insert the job context "
+						"into RB tree \n", __FUNCTION__);
+		free(job_map->job_ids);
+		free(job_map->job_status);
+		free_job_map(job_map);
+		free_payload(sfs_global_cache, payload);
+
+		return -1;
+	}
+	// Put the thread to wait
+	ret = sfs_wait_for_completion(job_map);
+	// TODO
+	// Handle failure scenarios (HOW??)
+	// Success is assumed
+
+	// Delete the inode from DB and free memcached reverse lookup entry
+	ret = del_inode(&inode, db);
+	if (ret != 0) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to delete inode from DB for "
+						"file %s \n", __FUNCTION__, path);
+		return -1;
+	}
+
+	ret = sstack_cache_remove(mc, path, sfs_ctx);
+	if (ret != 0) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to delete reverse lookup "
+						"for file %s \n", __FUNCTION__, path);
+		return -1;
+	}
 
 	return 0;
 }
+
+/*
+ * sfs_symlink - Create a symbolic link from 'from' to 'to'
+ *
+ * from - Path of the file to be symbolic linked. Should be non-NULL.
+ * to - Symbolic link name. Should be non-NULL.
+ *
+ * Returns 0 on success and -1 upon failure.
+ */
 
 int
 sfs_symlink(const char *from, const char *to)
 {
+	sstack_inode_t inode;
+	struct stat status;
+	int ret = -1;
+	char inode_str[MAX_INODE_LEN] = { '\0' };
+
+	// Parameter validation
+	if (NULL == from || NULL == to) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters specified \n",
+						__FUNCTION__);
+		errno = EINVAL;
+
+		return -1;
+	}
+
+	ret = symlink(from, to);
+	if (ret == -1) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Symlink failed with error %d ."
+					" From = %s To = %s \n", __FUNCTION__, errno, from, to);
+
+		return -1;
+	}
+
+	// Create a new inode representing 'to'
+	// Populate DB with new inode info
+	inode.i_num = get_free_inode();
+	strcpy(inode.i_name, to);
+	inode.i_uid = status.st_uid;
+	inode.i_gid = status.st_gid;
+	inode.i_mode = status.st_mode;
+	inode.i_type = SYMLINK;
+
+	// Make sure we are not looping
+	// TBD
+
+	memcpy(&inode.i_atime, &status.st_atime, sizeof(struct timespec));
+	memcpy(&inode.i_ctime, &status.st_ctime, sizeof(struct timespec));
+	memcpy(&inode.i_mtime, &status.st_mtime, sizeof(struct timespec));
+	inode.i_size = status.st_size;
+	inode.i_ondisksize = (status.st_blocks * 512);
+	inode.i_numreplicas = 1; // For now, single copy
+	// Since the file already exists, done't split it now. Split it when
+	// next write arrives
+	inode.i_numextents = 0;
+	inode.i_numerasure = 0; // No erasure code segments
+	inode.i_xattrlen = 0; // No extended attributes
+	inode.i_links = status.st_nlink;
+	sfs_log(sfs_ctx, SFS_INFO,
+		"%s: nlinks for %s are %d\n", __FUNCTION__, to, inode.i_links);
+	// Populate the extent
+	inode.i_extent = NULL;
+	inode.i_erasure = NULL; // No erasure coding info for now
+	inode.i_xattr = NULL; // No extended attributes carried over
+
+	// Store inode
+	ret = put_inode(&inode, db);
+	if (ret != 0) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to store inode #%lld for "
+				"path %s. Error %d\n", __FUNCTION__, inode.i_num,
+				inode.i_name, errno);
+		return -1;
+	}
+
+	// Populate memcahed for reverse lookup
+	sprintf(inode_str, "%lld", inode.i_num);
+	ret = sstack_cache_store(mc, to, inode_str, (strlen(inode_str) + 1),
+					sfs_ctx);
+	if (ret != 0) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to store object into memcached."
+				" Key = %s value = %s \n", __FUNCTION__, to, inode_str);
+		return -1;
+	}
 
 	return 0;
 }
+
 
 int
 sfs_rename(const char *from, const char *to)
@@ -618,23 +881,230 @@ sfs_rename(const char *from, const char *to)
 	return 0;
 }
 
+/*
+ * sfs_link - Create a hard link from 'from' to 'to'
+ *
+ * from - Path of the file to be hard linked. Should be non-NULL.
+ * to - Hard link name. Should be non-NULL.
+ *
+ * Returns 0 on success and -1 upon failure.
+ */
+
 int
 sfs_link(const char *from, const char *to)
 {
+	sstack_inode_t inode;
+	struct stat status;
+	int ret = -1;
+	char inode_str[MAX_INODE_LEN] = { '\0' };
+
+	// Parameter validation
+	if (NULL == from || NULL == to) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters specified \n",
+						__FUNCTION__);
+		errno = EINVAL;
+
+		return -1;
+	}
+
+	ret = link(from, to);
+	if (ret == -1) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Link failed with error %d ."
+					" From = %s To = %s \n", __FUNCTION__, errno, from, to);
+
+		return -1;
+	}
+
+	// Create a new inode representing 'to'
+	// Populate DB with new inode info
+	inode.i_num = get_free_inode();
+	strcpy(inode.i_name, to);
+	inode.i_uid = status.st_uid;
+	inode.i_gid = status.st_gid;
+	inode.i_mode = status.st_mode;
+	inode.i_type = HARDLINK;
+
+	// Make sure we are not looping
+	// TBD
+
+	memcpy(&inode.i_atime, &status.st_atime, sizeof(struct timespec));
+	memcpy(&inode.i_ctime, &status.st_ctime, sizeof(struct timespec));
+	memcpy(&inode.i_mtime, &status.st_mtime, sizeof(struct timespec));
+	inode.i_size = status.st_size;
+	inode.i_ondisksize = (status.st_blocks * 512);
+	inode.i_numreplicas = 1; // For now, single copy
+	// Since the file already exists, done't split it now. Split it when
+	// next write arrives
+	inode.i_numextents = 0;
+	inode.i_numerasure = 0; // No erasure code segments
+	inode.i_xattrlen = 0; // No extended attributes
+	inode.i_links = status.st_nlink;
+	sfs_log(sfs_ctx, SFS_INFO,
+		"%s: nlinks for %s are %d\n", __FUNCTION__, to, inode.i_links);
+	// Populate the extent
+	inode.i_extent = NULL;
+	inode.i_erasure = NULL; // No erasure coding info for now
+	inode.i_xattr = NULL; // No extended attributes carried over
+
+	// Store inode
+	ret = put_inode(&inode, db);
+	if (ret != 0) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to store inode #%lld for "
+				"path %s. Error %d\n", __FUNCTION__, inode.i_num,
+				inode.i_name, errno);
+		return -1;
+	}
+
+	// Populate memcahed for reverse lookup
+	sprintf(inode_str, "%lld", inode.i_num);
+	ret = sstack_cache_store(mc, to, inode_str, (strlen(inode_str) + 1),
+					sfs_ctx);
+	if (ret != 0) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to store object into memcached."
+				" Key = %s value = %s \n", __FUNCTION__, to, inode_str);
+		return -1;
+	}
 
 	return 0;
 }
+
+/*
+ * sfs_chmod - Change access permissions of the file
+ *
+ * path - File whose permission needs to be changed
+ * mode - new file permissions
+ *
+ * Returns 0 on success and -1 upon failure.
+ */
 
 int
 sfs_chmod(const char *path, mode_t mode)
 {
+	unsigned long long inode_num = 0;
+	char *inodestr = NULL;
+	sstack_inode_t inode;
+	size_t size1 = 0;
+	int ret = -1;
+
+	// Parameter validation
+	if (NULL == path) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters specified \n",
+						__FUNCTION__);
+		errno = ENOENT;
+
+		return -1;
+	}
+
+	ret = chmod(path, mode);
+	if (ret == -1) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: chmod for %s failed with error %d\n",
+						__FUNCTION__, errno);
+		return -1;
+	}
+
+	// Update inode with the new mode
+	// Get the inode number for the file.
+	inodestr = sstack_cache_read_one(mc, path, strlen(path), &size1, sfs_ctx);
+	if (NULL == inodestr) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
+					"for path %s.\n", __FUNCTION__, path);
+		errno = ENOENT;
+
+		return -1;
+	}
+	inode_num = atoll((const char *)inodestr);
+	// Get inode from DB
+	ret = get_inode(inode_num, &inode, db);
+	if (ret != 0) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to get inode %lld. Path = %s "
+						"error = %d\n", __FUNCTION__, inode_num, path, ret);
+		errno = ret;
+
+		return -1;
+	}
+
+	inode.i_mode = mode;
+
+	// Store the inode back to DB
+	ret = put_inode(&inode, db);
+	if (ret == -1) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to store inode  %lld in db."
+						" Inode name = %s \n",
+						__FUNCTION__, inode.i_num, inode.i_name);
+		return -1;
+	}
 
 	return 0;
 }
 
+
+/*
+ * sfs_chown - Change ownership of the file
+ *
+ * path - File whose ownsership needs to be changed
+ * uid - User id
+ * gid - Group id
+ *
+ * Returns 0 on success and -1 upon failure.
+ */
+
 int
 sfs_chown(const char *path, uid_t uid, gid_t gid)
 {
+	unsigned long long inode_num = 0;
+	char *inodestr = NULL;
+	sstack_inode_t inode;
+	size_t size1 = 0;
+	int ret = -1;
+
+	// Parameter validation
+	if (NULL == path) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters specified \n",
+						__FUNCTION__);
+		errno = ENOENT;
+
+		return -1;
+	}
+
+	ret = chown(path, uid, gid);
+	if (ret == -1) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: chown for %s failed with error %d\n",
+						__FUNCTION__, errno);
+		return -1;
+	}
+
+	// Update inode with the new mode
+	// Get the inode number for the file.
+	inodestr = sstack_cache_read_one(mc, path, strlen(path), &size1, sfs_ctx);
+	if (NULL == inodestr) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
+					"for path %s.\n", __FUNCTION__, path);
+		errno = ENOENT;
+
+		return -1;
+	}
+	inode_num = atoll((const char *)inodestr);
+	// Get inode from DB
+	ret = get_inode(inode_num, &inode, db);
+	if (ret != 0) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to get inode %lld. Path = %s "
+						"error = %d\n", __FUNCTION__, inode_num, path, ret);
+		errno = ret;
+
+		return -1;
+	}
+
+	inode.i_uid = uid;
+	inode.i_gid = gid;
+
+	// Store the inode back to DB
+	ret = put_inode(&inode, db);
+	if (ret == -1) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to store inode  %lld in db."
+						" Inode name = %s \n",
+						__FUNCTION__, inode.i_num, inode.i_name);
+		return -1;
+	}
 
 	return 0;
 }
@@ -2082,7 +2552,6 @@ sfs_send_read_status(sstack_job_map_t *job_map, char *buf, size_t size)
     sstack_job_id_t         job_id;
     sstack_jt_t             *jt_node = NULL, jt_key;
     sfs_job_t               *job = NULL;
-    sstack_payload_t        *payload = NULL;
     struct sstack_nfs_read_resp    read_resp;
 
 	/* Not all jobs processed and we got a pthread_cond_signal.

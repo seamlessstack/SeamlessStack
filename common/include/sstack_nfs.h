@@ -166,6 +166,7 @@ struct sstack_nfs_rename_cmd {
 	sstack_file_handle_t new_path;
 };
 
+// Used for unlink, rmdir
 struct sstack_nfs_remove_cmd {
 	size_t path_len;
 	char *path;
