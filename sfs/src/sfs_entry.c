@@ -2088,6 +2088,7 @@ sfs_send_read_status(sstack_job_map_t *job_map, char *buf, size_t size)
 	/* Not all jobs processed and we got a pthread_cond_signal.
        Some job had a read specific error */
     if (job_map->num_jobs_left != 0) {
+		errno = job_map->errno;
         return (-1);
     }
 

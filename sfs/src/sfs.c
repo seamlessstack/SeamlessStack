@@ -629,7 +629,9 @@ sfs_process_read_response(sstack_payload_t payload)
 			}	
 	} else {
 		/* Read errors */
-		errno = -resp.command_ok;
+		pthread_spin_lock(&job_map->lock);
+        job_map->errno = -resp.commamd_ok;
+        pthread_spin_unlocr(&job_map->lock);
 		pthread_cond_signal(&job_map->condition);
 	}	
 }
