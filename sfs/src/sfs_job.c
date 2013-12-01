@@ -77,8 +77,6 @@ sfs_submit_job(int priority, sfs_job_queue_t *job_list, sfs_job_t *job)
 int
 sfs_wait_for_completion(sstack_job_map_t *job_map)
 {
-	int		ret = -1;
-
 	// Wait on condition variable
 	pthread_mutex_lock(&job_map->wait_lock);
 	pthread_cond_wait(&job_map->condition, &job_map->wait_lock);
