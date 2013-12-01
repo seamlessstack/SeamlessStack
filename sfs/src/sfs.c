@@ -656,9 +656,6 @@ sfs_process_payload(void *arg)
 		default:
 			break;
 	}
-}
-
-
 						   
 	return NULL;
 }
