@@ -16,7 +16,6 @@
  * is strictly forbidden unless prior written permission is obtained
  * from SeamlessStack Incorporated.
  */
-#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -28,6 +27,8 @@
 #include <unistd.h>
 #include <sstack_log.h>
 #define DEBUG 1
+
+extern log_ctx_t *sfs_ctx;
 
 static char *
 get_ip_str(const struct sockaddr *sa, char *s, unsigned int maxlen)

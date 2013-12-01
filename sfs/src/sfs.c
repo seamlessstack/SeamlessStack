@@ -631,7 +631,7 @@ sfs_process_read_response(sstack_payload_t *payload)
 	} else {
 		/* Read errors */
 		pthread_spin_lock(&job_map->lock);
-        job_map->err_no = -resp.command_ok;
+        job_map->err_no = resp.command_ok;
         pthread_spin_unlock(&job_map->lock);
 		pthread_cond_signal(&job_map->condition);
 	}
