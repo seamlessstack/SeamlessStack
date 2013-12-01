@@ -25,6 +25,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <pthread.h>
+#include <sfs_job.h>
 
 #define JTNODE_MAGIC 0xa5a5a5a5
 
@@ -35,6 +36,7 @@ struct job2thread_tree {
 	rb_node(sstack_jt_t) link;
 	sstack_job_id_t job_id; // Key
 	pthread_t thread_id;
+	sfs_job_t *job;	
 };
 
 // BSS

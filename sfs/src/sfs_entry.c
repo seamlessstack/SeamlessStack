@@ -50,6 +50,9 @@ jobmap_tree_t *jobmap_tree = NULL;
 jobid_tree_t *jobid_tree = NULL;
 sstack_job_id_t current_job_id = 0;
 
+static inline int
+sfs_send_read_status(sstack_job_map_t *job_map, char *buf, size_t size);
+
 /*
  * create_payload - Allocate payload structure from payload slab and zeroizes
  *					the allocated memory.
@@ -514,6 +517,7 @@ sfs_unlink(const char *path)
 
 	pthread_spin_lock(&job_map->lock);
 	job_map->job_ids[job_map->num_jobs - 1] = job->id;
+	job_map->num_jobs_left ++;
 	pthread_spin_unlock(&job_map->lock);
 	temp = realloc(job_map->job_status, job_map->num_jobs *
 				sizeof(sstack_job_status_t));
@@ -748,6 +752,8 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 						"job map \n", __FUNCTION__);
 		return -1;
 	}
+	job_map->command = NFS_READ;
+
 	/*
 	 * Note: Don't free policy. It is just a pointer to original DS
 	 * and no copies are made by get_policy.
@@ -781,9 +787,8 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 
 		job->id = get_next_job_id();
 		job->job_type = SFSD_IO;
-		job->num_clients = sfsds->num_sfsds;
-		memcpy((void *) &job->sfsds, (void *) sfsds->sfsds, sizeof(sfsd_t *) *
-				sfsds->num_sfsds);
+		job->num_clients = 1;
+		job->sfsds[0] = inode->i_primary_sfsd->sfsd;
 		for (j = 0; j < sfsds->num_sfsds; j++)
 			job->job_status[j] =  JOB_STARTED;
 
@@ -826,6 +831,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 
 		pthread_spin_lock(&job_map->lock);
 		job_map->job_ids[job_map->num_jobs - 1] = job->id;
+		job_map->num_jobs_left ++;
 		pthread_spin_unlock(&job_map->lock);
 
 		temp = realloc(job_map->job_status, job_map->num_jobs *
@@ -897,10 +903,15 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 	}
 
 	ret = sfs_wait_for_completion(job_map);
-	// TODO
-	// Handle completion status
 
-	return 0;
+	ret = sfs_send_read_status(job_map, buf, size);
+
+	sfs_job_context_remove(thread_id);
+	free(job_map->job_ids);
+	free(job_map->job_status);
+	free_job_map(job_map);
+
+	return (ret);
 }
 
 int
@@ -2062,3 +2073,42 @@ sfs_mknod(const char *path, mode_t mode, dev_t rdev)
 	return -1;
 }
 
+/* Send response function for various commands */
+static inline int
+sfs_send_read_status(sstack_job_map_t *job_map, char *buf, size_t size)
+{
+	int                     i = 0;
+    uint32_t                num_bytes = 0;
+    sstack_job_id_t         job_id;
+    sstack_jt_t             *jt_node = NULL, jt_key;
+    sfs_job_t               *job = NULL;
+    sstack_payload_t        *payload = NULL;
+    sstack_nfs_read_resp    read_resp;
+
+	/* Not all jobs processed and we got a pthread_cond_signal.
+       Some job had a read specific error */
+    if (job_map->num_jobs_left != 0) {
+        return (-1);
+    }
+
+	/* Success case. Return the number of bytes read */
+	for (i = 0; i < job_map->num_jobs; i++) {
+	    job_id = job_map->job_ids[i];
+
+		jt_key.magic = JTNODE_MAGIC;
+        jt_key.job_id = job_id;
+        jt_node = jobid_tree_search(jobid_tree, &jt_key);
+        job = jt_node->job;
+
+		read_resp = job->payload->respone_struct.read_resp;
+		memcpy(buf, read_resp.data.data_buf, sizeof(uint8_t));
+		buf += read_resp.data.data_len;
+		num_bytes += read_resp.data.data_len;
+		
+		sfs_job2thread_map_remove(job_id);
+		free(job->payload);
+		free(job);
+	}
+	
+	return (num_bytes);
+}

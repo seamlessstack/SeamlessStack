@@ -56,6 +56,8 @@
 #include <sfs_entry.h>
 #include <sfs_job.h>
 #include <mongo_db.h>
+#include <sfs_jobid_tree.h>
+#include <sfs_jobmap_tree.h>
 
 /* Macros */
 #define MAX_INODE_LEN 40 // Maximum len of uint64_t is 39
@@ -526,6 +528,112 @@ handle_cli_requests(void * arg)
 	return NULL;
 }
 
+static void
+sfs_process_read_response(sstack_payload_t payload)
+{
+	sstack_nfs_response_struct resp = payload->response_struct;
+	sstack_nfs_read_resp read_resp = resp.read_resp;
+	sstack_jm_t			*jm_node = NULL, jm_key;
+	sstack_jt_t			*jt_node = NULL, jt_key;
+	pthread_t			thread_id;
+	sstack_job_map_t	*job_map = NULL;
+	sfs_job_t			*job = NULL;
+	sstack_job_id_t		job_id;
+	sstack_inode_t 		inode;
+	sfsd_t				*sfsd = NULL;
+	int					i = 0, ret = -1;
+
+	job_id = payload->hdr.job_id;
+
+	jt_key.magic = JTNODE_MAGIC;
+	jt_key.job_id = job_id;
+	jt_node = jobid_tree_search(jobid_tree, &jt_key);
+
+	if (jt_node == NULL) {
+		/* TBD: something wrong happened.
+		 * Should we assert or just return. 
+		 * For now just return
+		 */
+		errno = SSTACK_CRIT_FAILURE;
+		return;
+	}	
+	thread_id = jt_node->thread_id;
+	job = jt_node->job;
+
+	jm_key.magic = JMNODE_MAGIC;
+	jm_key.thread_id = thread_id;
+	jm_node = jobmap_tree_search(jobmap_tree, &jm_key);
+
+	if (jm_node == NULL) {
+		/* this is not an error. This could happen if earlier
+		   job in this job_map had a read error due to which
+		   removed the job_map from the tree and returned an
+		   error to the application thread;
+		 */
+		return;
+	}
+	job_map = jm_node->job_map;
+
+	if (resp.command_ok == SSTACK_SUCCESS) {
+		pthread_spin_lock(&job_map->lock);
+        job_map->num_jobs_left --;
+        pthread_spin_unlock(&job_map->lock);
+		
+		job->payload = payload;
+
+		if (job_map->num_jobs_left == 0) {
+			pthread_cond_signal(&job_map->condition);
+		}	
+	} else if ((resp.command_ok == -SSTACK_ECKSUM) || 
+						(resp.command_ok == -SSTACK_NOMEM)) {
+		uint64_t	inode_num;
+
+		inode_num = payload->command_struct.read_cmd.inode_no;
+		ret = get_inode(inode_num, &inode, db);
+		if (ret != 0) {
+			sfs_log(sfs_ctx, SFS_ERR, "%s: Error get inode %lld, error = %s ",
+									__FUNCTION__, inode_num, ret);
+			/* TBD: ASSERT or return. For now return */
+			errno = SSTACK_CRIT_FAILURE;
+			return;
+		}	
+
+		/* If read_ecode set and we get an error response, then both 
+		 * replicas and erasure code didn't save us. If DR is enabled 
+		 * for this file, then fetch it from DR
+		 */
+		if (payload->command_struct.read_cmd.read_ecode) {
+			if (inode->i_enable_dr) {
+				/* TBD: Do we fetch the entire file or just this extent*/
+			}
+		} else {
+			/* Fetching from replica has precedence over erasure code */
+			for (i = 0; i < inode->i_numreplicas; i++) {
+				if (inode->i_sfsds[i]->sfsd->handle ==
+									job->sfsds[0]->handle) {
+					sfsd = inode->i_sfsds[(i+1) % inode->i_numreplicas]->sfsd;
+					if (sfsd->handle == inode->i_primary_sfsd->sfsd->handle) {
+						payload->command_struct.read_cmd.read_ecode = 1;
+						job->payload = payload;
+						job->sfsds[0] = sfsd;
+					} else {
+						job->sfsds[0] = sfsd;
+					}
+				}
+			}	
+			
+			/* enqueue the job to the job_list */
+			ret = sfs_submit_job(job->priority, jobs, job);
+			if (ret == -1) {
+				errno = SSTACK_CRIT_FAILURE;
+			}	
+	} else {
+		/* Read errors */
+		errno = -resp.command_ok;
+		pthread_cond_signal(&job_map->condition);
+	}	
+}
+
 /*
  * sfs_process_payload - Process received payload
  *
@@ -540,6 +648,18 @@ sfs_process_payload(void *arg)
 {
 	sstack_payload_t *payload = (sstack_payload_t *) arg;
 
+	switch (payload->command) {
+		case (NFS_READ): 
+			sfs_process_read_response(payload);
+			break;
+
+		default:
+			break;
+	}
+}
+
+
+						   
 	return NULL;
 }
 

@@ -332,6 +332,8 @@ typedef struct sfsd_list {
 typedef struct job_map {
 	pthread_t thread_id;
 	int num_jobs;
+	int num_jobs_left; /* used to check for signalling the thread
+						* waiting on the condition variable */
 	pthread_spinlock_t lock;
 	sstack_job_id_t *job_ids;
 	sstack_job_status_t *job_status;

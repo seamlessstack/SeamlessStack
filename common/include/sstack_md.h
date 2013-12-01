@@ -132,19 +132,19 @@ typedef struct inode {
 		struct timespec i_mtime; // Modification time
 		sstack_size_t	i_size; // Size of the file
 		sstack_size_t i_ondisksize;
-		int i_numreplicas; // Number of replicas
+		int i_numreplicas:16; // Number of replicas
+		int i_enable_dr:16; // DR enable flag
 		int i_numclients; // Number of sfsds maintaining this file
 		uint64_t i_erasure_stripe_size; // Erasure code stripe size
 		unsigned int i_numerasure; // Number of erasure code extents
 		int i_numextents; // Number of extents
 		size_t i_xattrlen; // Extended attibute len
-		sstack_sfsd_info_t i_primary_sfsd; // sfsd having erasure coded stripes
+		sstack_sfsd_info_t *i_primary_sfsd; // sfsd having erasure coded stripes
 	};
 	char *i_xattr; // Extended attributes
 	sstack_erasure_t *i_erasure; // Erasure code segment information
 	sstack_extent_t *i_extent; // extents
-	sstack_sfsd_info_t *i_sfsds; // sfsds maintaining this file other than
-								// primary sfsd
+	sstack_sfsd_info_t *i_sfsds; // sfsds maintaining this file
 } sstack_inode_t;
 
 /*

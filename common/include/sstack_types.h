@@ -50,8 +50,10 @@ typedef struct {
 } sstack_address_t;
 typedef enum sstack_return_code {
 	SSTACK_SUCCESS = 100,
-	SSTACK_FAILURE = 101,
+	SSTACK_FAILURE = 101, // other than cksum and no-memory
 	SSTACK_ECKSUM = 102, // Indicates checksum does not match
+	SSTACK_NOMEM = 103, // Indicates no-memory
+	SSTACK_CRIT_FAILURE = 104, // any internal critical error
 } sstack_ret_code_t;
 
 
