@@ -59,7 +59,7 @@ get_opt_str(const char *arg, char *opt_name)
  *
  * Note:
  * This routine allocates following on heap:
- * 		i_erasure - a flattened sstack_erasure_t structure
+ * 		i_erasure - a flattened sstack_extent_t structure
  *				  - Each record has (length + data ptr) format;
  *		i_extent - array of ssatck_extent_t structure.
  * Caller needs to free in the following order after use:
@@ -80,7 +80,7 @@ fill_inode(sstack_inode_t *inode, char *data, log_ctx_t *ctx)
 	int i = 0;
 	int path_len = 0;
 	int covered = 0;
-	sstack_erasure_t *er = NULL;
+	sstack_extent_t *er = NULL;
 
 	if (NULL == inode || NULL == data) {
 		sfs_log(ctx, SFS_ERR, "%s: Invalid parameters passed.\n", __FUNCTION__);
@@ -104,7 +104,7 @@ fill_inode(sstack_inode_t *inode, char *data, log_ctx_t *ctx)
 	// 2. Erasure code segment paths
 	// Copy remaining fields
 	// 1. Erasure code segment paths
-	er = (sstack_erasure_t *) ((char *) (data +
+	er = (sstack_extent_t *) ((char *) (data +
 				get_inode_fixed_fields_len() + covered));
 
 	for (i = 0; i < in->i_numerasure; i++) {
@@ -117,13 +117,13 @@ fill_inode(sstack_inode_t *inode, char *data, log_ctx_t *ctx)
 		// Copy current erasure code segment path
 		memcpy(temp, cur + covered , sizeof(sstack_file_handle_t));
 		// Assign it to current erasure code segment
-		er->er_path = (sstack_file_handle_t *) temp;
+		er->e_path = (sstack_file_handle_t *) temp;
 		covered += sizeof(sstack_file_handle_t);
 		// Copy over cksum
-		memcpy(&er->er_cksum, (cur + covered), sizeof(sstack_cksum_t));
+		memcpy(&er->e_cksum, (cur + covered), sizeof(sstack_cksum_t));
 		covered += sizeof(sstack_cksum_t);
 
-		temp = realloc(erasure, (sizeof(sstack_erasure_t) + covered));
+		temp = realloc(erasure, (sizeof(sstack_extent_t) + covered));
 		if (NULL == temp) {
 			sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory \n",
 					__FUNCTION__);
@@ -132,11 +132,11 @@ fill_inode(sstack_inode_t *inode, char *data, log_ctx_t *ctx)
 			return -ENOMEM;
 		}
 		erasure = temp;
-		memcpy((erasure + covered), er, sizeof(sstack_erasure_t));
+		memcpy((erasure + covered), er, sizeof(sstack_extent_t));
 		covered += (4 + path_len);
 	}
 
-	inode->i_erasure = (sstack_erasure_t *) erasure;
+	inode->i_erasure = (sstack_extent_t *) erasure;
 
 	// 3. Extent paths
 	cur = (data + get_inode_fixed_fields_len() + covered);
@@ -260,7 +260,7 @@ flatten_inode(sstack_inode_t *inode, size_t *len, log_ctx_t *ctx)
 	int fixed_len = 0;
 	char *temp = 0;
 	int i = 0;
-	sstack_erasure_t *er = NULL;
+	sstack_extent_t *er = NULL;
 	sstack_extent_t *ex = NULL;
 
 	// Parameter validation
@@ -292,24 +292,24 @@ flatten_inode(sstack_inode_t *inode, size_t *len, log_ctx_t *ctx)
 	er = inode->i_erasure;
 	// 2. Erausre
 	for (i = 0; i < inode->i_numerasure; i++) {
-		// First field is er_path
+		// First field is e_path
 		temp = realloc(data, ((*len) + sizeof(sstack_file_handle_t) +
 					sizeof(sstack_cksum_t)));
 		if (NULL == temp) {
 			sfs_log(ctx, SFS_ERR, "%s: Failed to allocate memory for "
-				"storing er_path of inode %lld\n",  __FUNCTION__,
+				"storing e_path of inode %lld\n",  __FUNCTION__,
 				inode->i_num);
 			free(data); // Freeup old 
 			return NULL;
 		}
 		data = temp;
-		memcpy((void *) (data + (*len)), (void *) er->er_path,
+		memcpy((void *) (data + (*len)), (void *) er->e_path,
 				sizeof(sstack_file_handle_t));
 		*len += sizeof(sstack_file_handle_t);
 		// Copy cksum
-		memcpy((void *) (data + (*len)), (void *)&er->er_cksum,
-				sizeof(sstack_erasure_t));
-		*len += sizeof(sstack_erasure_t);
+		memcpy((void *) (data + (*len)), (void *)&er->e_cksum,
+				sizeof(sstack_extent_t));
+		*len += sizeof(sstack_extent_t);
 		er ++;
 	}
 
@@ -494,10 +494,10 @@ del_inode(sstack_inode_t *inode, db_t *db)
 
 static inline void
 sstack_free_erasure(log_ctx_t *ctx,
-				sstack_erasure_t *erasure,
+				sstack_extent_t *erasure,
 				int num_erasure)
 {
-	sstack_erasure_t *er;
+	sstack_extent_t *er;
 	int i = 0;
 
 	// Parameter validation
@@ -510,7 +510,7 @@ sstack_free_erasure(log_ctx_t *ctx,
 	er = erasure;
 
 	while (i < num_erasure) {
-		free(er->er_path);
+		free(er->e_path);
 		er ++;
 		if (NULL == er) {
 			sfs_log(ctx, SFS_ERR, "%s: FATAL ERROR. "

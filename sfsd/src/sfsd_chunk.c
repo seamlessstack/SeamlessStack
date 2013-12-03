@@ -539,7 +539,8 @@ char *get_mount_path(sfs_chunk_domain_t *chunk_domain ,
 		   mount path now */
 		if (strstr(file_handle->name, storage->path)) {
 			/* the match is found!!! */
-			*export_path = storage->path;
+			if (export_path)
+				*export_path = storage->path;
 			return storage->mount_point;
 		}
 	}

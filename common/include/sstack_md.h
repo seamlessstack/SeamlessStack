@@ -142,7 +142,7 @@ typedef struct inode {
 		sstack_sfsd_info_t *i_primary_sfsd; // sfsd having erasure coded stripes
 	};
 	char *i_xattr; // Extended attributes
-	sstack_erasure_t *i_erasure; // Erasure code segment information
+	sstack_extent_t *i_erasure; // Erasure code segment information
 	sstack_extent_t *i_extent; // extents
 	sstack_sfsd_info_t *i_sfsds; // sfsds maintaining this file
 } sstack_inode_t;
