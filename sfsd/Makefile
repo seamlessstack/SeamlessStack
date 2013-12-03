@@ -26,6 +26,7 @@ CFLAGS += -I $(TOPDIR)/policy/include
 CFLAGS += -I ../oss/jerasure_lib
 CFLAGS += -I $(TOPDIR)/db/mongo/include
 CFLAGS += -I $(TOPDIR)/lib/serdes/include
+CFLAGS += -I $(TOPDIR)/oss/mongo-c-driver/src
 CFLAGS += -D_GNU_SOURCE -g
 CFLAGS += -Wall
 CFLAGS += -DMONGO_HAVE_STDINT

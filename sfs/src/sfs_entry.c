@@ -877,8 +877,58 @@ sfs_symlink(const char *from, const char *to)
 int
 sfs_rename(const char *from, const char *to)
 {
+	sstack_inode_t 		inode;
+	char 				*inode_str = NULL;
+	size_t				sz = 0;
+	unsigned long long	inode_num = 0;
+	int					ret  = 0;
 
-	return 0;
+	inode_str = sstack_cache_read_one(mc, from, str_len(from), &sz, sfs_ctx);
+	if (NULL == inode_str) {
+        sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
+                    "for path %s.\n", __FUNCTION__, from);
+        errno = ENOENT;
+        return (-1);
+    }
+	
+	/* Get inode from DB */
+	inode_num = atoll((const char *)inode_str);
+	ret = get_inode(inode_num, &inode, db);
+	if (ret != 0) {
+        sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to get inode %lld. Path = %s "
+                       "error = %d\n", __FUNCTION__, inode_num, from, ret);
+        errno = ret;
+        return (-1);
+    }
+	
+	/* Change inode's path name */
+	strcpy(inode.i_name, to);
+	/*Put back the inode into DB */
+	ret = put_inode(&inode, db);
+	if (ret == -1) {
+        sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to store inode  %lld in db."
+		                        " Inode name = %s \n",
+		                        __FUNCTION__, inode.i_num, inode.i_name);
+        return (-1);
+    }
+
+	/* Remove the old key and replace with new key in memcached 
+	 * for reverse lookup */
+	ret = sstack_cache_remove(mc, from, sfs_ctx);
+	if (ret != 0) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to remove the entry with "
+				"old path Key = %s\n", __FUNCTION__, from);
+		return (-1);
+	}	
+	ret = sstack_cache_store(mc, to, inode_str, (strlen(inode_str) + 1),
+								sfs_ctx);
+	if (ret != 0) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to store object into memcached."
+	                " Key = %s value = %s \n", __FUNCTION__, to, inode_str);
+        return (-1);
+    }
+
+	return (0);
 }
 
 /*
