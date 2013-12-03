@@ -151,9 +151,7 @@ sfs_getattr(const char *path, struct stat *stbuf)
 	stbuf->st_ctime = inode.i_ctime.tv_sec;
 
 	// Free up dynamically allocated fields in inode structure
-	free(inode.i_xattr);
-	free(inode.i_extent);
-	sstack_free_erasure(sfs_ctx, inode.i_erasure, inode.i_numerasure);
+	sstack_free_inode_res(&inode, sfs_ctx);
 
 	return 0;
 }
@@ -234,9 +232,7 @@ sfs_readlink(const char *path, char *buf, size_t size)
 	strncpy(buf, (char *) p->name, p->name_len);
 
 	// Free up dynamically allocated fields in inode structure
-	free(inode.i_xattr);
-	free(inode.i_extent);
-	sstack_free_erasure(sfs_ctx, inode.i_erasure, inode.i_numerasure);
+	sstack_free_inode_res(&inode, sfs_ctx);
 
 	return 0;
 }
@@ -449,6 +445,9 @@ sfs_unlink(const char *path)
 	if (NULL == job_map) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed allocate memory for "
 						"job map \n", __FUNCTION__);
+		// Free up dynamically allocated fields in inode structure
+		sstack_free_inode_res(&inode, sfs_ctx);
+
 		return -1;
 	}
 	job = sfs_job_init();
@@ -456,6 +455,8 @@ sfs_unlink(const char *path)
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed allocate memory for job.\n",
 						__FUNCTION__);
 		free_job_map(job_map);
+		// Free up dynamically allocated fields in inode structure
+		sstack_free_inode_res(&inode, sfs_ctx);
 		return -1;
 	}
 
@@ -516,6 +517,8 @@ sfs_unlink(const char *path)
 			free(job_map->job_status);
 		free_job_map(job_map);
 		free_payload(sfs_global_cache, payload);
+		// Free up dynamically allocated fields in inode structure
+		sstack_free_inode_res(&inode, sfs_ctx);
 
 		return -1;
 	}
@@ -532,6 +535,8 @@ sfs_unlink(const char *path)
 		sfs_job_context_remove(thread_id);
 		free_job_map(job_map);
 		free_payload(sfs_global_cache, payload);
+		// Free up dynamically allocated fields in inode structure
+		sstack_free_inode_res(&inode, sfs_ctx);
 
 		return -1;
 	}
@@ -544,6 +549,8 @@ sfs_unlink(const char *path)
 		sfs_job2thread_map_remove(thread_id);
 		free_job_map(job_map);
 		free_payload(sfs_global_cache, payload);
+		// Free up dynamically allocated fields in inode structure
+		sstack_free_inode_res(&inode, sfs_ctx);
 
 		return -1;
 	}
@@ -556,11 +563,19 @@ sfs_unlink(const char *path)
 		free(job_map->job_status);
 		free_job_map(job_map);
 		free_payload(sfs_global_cache, payload);
+		// Free up dynamically allocated fields in inode structure
+		sstack_free_inode_res(&inode, sfs_ctx);
 
 		return -1;
 	}
 	// Put the thread to wait
 	ret = sfs_wait_for_completion(job_map);
+
+	free(job_map->job_ids);
+	free(job_map->job_status);
+	free_job_map(job_map);
+	free_payload(sfs_global_cache, payload);
+
 	// TODO
 	// Handle failure scenarios (HOW??)
 	// Success is assumed
@@ -570,6 +585,8 @@ sfs_unlink(const char *path)
 	if (ret != 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to delete inode from DB for "
 						"file %s \n", __FUNCTION__, path);
+		// Free up dynamically allocated fields in inode structure
+		sstack_free_inode_res(&inode, sfs_ctx);
 		return -1;
 	}
 
@@ -577,8 +594,13 @@ sfs_unlink(const char *path)
 	if (ret != 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to delete reverse lookup "
 						"for file %s \n", __FUNCTION__, path);
+		// Free up dynamically allocated fields in inode structure
+		sstack_free_inode_res(&inode, sfs_ctx);
 		return -1;
 	}
+
+	// Free up dynamically allocated fields in inode structure
+	sstack_free_inode_res(&inode, sfs_ctx);
 
 	return 0;
 }
@@ -652,6 +674,8 @@ sfs_rmdir(const char *path)
 	if (NULL == job_map) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed allocate memory for "
 						"job map \n", __FUNCTION__);
+		// Free up dynamically allocated fields in inode structure
+		sstack_free_inode_res(&inode, sfs_ctx);
 		return -1;
 	}
 	job = sfs_job_init();
@@ -659,6 +683,8 @@ sfs_rmdir(const char *path)
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed allocate memory for job.\n",
 						__FUNCTION__);
 		free_job_map(job_map);
+		// Free up dynamically allocated fields in inode structure
+		sstack_free_inode_res(&inode, sfs_ctx);
 		return -1;
 	}
 
@@ -694,14 +720,16 @@ sfs_rmdir(const char *path)
 	temp = realloc(job_map->job_ids, job_map->num_jobs *
 					sizeof(sstack_job_id_t));
 	if (NULL == temp) {
-			sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to allocate memory for "
-							"job_ids \n", __FUNCTION__);
-			if (job_map->job_ids)
-					free(job_map->job_ids);
-			free_job_map(job_map);
-			free_payload(sfs_global_cache, payload);
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to allocate memory for "
+						"job_ids \n", __FUNCTION__);
+		if (job_map->job_ids)
+				free(job_map->job_ids);
+		free_job_map(job_map);
+		free_payload(sfs_global_cache, payload);
+		// Free up dynamically allocated fields in inode structure
+		sstack_free_inode_res(&inode, sfs_ctx);
 
-			return -1;
+		return -1;
 	}
 	job_map->job_ids = (sstack_job_id_t *) temp;
 
@@ -719,6 +747,8 @@ sfs_rmdir(const char *path)
 			free(job_map->job_status);
 		free_job_map(job_map);
 		free_payload(sfs_global_cache, payload);
+		// Free up dynamically allocated fields in inode structure
+		sstack_free_inode_res(&inode, sfs_ctx);
 
 		return -1;
 	}
@@ -735,6 +765,8 @@ sfs_rmdir(const char *path)
 		sfs_job_context_remove(thread_id);
 		free_job_map(job_map);
 		free_payload(sfs_global_cache, payload);
+		// Free up dynamically allocated fields in inode structure
+		sstack_free_inode_res(&inode, sfs_ctx);
 
 		return -1;
 	}
@@ -747,6 +779,8 @@ sfs_rmdir(const char *path)
 		sfs_job2thread_map_remove(thread_id);
 		free_job_map(job_map);
 		free_payload(sfs_global_cache, payload);
+		// Free up dynamically allocated fields in inode structure
+		sstack_free_inode_res(&inode, sfs_ctx);
 
 		return -1;
 	}
@@ -759,6 +793,8 @@ sfs_rmdir(const char *path)
 		free(job_map->job_status);
 		free_job_map(job_map);
 		free_payload(sfs_global_cache, payload);
+		// Free up dynamically allocated fields in inode structure
+		sstack_free_inode_res(&inode, sfs_ctx);
 
 		return -1;
 	}
@@ -767,6 +803,13 @@ sfs_rmdir(const char *path)
 	// TODO
 	// Handle failure scenarios (HOW??)
 	// Success is assumed
+
+	free(job_map->job_ids);
+	free(job_map->job_status);
+	free_job_map(job_map);
+	free_payload(sfs_global_cache, payload);
+	// Free up dynamically allocated fields in inode structure
+	sstack_free_inode_res(&inode, sfs_ctx);
 
 	// Delete the inode from DB and free memcached reverse lookup entry
 	ret = del_inode(&inode, db);
@@ -883,14 +926,14 @@ sfs_rename(const char *from, const char *to)
 	unsigned long long	inode_num = 0;
 	int					ret  = 0;
 
-	inode_str = sstack_cache_read_one(mc, from, str_len(from), &sz, sfs_ctx);
+	inode_str = sstack_cache_read_one(mc, from, strlen(from), &sz, sfs_ctx);
 	if (NULL == inode_str) {
         sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
                     "for path %s.\n", __FUNCTION__, from);
         errno = ENOENT;
         return (-1);
     }
-	
+
 	/* Get inode from DB */
 	inode_num = atoll((const char *)inode_str);
 	ret = get_inode(inode_num, &inode, db);
@@ -900,7 +943,7 @@ sfs_rename(const char *from, const char *to)
         errno = ret;
         return (-1);
     }
-	
+
 	/* Change inode's path name */
 	strcpy(inode.i_name, to);
 	/*Put back the inode into DB */
@@ -911,15 +954,17 @@ sfs_rename(const char *from, const char *to)
 		                        __FUNCTION__, inode.i_num, inode.i_name);
         return (-1);
     }
+	// Free up dynamically allocated fields in inode structure
+	sstack_free_inode_res(&inode, sfs_ctx);
 
-	/* Remove the old key and replace with new key in memcached 
+	/* Remove the old key and replace with new key in memcached
 	 * for reverse lookup */
 	ret = sstack_cache_remove(mc, from, sfs_ctx);
 	if (ret != 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to remove the entry with "
 				"old path Key = %s\n", __FUNCTION__, from);
 		return (-1);
-	}	
+	}
 	ret = sstack_cache_store(mc, to, inode_str, (strlen(inode_str) + 1),
 								sfs_ctx);
 	if (ret != 0) {
@@ -1081,8 +1126,13 @@ sfs_chmod(const char *path, mode_t mode)
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to store inode  %lld in db."
 						" Inode name = %s \n",
 						__FUNCTION__, inode.i_num, inode.i_name);
+		// Free up dynamically allocated fields in inode structure
+		sstack_free_inode_res(&inode, sfs_ctx);
 		return -1;
 	}
+
+	// Free up dynamically allocated fields in inode structure
+	sstack_free_inode_res(&inode, sfs_ctx);
 
 	return 0;
 }
@@ -1153,15 +1203,90 @@ sfs_chown(const char *path, uid_t uid, gid_t gid)
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to store inode  %lld in db."
 						" Inode name = %s \n",
 						__FUNCTION__, inode.i_num, inode.i_name);
+		// Free up dynamically allocated fields in inode structure
+		sstack_free_inode_res(&inode, sfs_ctx);
 		return -1;
 	}
+
+	// Free up dynamically allocated fields in inode structure
+	sstack_free_inode_res(&inode, sfs_ctx);
 
 	return 0;
 }
 
+/*
+ * sfs_truncate - truncate entry point of sfs
+ *
+ * path - path name of the file
+ * size - size of the file after the successful operation
+ *
+ * Retruns 0 on success and -1 on failure.
+ */
 int
 sfs_truncate(const char *path, off_t size)
 {
+	sstack_inode_t inode;
+	struct stat status;
+	int ret = -1;
+	char inode_str[MAX_INODE_LEN] = { '\0' };
+	char *inodestr = NULL;
+	unsigned long long inode_num = 0;
+	size_t size1 = 0;
+
+	// Parameter validation
+	if (NULL == path)  {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameter specified \n",
+						__FUNCTION__);
+		errno = ENOENT;
+		return -1;
+	}
+
+	ret = truncate(path, size);
+	if (ret == -1) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: truncate failed for file %s with "
+						"error %d \n", __FUNCTION__, path, errno);
+		return -1;
+	}
+
+	// Get the inode number for the file.
+	inodestr = sstack_cache_read_one(mc, path, strlen(path), &size1, sfs_ctx);
+	if (NULL == inodestr) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
+					"for path %s.\n", __FUNCTION__, path);
+		errno = ENOENT;
+
+		return -1;
+	}
+	inode_num = atoll((const char *)inodestr);
+	// Get inode from DB
+	ret = get_inode(inode_num, &inode, db);
+	if (ret != 0) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to get inode %lld. Path = %s "
+						"error = %d\n", __FUNCTION__, inode_num, path, ret);
+		errno = ret;
+
+		return -1;
+	}
+
+	// Update inode size
+	inode.i_size = size;
+	// TODO
+	// Remove the extent information and sfsds to remove the extent files
+	// There is no NFSv3 operation for truncate. We need to device a new
+	// operation
+
+	// Store inode
+	ret = put_inode(&inode, db);
+	if (ret != 0) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to store inode #%lld for "
+				"path %s. Error %d\n", __FUNCTION__, inode.i_num,
+				inode.i_name, errno);
+		sstack_free_inode_res(&inode, sfs_ctx);
+		return -1;
+	}
+
+	// Free up dynamically allocated fields in inode structure
+	sstack_free_inode_res(&inode, sfs_ctx);
 
 	return 0;
 }
@@ -1350,6 +1475,8 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid offset/size specified \n",
 				__FUNCTION__);
 		errno = EINVAL;
+		// Free up dynamically allocated fields in inode structure
+		sstack_free_inode_res(&inode, sfs_ctx);
 
 		return -1;
 	}
@@ -1360,6 +1487,8 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 	if (NULL == sfsds) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: sfs_idp_get_sfsd_list failed \n",
 				__FUNCTION__);
+		// Free up dynamically allocated fields in inode structure
+		sstack_free_inode_res(&inode, sfs_ctx);
 		return -1;
 	}
 
@@ -1390,6 +1519,8 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 	if (NULL == job_map) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed allocate memory for "
 						"job map \n", __FUNCTION__);
+		// Free up dynamically allocated fields in inode structure
+		sstack_free_inode_res(&inode, sfs_ctx);
 		return -1;
 	}
 	// job_map->command = NFS_READ;
@@ -1422,6 +1553,8 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 			sfs_log(sfs_ctx, SFS_ERR, "%s: Failed allocate memory for job.\n",
 					__FUNCTION__);
 			free_job_map(job_map);
+			// Free up dynamically allocated fields in inode structure
+			sstack_free_inode_res(&inode, sfs_ctx);
 			return -1;
 		}
 
@@ -1464,6 +1597,8 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 				free(job_map->job_ids);
 			free_job_map(job_map);
 			free_payload(sfs_global_cache, payload);
+			// Free up dynamically allocated fields in inode structure
+			sstack_free_inode_res(&inode, sfs_ctx);
 
 			return -1;
 		}
@@ -1484,6 +1619,8 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 				free(job_map->job_status);
 			free_job_map(job_map);
 			free_payload(sfs_global_cache, payload);
+			// Free up dynamically allocated fields in inode structure
+			sstack_free_inode_res(&inode, sfs_ctx);
 
 			return -1;
 		}
@@ -1500,6 +1637,8 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 			sfs_job_context_remove(thread_id);
 			free_job_map(job_map);
 			free_payload(sfs_global_cache, payload);
+			// Free up dynamically allocated fields in inode structure
+			sstack_free_inode_res(&inode, sfs_ctx);
 
 			return -1;
 		}
@@ -1512,6 +1651,8 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 			sfs_job2thread_map_remove(thread_id);
 			free_job_map(job_map);
 			free_payload(sfs_global_cache, payload);
+			// Free up dynamically allocated fields in inode structure
+			sstack_free_inode_res(&inode, sfs_ctx);
 
 			return -1;
 		}
@@ -1538,6 +1679,8 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 		free(job_map->job_status);
 		free_job_map(job_map);
 		free_payload(sfs_global_cache, payload);
+		// Free up dynamically allocated fields in inode structure
+		sstack_free_inode_res(&inode, sfs_ctx);
 
 		return -1;
 	}
@@ -1550,6 +1693,8 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 	free(job_map->job_ids);
 	free(job_map->job_status);
 	free_job_map(job_map);
+	// Free up dynamically allocated fields in inode structure
+	sstack_free_inode_res(&inode, sfs_ctx);
 
 	return (ret);
 }
@@ -1978,6 +2123,8 @@ sfs_setxattr(const char *path, const char *name, const char *value,
 								" Path = %s inode %lld \n",
 								__FUNCTION__, name, path, inode_num);
 				errno = EEXIST;
+				// Free up dynamically allocated fields in inode structure
+				sstack_free_inode_res(&inode, sfs_ctx);
 
 				return -1;
 			} else {
@@ -1986,9 +2133,13 @@ sfs_setxattr(const char *path, const char *name, const char *value,
 					sfs_log(sfs_ctx, SFS_ERR, "%s: Attribute create failed for"
 								" file %s inode %lld . Error = %d \n",
 								__FUNCTION__, path, inode_num, errno);
+					// Free up dynamically allocated fields in inode structure
+					sstack_free_inode_res(&inode, sfs_ctx);
 					return -1;
-				} else
+				} else {
+					sstack_free_inode_res(&inode, sfs_ctx);
 					return 0;
+				}
 			}
 		case XATTR_REPLACE:
 			// Check if attribute exists
@@ -1999,6 +2150,7 @@ sfs_setxattr(const char *path, const char *name, const char *value,
 								__FUNCTION__, name, path, inode_num, name);
 				errno = ENOATTR;
 
+				sstack_free_inode_res(&inode, sfs_ctx);
 				return -1;
 			} else {
 				ret = replace_xattr(&inode, name, value, len);
@@ -2006,9 +2158,12 @@ sfs_setxattr(const char *path, const char *name, const char *value,
 					sfs_log(sfs_ctx, SFS_ERR, "%s: Attribute replace failed for"
 								" file %s inode %lld . Error = %d \n",
 								__FUNCTION__, path, inode_num, errno);
+					sstack_free_inode_res(&inode, sfs_ctx);
 					return -1;
-				} else
+				} else {
+					sstack_free_inode_res(&inode, sfs_ctx);
 					return 0;
+				}
 			}
 		case 0:
 			if (xattr_exists(&inode, name) == 1) {
@@ -2017,22 +2172,29 @@ sfs_setxattr(const char *path, const char *name, const char *value,
 					sfs_log(sfs_ctx, SFS_ERR, "%s: Attribute replace failed for"
 								" file %s inode %lld . Error = %d \n",
 								__FUNCTION__, path, inode_num, errno);
+					sstack_free_inode_res(&inode, sfs_ctx);
 					return -1;
-				} else
+				} else {
+					sstack_free_inode_res(&inode, sfs_ctx);
 					return 0;
+				}
 			} else {
 				ret = append_xattr(&inode, name, value, len);
 				if (ret == -1) {
 					sfs_log(sfs_ctx, SFS_ERR, "%s: Attribute create failed for"
 								" file %s inode %lld . Error = %d \n",
 								__FUNCTION__, path, inode_num, errno);
+					sstack_free_inode_res(&inode, sfs_ctx);
 					return -1;
-				} else
+				} else {
+					sstack_free_inode_res(&inode, sfs_ctx);
 					return 0;
+				}
 			}
 		default:
 			sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid flags specified \n");
 			errno = EINVAL;
+			sstack_free_inode_res(&inode, sfs_ctx);
 
 			return -1;
 	}
@@ -2137,6 +2299,7 @@ sfs_getxattr(const char *path, const char *name, char *value, size_t size)
 	sfs_log(sfs_ctx, SFS_ERR, "%s: Attribute %s not found for path %s\n",
 					__FUNCTION__, name, path);
 	errno = ENOATTR;
+	sstack_free_inode_res(&inode, sfs_ctx);
 
 	return -1;
 }
@@ -2230,6 +2393,7 @@ sfs_listxattr(const char *path, char *list, size_t size)
 			i++;
 	}
 
+	sstack_free_inode_res(&inode, sfs_ctx);
 	return bytes_copied;
 }
 
@@ -2395,6 +2559,7 @@ sfs_removexattr(const char *path, const char *name)
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Removing xattr %s failed for file %s\n",
 						__FUNCTION__, name, path);
 		errno = ENOATTR;
+		sstack_free_inode_res(&inode, sfs_ctx);
 		return -1;
 	}
 
@@ -2404,8 +2569,11 @@ sfs_removexattr(const char *path, const char *name)
 		sfs_log(sfs_ctx, SFS_ERR, "%s: put inode failed. Error = %d\n",
 						__FUNCTION__, errno);
 		// Don't modify errno set by put_inode
+		sstack_free_inode_res(&inode, sfs_ctx);
 		return -1;
 	}
+
+	sstack_free_inode_res(&inode, sfs_ctx);
 
 	return 0;
 }
@@ -2488,21 +2656,18 @@ sfs_access(const char *path, int mode)
 	if (mode & F_OK) {
 		// Application is checking whether file exists
 		// Since file info is in db, file exists.
-		free(inode.i_xattr);
-		free(inode.i_extent);
+		sstack_free_inode_res(&inode, sfs_ctx);
 
 		return 0;
 	}
 
 	if (inode.i_mode & mode) {
 		// Mode is a subset of what is set in inode
-		free(inode.i_xattr);
-		free(inode.i_extent);
+		sstack_free_inode_res(&inode, sfs_ctx);
 
 		return 0;
 	 } else {
-		free(inode.i_xattr);
-		free(inode.i_extent);
+		sstack_free_inode_res(&inode, sfs_ctx);
 		errno = EACCES;
 
 		return  -1;
@@ -2621,12 +2786,85 @@ sfs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 	return 0;
 }
 
+/*
+ * sfs_ftruncate - Truncate the file to 'offset' bytes
+ *
+ * path - Path name of the file
+ * offset - Length of the file after the operation if successful
+ * fi - FUSE handle of the file
+ *
+ * Returns 0 on success and -1 on failure.
+ */
 int
 sfs_ftruncate(const char *path, off_t offset, struct fuse_file_info *fi)
 {
+	sstack_inode_t inode;
+	struct stat status;
+	int ret = -1;
+	char inode_str[MAX_INODE_LEN] = { '\0' };
+	char *inodestr = NULL;
+	unsigned long long inode_num = 0;
+	size_t size = 0;
+
+	// Parameter validation
+	if (NULL == path || NULL == fi) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters specified \n",
+						__FUNCTION__);
+		errno = ENOENT;
+		return -1;
+	}
+
+	ret = ftruncate(fi->fh, offset);
+	if (ret == -1) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: ftruncate failed for file %s with "
+						"error %d \n", __FUNCTION__, path, errno);
+		return -1;
+	}
+
+	// Get the inode number for the file.
+	inodestr = sstack_cache_read_one(mc, path, strlen(path), &size, sfs_ctx);
+	if (NULL == inodestr) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
+					"for path %s.\n", __FUNCTION__, path);
+		errno = ENOENT;
+
+		return -1;
+	}
+	inode_num = atoll((const char *)inodestr);
+	// Get inode from DB
+	ret = get_inode(inode_num, &inode, db);
+	if (ret != 0) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to get inode %lld. Path = %s "
+						"error = %d\n", __FUNCTION__, inode_num, path, ret);
+		errno = ret;
+
+		return -1;
+	}
+
+	// Update inode size
+	inode.i_size = offset;
+	// TODO
+	// Remove the extent information and sfsds to remove the extent files
+	// There is no NFSv3 operation for truncate. We need to device a new
+	// operation
+
+	// Store inode
+	ret = put_inode(&inode, db);
+	if (ret != 0) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to store inode #%lld for "
+				"path %s. Error %d\n", __FUNCTION__, inode.i_num,
+				inode.i_name, errno);
+		sstack_free_inode_res(&inode, sfs_ctx);
+		return -1;
+	}
+
+	// Free up dynamically allocated fields in inode structure
+	sstack_free_inode_res(&inode, sfs_ctx);
 
 	return 0;
 }
+
+
 
 int
 sfs_fgetattr(const char *path, struct stat *stbuf, struct fuse_file_info *fi)

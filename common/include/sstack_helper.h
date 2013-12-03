@@ -523,4 +523,27 @@ sstack_free_erasure(log_ctx_t *ctx,
 	free(erasure);
 }
 
+/*
+ * sstack_free_inode_res - Helper function to free up memory allocated
+ *							to inode during get_inode
+ *
+ * inode - inode structure
+ */
+
+static inline void
+sstack_free_inode_res(sstack_inode_t *inode, log_ctx_t *ctx)
+{
+	if (NULL == inode)
+		return;
+
+	if (inode->i_xattr)
+		free(inode->i_xattr);
+	if (inode->i_extent)
+		free(inode->i_extent);
+
+	sstack_free_erasure(ctx, inode->i_erasure, inode->i_numerasure);
+}
+
+
+
 #endif //__SSTACK_HELPER_H_
