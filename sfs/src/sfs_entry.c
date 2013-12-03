@@ -2578,27 +2578,6 @@ sfs_removexattr(const char *path, const char *name)
 	return 0;
 }
 
-int
-sfs_opendir(const char *path, struct fuse_file_info *fi)
-{
-
-	return 0;
-}
-
-int
-sfs_releasedir(const char *path, struct fuse_file_info *fi)
-{
-
-	return 0;
-}
-
-int
-sfs_fsyncdir(const char *path, int isdatasync, struct fuse_file_info *fi)
-{
-
-	return 0;
-}
-
 void
 sfs_destroy(void *arg)
 {
