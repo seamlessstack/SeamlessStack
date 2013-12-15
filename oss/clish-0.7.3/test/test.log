@@ -1,0 +1,10 @@
+BEGIN: Testing 'lub_string'.
+001     :        *** Sequence 'lub_string_nocasecmp()' begins ***
+001-0000: [pass] Check 'HeLlO' == 'hello'
+001-0001: [pass] Check 'HeLlO' > 'hell'
+001-0002: [pass] Check 'hell'  < 'HeLlO'
+001-0003: [pass] Check 'HeLlO' < 'hellp'
+001-0004: [pass] Check 'hellp' > 'HeLlO'
+001     :        ------------------------------------------------------------
+END: Test 'lub_string' PASSED (5 tests).
+

@@ -1,0 +1,16 @@
+test/string.o: test/string.c lub/test.h \
+ /usr/lib/gcc/x86_64-linux-gnu/4.7/include/stdarg.h lub/types.h \
+ lub/string.h /usr/lib/gcc/x86_64-linux-gnu/4.7/include/stddef.h \
+ lub/c_decl.h
+
+lub/test.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/4.7/include/stdarg.h:
+
+lub/types.h:
+
+lub/string.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/4.7/include/stddef.h:
+
+lub/c_decl.h:

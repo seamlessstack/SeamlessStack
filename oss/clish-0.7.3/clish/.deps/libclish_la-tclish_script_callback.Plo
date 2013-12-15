@@ -1,0 +1,4 @@
+clish/libclish_la-tclish_script_callback.lo: \
+ clish/tclish_script_callback.c config.h
+
+config.h:
