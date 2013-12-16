@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CLISH_MODULE xmlns="http://clish.sourceforge.net/XMLSchema" 
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+ xsi:schemaLocation="http://clish.sourceforge.net/XMLSchema
+                     http://clish.sourceforge.net/XMLSchema/clish.xsd">
+	<!--=======================================================-->
+   <COMMAND name="sfsd"
+            help="sfsd">
+       <DETAIL>
+SeemlessStack file system is a distributed file system with two main components:
+		- sfs
+		- sfsd
+Each sfs manages one or more sfsds which are distributed over LAN/WAN.
+Each sfsd manages the chunk domain consistsing of chunks. This CLI specifies
+sfsd location to sfs.
+       </DETAIL>
+       <PARAM name="ipaddr"
+               help="IP address of the node hosting sfsd"
+              ptype="IP_ADDR"
+             prefix=""
+            default="127.0.0.1" />
+       <PARAM name="port"
+               help="Port number on which sfsd listens"
+              ptype="UINT"
+             prefix=""/>
+		<PARAM name="decommission"
+				help="Decommission the sfsd"
+				ptype="BOOL"
+				default="false"/>
+       <ACTION>exec </ACTION>
+   </COMMAND>
+   <!--=======================================================-->    
+</CLISH_MODULE>

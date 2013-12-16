@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CLISH_MODULE xmlns="http://clish.sourceforge.net/XMLSchema" 
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+ xsi:schemaLocation="http://clish.sourceforge.net/XMLSchema
+                     http://clish.sourceforge.net/XMLSchema/clish.xsd">
+	<!--=======================================================-->
+   <COMMAND name="storage add"
+            help="storage add">
+       <DETAIL>
+Add storage managed by SFS. Specify 0 as size to consider complete size.
+       </DETAIL>
+       <PARAM name="ipaddr"
+               help="IP address of the node providing storage"
+              ptype="IP_ADDR"
+             prefix=""
+            default="127.0.0.1"/>
+       <PARAM name="remotepath"
+               help="Path of the remote storage"
+              ptype="STRING"
+             prefix=""/>
+		<PARAM name="proto"
+				help="Network protocol used to reach this storage"
+				ptype="PROTOCOL"
+				default="NFS"/>
+		<PARAM name="type"
+				help="Storage media type"
+				ptype="STYPE"
+				default="HDD"/>
+		<PARAM name="size"
+				help="Storage size to be managed by sfs"
+				ptype="UINT"
+				default="0"/>
+       <ACTION>exec </ACTION>
+   </COMMAND>
+
+   <COMMAND name="storage delete"
+   			help="storage del">
+		<DETAIL>
+Delete storage managed by SFS.
+		</DETAIL>
+		<PARAM name="ipaddr"
+				help="IP address of the node providing storage"
+				ptype="IP_ADDR"
+				default="127.0.0.1"/>
+       <PARAM name="remotepath"
+               help="Path of the remote storage"
+              ptype="STRING"
+             prefix=""/>
+       <ACTION>exec </ACTION>
+   </COMMAND>
+
+   <COMMAND name="storage update"
+   			help="storage size update">
+		<DETAIL>
+Update storage size anaged by SFS.
+		</DETAIL>
+		<PARAM name="ipaddr"
+				help="IP address of the node providing storage"
+				ptype="IP_ADDR"
+				default="127.0.0.1"/>
+       <PARAM name="remotepath"
+               help="Path of the remote storage"
+              ptype="STRING"
+             prefix=""/>
+		<PARAM name="size"
+				help="Storage size to be managed by sfs"
+				ptype="UINT"
+				default="0"/>
+       <ACTION>exec </ACTION>
+   </COMMAND>
+
+   <!--=======================================================-->    
+</CLISH_MODULE>
