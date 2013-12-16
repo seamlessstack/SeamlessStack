@@ -17,6 +17,8 @@
 
 
 
+TOPDIR=../../
+CLISHDIR=$(TOPDIR)/oss/clish-0.7.3
 srcdir = .
 top_srcdir = .
 
@@ -434,7 +436,7 @@ LTCOMPILE = $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) \
 	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
 	$(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
-LINK = $(LIBTOOL) --tag=CC --mode=link gcc-4.7 $(AM_CFLAGS) $(CFLAGS) \
+LINK = $(LIBTOOL) --tag=CC --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -442,7 +444,7 @@ LTCXXCOMPILE = $(LIBTOOL) --tag=CXX --mode=compile $(CC) $(DEFS) \
 	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
 	$(AM_CXXFLAGS) $(CXXFLAGS)
 CXXLD = $(CXX)
-CXXLINK = $(LIBTOOL) --tag=CXX --mode=link $(CXXLD) $(AM_CXXFLAGS) \
+CXXLINK = $(LIBTOOL) --tag=CXX --mode=link $(CXX) $(AM_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 SOURCES = $(libclish_la_SOURCES) $(liblub_la_SOURCES) \
 	$(liblubheap_la_SOURCES) $(libtinyrl_la_SOURCES) \
@@ -472,21 +474,21 @@ DIST_ARCHIVES = $(distdir).tar.gz
 GZIP_ENV = --best
 distuninstallcheck_listfiles = find . -type f -print
 distcleancheck_listfiles = find . -type f -print
-ACLOCAL = ${SHELL} /home/shubhro/clish-0.7.3/aux_scripts/missing --run aclocal-1.9
+ACLOCAL = ${SHELL} $(CLISHDIR)/aux_scripts/missing --run aclocal-1.9
 AMDEP_FALSE = #
 AMDEP_TRUE = 
-AMTAR = ${SHELL} /home/shubhro/clish-0.7.3/aux_scripts/missing --run tar
+AMTAR = ${SHELL} $(CLISHDIR)/aux_scripts/missing --run tar
 AR = ar
 AS = as
-AUTOCONF = ${SHELL} /home/shubhro/clish-0.7.3/aux_scripts/missing --run autoconf
-AUTOHEADER = ${SHELL} /home/shubhro/clish-0.7.3/aux_scripts/missing --run autoheader
-AUTOMAKE = ${SHELL} /home/shubhro/clish-0.7.3/aux_scripts/missing --run automake-1.9
+AUTOCONF = ${SHELL} $(CLISHDIR)/aux_scripts/missing --run autoconf
+AUTOHEADER = ${SHELL} $(CLISHDIR)/aux_scripts/missing --run autoheader
+AUTOMAKE = ${SHELL} $(CLISHDIR)/aux_scripts/missing --run automake-1.9
 AWK = gawk
 BFD_LIBS = 
-CC = gcc-4.7
+CC = gcc
 CCDEPMODE = depmode=gcc3
 CFLAGS = -g -O2
-CPP = gcc-4.7 -E
+CPP = gcc -E
 CPPFLAGS = 
 CXX = g++
 CXXCPP = g++ -E
@@ -524,7 +526,7 @@ LUBHEAP_LIBS =
 LUBHEAP_TRUE = #
 LUB_CFLAGS = 
 LUB_LIBS = -llub
-MAKEINFO = ${SHELL} /home/shubhro/clish-0.7.3/aux_scripts/missing --run makeinfo
+MAKEINFO = ${SHELL} $(CLISHDIR)/aux_scripts/missing --run makeinfo
 NMEDIT = 
 OBJDUMP = objdump
 OBJEXT = o
@@ -536,7 +538,7 @@ PACKAGE_TARNAME = clish
 PACKAGE_VERSION = 0.7.3
 PATH_SEPARATOR = :
 PTHREAD_CFLAGS = 
-PTHREAD_LIBS = -pthread
+PTHREAD_LIBS = -lpthread
 RANLIB = ranlib
 RT_CFLAGS = 
 RT_LIBS = -lrt
@@ -552,7 +554,7 @@ TINYRL_LIBS = -ltinyrl
 TINYXML_CXXFLAGS = -std=gnu++98
 TINYXML_LIBS = -ltinyxml
 VERSION = 0.7.3
-ac_ct_CC = gcc-4.7
+ac_ct_CC = gcc
 ac_ct_CXX = g++
 ac_ct_F77 = 
 am__fastdepCC_FALSE = #
@@ -574,7 +576,7 @@ datadir = ${datarootdir}
 datarootdir = ${prefix}/share
 docdir = ${datarootdir}/doc/${PACKAGE_TARNAME}
 dvidir = ${docdir}
-exec_prefix = /usr/local
+exec_prefix = $(TOPDIR)/oss_install
 host = x86_64-unknown-linux-gnu
 host_alias = 
 host_cpu = x86_64
@@ -583,8 +585,8 @@ host_vendor = unknown
 htmldir = ${docdir}
 includedir = ${prefix}/include
 infodir = ${datarootdir}/info
-install_sh = /home/shubhro/clish-0.7.3/aux_scripts/install-sh
-libdir = /usr/local/lib
+install_sh = $(CLISHDIR)/aux_scripts/install-sh
+libdir = $(TOPDIR)/oss_install/lib
 libexecdir = ${exec_prefix}/libexec
 localedir = ${datarootdir}/locale
 localstatedir = ${prefix}/var
@@ -592,7 +594,7 @@ mandir = ${datarootdir}/man
 mkdir_p = mkdir -p --
 oldincludedir = /usr/include
 pdfdir = ${docdir}
-prefix = /usr/local
+prefix = $(TOPDIR)/oss_install
 program_transform_name = s,x,x,
 psdir = ${docdir}
 sbindir = ${exec_prefix}/sbin
@@ -652,7 +654,7 @@ bin_clish_LDADD = \
     -ltinyxml \
      \
     -llub     \
-    -pthread \
+    -lpthread \
     
 
 bin_tclish_SOURCES = bin/tclish.cpp
@@ -663,7 +665,7 @@ bin_tclish_LDADD = \
                         \
                     \
     -llub                    \
-    -pthread                \
+    -lpthread                \
     
 
 libclish_la_SOURCES = clish/clish_access_callback.c \
@@ -1055,7 +1057,7 @@ clish/view/libclish_la-view.lo: clish/view/$(am__dirstamp) \
 clish/view/libclish_la-view_dump.lo: clish/view/$(am__dirstamp) \
 	clish/view/$(DEPDIR)/$(am__dirstamp)
 libclish.la: $(libclish_la_OBJECTS) $(libclish_la_DEPENDENCIES) 
-	$(CXXLINK) -rpath $(libdir) $(libclish_la_LDFLAGS) $(libclish_la_OBJECTS) $(libclish_la_LIBADD) $(LIBS)
+	$(CXXLINK)  $(libclish_la_LDFLAGS) $(libclish_la_OBJECTS) $(libclish_la_LIBADD) $(LIBS)
 lub/argv/$(am__dirstamp):
 	@$(mkdir_p) lub/argv
 	@: > lub/argv/$(am__dirstamp)
@@ -1345,7 +1347,7 @@ lub/test/$(DEPDIR)/$(am__dirstamp):
 lub/test/test.lo: lub/test/$(am__dirstamp) \
 	lub/test/$(DEPDIR)/$(am__dirstamp)
 liblub.la: $(liblub_la_OBJECTS) $(liblub_la_DEPENDENCIES) 
-	$(LINK) -rpath $(libdir) $(liblub_la_LDFLAGS) $(liblub_la_OBJECTS) $(liblub_la_LIBADD) $(LIBS)
+	$(LINK) $(liblub_la_LDFLAGS) $(liblub_la_OBJECTS) $(liblub_la_LIBADD) $(LIBS)
 lubheap/posix/$(am__dirstamp):
 	@$(mkdir_p) lubheap/posix
 	@: > lubheap/posix/$(am__dirstamp)
@@ -1383,7 +1385,7 @@ tinyrl/vt100/$(DEPDIR)/$(am__dirstamp):
 tinyrl/vt100/vt100.lo: tinyrl/vt100/$(am__dirstamp) \
 	tinyrl/vt100/$(DEPDIR)/$(am__dirstamp)
 libtinyrl.la: $(libtinyrl_la_OBJECTS) $(libtinyrl_la_DEPENDENCIES) 
-	$(LINK) -rpath $(libdir) $(libtinyrl_la_LDFLAGS) $(libtinyrl_la_OBJECTS) $(libtinyrl_la_LIBADD) $(LIBS)
+	$(LINK) $(libtinyrl_la_LDFLAGS) $(libtinyrl_la_OBJECTS) $(libtinyrl_la_LIBADD) $(LIBS)
 tinyxml/$(am__dirstamp):
 	@$(mkdir_p) tinyxml
 	@: > tinyxml/$(am__dirstamp)
@@ -1399,7 +1401,7 @@ tinyxml/libtinyxml_la-tinyxmlparser.lo: tinyxml/$(am__dirstamp) \
 tinyxml/libtinyxml_la-tinystr.lo: tinyxml/$(am__dirstamp) \
 	tinyxml/$(DEPDIR)/$(am__dirstamp)
 libtinyxml.la: $(libtinyxml_la_OBJECTS) $(libtinyxml_la_DEPENDENCIES) 
-	$(CXXLINK) -rpath $(libdir) $(libtinyxml_la_LDFLAGS) $(libtinyxml_la_OBJECTS) $(libtinyxml_la_LIBADD) $(LIBS)
+	$(CXXLINK)  $(libtinyxml_la_LDFLAGS) $(libtinyxml_la_OBJECTS) $(libtinyxml_la_LIBADD) $(LIBS)
 install-binPROGRAMS: $(bin_PROGRAMS)
 	@$(NORMAL_INSTALL)
 	test -z "$(bindir)" || $(mkdir_p) "$(DESTDIR)$(bindir)"
