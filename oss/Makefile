@@ -26,6 +26,7 @@ OSS_INSTALL_DIR = $(OSS_DIR)/oss_install
 OSS_LIBSDIR = $(OSS_INSTALL_DIR)/lib
 OPENSSL_DIR = openssl-1.0.1c
 RBTREE_DIR = rbtree
+CLISH_DIR = clish-0.7.3
 RM = rm
 CC = gcc
 CP = cp
@@ -48,6 +49,7 @@ all: $(CONFIGURE)
 	$(CP) $(OPENSSL_DIR)/*.so $(OSS_LIBSDIR)
 	$(MAKE) -C $(RBTREE_DIR)
 	$(CP) $(RBTREE_DIR)/*.so $(OSS_LIBSDIR)
+	$(MAKE) -C $(CLISH_DIR)
 
 $(CONFIGURE):
 	$(CD) $(MEMCACHEDDIR) && ./configure --prefix=$(OSS_INSTALL_DIR)
@@ -60,3 +62,4 @@ clean:
 	$(MAKE) -C $(LZ4DIR) clean
 	$(MAKE) -C $(OPENSSL_DIR) clean
 	$(MAKE) -C $(RBTREE_DIR) clean
+	$(MAKE) -C $(CLISH_DIR) clean
