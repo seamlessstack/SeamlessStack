@@ -60,14 +60,16 @@ typedef enum sstack_command {
 	NFS_FSINFO = 25,
 	NFS_PATHCONF = 26,
 	NFS_COMMIT = 27,
-	NFS_GETATTR_RSP = 28,
-	NFS_LOOKUP_RSP = 29,
-	NFS_ACCESS_RSP = 30,
-	NFS_READLINK_RSP = 31,
-	NFS_READ_RSP = 32,
-	NFS_WRITE_RSP = 33,
-	NFS_CREATE_RSP = 34,
-	NFS_VALID_MAX = 34,
+	NFS_ESURE_CODE = 28,
+	NFS_GETATTR_RSP = 29,
+	NFS_LOOKUP_RSP = 30,
+	NFS_ACCESS_RSP = 31,
+	NFS_READLINK_RSP = 32,
+	NFS_READ_RSP = 33,
+	NFS_WRITE_RSP = 34,
+	NFS_CREATE_RSP = 35,
+	NFS_ESURE_CODE_RSP = 36,
+	NFS_VALID_MAX = 36,
 } sstack_command_t;
 
 /* Data structures for individual commands */
@@ -104,6 +106,11 @@ typedef struct sstack_file_handle {
 	sstack_address_t address;
 } sstack_file_handle_t;
 
+typedef struct sstack_extent_range {
+	int32_t		start_ext;
+	int32_t		end_ext;
+} sstack_extent_range_t;
+
 /* =============== COMMAND STRUCTURES ========================*/
 
 struct sstack_chunk_cmd {
@@ -117,6 +124,13 @@ struct sstack_nfs_setattr_cmd {
 struct sstack_nfs_lookup_cmd {
 	sstack_file_handle_t where;
 	sstack_file_handle_t what;
+};
+
+struct sstack_nfs_esure_code_cmd {
+	uint64_t inode_no;
+	int32_t	 check_extents;
+	int32_t	 num_blocks;
+	sstack_extent_range_t *ext_blocks;
 };
 
 struct sstack_nfs_read_cmd {
@@ -202,6 +216,9 @@ typedef struct sstack_command_struct {
 
 		/* NFS v3 ACCESS command */
 		struct sstack_nfs_access_cmd access_cmd;
+		
+		/* NFS v3 Erasure code command */
+		struct sstack_nfs_esure_code_cmd esure_code_cmd;
 
 		/* NFS v3 READ command */
 		struct sstack_nfs_read_cmd read_cmd;

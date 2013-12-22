@@ -822,6 +822,131 @@ error:
 
 }
 
+sstack_payload_t *sstack_esure_code(sstack_payload_t *payload, 
+										sfsd_t *sfsd, log_ctx_t *ctx)
+{
+	int32_t i, j, k, min_start_ext = 0, ret = 0;
+	int32_t	command_stat = SSTACK_SUCCESS;
+	sstack_inode_t	*inode = NULL;
+	struct sstack_nfs_esure_code_cmd *cmd = 
+								&payload->command_struct.esure_code_cmd;
+	void *d_stripes[MAX_DATA_STRIPES], *c_stripes[CODE_STRIPES];
+	char mount_path[PATH_MAX];
+
+	inode = bds_cache_alloc(sfsd_global_cache_arr[INODE_CACHE_OFFSET]);
+	if (inode == NULL) {
+		command_stat = -ENOMEM;
+		sfs_log(ctx, SFS_ERR, "%s(): %s\n",
+				__FUNCTION__, "Inode cache mem not available");
+		goto done;
+	}
+
+	if (get_inode(cmd->inode_no, inode, sfsd->db) != 0) {
+		command_stat = -EINVAL;
+		sfs_log(ctx, SFS_ERR, "%s(): Inode not available",
+				__FUNCTION__);
+		goto done;
+	}
+
+	if (cmd->num_blocks == 0) {
+		command_stat = SSTACK_SUCCESS;
+		goto done;
+	}	
+		
+	/* Find the min start ext index and do erasure code from there on for 
+	 * all following extents.  
+	 * This is for both simplying as well as performance optimization as 
+	 * the erasure code groups for all the extents from the min start ext 
+	 * will now change and hence every group requires erasure code 
+	 */  
+	min_start_ext = cmd->ext_blocks[0].start_ext;
+	for (i = 1 ; i < cmd->num_blocks; i++) {
+		if (cmd->ext_blocks[i].start_ext < min_start_ext) 
+			min_start_ext = cmd->ext_blocks[i].start_ext;
+	}		
+
+	min_start_ext = min_start_ext - (min_start_ext % MAX_DATA_STRIPES);
+	/* Check the data extents from the min_start_ext to the end. Even if one 
+	 * of them is corrupted, we will terminate this command and notify SFS
+	 * to recover the extents from the DR or its replicas and then issue this 
+	 * esure command
+	 */   
+	for (j = 0; j < MAX_DATA_STRIPES; j++) {
+		d_stripes[j] =
+				bds_cache_alloc(sfsd_global_cache_arr[DATA64K_CACHE_OFFSET]);
+		if (d_stripes[j] == NULL) {
+			sfs_log(ctx, SFS_ERR, "%s(): Error getting read buffer\n",
+					__FUNCTION__);
+			for (k = 0; k < j; k++) 
+				bds_cache_free(sfsd_global_cache_arr[DATA64K_CACHE_OFFSET],
+								d_stripes[k]);
+			command_stat = -ENOMEM;
+			goto done;
+		}
+	}
+
+	for (j = 0; j < CODE_STRIPES; j++) {
+		c_stripes[j] =
+				bds_cache_alloc(sfsd_global_cache_arr[DATA64K_CACHE_OFFSET]);
+		if (c_stripes[j] == NULL) {
+			sfs_log(ctx, SFS_ERR, "%s(): Error getting read buffer\n",
+					__FUNCTION__);
+			for (k = 0; k < j; k++) 
+				bds_cache_free(sfsd_global_cache_arr[DATA64K_CACHE_OFFSET],
+								c_stripes[k]);
+			command_stat = -ENOMEM;
+			goto done;
+		}
+	}
+
+	j = 0;
+	for (i = min_start_ext; i < inode->i_numextents; i++) {
+		ret = get_extent(inode->i_extent, inode->i_numextents, i, NULL,
+							sfsd, mount_path, ctx);
+		command_stat = read_check_extent(mount_path, ERASURE_STRIPE_SIZE, TRUE,
+							inode->i_extent[i].e_cksum, d_stripes[j], ctx);
+		if (command_stat == -SSTACK_ECKSUM) 
+			goto done;
+		j++;
+		if (!(j % MAX_DATA_STRIPES)) {
+			ret = sfs_esure_encode(d_stripes, MAX_DATA_STRIPES, c_stripes,
+						CODE_STRIPES, ERASURE_STRIPE_SIZE);
+			if (ret != 0) {
+				command_stat = -SSTACK_FAILURE;
+				goto done;
+			}
+			// Write c_stripes to the chunk domain
+		}
+	}
+	
+	if (j > 0) {
+		ret = sfs_esure_encode(d_stripes, j, c_stripes, 
+							CODE_STRIPES, ERASURE_STRIPE_SIZE);
+		if (ret != 0) {
+			command_stat = -SSTACK_FAILURE;
+			goto done;
+		}
+		// Write c_stripes to the chunk_domain
+	}
+
+done:
+	for (j = 0; j < MAX_DATA_STRIPES; j++)
+		bds_cache_free(sfsd_global_cache_arr[DATA64K_CACHE_OFFSET],
+						d_stripes[j]);				
+	for (j = 0; j < CODE_STRIPES; j++)
+		bds_cache_free(sfsd_global_cache_arr[DATA64K_CACHE_OFFSET],
+						c_stripes[j]);
+
+	/* Is an inode level lock required to make the change */	
+	if (command_stat != SSTACK_SUCCESS)	
+		inode->i_esure_valid = 0;	
+	else
+		inode->i_esure_valid = 1;
+	payload->response_struct.command_ok = command_stat;
+	payload->command = NFS_ESURE_CODE_RSP;
+	return payload;
+}
+
 sstack_payload_t *sstack_symlink(sstack_payload_t *payload, log_ctx_t *ctx)
 {
 	int32_t command_stat = 0;

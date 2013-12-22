@@ -320,6 +320,9 @@ void handle_command(sstack_payload_t *command, sstack_payload_t **response,
 		case NFS_COMMIT:
 			*response = sstack_commit(command, log_ctx);
 			break;
+		case NFS_ESURE_CODE:
+			*response = sstack_esure_code(command, sfsd, log_ctx);
+			break;
 		default:
 			break;
 	};

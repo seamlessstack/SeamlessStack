@@ -137,6 +137,7 @@ typedef struct inode {
 		int i_numclients; // Number of sfsds maintaining this file
 		uint64_t i_erasure_stripe_size; // Erasure code stripe size
 		unsigned int i_numerasure; // Number of erasure code extents
+		int	i_esure_valid;
 		int i_numextents; // Number of extents
 		size_t i_xattrlen; // Extended attibute len
 		sstack_sfsd_info_t *i_primary_sfsd; // sfsd having erasure coded stripes

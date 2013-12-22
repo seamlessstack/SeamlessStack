@@ -106,4 +106,7 @@ sstack_payload_t* sstack_commit(
 		sstack_payload_t *payload,
 		log_ctx_t *ctx);
 
+sstack_payload_t* sstack_esure_code(
+		sstack_payload_t *payload,
+		sfsd_t *sfsd, log_ctx_t *ctx);
 #endif /* __SFSD_OPS_H_ */

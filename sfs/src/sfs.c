@@ -652,8 +652,12 @@ sfs_process_payload(void *arg)
 	sstack_payload_t *payload = (sstack_payload_t *) arg;
 
 	switch (payload->command) {
-		case (NFS_READ):
+		case (NFS_READ_RSP):
 			sfs_process_read_response(payload);
+			break;
+	
+		case (NFS_ESURE_CODE_RSP):
+			//sfs_process_esure_code_response(payload);
 			break;
 
 		default:
