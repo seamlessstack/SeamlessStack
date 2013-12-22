@@ -37,7 +37,7 @@ typedef enum {
 
 // RB-tree node for storing locks for the files
 
-typedef struct ssatck_file_lock sstack_file_lock_t;
+typedef struct sstack_file_lock sstack_file_lock_t;
 struct sstack_file_lock {
 	uint32_t magic;
 	rb_node(sstack_file_lock_t) link;
@@ -120,7 +120,7 @@ filelock_tree_init(void)
  * Returns newly allocated node upon success and NULL upon failure.
  */
 
-static inline sstack_file_lock_t *
+static sstack_file_lock_t *
 create_filelocktree_node(void)
 {
 	sstack_file_lock_t *node = NULL;
@@ -152,7 +152,7 @@ sfs_filelock_context_insert(unsigned long long inode_num)
 	sstack_file_lock_t *node = NULL;
 
 	// Parameter validation
-	if (inode_num < 0)
+	if (inode_num < 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameter specified \n",
 						__FUNCTION__);
 		errno = EINVAL;
@@ -343,7 +343,7 @@ sfs_wrlock(unsigned long long inode_num)
 		}
 		file_lock->inode_num = inode_num;
 		pthread_spin_lock(&file_lock->lock);
-		file_lock->state = WRLOCK;
+		file_lock->state = WRLOCKED;
 		pthread_spin_unlock(&file_lock->lock);
 		// Update the lock information in RB-tree
 		filelock_tree_insert(filelock_tree, file_lock);
