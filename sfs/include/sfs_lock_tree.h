@@ -46,7 +46,7 @@ struct sstack_file_lock {
 	pthread_spinlock_t lock; // To protect state field
 };
 
-
+extern pthread_spinlock_t filelock_lock;
 
 // FUNCTIONS
 
@@ -165,8 +165,10 @@ sfs_filelock_context_insert(unsigned long long inode_num)
 		return -1;
 
 	node->inode_num = inode_num;
-	
+
+	pthread_spin_lock(&filelock_lock);	
 	filelock_tree_insert(filelock_tree, node);
+	pthread_spin_unlock(&filelock_lock);	
 
 	return 0;
 }
@@ -197,18 +199,21 @@ sfs_filelock_context_remove(unsigned long long inode_num)
 	snode.magic = LOCKNODE_MAGIC;
 	snode.inode_num = inode_num;
 
+	pthread_spin_lock(&filelock_lock);	
 	node = filelock_tree_search(filelock_tree, &snode);
 	if (NULL == node) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Node with key %lld not present in "
 						"filelock tree \n", __FUNCTION__, inode_num);
 
 		errno = EFAULT;
+		pthread_spin_unlock(&filelock_lock);	
 
 		return;
 	}
 
 	// Delete the node
 	filelock_tree_remove(filelock_tree, node);
+	pthread_spin_unlock(&filelock_lock);	
 	errno = 0;
 
 	return;
@@ -238,6 +243,7 @@ sfs_rdlock(unsigned long long inode_num)
 	// Obtain the file lock structure for the inode
 	node.magic = LOCKNODE_MAGIC;
 	node.inode_num = inode_num;
+	pthread_spin_lock(&filelock_lock);	
 	file_lock = filelock_tree_search(filelock_tree, &node);
 	if (NULL == file_lock) {
 		// No existing locks for the file
@@ -249,6 +255,7 @@ sfs_rdlock(unsigned long long inode_num)
 				"new file lock node for inode %lld \n", __FUNCTION__,
 				inode_num);
 			errno = ENOMEM;
+			pthread_spin_unlock(&filelock_lock);
 
 			return -1;
 		}
@@ -262,6 +269,7 @@ sfs_rdlock(unsigned long long inode_num)
 
 		sfs_log(sfs_ctx, SFS_INFO, "%s: Successfully obtained read lock "
 					"for inode %lld \n", __FUNCTION__, inode_num);
+		pthread_spin_unlock(&filelock_lock);
 		return 0;
 	} else {
 		// Prior lock information exists
@@ -274,6 +282,7 @@ sfs_rdlock(unsigned long long inode_num)
 				pthread_spin_unlock(&file_lock->lock);
 				sfs_log(sfs_ctx, SFS_INFO, "%s: Successfully obtained read "
 					"lock for inode %lld \n", __FUNCTION__, inode_num);
+				pthread_spin_unlock(&filelock_lock);
 				return 0;
 			case WRLOCKED:
 				// File is already write locked.
@@ -283,6 +292,7 @@ sfs_rdlock(unsigned long long inode_num)
 				pthread_spin_unlock(&file_lock->lock);
 				sfs_log(sfs_ctx, SFS_ERR, "%s: Inode %lld already write "
 					"locked. Please try later \n", __FUNCTION__, inode_num);
+				pthread_spin_unlock(&filelock_lock);
 				return -1;
 			case UNLOCKED:
 				// Obtain the read lock and update tree
@@ -291,11 +301,13 @@ sfs_rdlock(unsigned long long inode_num)
 				filelock_tree_insert(filelock_tree, file_lock);
 				sfs_log(sfs_ctx, SFS_INFO, "%s: Successfully obtained read "
 					"lock for inode %lld \n", __FUNCTION__, inode_num);
+				pthread_spin_unlock(&filelock_lock);
 				return 0;
 			default:
 				sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid file lock state. "
 					"INDICATES MEMORY CORRUPTION!!! \n", __FUNCTION__);
 				pthread_spin_lock(&file_lock->lock);
+				pthread_spin_unlock(&filelock_lock);
 				return -1;
 		}
 
@@ -327,6 +339,7 @@ sfs_wrlock(unsigned long long inode_num)
 	// Obtain the file lock structure for the inode
 	node.magic = LOCKNODE_MAGIC;
 	node.inode_num = inode_num;
+	pthread_spin_lock(&filelock_lock);
 	file_lock = filelock_tree_search(filelock_tree, &node);
 	if (NULL == file_lock) {
 		// No existing locks for the file
@@ -338,6 +351,7 @@ sfs_wrlock(unsigned long long inode_num)
 				"new file lock node for inode %lld \n", __FUNCTION__,
 				inode_num);
 			errno = ENOMEM;
+			pthread_spin_unlock(&filelock_lock);
 
 			return -1;
 		}
@@ -350,6 +364,7 @@ sfs_wrlock(unsigned long long inode_num)
 
 		sfs_log(sfs_ctx, SFS_INFO, "%s: Successfully obtained write lock "
 					"for inode %lld \n", __FUNCTION__, inode_num);
+		pthread_spin_unlock(&filelock_lock);
 		return 0;
 	} else {
 		// Prior lock information exists
@@ -363,6 +378,7 @@ sfs_wrlock(unsigned long long inode_num)
 				pthread_spin_unlock(&file_lock->lock);
 				sfs_log(sfs_ctx, SFS_ERR, "%s: Inode %lld already read "
 					"locked. Please try later \n", __FUNCTION__, inode_num);
+				pthread_spin_unlock(&filelock_lock);
 				return -1;
 			case WRLOCKED:
 				// File is already write locked.
@@ -371,6 +387,7 @@ sfs_wrlock(unsigned long long inode_num)
 				pthread_spin_unlock(&file_lock->lock);
 				sfs_log(sfs_ctx, SFS_ERR, "%s: Inode %lld already write "
 					"locked. Please try later \n", __FUNCTION__, inode_num);
+				pthread_spin_unlock(&filelock_lock);
 				return -1;
 			case UNLOCKED:
 				// Obtain the write lock and update tree
@@ -379,11 +396,13 @@ sfs_wrlock(unsigned long long inode_num)
 				filelock_tree_insert(filelock_tree, file_lock);
 				sfs_log(sfs_ctx, SFS_INFO, "%s: Successfully obtained write "
 					"lock for inode %lld \n", __FUNCTION__, inode_num);
+				pthread_spin_unlock(&filelock_lock);
 				return 0;
 			default:
 				sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid file lock state. "
 					"INDICATES MEMORY CORRUPTION!!! \n", __FUNCTION__);
 				pthread_spin_lock(&file_lock->lock);
+				pthread_spin_unlock(&filelock_lock);
 				return -1;
 		}
 
@@ -414,6 +433,7 @@ sfs_unlock(unsigned long long inode_num)
 	// Obtain the file lock structure for the inode
 	node.magic = LOCKNODE_MAGIC;
 	node.inode_num = inode_num;
+	pthread_spin_lock(&filelock_lock);
 	file_lock = filelock_tree_search(filelock_tree, &node);
 	if (NULL == file_lock) {
 		// There is not node for this inode in tree
@@ -423,6 +443,7 @@ sfs_unlock(unsigned long long inode_num)
 				"Invalid operation \n", __FUNCTION__, inode_num);
 
 		errno = ENOENT;
+		pthread_spin_unlock(&filelock_lock);
 		return -1;
 	}
 
@@ -432,6 +453,7 @@ sfs_unlock(unsigned long long inode_num)
 	filelock_tree_insert(filelock_tree, file_lock);
 	sfs_log(sfs_ctx, SFS_INFO, "%s: Successfully unlocked inode %lld \n",
 			 __FUNCTION__, inode_num);
+	pthread_spin_unlock(&filelock_lock);
 
 	return 0;
 }

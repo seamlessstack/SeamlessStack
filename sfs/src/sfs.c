@@ -85,6 +85,9 @@ sstack_transport_t transport;
 jobmap_tree_t *jobmap_tree = NULL;
 jobid_tree_t *jobid_tree = NULL;
 filelock_tree_t *filelock_tree = NULL;
+pthread_spinlock_t jobmap_lock;
+pthread_spinlock_t jobid_lock;
+pthread_spinlock_t filelock_lock;
 
 /*
  * jobs is the job list of unsubmitted (to sfsd) jobs
@@ -1066,6 +1069,10 @@ sfs_init(struct fuse_conn_info *conn)
 		return NULL;
 	}
 
+	pthread_spin_init(&jobmap_lock, PTHREAD_PROCESS_PRIVATE);
+	pthread_spin_init(&jobid_lock, PTHREAD_PROCESS_PRIVATE);
+	pthread_spin_init(&filelock_lock, PTHREAD_PROCESS_PRIVATE);
+
 
 	// Initialize sfsd_pool
 	sfsd_pool = sstack_sfsd_pool_init();
@@ -1082,6 +1089,9 @@ sfs_init(struct fuse_conn_info *conn)
 		free(jobmap_tree);
 		free(jobid_tree);
 		free(filelock_tree);
+		pthread_spin_destroy(&jobmap_lock);
+		pthread_spin_destroy(&jobid_lock);
+		pthread_spin_destroy(&filelock_lock);
 		return NULL;
 	}
 
@@ -1103,6 +1113,9 @@ sfs_init(struct fuse_conn_info *conn)
 			free(jobmap_tree);
 			free(jobid_tree);
 			free(filelock_tree);
+			pthread_spin_destroy(&jobmap_lock);
+			pthread_spin_destroy(&jobid_lock);
+			pthread_spin_destroy(&filelock_lock);
 			return NULL;
 		}
 	}
