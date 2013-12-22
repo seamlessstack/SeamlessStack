@@ -27,7 +27,7 @@
 #include <mongo_db.h>
 #include <sstack_log.h>
 
-pthread_mutex_t mongo_db_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_rwlock_t mongo_db_lock = PTHREAD_RWLOCK_INITIALIZER;
 mongo conn[1];
 
 
@@ -213,7 +213,7 @@ mongo_db_insert(char *key, char *data, size_t len, db_type_t type,
 		return -1;
 	}
 
-	pthread_mutex_lock(&mongo_db_mutex);
+	pthread_rwlock_wrlock(&mongo_db_lock);
 	ret = mongo_insert(conn, db_and_collection, b, NULL);
 	if (ret != MONGO_OK) {
 		sfs_log(ctx, SFS_ERR,
@@ -227,7 +227,7 @@ mongo_db_insert(char *key, char *data, size_t len, db_type_t type,
 		"%s: Successfully inserted record %s of type %d"
 		" into db.collection %s\n",
 		__FUNCTION__, key, (int) type, db_and_collection);
-	pthread_mutex_unlock(&mongo_db_mutex);
+	pthread_rwlock_unlock(&mongo_db_lock);
 	bson_destroy(b);
 
 	return 1;
@@ -263,7 +263,7 @@ mongo_db_remove(char *key, db_type_t type, log_ctx_t *ctx)
 		return -1;
 	}
 
-	pthread_mutex_lock(&mongo_db_mutex);
+	pthread_rwlock_wrlock(&mongo_db_lock);
 	ret = mongo_remove(conn, db_and_collection, b, NULL);
 	if (ret != MONGO_OK) {
 		sfs_log(ctx, SFS_ERR,
@@ -277,7 +277,7 @@ mongo_db_remove(char *key, db_type_t type, log_ctx_t *ctx)
 		"%s: Successfully removed record %s of type %d"
 		" into db.collection %s\n",
 		__FUNCTION__, key, (int) type, db_and_collection);
-	pthread_mutex_unlock(&mongo_db_mutex);
+	pthread_rwlock_unlock(&mongo_db_lock);
 	bson_destroy(b);
 
 	return 1;
@@ -467,6 +467,7 @@ mongo_db_get(char *key, char *data, db_type_t type, log_ctx_t *ctx)
 		bson_destroy(query);
 		return -1;
 	}
+	pthread_rwlock_rdlock(&mongo_db_lock);
 	ret = mongo_find_one(conn, db_and_collection, query,
 		bson_shared_empty(), response);
 
@@ -476,8 +477,10 @@ mongo_db_get(char *key, char *data, db_type_t type, log_ctx_t *ctx)
 			" collection %s. Error = %d\n",
 			__FUNCTION__, key, db_and_collection, ret);
 		bson_destroy(query);
+		pthread_rwlock_unlock(&mongo_db_lock);
 		return -ret;
 	}
+	pthread_rwlock_unlock(&mongo_db_lock);
 
 	ret = construct_record_name(record_name, type);
 	if (ret != 0) {
@@ -562,18 +565,18 @@ mongo_db_update(char *key, char *data, size_t len, db_type_t type,
 		return -1;
 	}
 
-	pthread_mutex_lock(&mongo_db_mutex);
+	pthread_rwlock_wrlock(&mongo_db_lock);
 	ret = mongo_update(conn, db_and_collection, bson_shared_empty(), b,
 			0, NULL);
 	if (ret != MONGO_OK) {
 		sfs_log(ctx, SFS_ERR, "%s: Record updation for key %s into "
 			"database %s failed with error %d\n",
 			__FUNCTION__, key, db_and_collection, ret);
-		pthread_mutex_unlock(&mongo_db_mutex);
+		pthread_rwlock_unlock(&mongo_db_lock);
 		bson_destroy(b);
 		return -ret;
 	}
-	pthread_mutex_unlock(&mongo_db_mutex);
+	pthread_rwlock_unlock(&mongo_db_lock);
 	bson_destroy(b);
 
 	return len;
