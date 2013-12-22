@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CLISH_MODULE xmlns="http://clish.sourceforge.net/XMLSchema" 
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+ xsi:schemaLocation="http://clish.sourceforge.net/XMLSchema
+                     http://clish.sourceforge.net/XMLSchema/clish.xsd">
+	<!--=======================================================-->
+   <COMMAND name="license add"
+            help="license add">
+       <DETAIL>
+Add license 
+       </DETAIL>
+       <PARAM name="license"
+               help="Path of the license file"
+              ptype="STRING"
+            default="*"/>
+       <ACTION>exec </ACTION>
+   </COMMAND>
+
+   <COMMAND name="license show"
+   			help="license show">
+		<DETAIL>
+Show license
+		</DETAIL>
+       <ACTION>exec </ACTION>
+   </COMMAND>
+   <!--=======================================================-->    
+</CLISH_MODULE>

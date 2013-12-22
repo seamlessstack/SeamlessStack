@@ -22,9 +22,14 @@
 
 #include <stdint.h>
 #include <sstack_cache_api.h>
+#include <sfs_jobmap_tree.h>
+#include <sfs_jobid_tree.h>
+#include <sfs_lock_tree.h>
 
 extern unsigned long long max_inode_number;
 extern memcached_st *mc;
+extern jobmap_tree_t *jobmap_tree;
+extern jobid_tree_t *jobid_tree;
 
 // SFS FUSE entry points
 extern int sfs_getattr(const char *, struct stat *);

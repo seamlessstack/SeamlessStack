@@ -39,6 +39,8 @@ struct job2thread_tree {
 	sfs_job_t *job;	
 };
 
+extern pthread_spinlock_t jobid_lock;
+
 // BSS
 
 
@@ -161,7 +163,9 @@ sfs_job2thread_map_insert(pthread_t thread_id, sstack_job_id_t job_id)
 	node->magic = JTNODE_MAGIC;
 	node->thread_id = thread_id;
 	node->job_id = job_id;
+	pthread_spin_lock(&jobid_lock);
 	jobid_tree_insert(jobid_tree, node);
+	pthread_spin_unlock(&jobid_lock);
 
 	return 0;
 }
@@ -191,18 +195,21 @@ sfs_job2thread_map_remove(sstack_job_id_t job_id)
 	snode.magic = JTNODE_MAGIC;
 	snode.job_id = job_id;
 
+	pthread_spin_lock(&jobid_lock);
 	node = jobid_tree_search(jobid_tree, &snode);
 	if (NULL == node) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Node with key %d not present in "
 						"jobmap tree \n", __FUNCTION__, (int) job_id);
 
 		errno = EFAULT;
+		pthread_spin_unlock(&jobid_lock);
 
 		return;
 	}
 
 	// Delete the node
 	jobid_tree_remove(jobid_tree, node);
+	pthread_spin_unlock(&jobid_lock);
 	errno = 0;
 
 	return;

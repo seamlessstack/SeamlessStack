@@ -58,6 +58,7 @@
 #include <mongo_db.h>
 #include <sfs_jobid_tree.h>
 #include <sfs_jobmap_tree.h>
+#include <sfs_lock_tree.h>
 
 /* Macros */
 #define MAX_INODE_LEN 40 // Maximum len of uint64_t is 39
@@ -81,6 +82,13 @@ unsigned long long active_inodes = 0;
 sstack_client_handle_t sfs_handle = 0;
 sstack_thread_pool_t *sfs_thread_pool = NULL;
 sstack_transport_t transport;
+jobmap_tree_t *jobmap_tree = NULL;
+jobid_tree_t *jobid_tree = NULL;
+filelock_tree_t *filelock_tree = NULL;
+pthread_spinlock_t jobmap_lock;
+pthread_spinlock_t jobid_lock;
+pthread_spinlock_t filelock_lock;
+
 /*
  * jobs is the job list of unsubmitted (to sfsd) jobs
  * pending_jobs is the list of jobs waiting for completion
@@ -1023,6 +1031,53 @@ sfs_init(struct fuse_conn_info *conn)
 		return NULL;
 	}
 
+	// Create jobmap tree
+	jobmap_tree = jobmap_tree_init();
+	if (NULL == jobmap_tree) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to create jobmap RB-tree \n",
+						__FUNCTION__);
+		db->db_ops.db_close(sfs_ctx);
+		pthread_kill(recv_thread, SIGKILL);
+		sstack_transport_deregister(type, &transport);
+		sstack_thread_pool_destroy(sfs_thread_pool);
+		(void) sfs_job_queue_destroy(jobs);
+		return NULL;
+	}
+
+	// Create jobid tree
+	jobid_tree = jobid_tree_init();
+	if (NULL == jobid_tree) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to create jobid RB-tree \n",
+						__FUNCTION__);
+		db->db_ops.db_close(sfs_ctx);
+		pthread_kill(recv_thread, SIGKILL);
+		sstack_transport_deregister(type, &transport);
+		sstack_thread_pool_destroy(sfs_thread_pool);
+		(void) sfs_job_queue_destroy(jobs);
+		free(jobmap_tree);
+		return NULL;
+	}
+
+	// Create filelock tree
+	filelock_tree = filelock_tree_init();
+	if (NULL == filelock_tree) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to create filelock "
+						" RB-tree \n", __FUNCTION__);
+		db->db_ops.db_close(sfs_ctx);
+		pthread_kill(recv_thread, SIGKILL);
+		sstack_transport_deregister(type, &transport);
+		sstack_thread_pool_destroy(sfs_thread_pool);
+		(void) sfs_job_queue_destroy(jobs);
+		free(jobmap_tree);
+		free(jobid_tree);
+		return NULL;
+	}
+
+	pthread_spin_init(&jobmap_lock, PTHREAD_PROCESS_PRIVATE);
+	pthread_spin_init(&jobid_lock, PTHREAD_PROCESS_PRIVATE);
+	pthread_spin_init(&filelock_lock, PTHREAD_PROCESS_PRIVATE);
+
+
 	// Initialize sfsd_pool
 	sfsd_pool = sstack_sfsd_pool_init();
 	if (NULL == sfsd_pool) {
@@ -1035,6 +1090,12 @@ sfs_init(struct fuse_conn_info *conn)
 		sstack_thread_pool_destroy(sfs_thread_pool);
 		(void) sfs_job_queue_destroy(jobs);
 		(void) sfs_job_queue_destroy(pending_jobs);
+		free(jobmap_tree);
+		free(jobid_tree);
+		free(filelock_tree);
+		pthread_spin_destroy(&jobmap_lock);
+		pthread_spin_destroy(&jobid_lock);
+		pthread_spin_destroy(&filelock_lock);
 		return NULL;
 	}
 
@@ -1053,9 +1114,17 @@ sfs_init(struct fuse_conn_info *conn)
 			sstack_thread_pool_destroy(sfs_thread_pool);
 			(void) sfs_job_queue_destroy(jobs);
 			(void) sfs_job_queue_destroy(pending_jobs);
+			free(jobmap_tree);
+			free(jobid_tree);
+			free(filelock_tree);
+			pthread_spin_destroy(&jobmap_lock);
+			pthread_spin_destroy(&jobid_lock);
+			pthread_spin_destroy(&filelock_lock);
 			return NULL;
 		}
 	}
+
+
 
 	// Populate the INODE collection of the DB with all the files found
 	// in chunks added so far
