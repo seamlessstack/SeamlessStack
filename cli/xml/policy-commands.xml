@@ -4,70 +4,72 @@
  xsi:schemaLocation="http://clish.sourceforge.net/XMLSchema
                      http://clish.sourceforge.net/XMLSchema/clish.xsd">
 	<!--=======================================================-->
-   <COMMAND name="storage add"
-            help="storage add">
+   <COMMAND name="policy add"
+            help="policy add">
        <DETAIL>
-Add storage managed by SFS. Specify 0 as size to consider complete size.
+Add new file/file_type/uid/gid/attribute specific policy.
        </DETAIL>
-       <PARAM name="ipaddr"
-               help="IP address of the node providing storage"
-              ptype="IP_ADDR"
-             prefix=""
-            default="127.0.0.1"/>
-       <PARAM name="remotepath"
-               help="Path of the remote storage"
+       <PARAM name="uid"
+               help="User id"
               ptype="STRING"
-             prefix=""/>
-		<PARAM name="proto"
-				help="Network protocol used to reach this storage"
-				ptype="PROTOCOL"
-				default="NFS"/>
-		<PARAM name="type"
-				help="Storage media type"
-				ptype="STYPE"
-				default="HDD"/>
-		<PARAM name="size"
-				help="Storage size to be managed by sfs"
+            default="*"/>
+       <PARAM name="gid"
+               help="Group id for the policy"
+              ptype="STRING"
+             defualt="*"/>
+		<PARAM name="fname"
+				help="File name for which the policy is applied"
+				ptype="STRING"
+				default="*"/>
+		<PARAM name="ftype"
+				help="File type for which the policy is applied"
+				ptype="STRING"
+				default="*"/>
+		<PARAM name="quota"
+				help="Quota for the user. UID field is a must"
+				ptype="UINT"
+				default="0"/>
+		<PARAM name="numreplicas"
+				help="Number of replicas for the file"
+				ptype="UINT"
+				default="3"/>
+		<PARAM name="dr"
+				help="Policy for Disaster Recovery"
+				ptype="BOOL"
+				default="false"/>
+		<PARAM name="qos"
+				help="Quality of Service for the file"
+				ptype="QTYPE"
+				default="medium"/>
+		<PARAM name="hide"
+				help="Policy to hide the file"
+				ptype="BOOL"
+				default="false"/>
+		<PARAM name="plugin"
+				help="Storage plugin to be applied to the file"
+				ptype="PLUGIN"
+				default="none"/>
+       <ACTION>exec </ACTION>
+   </COMMAND>
+
+   <COMMAND name="plicy show"
+   			help="policy show">
+		<DETAIL>
+List the policies
+		</DETAIL>
+       <ACTION>exec </ACTION>
+   </COMMAND>
+
+   <COMMAND name="policy delete"
+   			help="policy delete">
+		<DETAIL>
+Delete the policy by using policy index as displayed by policy show
+		</DETAIL>
+		<PARAM name="index"
+				help="Index of the policy to be deleted"
 				ptype="UINT"
 				default="0"/>
        <ACTION>exec </ACTION>
    </COMMAND>
-
-   <COMMAND name="storage delete"
-   			help="storage del">
-		<DETAIL>
-Delete storage managed by SFS.
-		</DETAIL>
-		<PARAM name="ipaddr"
-				help="IP address of the node providing storage"
-				ptype="IP_ADDR"
-				default="127.0.0.1"/>
-       <PARAM name="remotepath"
-               help="Path of the remote storage"
-              ptype="STRING"
-             prefix=""/>
-       <ACTION>exec </ACTION>
-   </COMMAND>
-
-   <COMMAND name="storage update"
-   			help="storage size update">
-		<DETAIL>
-Update storage size anaged by SFS.
-		</DETAIL>
-		<PARAM name="ipaddr"
-				help="IP address of the node providing storage"
-				ptype="IP_ADDR"
-				default="127.0.0.1"/>
-       <PARAM name="remotepath"
-               help="Path of the remote storage"
-              ptype="STRING"
-             prefix=""/>
-		<PARAM name="size"
-				help="Storage size to be managed by sfs"
-				ptype="UINT"
-				default="0"/>
-       <ACTION>exec </ACTION>
-   </COMMAND>
-
    <!--=======================================================-->    
 </CLISH_MODULE>

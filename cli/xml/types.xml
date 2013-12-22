@@ -32,4 +32,12 @@
 		pattern="HDD(1) SSD(2)"
 		help="Storage media type"/>
 	<!--=======================================================-->
+	<PTYPE name="QTYPE"
+		pattern="high(2) medium(1) low(0)"
+		help="Quality of Service"/>
+	<!--=======================================================-->
+	<PTYPE name="PLUGIN"
+		pattern="none(0) compression(1) encryption(2) snapshot(3) dedup(4)"
+		help="Storage plugin types"/>
+	<!--=======================================================-->
 </CLISH_MODULE>
