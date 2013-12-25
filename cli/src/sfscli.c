@@ -30,166 +30,71 @@
 #include <sys/errno.h>
 #include <sfs.h>
 
+/* ====================== FUNCTION DECLARATIONS ======================= */
+static int32_t sfscli_connect(char *address, char *port);
+static int32_t process_args(int32_t args, char *argv[], int32_t sockfd);
 
+
+
+/* ====================== FUNCTION DEFINITIONS ======================== */
 void usage(char *progname)
 {
-	fprintf(stderr, "Usage: %s [add|del] \"path\"  hostname\n", progname);
-	fprintf(stderr, "\t\t where path is in form ipv[46]addr,path,r/w,"
-		"storage_weight\n");
-	fprintf(stderr, "Usage: %s [add|del] \"policy\"  hostname fname ftype uid"
-			"gid is_hidden qoslevel\n", progname);
-	exit(-1);
+	fprintf(stderr, "Usage\n");
 }
-
-size_t serialize_branch(sfs_client_request_t *req, char* buf)
-{
-	size_t size = 0;
-
-	if (!req)
-		return size;
-
-	if (buf) {
-		unsigned int tmp;
-
-		tmp = htonl(req->hdr.magic);
-		memcpy(buf, &tmp, sizeof(int));
-		size += sizeof(int);
-		tmp = htonl(req->hdr.type);
-		memcpy(buf + size, &tmp, sizeof(int));
-		size += sizeof(int);
-		memcpy(buf + size, req->u1.branches, BRANCH_MAX);
-		size += BRANCH_MAX;
-		memcpy(buf + size, req->u1.login_name, LOGIN_NAME_MAX);
-		size += LOGIN_NAME_MAX;
-	}
-
-	return size;
-}
-
-size_t serialize_policy(sfs_client_request_t *req, char *buf)
-{
-	size_t size = 0;
-
-	if (!req)
-		return size;
-
-	if (buf) {
-		unsigned int tmp;
-
-		tmp = htonl(req->hdr.magic);
-		memcpy(buf, &tmp, sizeof(int));
-		size += sizeof(int);	
-		tmp = htonl(req->hdr.type);	
-		memcpy(buf + size, &tmp, sizeof(int));
-		size += sizeof(int);
-		memcpy(buf + size, req->u2.fname, PATH_MAX);
-		size += PATH_MAX;
-		memcpy(buf + size, req->u2.ftype, TYPENAME_MAX);
-		size += TYPENAME_MAX;
-		tmp = htonl((int) req->u2.uid);
-		memcpy(buf + size, &tmp, sizeof(int));
-		size += sizeof(int);
-		tmp = htonl((int) req->u2.gid);
-		memcpy(buf + size, &tmp, sizeof(int));
-		size += sizeof(int);
-		tmp = htonl((int) req->u2.hidden);
-		memcpy(buf + size, &tmp, sizeof(int));
-		size += sizeof(int);
-		tmp = htonl((int) req->u2.qoslevel);
-		memcpy(buf + size, &tmp, sizeof(int));
-		size += sizeof(int);
-	}
-
-	return size;
-}	
-
 
 int main(int argc, char *argv[])
 {
-	sfs_client_request_t req;
-	struct addrinfo hints, *servinfo, *p;
-	int rv = -1;
-	int sockfd;
-	char buf[sizeof(sfs_client_request_t)];
+	char *sfs_addr;
+	char *sfs_port;
+	int32_t ret = 0;
+	int32_t sockfd;
+
+	sfs_addr = getenv("SFS_ADDR");
+	sfs_port = getenv("SFS_PORT");
+
+	if (sfs_addr == NULL || sfs_port == NULL) {
+		fprintf(stderr, "SFS_ADDR or SFS_PORT not set\n");
+		return -EINVAL;
+	}
+
+	if ((sockfd = sfscli_connect(sfs_addr, sfs_port)) < 0) {
+		fprintf(stderr, "SFS not running on %s:%s, Please check settings\n",
+				sfs_addr, sfs_port);
+		return -EINVAL;
+	}
+
+	/* Now that we are connected we can process inputs from command line */
+	ret = process_args(argc, argv, sockfd);
+
+	return ret;
+}
 
 
-	// At least 4 arguments are needed for any supported command
-	if (argc < 4) 
+static int32_t sfscli_connect(char *address, char *port)
+{
+	printf ("Connecting to %s:%s...\n", address, port);
+	return 0;
+}
+
+int32_t process_args(int32_t argc, char *argv[], int32_t sockfd)
+{
+	if (argc == 1) {
 		usage(argv[0]);
+		return -EINVAL;
+	}
 
-	memset(&req, '\0', sizeof(sfs_client_request_t));
-	req.hdr.magic = SFS_MAGIC;	
-
-	if (strcmp(argv[2], "policy") == 0) {
-		if (argc < 12)
-			usage(argv[0]);
-
-		strncpy(req.u2.fname, argv[4], strlen(argv[4]));
-		strncpy(req.u2.ftype, argv[5], strlen(argv[5]));
-		// Following two arguments ca take '*'. So passing string as is
-		strncpy((char *) &req.u2.uid, argv[6], strlen(argv[6]));
-		strncpy((char *) &req.u2.gid, argv[7], strlen(argv[7]));
-		req.u2.hidden = atoi(argv[8]);
-		req.u2.qoslevel = atoi(argv[9]);
-		if (strcmp(argv[1], "add") == 0)
-			req.hdr.type = ADD_POLICY;
-		else if (strcmp(argv[1], "del") == 0)
-			req.hdr.type = DEL_POLICY;
+	if (!strcmp(argv[0], "storage")) {
+		fprintf (stdout, "storage command\n");
+	} else if (!strcmp(argv[0], "policy")) {
+		printf ("policy command\n");
+	} else if (!strcmp(argv[0], "sfsd")) {
+		printf ("sfsd command\n");
+	} else if (!strcmp(argv[0], "key")) {
+		printf ("key command\n");
+	} else if (!strcmp(argv[0], "license")) {
+		printf ("license command\n");
 	} else {
-		// Only other option is "path"
-		strncpy(req.u1.branches, argv[2], BRANCH_MAX);
-		strncpy(req.u1.login_name, getlogin(), LOGIN_NAME_MAX);
-		if (strcmp(argv[1], "add") == 0)
-			req.hdr.type = ADD_BRANCH;
-		else if (strcmp(argv[1], "del") == 0)
-			req.hdr.type = DEL_BRANCH;
+		printf ("invalid command\n");
 	}
-
-	memset(&hints, 0, sizeof(struct addrinfo));
-	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = SOCK_STREAM;
-
-	if ((rv = getaddrinfo(argv[3], CLI_PORT, &hints, &servinfo)) != 0) {
-		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
-		return -1;
-	}
-
-	// loop through all the results and connect to the first we can
-	for (p = servinfo; p != NULL; p = p->ai_next) {
-		if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-			perror("sfscli: socket");
-			continue;
-		}
-
-		if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
-			close(sockfd);
-			perror("sfscli: connect");
-			continue;
-		}
-		break;
-	}
-
-	if ( NULL == p) {
-		fprintf(stderr, "sfscli: failed to connect \n");
-		close(sockfd);
-		return -1;
-	}
-
-	freeaddrinfo(servinfo);
-
-	if (req.hdr.type == ADD_BRANCH || req.hdr.type == DEL_BRANCH)
-		serialize_branch(&req, (char *) buf);
-	else if (req.hdr.type == ADD_POLICY || req.hdr.type == DEL_POLICY)
-		serialize_policy(&req, (char *) buf);
-	else
-		usage(argv[0]);
-
-	if (send(sockfd, buf, sizeof(sfs_client_request_t), 0) == -1) {
-		perror("sfscli: send");
-	} else
-		fprintf(stderr, "Request sent\n");
-
-	close(sockfd);
-
 	return 0;
 }
