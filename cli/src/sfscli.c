@@ -23,57 +23,123 @@
 #include <sys/errno.h>
 #include <string.h>
 #include <netdb.h>
+#include <signal.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/errno.h>
 #include <sfs.h>
+#include <sfscli_clid.h>
 
 /* ====================== FUNCTION DECLARATIONS ======================= */
-static int32_t sfscli_connect(char *address, char *port);
+static int32_t sfscli_connect_clid(in_addr_t clid_addr, uint16_t clid_port);
 static int32_t process_args(int32_t args, char *argv[], int32_t sockfd);
-
-
 
 /* ====================== FUNCTION DEFINITIONS ======================== */
 void usage(char *progname)
 {
-	fprintf(stderr, "Usage\n");
+	fprintf(stderr, "Usage %s\n", progname);
 }
 
 int main(int argc, char *argv[])
 {
-	char *sfs_addr;
-	char *sfs_port;
-	int32_t ret = 0;
-	int32_t sockfd;
+	char *clid_addr_str = getenv("SSTACK_CLID_ADDR");
+	char *clid_port_str = getenv("SSTACK_CLID_PORT");
+	in_addr_t clid_addr;
+	uint16_t clid_port = 0;
+	int32_t clid_sockfd;
+	int32_t ret;
 
-	sfs_addr = getenv("SFS_ADDR");
-	sfs_port = getenv("SFS_PORT");
-
-	if (sfs_addr == NULL || sfs_port == NULL) {
-		fprintf(stderr, "SFS_ADDR or SFS_PORT not set\n");
-		return -EINVAL;
+	if (argc < 2) {
+		usage(argv[0]);
+		return -1;
 	}
 
-	if ((sockfd = sfscli_connect(sfs_addr, sfs_port)) < 0) {
-		fprintf(stderr, "SFS not running on %s:%s, Please check settings\n",
-				sfs_addr, sfs_port);
-		return -EINVAL;
+	if (clid_addr_str == NULL) {
+		fprintf (stdout,
+				 "Using SSTACK_CLID_ADDR as %s\n", SFSCLI_DEF_CLID_ADDR);
+		clid_addr_str = SFSCLI_DEF_CLID_ADDR;
+	}
+
+	if (clid_port_str == NULL) {
+		fprintf(stdout,
+				"Using SSTACK_CLID_PORT as %s\n", SFSCLI_DEF_CLID_PORT);
+		clid_port_str = SFSCLI_DEF_CLID_PORT;
+	}
+
+	clid_addr = inet_addr(clid_addr_str);
+	clid_port = strtol(clid_port_str, NULL, 0);
+
+	if (clid_addr == 0 || errno == ERANGE) {
+		fprintf (stdout, "Invalid paramters to connect CLID\n");
+		return -errno;
+	}
+
+	if ((clid_sockfd = sfscli_connect_clid(clid_addr, clid_port)) < 0) {
+		fprintf (stdout, "Could not connect to CLID, error %d", clid_sockfd);
+		return clid_sockfd;
 	}
 
 	/* Now that we are connected we can process inputs from command line */
-	ret = process_args(argc, argv, sockfd);
+	ret = process_args(argc, argv, clid_sockfd);
 
 	return ret;
 }
 
 
-static int32_t sfscli_connect(char *address, char *port)
+static int32_t sfscli_connect_clid(in_addr_t clid_addr, uint16_t clid_port)
 {
-	printf ("Connecting to %s:%s...\n", address, port);
-	return 0;
+	int32_t sockfd;
+	struct sockaddr_in clid_addr_in;
+	struct in_addr inaddr;
+	pid_t clid_pid;
+
+	inaddr.s_addr = clid_addr;
+	bzero(&clid_addr_in, sizeof(clid_addr_in));
+
+	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+
+	if (sockfd < 0)
+		return -errno;
+
+	clid_addr_in.sin_addr.s_addr = clid_addr;
+	clid_addr_in.sin_family = AF_INET;
+	clid_addr_in.sin_port = htons(clid_port);
+
+	if (connect(sockfd, (struct sockaddr *)&clid_addr_in, sizeof(clid_addr_in)) < 0) {
+		if (errno == ECONNREFUSED) {
+			/* Probably the CLID daemon is not running.. exec it */
+			printf ("initial connection refused\n");
+			if ((clid_pid = fork()) == 0) {
+				int ret;
+				printf ("forking execing..\n");
+				ret = execlp("/home/shubhro/repo/work/sstack/cli/sfsclid", "sfsclid", NULL);
+				printf ("could not exec\n");
+				if (ret < 0)
+					kill(0, SIGKILL);
+			}
+			/* Wait for the daemon to be up */
+			sleep(1);
+			/* Try reconnecting again */
+			if (connect(sockfd,
+						(struct sockaddr *)&clid_addr_in, sizeof(clid_addr_in)) < 0) {
+				/* Something else has gone wrong.. Cleanup.. */
+				kill(clid_pid, SIGTERM);
+				close(sockfd);
+				sockfd = -errno;
+				close(sockfd);
+				fprintf (stderr, "Could not connect to CLID at %s:%d\n",
+						 inet_ntoa(inaddr), clid_port);
+			}
+		}
+	}
+
+	inaddr.s_addr = clid_addr;
+	fprintf (stdout, "Connected to CLID at %s:%d, sockfd = %d\n",
+			 inet_ntoa(inaddr), clid_port, sockfd);
+	return sockfd;
 }
 
 int32_t process_args(int32_t argc, char *argv[], int32_t sockfd)

@@ -32,7 +32,7 @@ SFSCLI_OBJS = src/sfscli.o
 SFSCLID_OBJS = src/sfscli_clid.o
 
 
-all:: sstack_log_decode sfsclid
+all:: sstack_log_decode sfsclid sfscli
 
 sstack_log_decode: $(LOG_DECODE_OBJS)
 	$(CC) -o $@ $(LOG_DECODE_OBJS) $(LIBS)

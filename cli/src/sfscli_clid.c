@@ -79,8 +79,7 @@ int32_t main(int argc, char *argv[])
 
 	not_terminating = 1;
 
-	//daemon(0,0);
-
+//	daemon(0,0);
 	clid_process_commands(app_sockfd, sfs_addr, sfs_port);
 
 
@@ -163,9 +162,11 @@ static int32_t clid_start(in_addr_t clid_addr, uint16_t clid_port)
 		} else {
 			fprintf(stderr, "Could not bind on  %s:%d\n",
 					inet_ntoa(inaddr), clid_port);
+			close(sockfd);
 			ret = -errno;
 		}
 	} else {
+		close(sockfd);
 		ret = -errno;
 	}
 
@@ -195,6 +196,7 @@ static void clid_process_commands(int32_t app_sockfd,
 		/* Do an accept here and then proceed */
 		app_rw_sockfd = accept(app_sockfd,
 							   (struct sockaddr *)&app_addr, &app_addr_len);
+		printf ("Connection received..\n");
 		/* Receive commands from the CLI app */
 		bzero(buffer, SFSCLI_MAX_BUFFER_SIZE);
 		rnbytes = read(app_rw_sockfd, buffer, SFSCLI_MAX_BUFFER_SIZE);
