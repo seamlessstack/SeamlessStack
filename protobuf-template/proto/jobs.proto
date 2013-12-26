@@ -339,7 +339,12 @@ message sstack_payload_t
 		NFS_VALID_MAX = 34;
 	}
 	required sstack_nfs_command_t command = 2;
-	optional sfsd_storage_t storage = 3;
-	optional sstack_nfs_command_struct command_struct = 4;
-	optional sstack_nfs_response_struct response_struct = 5;
+	enum sstack_subcommand_t
+	{
+		PURGE_CACHE = 1;
+	}
+	required sstack_subcommand_t sub_command = 3;
+	optional sfsd_storage_t storage = 4;
+	optional sstack_nfs_command_struct command_struct = 5;
+	optional sstack_nfs_response_struct response_struct = 6;
 }

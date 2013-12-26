@@ -102,6 +102,7 @@ typedef struct sstack_payload_hdr {
 typedef struct sstack_payload {
 	sstack_payload_hdr_t hdr;
 	sstack_command_t command;
+	sstack_subcommand_t	sub_command;
 	union {
 		sfsd_storage_t storage;
 		sstack_nfs_command_struct command_struct;

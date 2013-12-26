@@ -69,8 +69,17 @@ typedef enum sstack_command {
 	NFS_WRITE_RSP = 34,
 	NFS_CREATE_RSP = 35,
 	NFS_ESURE_CODE_RSP = 36,
-	NFS_VALID_MAX = 36,
+	SSTACK_SFS_SYNC_CMD = 37,// Synchronous request originating from sfsd to sfs
+	SSTACK_SFS_ASYNC_CMD = 38,
+	NFS_VALID_MAX = 38,
 } sstack_command_t;
+
+typedef enum  sstack_subcommand {
+	PURGE_CACHE = 1,	// Palceholder
+	// Define cubcommands here
+	// These are valid only when command is either SSTACK_SFS_SYNC_CMD or
+	// SSTACK_SFS_ASYNC_CMD
+} sstack_subcommand_t;
 
 /* Data structures for individual commands */
 
