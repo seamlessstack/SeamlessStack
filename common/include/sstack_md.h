@@ -137,7 +137,7 @@ typedef struct inode {
 		int i_numclients; // Number of sfsds maintaining this file
 		uint64_t i_erasure_stripe_size; // Erasure code stripe size
 		unsigned int i_numerasure; // Number of erasure code extents
-		int	i_esure_valid;
+		int	i_esure_valid; // Is erasure code valid?
 		int i_numextents; // Number of extents
 		size_t i_xattrlen; // Extended attibute len
 		sstack_sfsd_info_t *i_primary_sfsd; // sfsd having erasure coded stripes
@@ -162,7 +162,7 @@ get_inode_fixed_fields_len(void)
 			PATH_MAX + sizeof(uid_t) + sizeof(gid_t) + sizeof(mode_t) +
 			sizeof(type_t) + sizeof(int)  +
 			(3 * sizeof(struct timespec)) + sizeof(sstack_size_t) +
-			sizeof(sstack_size_t) + 4 + 4 + 8 + 4 + 4 + 4 +
+			sizeof(sstack_size_t) + 4 + 4 + 8 + 4 + 4 + 4 + 4 +
 			sizeof(sstack_sfsd_info_t ));
 }
 
