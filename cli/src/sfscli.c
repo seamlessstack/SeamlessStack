@@ -108,14 +108,15 @@ static int32_t sfscli_connect_clid(in_addr_t clid_addr, uint16_t clid_port)
 	clid_addr_in.sin_family = AF_INET;
 	clid_addr_in.sin_port = htons(clid_port);
 
-	if (connect(sockfd, (struct sockaddr *)&clid_addr_in, sizeof(clid_addr_in)) < 0) {
+	if (connect(sockfd, (struct sockaddr *)&clid_addr_in,
+							sizeof(clid_addr_in)) < 0) {
 		if (errno == ECONNREFUSED) {
 			/* Probably the CLID daemon is not running.. exec it */
 			printf ("initial connection refused\n");
 			if ((clid_pid = fork()) == 0) {
 				int ret;
 				printf ("forking execing..\n");
-				ret = execlp("/home/shubhro/repo/work/sstack/cli/sfsclid", "sfsclid", NULL);
+				ret = execlp("sfsclid", "sfsclid", NULL);
 				printf ("could not exec\n");
 				if (ret < 0)
 					kill(0, SIGKILL);
@@ -123,8 +124,8 @@ static int32_t sfscli_connect_clid(in_addr_t clid_addr, uint16_t clid_port)
 			/* Wait for the daemon to be up */
 			sleep(1);
 			/* Try reconnecting again */
-			if (connect(sockfd,
-						(struct sockaddr *)&clid_addr_in, sizeof(clid_addr_in)) < 0) {
+			if (connect(sockfd, (struct sockaddr *)&clid_addr_in,
+					sizeof(clid_addr_in)) < 0) {
 				/* Something else has gone wrong.. Cleanup.. */
 				kill(clid_pid, SIGTERM);
 				close(sockfd);
