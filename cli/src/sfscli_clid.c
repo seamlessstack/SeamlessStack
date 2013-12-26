@@ -22,6 +22,7 @@
 #include <strings.h>
 #include <errno.h>
 #include <unistd.h>
+#include <signal.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -41,13 +42,15 @@ static int32_t clid_connect_sfs(int32_t sockfd,
 static void clid_process_commands(int32_t app_sockfd,
 								  in_addr_t sfs_addr, uint16_t sfs_port);
 
+static void clid_handle_sigterm(int signum);
 
+
+static volatile int32_t not_terminating;
 
 int32_t main(int argc, char *argv[])
 {
 	int32_t ret = 0;
 	int32_t app_sockfd = -1;
-	int32_t sfs_sockfd = -1;
 	char *clid_port_str = getenv("SSTACK_CLID_PORT");
 	char *clid_addr_str = getenv("SSTACK_CLID_ADDR");
 	char *sfs_port_str = getenv("SSTACK_SFS_PORT");
@@ -61,6 +64,10 @@ int32_t main(int argc, char *argv[])
 	if (ret != 0)
 		return ret;
 
+	/* Register signal handlers */
+	if (signal(SIGTERM, clid_handle_sigterm) == SIG_ERR)
+		return -errno;
+
 	/* O.K we have valid parameters to start */
 	app_sockfd = clid_start(clid_addr, clid_port);
 	printf ("App sockfd: %d\n", app_sockfd);
@@ -70,12 +77,12 @@ int32_t main(int argc, char *argv[])
 		return -errno;
 	}
 
-	if (sfs_sockfd > 0) {
-		clid_process_commands(app_sockfd, sfs_addr, sfs_port);
-	} else {
-		fprintf(stderr, "Unable to connect to SFS. Quitting..");
-		ret = -errno;
-	}
+	not_terminating = 1;
+
+	//daemon(0,0);
+
+	clid_process_commands(app_sockfd, sfs_addr, sfs_port);
+
 
 	return ret;
 }
@@ -151,7 +158,7 @@ static int32_t clid_start(in_addr_t clid_addr, uint16_t clid_port)
 		if (bind(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr)) == 0) {
 			fprintf(stdout, "Waiting for connections at %s:%d\n",
 					inet_ntoa(inaddr), clid_port);
-			listen(sockfd, 1024);
+			listen(sockfd, 128);
 			ret = sockfd;
 		} else {
 			fprintf(stderr, "Could not bind on  %s:%d\n",
@@ -173,6 +180,9 @@ static void clid_process_commands(int32_t app_sockfd,
 	ssize_t rnbytes = 0;
 	ssize_t wnbytes = 0;
 	int32_t ret = 0;
+	struct sockaddr_in app_addr;
+	socklen_t app_addr_len = sizeof(app_addr);
+	int32_t app_rw_sockfd;
 
 	sfs_sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -181,10 +191,13 @@ static void clid_process_commands(int32_t app_sockfd,
 		return;
 	}
 
-	while(1) {
+	while(not_terminating) {
+		/* Do an accept here and then proceed */
+		app_rw_sockfd = accept(app_sockfd,
+							   (struct sockaddr *)&app_addr, &app_addr_len);
 		/* Receive commands from the CLI app */
 		bzero(buffer, SFSCLI_MAX_BUFFER_SIZE);
-		rnbytes = read(app_sockfd, buffer, SFSCLI_MAX_BUFFER_SIZE);
+		rnbytes = read(app_rw_sockfd, buffer, SFSCLI_MAX_BUFFER_SIZE);
 
 		/* No processing here, just forward the buffer to SFS */
 		if (rnbytes > 0) {
@@ -205,13 +218,16 @@ static void clid_process_commands(int32_t app_sockfd,
 				/* Wait for a response from SFS */
 				rnbytes = read(sfs_sockfd, buffer, SFSCLI_MAX_BUFFER_SIZE);
 				if (rnbytes > 0) {
-					wnbytes = write(app_sockfd, buffer, rnbytes);
+					wnbytes = write(app_rw_sockfd, buffer, rnbytes);
 				} else {
 					/* TODO: Error reading from SFS, send an error to CLI app */
 				}
 			}
 		}
 	}
+	/* cleanup and return */
+	close(app_sockfd);
+	close(sfs_sockfd);
 	return;
 }
 
@@ -229,4 +245,10 @@ static int32_t clid_connect_sfs(int32_t sockfd,
 	ret = connect(sockfd, &servaddr, sizeof(servaddr));
 
 	return ret;
+}
+
+static void clid_handle_sigterm(int signum)
+{
+	if (signum == SIGTERM)
+		not_terminating = 0;
 }
