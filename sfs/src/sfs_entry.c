@@ -1874,12 +1874,6 @@ sfs_statfs(const char *path, struct statvfs *buf)
 	return 0;
 }
 
-int
-sfs_flush(const char *path, struct fuse_file_info *fi)
-{
-
-	return 0;
-}
 
 /*
  * sfs_release - Release the file handle
@@ -3040,23 +3034,6 @@ sfs_ftruncate(const char *path, off_t offset, struct fuse_file_info *fi)
 }
 
 
-
-int
-sfs_fgetattr(const char *path, struct stat *stbuf, struct fuse_file_info *fi)
-{
-
-	return 0;
-}
-
-
-int
-sfs_lock(const char *path, struct fuse_file_info *fi, int cmd,
-			struct flock *flock)
-{
-
-	return 0;
-}
-
 int
 sfs_utimens(const char *path, const struct timespec tv[2])
 {
@@ -3064,67 +3041,6 @@ sfs_utimens(const char *path, const struct timespec tv[2])
 	return 0;
 }
 
-int
-sfs_flock(const char *path, struct fuse_file_info *fi, int op)
-{
-
-	return 0;
-}
-
-//==========================================================================//
-// 		FOLLOWING ENTRY POINTS ARE NOT IMPLEMENTED
-//==========================================================================//
-
-/*
- *  Provide block map (as in FIBMAP) for the given offset
- *  Can not be implemented.
- */
-int
-sfs_bmap(const char *path, size_t blocksize, uint64_t *idx)
-{
-	errno = ENOSYS;
-	return -1;
-}
-
-int
-sfs_ioctl(const char *path, int cmd, void *arg, struct fuse_file_info *fi,
-				unsigned int flags, void *data)
-{
-
-	return 0;
-}
-
-int
-sfs_poll(const char *path, struct fuse_file_info *fi,
-				struct fuse_pollhandle *ph, unsigned *reventsp)
-{
-
-	return 0;
-}
-
-int
-sfs_write_buf(const char *path, struct fuse_bufvec *buf, off_t off,
-				struct fuse_file_info *fi)
-{
-
-	errno = ENOSYS;
-	return -1;
-}
-
-int
-sfs_read_buf(const char *path, struct fuse_bufvec **bufp, size_t size,
-				off_t off, struct fuse_file_info *fi)
-{
-	errno = ENOSYS;
-	return -1;
-
-}
-int
-sfs_mknod(const char *path, mode_t mode, dev_t rdev)
-{
-	errno = ENOSYS;
-	return -1;
-}
 
 /* Send response function for various commands */
 static inline int
@@ -3164,4 +3080,60 @@ sfs_send_read_status(sstack_job_map_t *job_map, char *buf, size_t size)
 	}
 
 	return (num_bytes);
+}
+
+//==========================================================================//
+// 		FOLLOWING ENTRY POINTS ARE NOT IMPLEMENTED
+//==========================================================================//
+
+/*
+ *  Provide block map (as in FIBMAP) for the given offset
+ *  Can not be implemented.
+ */
+int
+sfs_bmap(const char *path, size_t blocksize, uint64_t *idx)
+{
+	errno = ENOSYS;
+	return -1;
+}
+
+int
+sfs_ioctl(const char *path, int cmd, void *arg, struct fuse_file_info *fi,
+				unsigned int flags, void *data)
+{
+	errno = ENOSYS;
+	return -1;
+}
+
+int
+sfs_poll(const char *path, struct fuse_file_info *fi,
+				struct fuse_pollhandle *ph, unsigned *reventsp)
+{
+	errno = ENOSYS;
+	return -1;
+}
+
+int
+sfs_write_buf(const char *path, struct fuse_bufvec *buf, off_t off,
+				struct fuse_file_info *fi)
+{
+
+	errno = ENOSYS;
+	return -1;
+}
+
+int
+sfs_read_buf(const char *path, struct fuse_bufvec **bufp, size_t size,
+				off_t off, struct fuse_file_info *fi)
+{
+	errno = ENOSYS;
+	return -1;
+
+}
+
+int
+sfs_mknod(const char *path, mode_t mode, dev_t rdev)
+{
+	errno = ENOSYS;
+	return -1;
 }

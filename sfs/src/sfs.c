@@ -663,7 +663,7 @@ sfs_process_payload(void *arg)
 		case (NFS_READ_RSP):
 			sfs_process_read_response(payload);
 			break;
-	
+
 		case (NFS_ESURE_CODE_RSP):
 			//sfs_process_esure_code_response(payload);
 			break;
@@ -1333,7 +1333,6 @@ static struct fuse_operations sfs_oper = {
 	.read			=	sfs_read,
 	.write			=	sfs_write,
 	.statfs			=	sfs_statfs,
-	.flush			=	sfs_flush,
 	.release		=	sfs_release,
 	.fsync			=	sfs_fsync,
 	.setxattr		=	sfs_setxattr,
@@ -1345,15 +1344,12 @@ static struct fuse_operations sfs_oper = {
 	.access			=	sfs_access,
 	.create			=	sfs_create,
 	.ftruncate		=	sfs_ftruncate,
-	.fgetattr		=	sfs_fgetattr,
-	.lock			=	sfs_lock,
 	.utimens		=	sfs_utimens,
 	.bmap			=	sfs_bmap,	// Required?? Similar to FIBMAP
 	.ioctl			=	sfs_ioctl,
 	.poll			=	sfs_poll,
 	.write_buf		=	sfs_write_buf, 	// Similar to write
 	.read_buf		=	sfs_read_buf,	// Similar to read
-	.flock			=	sfs_flock,
 };
 
 int

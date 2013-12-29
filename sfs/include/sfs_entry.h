@@ -52,7 +52,6 @@ extern int sfs_read(const char *, char *, size_t , off_t ,
 extern int sfs_write(const char *, const char *, size_t , off_t ,
 	struct fuse_file_info *);
 extern int sfs_statfs(const char *, struct statvfs *);
-extern int sfs_flush(const char *, struct fuse_file_info *);
 extern int sfs_release(const char *, struct fuse_file_info *);
 extern int sfs_fsync(const char *, int , struct fuse_file_info *);
 extern int sfs_setxattr(const char *, const char *, const char *,
@@ -68,8 +67,6 @@ extern int sfs_access(const char *, int );
 extern int sfs_create(const char *, mode_t , struct fuse_file_info *);
 extern int sfs_ftruncate(const char *, off_t , struct fuse_file_info *);
 extern int sfs_fgetattr(const char *, struct stat *, struct fuse_file_info *);
-extern int sfs_lock(const char *, struct fuse_file_info *, int ,
-			struct flock *);
 extern int sfs_utimens(const char *, const struct timespec tv[2]);
 extern int sfs_bmap(const char *, size_t , uint64_t *);
 extern int sfs_ioctl(const char *, int , void *, struct fuse_file_info *,
@@ -80,6 +77,5 @@ extern int sfs_write_buf(const char *, struct fuse_bufvec *, off_t ,
 				struct fuse_file_info *);
 extern int sfs_read_buf(const char *, struct fuse_bufvec **, size_t ,
 				off_t , struct fuse_file_info *);
-extern int sfs_flock(const char *, struct fuse_file_info *, int );
 
 #endif // __SFS_ENTRY_H_
