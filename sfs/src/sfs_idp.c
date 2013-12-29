@@ -156,6 +156,7 @@ sfs_idp_fill_qos_prio_pools(void)
  * ctx - Log context
  *
  * Returns list of sfsds upon success and NULL upon failure.
+ * Caller should free up the allocated memory.
  */
 
 sfsd_list_t *

@@ -1539,7 +1539,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 	size_t bytes_issued = 0;
 	int ret = -1;
 	policy_entry_t *policy = NULL;
-	sfsd_list_t *sfsds = NULL;
+//	sfsd_list_t *sfsds = NULL;
 
 	// Paramater validation
 	if (NULL == path || NULL == buf || size < 0 || offset < 0) {
@@ -1594,6 +1594,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 	}
 
 	relative_offset = offset;
+#if 0
 	// Get the sfsd information from IDP
 	sfsds = sfs_idp_get_sfsd_list(&inode, sfsd_pool, sfs_ctx);
 	if (NULL == sfsds) {
@@ -1604,6 +1605,19 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 		sfs_unlock(inode_num);
 		return -1;
 	}
+#endif
+	// Check for metadata validity
+	if (inode.i_numclients == 0 || NULL == inode.i_primary_sfsd) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Inode metadata corrupt for file %s \n",
+						__FUNCTION__, path);
+		errno = EIO;
+		// Free up dynamically allocated fields in inode structure
+		sstack_free_inode_res(&inode, sfs_ctx);
+		sfs_unlock(inode_num);
+
+		return -1;
+	}
+
 
 	thread_id = pthread_self();
 
@@ -1657,7 +1671,6 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 
 	while (bytes_to_read) {
 		sfs_job_t *job = NULL;
-		int j = -1;
 		size_t read_size = 0;
 		char *temp = NULL;
 
@@ -1677,8 +1690,11 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 		job->job_type = SFSD_IO;
 		job->num_clients = 1;
 		job->sfsds[0] = inode.i_primary_sfsd->sfsd;
-		for (j = 0; j < sfsds->num_sfsds; j++)
+		job->job_status[0] = JOB_STARTED;
+#if 0
+		for (j = 0; j < inode.i_numclients; j++)
 			job->job_status[j] =  JOB_STARTED;
+#endif
 
 
 		job->priority = policy->pe_attr.a_qoslevel;
@@ -1824,8 +1840,361 @@ int
 sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 	struct fuse_file_info *fi)
 {
+	unsigned long long inode_num = 0;
+	char *inodestr = NULL;
+	sstack_inode_t inode;
+	size_t size1 = 0;
+	sstack_extent_t *extent = NULL;
+	struct stat st = { 0x0 };
+	int ret = -1;
+	sstack_payload_t *payload = NULL;
+	pthread_t thread_id;
+	sstack_job_map_t *job_map = NULL;
+	off_t relative_offset = 0;
+	int bytes_to_write = 0;
+	policy_entry_t *policy = NULL;
+	size_t bytes_issued = 0;
+	int i = 0;
 
-	return 0;
+	// Paramater validation
+	if (NULL == path || NULL == buf || size < 0 || offset < 0) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters \n",
+				__FUNCTION__);
+		errno = EINVAL;
+
+		return -1;
+	}
+
+	// Get the inode number for the file.
+	inodestr = sstack_cache_read_one(mc, path, strlen(path), &size1, sfs_ctx);
+	if (NULL == inodestr) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
+					"for path %s.\n", __FUNCTION__, path);
+		errno = ENOENT;
+
+		return -1;
+	}
+	inode_num = atoll((const char *)inodestr);
+	ret = sfs_wrlock(inode_num);
+	if (ret == -1) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to obtain write lock for file "
+						"%s\n", __FUNCTION__, path);
+		errno = EAGAIN;
+
+		return -1;
+	}
+	// Get inode from DB
+	ret = get_inode(inode_num, &inode, db);
+	if (ret != 0) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to get inode %lld. Path = %s "
+						"error = %d\n", __FUNCTION__, inode_num, path, ret);
+		errno = ret;
+		sfs_unlock(inode_num);
+
+		return -1;
+	}
+
+	// Check for validity of metadata
+	ret = stat(path, &st);
+	if (ret == -1) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: stat failed for file %s. Error = %d \n",
+						__FUNCTION__, path, errno);
+
+		sfs_unlock(inode_num);
+
+		return -1;
+	}
+
+	if (st.st_size > 0 &&
+				(inode.i_numclients == 0 || NULL == inode.i_sfsds)) {
+		// It is not feasible that file has some contents but no sfsds are
+		// assigned to it.
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Metadata corrupt for file %s \n",
+						__FUNCTION__, path);
+
+		errno = EIO;
+		sfs_unlock(inode_num);
+
+		return -1;
+	}
+
+	// If first write for the file, get the sfsd list for the file.
+	if (st.st_size == 0) {
+		sfsd_list_t *sfsds = NULL;
+		sstack_sfsd_info_t *temp = NULL;
+		int i = 0;
+
+
+		sfsds = sfs_idp_get_sfsd_list(&inode, sfsd_pool, sfs_ctx);
+		if (NULL == sfsds) {
+			sfs_log(sfs_ctx, SFS_ERR, "%s: sfs_idp_get_sfsd_list failed \n",
+							__FUNCTION__);
+			// Free up dynamically allocated fields in inode structure
+			sstack_free_inode_res(&inode, sfs_ctx);
+			sfs_unlock(inode_num);
+			errno = EIO;
+
+			return -1;
+		}
+		// Populate inode with new information
+		inode.i_numclients = sfsds->num_sfsds;
+		temp = (sstack_sfsd_info_t *) malloc(sizeof(sstack_sfsd_info_t));
+		if (NULL == temp) {
+			sfs_log(sfs_ctx, SFS_ERR, "%s: Out of memory. File %s \n",
+							__FUNCTION__, path);
+
+			errno = EIO;
+			sstack_free_inode_res(&inode, sfs_ctx);
+			sfs_unlock(inode_num);
+			free(sfsds);
+
+			return -1;
+		}
+		memcpy((void *) &temp->transport, (void *)sfsds[0].sfsds->transport,
+						sizeof(sstack_transport_t));
+		inode.i_primary_sfsd = temp;
+		// Populate rest of the fields
+		inode.i_sfsds = (sstack_sfsd_info_t *)
+				malloc((inode.i_numclients -1) * sizeof(sstack_sfsd_info_t));
+		if (NULL == inode.i_sfsds) {
+			sfs_log(sfs_ctx, SFS_ERR, "%s: Out of memory. File %s \n",
+							__FUNCTION__, path);
+			errno = EIO;
+			sstack_free_inode_res(&inode, sfs_ctx);
+			sfs_unlock(inode_num);
+			free(sfsds);
+
+			return -1;
+		}
+
+		for (i = 1; i < inode.i_numclients; i++) {
+			memcpy((void *) &inode.i_sfsds[i].transport, (void *)
+					sfsds[i].sfsds->transport, sizeof(sstack_transport_t));
+		}
+		free(sfsds);
+		// TODO
+		// Store the inode in DB to avoid losing this information
+	}
+
+	relative_offset = offset;
+	thread_id = pthread_self();
+
+	// Get the extent covering the request
+	for(i = 0; i < inode.i_numextents; i++) {
+		extent = inode.i_extent;
+		if (extent->e_offset <= relative_offset &&
+				(extent->e_offset + extent->e_size >= relative_offset)) {
+			// Found the initial extent
+			break;
+		}
+		extent ++;
+	}
+
+	bytes_to_write = size;
+
+	// Create job_map for this job.
+	// This is required to track multiple sub-jobs to a single request
+	// This is safe to do as async IO from applications are not part of
+	// FUSE framework. So this is the only outstanding request from the
+	// thread. Moreover the thread waits on a condition variable after
+	// submitting jobs.
+	// This is useful only in case of requests that span across multiple
+	// extents. Idea is to simplify sfsd functionality by splitting the
+	// IO at extent boundary
+	job_map = create_job_map();
+	if (NULL == job_map) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed allocate memory for "
+						"job map \n", __FUNCTION__);
+		// Free up dynamically allocated fields in inode structure
+		sstack_free_inode_res(&inode, sfs_ctx);
+		sfs_unlock(inode_num);
+		return -1;
+	}
+
+	/*
+	 * Note: Don't free policy. It is just a pointer to original DS
+	 * and no copies are made by get_policy.
+	 */
+	policy = get_policy(path);
+	if (NULL == policy) {
+		sfs_log(sfs_ctx, SFS_INFO, "%s: No policies specified for the file"
+				". Default policy applied \n", __FUNCTION__);
+		policy->pe_attr.a_qoslevel = QOS_LOW;
+		policy->pe_attr.a_ishidden = 0;
+	} else {
+		sfs_log(sfs_ctx, SFS_INFO, "%s: path %s ver %s qoslevel %d "
+				"hidden %d \n", __FUNCTION__, path, policy->pe_attr.ver,
+				policy->pe_attr.a_qoslevel, policy->pe_attr.a_ishidden);
+	}
+
+	while (bytes_to_write) {
+		sfs_job_t *job = NULL;
+		int j = -1;
+		size_t write_size = 0;
+		char *temp = NULL;
+
+		// Submit job
+		job = sfs_job_init();
+		if (NULL == job) {
+			sfs_log(sfs_ctx, SFS_ERR, "%s: Failed allocate memory for job.\n",
+					__FUNCTION__);
+			free_job_map(job_map);
+			// Free up dynamically allocated fields in inode structure
+			sstack_free_inode_res(&inode, sfs_ctx);
+			sfs_unlock(inode_num);
+			return -1;
+		}
+
+		job->id = get_next_job_id();
+		job->job_type = SFSD_IO;
+		job->num_clients = inode.i_numclients;
+		job->sfsds[0] = inode.i_primary_sfsd->sfsd;
+		for (j = 0; j < (inode.i_numclients - 1); j++)
+			job->sfsds[j + 1] = inode.i_sfsds[j].sfsd;
+		for (j = 0; j < inode.i_numclients; j++)
+			job->job_status[j] =  JOB_STARTED;
+
+		job->priority = policy->pe_attr.a_qoslevel;
+		// Create new payload
+		payload = create_payload();
+		// Populate payload
+		payload->hdr.sequence = 0; // Reinitialized by transport
+		payload->hdr.payload_len = sizeof(sstack_payload_t);
+		payload->hdr.job_id = job->id;
+		payload->hdr.priority = job->priority;
+		payload->hdr.arg = (uint64_t) job;
+		payload->command = NFS_WRITE;
+		payload->command_struct.write_cmd.inode_no = inode.i_num;
+		payload->command_struct.write_cmd.offset = offset;
+		if ((offset + size) > (extent->e_offset + extent->e_size))
+			write_size = (extent->e_offset + extent->e_size) - offset;
+		payload->command_struct.write_cmd.count = write_size;
+		payload->command_struct.write_cmd.data.data_len = write_size;
+		payload->command_struct.write_cmd.data.data_buf = (buf + bytes_issued);
+		memcpy((void *) &payload->command_struct.read_cmd.pe, (void *)
+						policy, sizeof(struct policy_entry));
+		job->payload_len = sizeof(sstack_payload_t);
+		job->payload = payload;
+		// Add this job to job_map
+		job_map->num_jobs ++;
+		temp = realloc(job_map->job_ids, job_map->num_jobs *
+						sizeof(sstack_job_id_t));
+		if (NULL == temp) {
+			sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to allocate memory for "
+							"job_ids \n", __FUNCTION__);
+			if (job_map->job_ids)
+				free(job_map->job_ids);
+			free_job_map(job_map);
+			free_payload(sfs_global_cache, payload);
+			// Free up dynamically allocated fields in inode structure
+			sstack_free_inode_res(&inode, sfs_ctx);
+			sfs_unlock(inode_num);
+
+			return -1;
+		}
+		job_map->job_ids = (sstack_job_id_t *) temp;
+
+		pthread_spin_lock(&job_map->lock);
+		job_map->job_ids[job_map->num_jobs - 1] = job->id;
+		job_map->num_jobs_left ++;
+		pthread_spin_unlock(&job_map->lock);
+
+		temp = realloc(job_map->job_status, job_map->num_jobs *
+						sizeof(sstack_job_status_t));
+		if (NULL == temp) {
+			sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to allocate memory for "
+							"job_status \n", __FUNCTION__);
+			free(job_map->job_ids);
+			if (job_map->job_status)
+				free(job_map->job_status);
+			free_job_map(job_map);
+			free_payload(sfs_global_cache, payload);
+			// Free up dynamically allocated fields in inode structure
+			sstack_free_inode_res(&inode, sfs_ctx);
+			sfs_unlock(inode_num);
+
+			return -1;
+		}
+		pthread_spin_lock(&job_map->lock);
+		job_map->job_status[job_map->num_jobs - 1] = JOB_STARTED;
+		pthread_spin_unlock(&job_map->lock);
+
+		ret = sfs_job2thread_map_insert(thread_id, job->id);
+		if (ret == -1) {
+			sfs_log(sfs_ctx, SFS_ERR, "%s: Failed insert the job context "
+							"into RB tree \n", __FUNCTION__);
+			free(job_map->job_ids);
+			free(job_map->job_status);
+			sfs_job_context_remove(thread_id);
+			free_job_map(job_map);
+			free_payload(sfs_global_cache, payload);
+			// Free up dynamically allocated fields in inode structure
+			sstack_free_inode_res(&inode, sfs_ctx);
+			sfs_unlock(inode_num);
+
+			return -1;
+		}
+		// Add this job to job queue
+		ret = sfs_submit_job(job->priority, jobs, job);
+		if (ret == -1) {
+			free(job_map->job_ids);
+			free(job_map->job_status);
+			sfs_job_context_remove(thread_id);
+			sfs_job2thread_map_remove(thread_id);
+			free_job_map(job_map);
+			free_payload(sfs_global_cache, payload);
+			// Free up dynamically allocated fields in inode structure
+			sstack_free_inode_res(&inode, sfs_ctx);
+			sfs_unlock(inode_num);
+
+			return -1;
+		}
+
+		bytes_issued += write_size;
+		// Check whether we are done with original request
+		if ((offset + size) > (extent->e_offset + extent->e_size)) {
+			// Request spans multiple extents
+			extent ++;
+			// TODO
+			// Check for sparse file condition
+			relative_offset = extent->e_offset;
+			bytes_to_write = size - bytes_issued;
+		} else {
+			bytes_to_write = size - bytes_issued;
+		}
+	}
+	// Add job_map to the jobmap RB-tree
+	ret = sfs_job_context_insert(thread_id, job_map);
+	if (ret == -1) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed insert the job context "
+						"into RB tree \n", __FUNCTION__);
+		free(job_map->job_ids);
+		free(job_map->job_status);
+		free_job_map(job_map);
+		free_payload(sfs_global_cache, payload);
+		// Free up dynamically allocated fields in inode structure
+		sstack_free_inode_res(&inode, sfs_ctx);
+		sfs_unlock(inode_num);
+
+		return -1;
+	}
+
+	ret = sfs_wait_for_completion(job_map);
+
+	// TODO
+	// Handle write status and erasure code
+
+//	ret = sfs_send_read_status(job_map, buf, size);
+
+	sfs_job_context_remove(thread_id);
+	free(job_map->job_ids);
+	free(job_map->job_status);
+	free_job_map(job_map);
+	// Free up dynamically allocated fields in inode structure
+	sstack_free_inode_res(&inode, sfs_ctx);
+	sfs_unlock(inode_num);
+
+	return (ret);
 }
 
 /*

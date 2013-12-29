@@ -106,7 +106,7 @@ typedef struct erasure {
 
 typedef struct sstack_sfsd_info {
 	sstack_transport_t transport; // Field that uniquely represents sfsd
-	sfsd_t *sfsd; // Transient field 
+	sfsd_t *sfsd; // Transient
 } sstack_sfsd_info_t;
 
 // Defines metadata structure for each inode
