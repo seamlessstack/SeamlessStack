@@ -3033,12 +3033,33 @@ sfs_ftruncate(const char *path, off_t offset, struct fuse_file_info *fi)
 	return 0;
 }
 
+/*
+ * sfs_utimens - utimens entry point for sfs
+ *
+ * path - file name
+ * tv - Time to be updated
+ *
+ * Returns 0 on success and -1 on failure.
+ */
 
 int
 sfs_utimens(const char *path, const struct timespec tv[2])
 {
+	int ret = -1;
 
-	return 0;
+	// Parameter validation
+	if (NULL == path) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameter specified \n",
+						__FUNCTION__);
+		errno = EINVAL;
+
+		return -1;
+	}
+
+	// Call utimensat which is the closest to the intended functionality
+	ret = utimensat(0, path, tv, AT_SYMLINK_NOFOLLOW);
+
+	return ret;
 }
 
 
