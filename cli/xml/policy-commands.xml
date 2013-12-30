@@ -1,75 +1,71 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<CLISH_MODULE xmlns="http://clish.sourceforge.net/XMLSchema" 
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+<CLISH_MODULE xmlns="http://clish.sourceforge.net/XMLSchema"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
  xsi:schemaLocation="http://clish.sourceforge.net/XMLSchema
                      http://clish.sourceforge.net/XMLSchema/clish.xsd">
 	<!--=======================================================-->
+   <COMMAND name="policy"
+            help="policy related commands"/>
+   <!--=======================================================-->
    <COMMAND name="policy add"
-            help="policy add">
-       <DETAIL>
-Add new file/file_type/uid/gid/attribute specific policy.
-       </DETAIL>
-       <PARAM name="uid"
-               help="User id"
-              ptype="STRING"
+			help="add policy association to a file">
+	 <PARAM name="uid"
+            help="User id"
+            ptype="STRING"
             default="*"/>
-       <PARAM name="gid"
-               help="Group id for the policy"
-              ptype="STRING"
-             defualt="*"/>
-		<PARAM name="fname"
-				help="File name for which the policy is applied"
-				ptype="STRING"
-				default="*"/>
-		<PARAM name="ftype"
-				help="File type for which the policy is applied"
-				ptype="STRING"
-				default="*"/>
-		<PARAM name="quota"
-				help="Quota for the user. UID field is a must"
-				ptype="UINT"
-				default="0"/>
-		<PARAM name="numreplicas"
-				help="Number of replicas for the file"
-				ptype="UINT"
-				default="3"/>
-		<PARAM name="dr"
-				help="Policy for Disaster Recovery"
-				ptype="BOOL"
-				default="false"/>
-		<PARAM name="qos"
-				help="Quality of Service for the file"
-				ptype="QTYPE"
-				default="medium"/>
-		<PARAM name="hide"
-				help="Policy to hide the file"
-				ptype="BOOL"
-				default="false"/>
-		<PARAM name="plugin"
-				help="Storage plugin to be applied to the file"
-				ptype="PLUGIN"
-				default="none"/>
-       <ACTION>exec </ACTION>
+     <PARAM name="gid"
+            help="Group id for the policy"
+            ptype="STRING"
+            defualt="*"/>
+	 <PARAM name="fname"
+			help="File name for which the policy is applied"
+			ptype="STRING"
+			default="*"/>
+	 <PARAM name="ftype"
+			help="File type for which the policy is applied"
+			ptype="STRING"
+			default="*"/>
+	 <PARAM name="quota"
+			help="Quota for the user. UID field is a must"
+			ptype="UINT"
+			default="0"/>
+	 <PARAM name="numreplicas"
+			help="Number of replicas for the file"
+			ptype="UINT"
+			default="3"/>
+	 <PARAM name="dr"
+			help="Policy for Disaster Recovery"
+			ptype="BOOL"
+			default="false"/>
+	 <PARAM name="qos"
+			help="Quality of Service for the file"
+			ptype="QTYPE"
+			default="medium"/>
+	 <PARAM name="hide"
+			help="Policy to hide the file"
+			ptype="BOOL"
+			default="false"/>
+	 <PARAM name="plugin"
+			help="Storage plugin to be applied to the file"
+			ptype="PLUGIN"
+			default="none"/>
+     <ACTION>exec </ACTION>
    </COMMAND>
 
-   <COMMAND name="plicy show"
-   			help="policy show">
-		<DETAIL>
-List the policies
-		</DETAIL>
-       <ACTION>exec </ACTION>
+   <!--=========================================================-->
+   <COMMAND name="policy show"
+   			help="Show policy associations">
+     <ACTION>exec </ACTION>
    </COMMAND>
 
+   <!--=========================================================-->
    <COMMAND name="policy delete"
-   			help="policy delete">
-		<DETAIL>
-Delete the policy by using policy index as displayed by policy show
-		</DETAIL>
-		<PARAM name="index"
-				help="Index of the policy to be deleted"
-				ptype="UINT"
-				default="0"/>
-       <ACTION>exec </ACTION>
+   			help="Delete policy associations">
+	 <PARAM name="index"
+			help="Index of the policy to be deleted"
+			ptype="UINT"
+			default="0"/>
+     <ACTION>exec </ACTION>
    </COMMAND>
-   <!--=======================================================-->    
+   <!--=======================================================-->
 </CLISH_MODULE>
