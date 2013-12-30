@@ -145,20 +145,22 @@ static int32_t sfscli_connect_clid(in_addr_t clid_addr, uint16_t clid_port)
 
 int32_t process_args(int32_t argc, char *argv[], int32_t sockfd)
 {
+	char *command_str = NULL;
 	if (argc == 1) {
 		usage(argv[0]);
 		return -EINVAL;
 	}
 
-	if (!strcmp(argv[0], "storage")) {
+	command_str = basename(argv[0]);
+	if (!strcmp(argv[1], "storage") || !strcmp(command_str, "storage")) {
 		fprintf (stdout, "storage command\n");
-	} else if (!strcmp(argv[0], "policy")) {
+	} else if (!strcmp(argv[1], "policy") || !strcmp(command_str, "policy")) {
 		printf ("policy command\n");
-	} else if (!strcmp(argv[0], "sfsd")) {
+	} else if (!strcmp(argv[1], "sfsd") || !strcmp(command_str, "sfsd")) {
 		printf ("sfsd command\n");
-	} else if (!strcmp(argv[0], "key")) {
+	} else if (!strcmp(argv[1], "key") || !strcmp(command_str, "key")) {
 		printf ("key command\n");
-	} else if (!strcmp(argv[0], "license")) {
+	} else if (!strcmp(argv[1], "license") || !strcmp(command_str, "license")) {
 		printf ("license command\n");
 	} else {
 		printf ("invalid command\n");

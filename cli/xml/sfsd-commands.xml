@@ -5,29 +5,47 @@
                      http://clish.sourceforge.net/XMLSchema/clish.xsd">
 	<!--=======================================================-->
    <COMMAND name="sfsd"
-            help="sfsd">
-       <DETAIL>
-SeemlessStack file system is a distributed file system with two main components:
-		- sfs
-		- sfsd
-Each sfs manages one or more sfsds which are distributed over LAN/WAN.
-Each sfsd manages the chunk domain consistsing of chunks. This CLI specifies
-sfsd location to sfs.
-       </DETAIL>
-       <PARAM name="ipaddr"
-               help="IP address of the node hosting sfsd"
-              ptype="IP_ADDR"
-             prefix=""
-            default="127.0.0.1" />
-       <PARAM name="port"
-               help="Port number on which sfsd listens"
-              ptype="UINT"
-             prefix=""/>
-		<PARAM name="decommission"
-				help="Decommission the sfsd"
-				ptype="BOOL"
-				default="false"/>
-       <ACTION>exec </ACTION>
+			help="sfsd management commands">
+			<DETAIL>
+				  SeemlessStack file system is a distributed file system with two main components:
+				  - sfs
+				  - sfsd
+				  Each sfs manages one or more sfsds which are distributed over LAN/WAN.
+				  Each sfsd manages the chunk domain consistsing of chunks. This CLI specifies
+				  sfsd location to sfs."
+			</DETAIL>
    </COMMAND>
-   <!--=======================================================-->    
+    <!--=======================================================-->
+   <COMMAND name="sfsd add"
+			help="Provision an SFSD">
+	 <PARAM name="ipaddr"
+            help="IP address of the node hosting sfsd"
+            ptype="IP_ADDR"
+            prefix=""
+            default="127.0.0.1" />
+     <PARAM name="port"
+            help="Port number on which sfsd listens"
+            ptype="UINT"
+            prefix=""/>
+     <ACTION>exec </ACTION>
+   </COMMAND>
+   <!--==========================================================-->
+   <COMMAND name="sfsd decommision"
+			help="Decommision an sfsd">
+	 <PARAM name="ipaddr"
+            help="IP address of the node hosting sfsd"
+            ptype="IP_ADDR"
+            prefix=""
+            default="127.0.0.1" />
+     <PARAM name="port"
+            help="Port number on which sfsd listens"
+            ptype="UINT"
+            prefix=""/>
+     <ACTION>exec </ACTION>
+   </COMMAND>
+   <!--=======================================================--> 
+   <COMMAND name="sfsd show"
+			help="list all the sfsds">
+	 <ACTION>exec </ACTION>
+   </COMMAND>
 </CLISH_MODULE>
