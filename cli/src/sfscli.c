@@ -31,6 +31,7 @@
 #include <arpa/inet.h>
 #include <sys/errno.h>
 #include <sfs.h>
+#include <sfscli.h>
 #include <sfscli_clid.h>
 
 /* ====================== FUNCTION DECLARATIONS ======================= */
@@ -156,6 +157,7 @@ int32_t process_args(int32_t argc, char *argv[], int32_t sockfd)
 		fprintf (stdout, "storage command\n");
 	} else if (!strcmp(argv[1], "policy") || !strcmp(command_str, "policy")) {
 		printf ("policy command\n");
+		parse_fill_policy_input(argc, argv);
 	} else if (!strcmp(argv[1], "sfsd") || !strcmp(command_str, "sfsd")) {
 		printf ("sfsd command\n");
 	} else if (!strcmp(argv[1], "key") || !strcmp(command_str, "key")) {

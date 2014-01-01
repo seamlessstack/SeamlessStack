@@ -32,7 +32,7 @@
 			   help="Storage size to be managed by sfs"
 			   ptype="UINT"
 			   default="0"/>
-		<ACTION>exec </ACTION>
+		<ACTION>echo sfscli storage -a -A ${ipaddr} -P ${proto} -R ${remotepath}--type ${type} --size ${size} </ACTION>
 	  </COMMAND>
 	  <!--=======================================================-->
 	  <COMMAND name="storage delete"
@@ -48,7 +48,7 @@
                help="Path of the remote storage"
                ptype="STRING"
                prefix=""/>
-		<ACTION>exec </ACTION>
+		<ACTION>echo sfscli storage -d -A $[ipaddr} -R ${remotepath}-- </ACTION>
 	  </COMMAND>
 	  <!--=======================================================-->
 	  <COMMAND name="storage update"
@@ -68,13 +68,13 @@
 			   help="Storage size to be managed by sfs"
 			   ptype="UINT"
 			   default="0"/>
-		<ACTION>exec </ACTION>
+		<ACTION>echo sfscli storage -u -A ${ipaddr} -R ${remotepath} --size ${size} </ACTION>
 	  </COMMAND>
 
 	  <!--=======================================================-->
 	  <COMMAND name="storage show"
 			   help="show the list of attached storages">
-		<ACTION>exec </ACTION>
+		<ACTION>echo sfscli storage -l </ACTION>
 	  </COMMAND>
 
 	  <!--=======================================================-->

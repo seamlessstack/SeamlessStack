@@ -12,19 +12,19 @@
       <DETAIL>
 		Add license
       </DETAIL>
-      <PARAM name="license"
+      <PARAM name="path"
              help="Path of the license file"
              ptype="STRING"
              default="*"/>
-      <ACTION>exec </ACTION>
+      <ACTION>echo sfscli license -a ${path} </ACTION>
 	</COMMAND>
-
+	<!--======================================================-->
 	<COMMAND name="license show"
    			 help="license show">
 	  <DETAIL>
 		Show license
 	  </DETAIL>
-      <ACTION>exec </ACTION>
+      <ACTION> echo sfscli lisence -l </ACTION>
 	</COMMAND>
    <!--=======================================================-->
 </CLISH_MODULE>

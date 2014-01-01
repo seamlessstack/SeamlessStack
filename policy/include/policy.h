@@ -13,6 +13,8 @@
 #define QOS_MEDIUM 1 // Cached . Not on SSD. Stored in nearline storage
 #define QOS_HIGH 0 // Cached in memory and SSD. Stored in nearby storage
 
+#define TYPE_LEN 8
+
 enum ret_code
 {
 	FALSE,
@@ -32,6 +34,7 @@ struct attribute
 	uint32_t a_numreplicas:4;
 	uint32_t a_enable_dr:1;
 	uint32_t a_res2:19;
+	uint32_t a_quota;
 };
 
 /**
@@ -40,6 +43,21 @@ struct attribute
  **/
 
 typedef struct policy_plugin policy_plugin_t;
+
+/**
+ * Policy input structure coming in from
+ * cli/file read
+**/
+struct policy_input
+{
+	uid_t	pi_uid;
+	gid_t	pi_gid;
+	char	pi_policy_tag[NUM_MAX_POLICY][POLICY_TAG_LEN];
+	char	pi_ftype [TYPE_LEN];
+	char	pi_fname[PATH_MAX];
+	size_t	pi_num_policy;
+	struct attribute pi_attr;
+};
 
 typedef struct policy_plugin
 {

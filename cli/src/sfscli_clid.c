@@ -79,7 +79,7 @@ int32_t main(int argc, char *argv[])
 
 	not_terminating = 1;
 
-//	daemon(0,0);
+	daemon(0,0);
 	clid_process_commands(app_sockfd, sfs_addr, sfs_port);
 
 

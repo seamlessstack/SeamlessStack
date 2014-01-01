@@ -10,7 +10,7 @@
    <COMMAND name="policy add"
 			help="add policy association to a file">
 	 <PARAM name="uid"
-            help="User id"
+            help="User id for the policy"
             ptype="STRING"
             default="*"/>
      <PARAM name="gid"
@@ -35,27 +35,32 @@
 			default="3"/>
 	 <PARAM name="dr"
 			help="Policy for Disaster Recovery"
-			ptype="BOOL"
-			default="false"/>
+			ptype="UINT"
+			default="0"/>
 	 <PARAM name="qos"
 			help="Quality of Service for the file"
-			ptype="QTYPE"
+			ptype="STRING"
 			default="medium"/>
 	 <PARAM name="hide"
 			help="Policy to hide the file"
-			ptype="BOOL"
-			default="false"/>
+			ptype="UINT"
+			default="0"/>
 	 <PARAM name="plugin"
 			help="Storage plugin to be applied to the file"
-			ptype="PLUGIN"
+			ptype="STRING"
 			default="none"/>
-     <ACTION>exec </ACTION>
+     <ACTION>echo sfscli policy -a --uid ${uid} --gid ${gid} --fname ${fname} --ftype ${ftype} --quota ${quota} --numrep ${numreplicas} --dr ${dr} --qos ${qos} --hidden ${hide} --plugin ${plugin}</ACTION>
    </COMMAND>
 
    <!--=========================================================-->
    <COMMAND name="policy show"
    			help="Show policy associations">
-     <ACTION>exec </ACTION>
+     <ACTION>echo sfscli policy -l</ACTION>
+   </COMMAND>
+   <!--=========================================================-->
+   <COMMAND name="policy show registered"
+			help="Show registered policies">
+	 <ACTION> echo sfscli policy -l --registered </ACTION>
    </COMMAND>
 
    <!--=========================================================-->
@@ -65,7 +70,7 @@
 			help="Index of the policy to be deleted"
 			ptype="UINT"
 			default="0"/>
-     <ACTION>exec </ACTION>
+     <ACTION>echo sfscli policy -d --index ${index}</ACTION>
    </COMMAND>
    <!--=======================================================-->
 </CLISH_MODULE>

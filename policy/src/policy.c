@@ -38,23 +38,12 @@ s * patents in process, and are protected by trade secret or copyright law.
 
 
 #define NUM_BUCKETS 16
-#define TYPE_LEN 8
 
 #define POLICY_FILE "/home/shubhro/policy/policy.conf"
 extern int32_t validate_plugin(const char *plugin_path,
 				struct plugin_entry_points *entry, char *plugin_name,
 				log_ctx_t *ctx);
 /*=================== PRIVATE STRUCTURES AND FUNCTIONS ===================*/
-struct policy_input
-{
-	uid_t	pi_uid;
-	gid_t	pi_gid;
-	char	pi_policy_tag[NUM_MAX_POLICY][POLICY_TAG_LEN];
-	char	pi_ftype [TYPE_LEN];
-	char	pi_fname[PATH_MAX];
-	size_t	pi_num_policy;
-	struct attribute pi_attr;
-};
 
 struct policy_db_entry
 {

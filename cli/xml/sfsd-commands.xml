@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<CLISH_MODULE xmlns="http://clish.sourceforge.net/XMLSchema" 
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+<CLISH_MODULE xmlns="http://clish.sourceforge.net/XMLSchema"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
  xsi:schemaLocation="http://clish.sourceforge.net/XMLSchema
                      http://clish.sourceforge.net/XMLSchema/clish.xsd">
 	<!--=======================================================-->
@@ -27,7 +27,7 @@
             help="Port number on which sfsd listens"
             ptype="UINT"
             prefix=""/>
-     <ACTION>exec </ACTION>
+     <ACTION>echo sfscli sfsd -a -A ${ipaddr} -p ${port} </ACTION>
    </COMMAND>
    <!--==========================================================-->
    <COMMAND name="sfsd decommision"
@@ -41,11 +41,11 @@
             help="Port number on which sfsd listens"
             ptype="UINT"
             prefix=""/>
-     <ACTION>exec </ACTION>
+     <ACTION>echo sfscli sfsd -d -A ${ipaddr} -p ${port} </ACTION>
    </COMMAND>
-   <!--=======================================================--> 
+   <!--=======================================================-->
    <COMMAND name="sfsd show"
 			help="list all the sfsds">
-	 <ACTION>exec </ACTION>
+	 <ACTION>echo sfscli storage -l </ACTION>
    </COMMAND>
 </CLISH_MODULE>
