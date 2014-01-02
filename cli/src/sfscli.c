@@ -147,6 +147,9 @@ static int32_t sfscli_connect_clid(in_addr_t clid_addr, uint16_t clid_port)
 int32_t process_args(int32_t argc, char *argv[], int32_t sockfd)
 {
 	char *command_str = NULL;
+	struct sfscli_cli_cmd *cli_cmd = NULL;
+	uint8_t *buffer;
+	size_t buf_len = 0;
 	if (argc == 1) {
 		usage(argv[0]);
 		return -EINVAL;
@@ -156,8 +159,13 @@ int32_t process_args(int32_t argc, char *argv[], int32_t sockfd)
 	if (!strcmp(argv[1], "storage") || !strcmp(command_str, "storage")) {
 		fprintf (stdout, "storage command\n");
 	} else if (!strcmp(argv[1], "policy") || !strcmp(command_str, "policy")) {
-		printf ("policy command\n");
-		parse_fill_policy_input(argc, argv);
+		cli_cmd = parse_fill_policy_input(argc, argv);
+		if (cli_cmd == NULL) {
+			fprintf(stderr, "Please check parameters\n");
+			return -1;
+		} else {
+			//		buf_len = sfscli_policy_serialize(cli_cmd, &bugger);
+		}
 	} else if (!strcmp(argv[1], "sfsd") || !strcmp(command_str, "sfsd")) {
 		printf ("sfsd command\n");
 	} else if (!strcmp(argv[1], "key") || !strcmp(command_str, "key")) {
@@ -167,5 +175,11 @@ int32_t process_args(int32_t argc, char *argv[], int32_t sockfd)
 	} else {
 		printf ("invalid command\n");
 	}
+
+	if (buf_len) {
+		/* Send message to CLID */
+		/* Wait for response */
+	}
+		
 	return 0;
 }
