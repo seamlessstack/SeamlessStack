@@ -27,14 +27,16 @@ enum ret_code
  **/
 struct attribute
 {
-	uint32_t ver;
-	uint32_t a_qoslevel:4;
-	uint32_t a_ishidden:1;
-	uint32_t a_res1:3;
-	uint32_t a_numreplicas:4;
-	uint32_t a_enable_dr:1;
-	uint32_t a_res2:19;
+	uint32_t ver;	
 	uint32_t a_quota;
+	uint8_t a_qoslevel;
+	uint8_t a_ishidden;
+	uint8_t a_numreplicas;
+	uint8_t a_enable_dr;
+	/* Please change the macro when adding or removing fields
+	 * in the above structure
+	 */
+#define NUM_ATTR_FIELDS 6
 };
 
 /**
@@ -57,6 +59,10 @@ struct policy_input
 	char	pi_fname[PATH_MAX];
 	size_t	pi_num_policy;
 	struct attribute pi_attr;
+	/* Please change the macro when adding/removing fields in the
+	 * structure
+	 */
+#define NUM_PI_FIELDS 7
 };
 
 typedef struct policy_plugin

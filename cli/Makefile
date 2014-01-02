@@ -16,7 +16,7 @@
 #  from SeamlessStack Incorporated.
 #
 
-TOPDIR=../
+TOPDIR=..
 CFLAGS += -Wall
 CFLAGS += -g
 #CFLAGS += -O3
@@ -24,12 +24,13 @@ CFLAGS += -I $(TOPDIR)/common/include -I include -I $(TOPDIR)/sfs/include
 CFLAGS += -I $(TOPDIR)/policy/include
 CFLAGS += -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE
 CFLAGS += -I $(TOPDIR)/cli/include
+CFLAGS += -std=c99
 LIBS = -lpthread
 RM = rm
 CC = gcc
 
 LOG_DECODE_OBJS = src/sstack_log_decode.o
-SFSCLI_OBJS = src/sfscli.o src/sfscli_policy.o
+SFSCLI_OBJS = src/sfscli.o src/sfscli_policy.o  src/sfscli_serdes.o
 SFSCLID_OBJS = src/sfscli_clid.o
 
 

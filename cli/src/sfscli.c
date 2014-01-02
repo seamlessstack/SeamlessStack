@@ -148,7 +148,7 @@ int32_t process_args(int32_t argc, char *argv[], int32_t sockfd)
 {
 	char *command_str = NULL;
 	struct sfscli_cli_cmd *cli_cmd = NULL;
-	uint8_t *buffer;
+	uint8_t *buffer = NULL;
 	size_t buf_len = 0;
 	if (argc == 1) {
 		usage(argv[0]);
@@ -164,7 +164,7 @@ int32_t process_args(int32_t argc, char *argv[], int32_t sockfd)
 			fprintf(stderr, "Please check parameters\n");
 			return -1;
 		} else {
-			//		buf_len = sfscli_policy_serialize(cli_cmd, &bugger);
+			buf_len = sfscli_serialize_policy(cli_cmd, &buffer);
 		}
 	} else if (!strcmp(argv[1], "sfsd") || !strcmp(command_str, "sfsd")) {
 		printf ("sfsd command\n");
@@ -179,6 +179,12 @@ int32_t process_args(int32_t argc, char *argv[], int32_t sockfd)
 	if (buf_len) {
 		/* Send message to CLID */
 		/* Wait for response */
+		printf ("serialized buffer size: %d\n", buf_len);
+		for(int i = 0; i < buf_len; ++i) {
+			printf("%#x ", buffer[i]);
+		}
+		printf ("\n");
+			   
 	}
 		
 	return 0;

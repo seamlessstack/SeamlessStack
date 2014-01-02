@@ -22,6 +22,10 @@
 
 #include <policy.h>
 
+#define SFSCLI_MAGIC 0xdeadbeef
+#define SFSCLI_MAGIC_LEN sizeof(SFSCLI_MAGIC);
+#define SFSCLI_TLV_MAGIC 0xcf
+
 #define strtol_check_error_jump(assignee, endptr, jump_label,			\
 								base, string, option_index, longopts)	\
 	do {																\
@@ -94,6 +98,41 @@ struct sfscli_cli_cmd {
 	struct sfscli_xxx_input input;
 };
 
-struct sfscli_cli_cmd *parse_fill_policy_input(int32_t argc, char *argv[]);
+/* ================== Serialization Macros =========================== */
+
+#define sfscli_ser_uint(val, buffer, num_bytes)			\
+	for(int i = 0; i < num_bytes; ++i) {				\
+		buffer[i] = ((val & (0xFF << (i*8))) >> (i*8)); \
+	}											   
+
+#define sfscli_ser_nfield(field, buffer)								\
+	do {																\
+		uint16_t size = sizeof(field);									\
+		sfscli_ser_uint(size, buffer, 2);								\
+		buffer+=2;														\
+		sfscli_ser_uint(field, buffer, size);							\
+		buffer += size;													\
+	} while(0)															
+
+#define sfscli_ser_sfield(field, buffer)								\
+	do {																\
+		uint16_t size = strlen(field);									\
+		sfscli_ser_uint(size, buffer, 2);								\
+		buffer+=2;														\
+		memcpy(buffer, field, size);									\
+		buffer += size;													\
+	} while(0)
+																	  
+/* ================= Deserialization Macros ========================= */
+
+#if 0
+#define sfscli_deser_uint(val, buffer, num_bytes)						\
+	for(int i = 0; i < num_bytes; ++i) {								\
+		val |= (buffer[i] << i);										\
+	};
+#endif
+
+struct sfscli_cli_cmd *parse_fill_policy_input(int32_t argc, char *args[]);
+int32_t sfscli_serialize_policy(struct sfscli_cli_cmd *cli_cmd, uint8_t **buffer);
 
 #endif /* __SFSCLI_H_ */
