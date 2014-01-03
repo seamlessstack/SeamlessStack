@@ -28,7 +28,7 @@ LDFLAGS = -o
 CC = gcc
 RM = rm
 LIBS = -lpthread
-LIBS += -L.. -lcache
+LIBS += -L.. -lmcache
 LIBS += -L$(TOPDIR)/oss_install/lib -lmemcached
 
 all:: $(TARGET)
