@@ -91,19 +91,28 @@ struct sfscli_xxx_input {
 		struct license_input li;
 		*/
 	};
+	/* Please change this when modifying this structure
+	   This lists the number of elements in the structure
+	*/
+#define NUM_XXX_INPUT_FIELDS 2
 };
 
 struct sfscli_cli_cmd {
 	sfscli_cmd_types_t cmd;
 	struct sfscli_xxx_input input;
+	/* Please change this when modifying this structure
+	   This lists the number of elements in the structure
+	*/
+#define NUM_CLI_CMD_FIELDS 2
 };
 
 /* ================== Serialization Macros =========================== */
 
-#define sfscli_ser_uint(val, buffer, num_bytes)			\
-	for(int i = 0; i < num_bytes; ++i) {				\
-		buffer[i] = ((val & (0xFF << (i*8))) >> (i*8)); \
-	}											   
+#define sfscli_ser_uint(val, buffer, num_bytes)				\
+	for(int i = 0; i < num_bytes; ++i) {					\
+		int64_t shifter = (i << 3);							\
+		buffer[i] = ((val & (0xFF << shifter)) >> shifter);	\
+	}
 
 #define sfscli_ser_nfield(field, buffer)								\
 	do {																\
@@ -112,7 +121,7 @@ struct sfscli_cli_cmd {
 		buffer+=2;														\
 		sfscli_ser_uint(field, buffer, size);							\
 		buffer += size;													\
-	} while(0)															
+	} while(0)
 
 #define sfscli_ser_sfield(field, buffer)								\
 	do {																\
@@ -122,17 +131,38 @@ struct sfscli_cli_cmd {
 		memcpy(buffer, field, size);									\
 		buffer += size;													\
 	} while(0)
-																	  
+
 /* ================= Deserialization Macros ========================= */
 
-#if 0
 #define sfscli_deser_uint(val, buffer, num_bytes)						\
-	for(int i = 0; i < num_bytes; ++i) {								\
-		val |= (buffer[i] << i);										\
-	};
-#endif
+	for(int32_t i = 0; i < num_bytes; ++i) {							\
+		int32_t shifter = (i<<3);										\
+		val |= (buffer[i] << shifter);									\
+	};																	\
+
+#define sfscli_deser_nfield(field, buffer)								\
+	do {																\
+		uint16_t size = 0;												\
+		sfscli_deser_uint(size, buffer, 2);								\
+		buffer+=2;														\
+		sfscli_deser_uint(field, buffer, size);							\
+		buffer+=size;													\
+	} while (0);
+
+#define sfscli_deser_sfield(field, buffer)		\
+	do {										\
+		uint16_t size = 0;						\
+		sfscli_deser_uint(size, buffer, 2);		\
+		buffer+=2;								\
+		memcpy(field, buffer, size);			\
+		buffer += size;							\
+	} while (0)
+
 
 struct sfscli_cli_cmd *parse_fill_policy_input(int32_t argc, char *args[]);
-int32_t sfscli_serialize_policy(struct sfscli_cli_cmd *cli_cmd, uint8_t **buffer);
+int32_t sfscli_serialize_policy(struct sfscli_cli_cmd *cli_cmd,
+								uint8_t **buffer);
+int32_t sfscli_deserialize_policy(uint8_t *buffer, size_t buf_len,
+								  struct sfscli_cli_cmd **cli_cmd);
 
 #endif /* __SFSCLI_H_ */

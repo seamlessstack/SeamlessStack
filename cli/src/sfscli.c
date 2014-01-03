@@ -147,7 +147,7 @@ static int32_t sfscli_connect_clid(in_addr_t clid_addr, uint16_t clid_port)
 int32_t process_args(int32_t argc, char *argv[], int32_t sockfd)
 {
 	char *command_str = NULL;
-	struct sfscli_cli_cmd *cli_cmd = NULL;
+	struct sfscli_cli_cmd *cli_cmd = NULL, *an_cmd = NULL;
 	uint8_t *buffer = NULL;
 	size_t buf_len = 0;
 	if (argc == 1) {
@@ -165,6 +165,8 @@ int32_t process_args(int32_t argc, char *argv[], int32_t sockfd)
 			return -1;
 		} else {
 			buf_len = sfscli_serialize_policy(cli_cmd, &buffer);
+			printf ("Now deserialize---\n");
+			sfscli_deserialize_policy(buffer, buf_len, &an_cmd);
 		}
 	} else if (!strcmp(argv[1], "sfsd") || !strcmp(command_str, "sfsd")) {
 		printf ("sfsd command\n");

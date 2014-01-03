@@ -49,16 +49,19 @@
  *
  * -----------------------------------------------------------------------------
  * |MAGIC|sizeof(cmd)|cmd|sizeof(uid_t)|pi_uid|sizeof(gid_t)|pi_gid|............
- * ------------------------------------------------------------------------------
+ * -----------------------------------------------------------------------------
  **/
-int32_t sfscli_serialize_policy(struct sfscli_cli_cmd *cli_cmd, uint8_t **buffer)
+
+int32_t sfscli_serialize_policy(struct sfscli_cli_cmd *cli_cmd,
+								uint8_t **buffer)
 {
 	uint8_t *p = NULL, *q = NULL;
 	struct policy_input *pi = &cli_cmd->input.pi;
 	struct attribute *attr = &pi->pi_attr;
-	
+
 	p = malloc(sizeof(struct sfscli_cli_cmd) + 4 /* FOR MAGIC */
-			   + (2 * (NUM_PI_FIELDS + NUM_PI_FIELDS)));
+			   + (2 * (NUM_PI_FIELDS + NUM_PI_FIELDS
+					   + NUM_XXX_INPUT_FIELDS + NUM_CLI_CMD_FIELDS)));
 
 	if (p == NULL)
 		return -ENOMEM;
@@ -95,5 +98,66 @@ int32_t sfscli_serialize_policy(struct sfscli_cli_cmd *cli_cmd, uint8_t **buffer
 	sfscli_ser_nfield(attr->a_enable_dr, p);
 	*buffer = q;
 	return ((int32_t)(p - q));
-	
+
+}
+
+
+int32_t sfscli_deserialize_policy(uint8_t *buffer, size_t buf_len,
+								  struct sfscli_cli_cmd **cli_cmd)
+{
+	struct sfscli_cli_cmd *cmd = NULL;
+	struct policy_input *pi = NULL;
+	struct attribute *attr = NULL;
+	uint32_t magic = 0;
+	uint8_t *p = buffer;
+
+	/* Check for the magic */
+	sfscli_deser_uint(magic, buffer, 4);
+
+	if (magic != SFSCLI_MAGIC) {
+		printf ("Magic not found\n");
+		return -EINVAL;
+	}
+	p+=4;
+
+	cmd = malloc(sizeof(*cmd));
+
+	if (cmd == NULL) {
+		printf ("Allocation failed:\n");
+		return -ENOMEM;
+	}
+
+	pi = &cmd->input.pi;
+	attr = &pi->pi_attr;
+
+	/* cmd */
+	sfscli_deser_nfield(cmd->cmd, p);
+	/* pi->pi_uid */
+	pi->pi_uid = 0;
+	sfscli_deser_nfield(pi->pi_uid, p);
+	/* pi->pi_gid */
+	sfscli_deser_nfield(pi->pi_gid, p);
+	/* pi->pi_policy_tag */
+	sfscli_deser_sfield(pi->pi_policy_tag[0], p);
+	/* pi->pi_fname */
+	sfscli_deser_sfield(pi->pi_fname, p);
+	/* pi->pi_ftype */
+	sfscli_deser_sfield(pi->pi_ftype, p);
+	/* pi->pi_num_policy */
+	sfscli_deser_nfield(pi->pi_num_policy, p);
+	/* attr->ver */
+	sfscli_deser_nfield(attr->ver, p);
+	/* attr->a_quota */
+	sfscli_deser_nfield(attr->a_quota, p);
+	/* attr->a_qoslevel */
+	sfscli_deser_nfield(attr->a_qoslevel, p);
+	/* attr->a_ishidden */
+	sfscli_deser_nfield(attr->a_ishidden, p);
+	/* attr->a_numreplicas */
+	sfscli_deser_nfield(attr->a_numreplicas, p);
+	/* attr->a_enable_dr */
+	sfscli_deser_nfield(attr->a_enable_dr, p);
+
+	*cli_cmd = cmd;
+	return 0;
 }
