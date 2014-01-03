@@ -24,6 +24,7 @@ CONFIGURE = conf
 OSS_DIR = $(PWD)
 OSS_INSTALL_DIR = $(OSS_DIR)/oss_install
 OSS_LIBSDIR = $(OSS_INSTALL_DIR)/lib
+OSS_INCLUDEDIR = $(OSS_INSTALL_DIR)/include
 OPENSSL_DIR = openssl-1.0.1c
 RBTREE_DIR = rbtree
 CLISH_DIR = clish-0.7.3
@@ -47,6 +48,8 @@ all: $(CONFIGURE)
 	$(CP) $(LZ4DIR)/*.so $(OSS_LIBSDIR)
 	$(MAKE) -C $(OPENSSL_DIR)
 	$(CP) $(OPENSSL_DIR)/*.so $(OSS_LIBSDIR)
+	$(MKDIR) $(OSS_INCLUDEDIR)/openssl
+	$(CP)  $(OPENSSL_DIR)/include/openssl/* $(OSS_INCLUDEDIR)/openssl
 	$(MAKE) -C $(RBTREE_DIR)
 	$(CP) $(RBTREE_DIR)/*.so $(OSS_LIBSDIR)
 	$(MAKE) -C $(CLISH_DIR)

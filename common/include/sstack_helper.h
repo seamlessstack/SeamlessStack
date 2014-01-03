@@ -27,6 +27,8 @@
 #include <sstack_log.h>
 #include <sstack_md.h>
 #include <sstack_nfs.h>
+#include <openssl/sha.h>
+#include <inttypes.h>
 
 #define MAX_INODE_LEN 40 // Maximum number of characters in 2^128 is 39
 
@@ -544,6 +546,50 @@ sstack_free_inode_res(sstack_inode_t *inode, log_ctx_t *ctx)
 	sstack_free_erasure(ctx, inode->i_erasure, inode->i_numerasure);
 }
 
+/*
+ * create_hash - Create SHA1 hash of the input
+ *
+ * input - Array of bytes to be hashed. Should be non-NULL
+ * length - Length of the input array. Should be >0
+ * result - SHA1 key. Should be non-NULL and at least 32 bytes long
+ * ctx - log context
+ *
+ * Returns non-NULL SHA1 key upon success. Returns NULL upon failure.
+ */
+static inline uint8_t *
+create_hash(void *input, size_t length, uint8_t *result, log_ctx_t *ctx)
+{
+	SHA256_CTX context;
 
+	// Parameter validation
+	if (NULL == input || length <= 0 || NULL == result) {
+		sfs_log(ctx, SFS_ERR, "%s: Invalid parameters specified \n",
+						__FUNCTION__);
+		errno = EINVAL;
+
+		return NULL;
+	}
+
+	// Calculate SHA1 for the input
+	if (SHA256_Init(&context) == 0) {
+		sfs_log(ctx, SFS_ERR, "%s: SHA256_Init failed \n", __FUNCTION__);
+
+		return NULL;
+	}
+
+	if (SHA256_Update(&context, (unsigned char *) input, length) == 0) {
+		sfs_log(ctx, SFS_ERR, "%s: SHA256_Update failed \n", __FUNCTION__);
+
+		return NULL;
+	}
+
+	if (SHA256_Final(result, &context) == 0) {
+		sfs_log(ctx, SFS_ERR, "%s: SHA256_Final failed \n", __FUNCTION__);
+
+		return NULL;
+	}
+
+	return result;
+}
 
 #endif //__SSTACK_HELPER_H_
