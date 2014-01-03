@@ -1,12 +1,18 @@
-lub/argv/argv_wordcount.lo: lub/argv/argv_wordcount.c lub/argv/private.h \
- lub/argv.h /usr/lib/gcc/x86_64-linux-gnu/4.7/include/stddef.h \
- lub/c_decl.h lub/types.h
+lub/argv/argv_wordcount.lo: lub/argv/argv_wordcount.c \
+ /usr/include/stdc-predef.h /usr/include/x86_64-linux-gnu/bits/predefs.h \
+ lub/argv/private.h lub/argv.h \
+ /usr/lib/gcc/x86_64-linux-gnu/4.8/include/stddef.h lub/c_decl.h \
+ lub/types.h
+
+/usr/include/stdc-predef.h:
+
+/usr/include/x86_64-linux-gnu/bits/predefs.h:
 
 lub/argv/private.h:
 
 lub/argv.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/4.7/include/stddef.h:
+/usr/lib/gcc/x86_64-linux-gnu/4.8/include/stddef.h:
 
 lub/c_decl.h:
 

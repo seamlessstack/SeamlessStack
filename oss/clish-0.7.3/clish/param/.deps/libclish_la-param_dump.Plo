@@ -1,7 +1,12 @@
 clish/param/libclish_la-param_dump.lo: clish/param/param_dump.c \
+ /usr/include/stdc-predef.h /usr/include/x86_64-linux-gnu/bits/predefs.h \
  clish/param/private.h clish/param.h clish/ptype.h lub/types.h \
- lub/bintree.h /usr/lib/gcc/x86_64-linux-gnu/4.7/include/stddef.h \
- lub/dump.h /usr/lib/gcc/x86_64-linux-gnu/4.7/include/stdarg.h
+ lub/bintree.h /usr/lib/gcc/x86_64-linux-gnu/4.8/include/stddef.h \
+ lub/dump.h /usr/lib/gcc/x86_64-linux-gnu/4.8/include/stdarg.h
+
+/usr/include/stdc-predef.h:
+
+/usr/include/x86_64-linux-gnu/bits/predefs.h:
 
 clish/param/private.h:
 
@@ -13,8 +18,8 @@ lub/types.h:
 
 lub/bintree.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/4.7/include/stddef.h:
+/usr/lib/gcc/x86_64-linux-gnu/4.8/include/stddef.h:
 
 lub/dump.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/4.7/include/stdarg.h:
+/usr/lib/gcc/x86_64-linux-gnu/4.8/include/stdarg.h:

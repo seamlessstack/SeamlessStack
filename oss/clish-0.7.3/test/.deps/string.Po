@@ -1,16 +1,21 @@
-test/string.o: test/string.c lub/test.h \
- /usr/lib/gcc/x86_64-linux-gnu/4.7/include/stdarg.h lub/types.h \
- lub/string.h /usr/lib/gcc/x86_64-linux-gnu/4.7/include/stddef.h \
+test/string.o: test/string.c /usr/include/stdc-predef.h \
+ /usr/include/x86_64-linux-gnu/bits/predefs.h lub/test.h \
+ /usr/lib/gcc/x86_64-linux-gnu/4.8/include/stdarg.h lub/types.h \
+ lub/string.h /usr/lib/gcc/x86_64-linux-gnu/4.8/include/stddef.h \
  lub/c_decl.h
+
+/usr/include/stdc-predef.h:
+
+/usr/include/x86_64-linux-gnu/bits/predefs.h:
 
 lub/test.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/4.7/include/stdarg.h:
+/usr/lib/gcc/x86_64-linux-gnu/4.8/include/stdarg.h:
 
 lub/types.h:
 
 lub/string.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/4.7/include/stddef.h:
+/usr/lib/gcc/x86_64-linux-gnu/4.8/include/stddef.h:
 
 lub/c_decl.h:

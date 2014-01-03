@@ -1,9 +1,14 @@
 lub/blockpool/blockpool_alloc.lo: lub/blockpool/blockpool_alloc.c \
+ /usr/include/stdc-predef.h /usr/include/x86_64-linux-gnu/bits/predefs.h \
  lub/blockpool/private.h lub/blockpool.h \
- /usr/lib/gcc/x86_64-linux-gnu/4.7/include/stddef.h
+ /usr/lib/gcc/x86_64-linux-gnu/4.8/include/stddef.h
+
+/usr/include/stdc-predef.h:
+
+/usr/include/x86_64-linux-gnu/bits/predefs.h:
 
 lub/blockpool/private.h:
 
 lub/blockpool.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/4.7/include/stddef.h:
+/usr/lib/gcc/x86_64-linux-gnu/4.8/include/stddef.h:

@@ -17,10 +17,10 @@
 /* #undef HAVE_LIBINTL */
 
 /* Have POSIX threads library */
-#define HAVE_LIBPTHREAD 
+#define HAVE_LIBPTHREAD /**/
 
 /* Have POSIX real time library */
-#define HAVE_LIBRT 
+#define HAVE_LIBRT /**/
 
 /* Have TCL library */
 /* #undef HAVE_LIBTCL */
@@ -72,6 +72,9 @@
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "clish"
+
+/* Define to the home page for this package. */
+#define PACKAGE_URL ""
 
 /* Define to the version of this package. */
 #define PACKAGE_VERSION "0.7.3"

@@ -1,8 +1,13 @@
 clish/view/libclish_la-view_dump.lo: clish/view/view_dump.c \
+ /usr/include/stdc-predef.h /usr/include/x86_64-linux-gnu/bits/predefs.h \
  clish/view/private.h clish/view.h clish/command.h lub/bintree.h \
- /usr/lib/gcc/x86_64-linux-gnu/4.7/include/stddef.h clish/pargv.h \
+ /usr/lib/gcc/x86_64-linux-gnu/4.8/include/stddef.h clish/pargv.h \
  clish/ptype.h lub/types.h clish/param.h lub/dump.h \
- /usr/lib/gcc/x86_64-linux-gnu/4.7/include/stdarg.h
+ /usr/lib/gcc/x86_64-linux-gnu/4.8/include/stdarg.h
+
+/usr/include/stdc-predef.h:
+
+/usr/include/x86_64-linux-gnu/bits/predefs.h:
 
 clish/view/private.h:
 
@@ -12,7 +17,7 @@ clish/command.h:
 
 lub/bintree.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/4.7/include/stddef.h:
+/usr/lib/gcc/x86_64-linux-gnu/4.8/include/stddef.h:
 
 clish/pargv.h:
 
@@ -24,4 +29,4 @@ clish/param.h:
 
 lub/dump.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/4.7/include/stdarg.h:
+/usr/lib/gcc/x86_64-linux-gnu/4.8/include/stdarg.h:
