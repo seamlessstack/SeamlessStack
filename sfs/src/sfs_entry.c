@@ -112,7 +112,7 @@ sfs_getattr(const char *path, struct stat *stbuf)
 	}
 
 	// Get the inode number for the file.
-	inodestr = sstack_cache_read_one(mc, path, strlen(path), &size, sfs_ctx);
+	inodestr = sstack_memcache_read_one(mc, path, strlen(path), &size, sfs_ctx);
 	if (NULL == inodestr) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
 					"for path %s.\n", __FUNCTION__, path);
@@ -193,7 +193,7 @@ sfs_readlink(const char *path, char *buf, size_t size)
 	}
 
 	// Get the inode number for the file.
-	inodestr = sstack_cache_read_one(mc, path, strlen(path), &size, sfs_ctx);
+	inodestr = sstack_memcache_read_one(mc, path, strlen(path), &size, sfs_ctx);
 	if (NULL == inodestr) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
 					"for path %s.\n", __FUNCTION__, path);
@@ -383,7 +383,7 @@ sfs_mkdir(const char *path, mode_t mode)
 	}
 	// Populate memcahed for reverse lookup
 	sprintf(inode_str, "%lld", inode.i_num);
-	ret = sstack_cache_store(mc, path, inode_str, (strlen(inode_str) + 1),
+	ret = sstack_memcache_store(mc, path, inode_str, (strlen(inode_str) + 1),
 					sfs_ctx);
 	if (ret != 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to store object into memcached."
@@ -437,7 +437,7 @@ sfs_unlink(const char *path)
 	// Let all the involved sfsds know about this file's demise
 
 	// Get the inode number for the file.
-	inodestr = sstack_cache_read_one(mc, path, strlen(path), &size1, sfs_ctx);
+	inodestr = sstack_memcache_read_one(mc, path, strlen(path), &size1, sfs_ctx);
 	if (NULL == inodestr) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
 					"for path %s.\n", __FUNCTION__, path);
@@ -624,7 +624,7 @@ sfs_unlink(const char *path)
 		return -1;
 	}
 
-	ret = sstack_cache_remove(mc, path, sfs_ctx);
+	ret = sstack_memcache_remove(mc, path, sfs_ctx);
 	if (ret != 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to delete reverse lookup "
 						"for file %s \n", __FUNCTION__, path);
@@ -685,7 +685,7 @@ sfs_rmdir(const char *path)
 	// Let all the involved sfsds know about this directory's demise
 
 	// Get the inode number for the file.
-	inodestr = sstack_cache_read_one(mc, path, strlen(path), &size1, sfs_ctx);
+	inodestr = sstack_memcache_read_one(mc, path, strlen(path), &size1, sfs_ctx);
 	if (NULL == inodestr) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
 					"for path %s.\n", __FUNCTION__, path);
@@ -871,7 +871,7 @@ sfs_rmdir(const char *path)
 		return -1;
 	}
 
-	ret = sstack_cache_remove(mc, path, sfs_ctx);
+	ret = sstack_memcache_remove(mc, path, sfs_ctx);
 	if (ret != 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to delete reverse lookup "
 						"for file %s \n", __FUNCTION__, path);
@@ -960,7 +960,7 @@ sfs_symlink(const char *from, const char *to)
 
 	// Populate memcahed for reverse lookup
 	sprintf(inode_str, "%lld", inode.i_num);
-	ret = sstack_cache_store(mc, to, inode_str, (strlen(inode_str) + 1),
+	ret = sstack_memcache_store(mc, to, inode_str, (strlen(inode_str) + 1),
 					sfs_ctx);
 	if (ret != 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to store object into memcached."
@@ -981,7 +981,7 @@ sfs_rename(const char *from, const char *to)
 	unsigned long long	inode_num = 0;
 	int					ret  = 0;
 
-	inode_str = sstack_cache_read_one(mc, from, strlen(from), &sz, sfs_ctx);
+	inode_str = sstack_memcache_read_one(mc, from, strlen(from), &sz, sfs_ctx);
 	if (NULL == inode_str) {
         sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
                     "for path %s.\n", __FUNCTION__, from);
@@ -1024,14 +1024,14 @@ sfs_rename(const char *from, const char *to)
 
 	/* Remove the old key and replace with new key in memcached
 	 * for reverse lookup */
-	ret = sstack_cache_remove(mc, from, sfs_ctx);
+	ret = sstack_memcache_remove(mc, from, sfs_ctx);
 	if (ret != 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to remove the entry with "
 				"old path Key = %s\n", __FUNCTION__, from);
 		sfs_unlock(inode_num);
 		return (-1);
 	}
-	ret = sstack_cache_store(mc, to, inode_str, (strlen(inode_str) + 1),
+	ret = sstack_memcache_store(mc, to, inode_str, (strlen(inode_str) + 1),
 								sfs_ctx);
 	if (ret != 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to store object into memcached."
@@ -1121,7 +1121,7 @@ sfs_link(const char *from, const char *to)
 
 	// Populate memcahed for reverse lookup
 	sprintf(inode_str, "%lld", inode.i_num);
-	ret = sstack_cache_store(mc, to, inode_str, (strlen(inode_str) + 1),
+	ret = sstack_memcache_store(mc, to, inode_str, (strlen(inode_str) + 1),
 					sfs_ctx);
 	if (ret != 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to store object into memcached."
@@ -1168,7 +1168,7 @@ sfs_chmod(const char *path, mode_t mode)
 
 	// Update inode with the new mode
 	// Get the inode number for the file.
-	inodestr = sstack_cache_read_one(mc, path, strlen(path), &size1, sfs_ctx);
+	inodestr = sstack_memcache_read_one(mc, path, strlen(path), &size1, sfs_ctx);
 	if (NULL == inodestr) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
 					"for path %s.\n", __FUNCTION__, path);
@@ -1256,7 +1256,7 @@ sfs_chown(const char *path, uid_t uid, gid_t gid)
 
 	// Update inode with the new mode
 	// Get the inode number for the file.
-	inodestr = sstack_cache_read_one(mc, path, strlen(path), &size1, sfs_ctx);
+	inodestr = sstack_memcache_read_one(mc, path, strlen(path), &size1, sfs_ctx);
 	if (NULL == inodestr) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
 					"for path %s.\n", __FUNCTION__, path);
@@ -1339,7 +1339,7 @@ sfs_truncate(const char *path, off_t size)
 	}
 
 	// Get the inode number for the file.
-	inodestr = sstack_cache_read_one(mc, path, strlen(path), &size1, sfs_ctx);
+	inodestr = sstack_memcache_read_one(mc, path, strlen(path), &size1, sfs_ctx);
 	if (NULL == inodestr) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
 					"for path %s.\n", __FUNCTION__, path);
@@ -1430,7 +1430,7 @@ sfs_open(const char *path, struct fuse_file_info *fi)
 	}
 
 	// Check if the file alreday exists in reverse lookup
-	inodestr = sstack_cache_read_one(mc, path, strlen(path), &size, sfs_ctx);
+	inodestr = sstack_memcache_read_one(mc, path, strlen(path), &size, sfs_ctx);
 	if (inodestr) {
 		// File already created. We don't need to do anything.
 		fi->fh = fd;
@@ -1508,7 +1508,7 @@ sfs_open(const char *path, struct fuse_file_info *fi)
 
 	// Populate memcahed for reverse lookup
 	sprintf(inode_str, "%lld", inode.i_num);
-	ret = sstack_cache_store(mc, path, inode_str, (strlen(inode_str) + 1),
+	ret = sstack_memcache_store(mc, path, inode_str, (strlen(inode_str) + 1),
 					sfs_ctx);
 	if (ret != 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to store object into memcached."
@@ -1551,7 +1551,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 	}
 
 	// Get the inode number for the file.
-	inodestr = sstack_cache_read_one(mc, path, strlen(path), &size1, sfs_ctx);
+	inodestr = sstack_memcache_read_one(mc, path, strlen(path), &size1, sfs_ctx);
 	if (NULL == inodestr) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
 					"for path %s.\n", __FUNCTION__, path);
@@ -1866,7 +1866,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 	}
 
 	// Get the inode number for the file.
-	inodestr = sstack_cache_read_one(mc, path, strlen(path), &size1, sfs_ctx);
+	inodestr = sstack_memcache_read_one(mc, path, strlen(path), &size1, sfs_ctx);
 	if (NULL == inodestr) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
 					"for path %s.\n", __FUNCTION__, path);
@@ -2276,7 +2276,7 @@ sfs_release(const char *path, struct fuse_file_info *fi)
 		return -1;
 	}
 	// Remove the reverse mapping for the path
-	res = sstack_cache_remove(mc, path, sfs_ctx);
+	res = sstack_memcache_remove(mc, path, sfs_ctx);
 	if (res != 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Reverse lookup for path %s failed. "
 						"Return value = %d\n", __FUNCTION__, path, res);
@@ -2578,7 +2578,7 @@ sfs_setxattr(const char *path, const char *name, const char *value,
 	}
 
 	// Get the inode number for the file.
-	inodestr = sstack_cache_read_one(mc, path, strlen(path), &size, sfs_ctx);
+	inodestr = sstack_memcache_read_one(mc, path, strlen(path), &size, sfs_ctx);
 	if (NULL == inodestr) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
 					"for path %s.\n", __FUNCTION__, path);
@@ -2739,7 +2739,7 @@ sfs_getxattr(const char *path, const char *name, char *value, size_t size)
 	}
 
 	// Get the inode number for the file.
-	inodestr = sstack_cache_read_one(mc, path, strlen(path), &size1, sfs_ctx);
+	inodestr = sstack_memcache_read_one(mc, path, strlen(path), &size1, sfs_ctx);
 	if (NULL == inodestr) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
 					"for path %s.\n", __FUNCTION__, path);
@@ -2853,7 +2853,7 @@ sfs_listxattr(const char *path, char *list, size_t size)
 	}
 
 	// Get the inode number for the file.
-	inodestr = sstack_cache_read_one(mc, path, strlen(path), &size1, sfs_ctx);
+	inodestr = sstack_memcache_read_one(mc, path, strlen(path), &size1, sfs_ctx);
 	if (NULL == inodestr) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
 					"for path %s.\n", __FUNCTION__, path);
@@ -3060,7 +3060,7 @@ sfs_removexattr(const char *path, const char *name)
 	}
 
 	// Get the inode number for the file.
-	inodestr = sstack_cache_read_one(mc, path, strlen(path), &size, sfs_ctx);
+	inodestr = sstack_memcache_read_one(mc, path, strlen(path), &size, sfs_ctx);
 	if (NULL == inodestr) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
 					"for path %s.\n", __FUNCTION__, path);
@@ -3151,7 +3151,7 @@ sfs_access(const char *path, int mode)
 	}
 
 	// Get the inode number for the file
-	inodestr = sstack_cache_read_one(mc, path, strlen(path), &size, sfs_ctx);
+	inodestr = sstack_memcache_read_one(mc, path, strlen(path), &size, sfs_ctx);
 	if (NULL == inodestr) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
 						"for path %s.\n", __FUNCTION__, path);
@@ -3304,7 +3304,7 @@ sfs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 
 	// Populate memcahed for reverse lookup
 	sprintf(inode_str, "%lld", inode.i_num);
-	ret = sstack_cache_store(mc, path, inode_str, (strlen(inode_str) + 1),
+	ret = sstack_memcache_store(mc, path, inode_str, (strlen(inode_str) + 1),
 					sfs_ctx);
 	if (ret != 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to store object into memcached."
@@ -3349,7 +3349,7 @@ sfs_ftruncate(const char *path, off_t offset, struct fuse_file_info *fi)
 	}
 
 	// Get the inode number for the file.
-	inodestr = sstack_cache_read_one(mc, path, strlen(path), &size, sfs_ctx);
+	inodestr = sstack_memcache_read_one(mc, path, strlen(path), &size, sfs_ctx);
 	if (NULL == inodestr) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
 					"for path %s.\n", __FUNCTION__, path);

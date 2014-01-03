@@ -1,11 +1,11 @@
 /*************************************************************************
- * 
+ *
  * SEAMLESSSTACK CONFIDENTIAL
  * __________________________
- * 
+ *
  *  [2012] - [2013]  SeamlessStack Inc
  *  All Rights Reserved.
- * 
+ *
  * NOTICE:  All information contained herein is, and remains
  * the property of SeamlessStack Incorporated and its suppliers,
  * if any.  The intellectual and technical concepts contained
@@ -29,7 +29,7 @@
 #define SEPERATOR ":"
 
 /*
- * sstack_cache_init - Creates memcached_st handle 
+ * sstack_memcache_init - Creates memcached_st handle
  *
  * config - Memcached server locations in the form
  * 			 "server1:server2:..."
@@ -40,7 +40,7 @@
  */
 
 memcached_st *
-sstack_cache_init(const char *config, int num_servers, log_ctx_t *ctx)
+sstack_memcache_init(const char *config, int num_servers, log_ctx_t *ctx)
 {
 	memcached_server_st *servers = NULL;
 	memcached_st *memc = NULL;
@@ -91,7 +91,7 @@ sstack_cache_init(const char *config, int num_servers, log_ctx_t *ctx)
 }
 
 /*
- * sstack_cache_destroy -  Destroys memcached connectiom
+ * sstack_memcache_destroy -  Destroys memcached connectiom
  *
  * memc - memcached_st pointer
  * ctx - log ctx
@@ -100,7 +100,7 @@ sstack_cache_init(const char *config, int num_servers, log_ctx_t *ctx)
  */
 
 inline void
-sstack_cache_destroy(memcached_st *memc, log_ctx_t *ctx)
+sstack_memcache_destroy(memcached_st *memc, log_ctx_t *ctx)
 {
 	if (NULL == memc) {
 		sfs_log(ctx, SFS_ERR, "%s: memc is NULL \n", __FUNCTION__);
@@ -113,9 +113,9 @@ sstack_cache_destroy(memcached_st *memc, log_ctx_t *ctx)
 
 
 /*
- * sstack_cache_store - Store a key:value pair on memcached
+ * sstack_memcache_store - Store a key:value pair on memcached
  *
- * memc - memcached_st pointer obtained by a call to sstack_cache_init
+ * memc - memcached_st pointer obtained by a call to sstack_memcache_init
  * key - Null terminated string that stores key
  * value - binary data, need not be NULL terminated
  * valuelen - Length of value in bytes
@@ -125,7 +125,7 @@ sstack_cache_destroy(memcached_st *memc, log_ctx_t *ctx)
  */
 
 int
-sstack_cache_store(memcached_st *memc,
+sstack_memcache_store(memcached_st *memc,
 				const char *key,
 				const char *value,
 				size_t valuelen,
@@ -140,7 +140,7 @@ sstack_cache_store(memcached_st *memc,
 		return -1;
 	}
 	rc = memcached_set(memc, key, strlen(key), value, valuelen,
-			(time_t)0, (uint32_t) 0); 
+			(time_t)0, (uint32_t) 0);
 	if (rc != MEMCACHED_SUCCESS) {
 		sfs_log(ctx, SFS_ERR, "%s: Storing key %s n memcahced db failed with"
 						" error %d\n", __FUNCTION__, key, rc);
@@ -155,7 +155,7 @@ sstack_cache_store(memcached_st *memc,
 }
 
 /*
- * sstack_cache_remove - Remove key from memcached
+ * sstack_memcache_remove - Remove key from memcached
  *
  * memc - memcached connection handle
  * key - key to be deleted
@@ -166,7 +166,7 @@ sstack_cache_store(memcached_st *memc,
  */
 
 int
-sstack_cache_remove(memcached_st *memc, const char *key, log_ctx_t *ctx)
+sstack_memcache_remove(memcached_st *memc, const char *key, log_ctx_t *ctx)
 {
 	int rc = -1;
 
@@ -192,7 +192,7 @@ sstack_cache_remove(memcached_st *memc, const char *key, log_ctx_t *ctx)
 }
 
 /*
- * sstack_cache_read_one - Read value corresponding to a key
+ * sstack_memcache_read_one - Read value corresponding to a key
  *
  * memc - memcached_st pointer
  * valuelen - Return value that indicates size of the value retruned
@@ -203,7 +203,7 @@ sstack_cache_remove(memcached_st *memc, const char *key, log_ctx_t *ctx)
  */
 
 char *
-sstack_cache_read_one(memcached_st *memc,
+sstack_memcache_read_one(memcached_st *memc,
 					const char *key,
 					size_t keylen,
 					size_t *valuelen,
@@ -221,11 +221,11 @@ sstack_cache_read_one(memcached_st *memc,
 }
 
 /*
- * sstack_cache_read_multiple - Read multiple keys at once
+ * sstack_memcache_read_multiple - Read multiple keys at once
  *
  * memc - memcached_st pointer
  * keys - array of strings holding keys
- * keylen - array key length 
+ * keylen - array key length
  * num_keys - number of keys to fetch
  * ctx - log ctx
  *
@@ -245,11 +245,11 @@ sstack_cache_read_one(memcached_st *memc,
  *		// Do whatever needs to be done with the value
  *		free (return_value);
  *		x++;
- * } 
+ * }
  */
 
 int
-sstack_cache_read_multiple(memcached_st * memc,
+sstack_memcache_read_multiple(memcached_st * memc,
 						const char **keys,
 						size_t *keylen,
 						int num_keys,
@@ -272,7 +272,7 @@ sstack_cache_read_multiple(memcached_st * memc,
 
 
 /*
- * sstack_cache_replace - Replace value for the given key
+ * sstack_memcache_replace - Replace value for the given key
  *
  * memc - memcached_st pointer
  * expiration - indicates when this object expires
@@ -282,7 +282,7 @@ sstack_cache_read_multiple(memcached_st * memc,
  */
 
 int
-sstack_cache_replace(memcached_st *memc,
+sstack_memcache_replace(memcached_st *memc,
 					const char *key,
 					const char *value,
 					size_t valuelen,

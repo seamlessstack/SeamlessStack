@@ -253,7 +253,7 @@ add_inodes(const char *path)
 	free(ep);
 	// Store inode <-> path into reverse lookup
 	sprintf(inode_str, "%lld", inode.i_num);
-	ret = sstack_cache_store(mc, path, inode_str, (strlen(inode_str) + 1),
+	ret = sstack_memcache_store(mc, path, inode_str, (strlen(inode_str) + 1),
 					sfs_ctx);
 	if (ret != 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to store object into memcached."
@@ -1380,7 +1380,7 @@ main(int argc, char *argv[])
 		ASSERT((ret != 0), "Log initialization failed. Logging disabled",
 			0, 0, 0);
 	}
-	mc = sstack_cache_init("localhost", 1, sfs_ctx);
+	mc = sstack_memcache_init("localhost", 1, sfs_ctx);
 
 	ret = fuse_opt_add_arg(&args, "-obig_writes");
 	ASSERT((ret != -1), "Enabling big writes failed.", 0, 0, 0);

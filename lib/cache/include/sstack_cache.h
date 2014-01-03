@@ -23,11 +23,13 @@
 #include <openssl/sha.h>
 #include <stdbool.h>
 #include <sstack_log.h>
+#include <libmemcached/memcached.h>
+#include <time.h>
 #define FILENAME_LEN 32
 
 typedef struct mcache {
+	memcached_st *mc; // Memcached connection info
 	size_t len; // Size of the object
-	intptr_t ptr; // Memory location
 } sstack_mcache_t;
 
 // This file defines the generic cache structure
@@ -39,16 +41,16 @@ typedef struct sstack_cache {
 		char filename_on_ssd[FILENAME_LEN]; // Filename on SSD
 		sstack_mcache_t memcache; // Memcached structure
 	};
+	time_t time; // Used for LRU impl
+
 } sstack_cache_t;
 
 
 // Functions
 extern uint8_t * create_hash(void * , size_t , uint8_t *, log_ctx_t *);
+extern int sstack_cache_store(void *, size_t , sstack_cache_t *, log_ctx_t *);
+extern sstack_cache_t *sstack_cache_search(uint8_t *, log_ctx_t *);
+extern int cache_init(log_ctx_t *);
 
 
 #endif // __SSTACK_CACHE_H__
-
-
-	
-
-
