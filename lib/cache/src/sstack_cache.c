@@ -21,11 +21,12 @@
 #include <errno.h>
 #include <red_black_tree.h>
 #include <sstack_log.h>
+#include <sstack_jobs.h>
 #include <sstack_helper.h>
 #include <sstack_cache.h>
 #include <sstack_cache_api.h>
 
-red_black_tree *cache_tree = NULL;
+rb_red_blk_tree *cache_tree = NULL;
 
 /*
  * compare_func - RB-tree compare function
@@ -64,11 +65,11 @@ destroy_func(void *val)
  * failure.
  */
 
-int
+rb_red_blk_tree *
 cache_init(log_ctx_t *ctx)
 {
 	// Create RB-tree for managing the cache
-	cache_tree = RBTreeCreate(compare_func, destory_func, NULL, NULL, NULL);
+	cache_tree = RBTreeCreate(compare_func, destroy_func, NULL, NULL, NULL);
 	if (NULL == cache_tree)
 		sfs_log(ctx, SFS_ERR, "%s: Failed to create RB-tree for cache \n",
 						__FUNCTION__);
@@ -104,8 +105,9 @@ sstack_cache_store(void *data, size_t len, sstack_cache_t *entry,
 		return -1;
 	}
 	// Store the entry into cache
-	ret = sstack_memcache_store(entry->mc, (const char *) entry->hashkey,
-					(const char *) value, len, ctx);
+	ret = sstack_memcache_store(entry->memcache.mc,
+					(const char *) entry->hashkey,
+					(const char *) data, len, ctx);
 	if (ret != 0) {
 		sfs_log(ctx, SFS_ERR, "%s: sstack_cache_store failed \n", __FUNCTION__);
 		// FIXME
@@ -115,13 +117,14 @@ sstack_cache_store(void *data, size_t len, sstack_cache_t *entry,
 	}
 	// memcache store succeeded.
 	entry->on_ssd = false;
-	entry->time = time();
+	entry->time = time(NULL);
 
 	node = RBTreeInsert(cache_tree, (void *) entry->hashkey, (void *) entry);
 	if (NULL == node) {
 		sfs_log(ctx, SFS_ERR, "%s: Failed to insert node into RB-tree \n",
 						__FUNCTION__);
-		sstack_cache_remove(entry->mc, (const char *) entry->hashkey, ctx);
+		sstack_cache_remove(entry->memcache.mc,
+						(const char *) entry->hashkey, ctx);
 
 		return -1;
 	}
@@ -143,7 +146,7 @@ sstack_cache_search(uint8_t *hashkey, log_ctx_t *ctx)
 {
 	sstack_cache_t c;
 	sstack_cache_t *ret = NULL;
-	rb_red_black_node *node = NULL;
+	rb_red_blk_node *node = NULL;
 
 	// Parameter validation
 	if (NULL == hashkey) {

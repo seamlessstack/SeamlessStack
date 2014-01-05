@@ -25,6 +25,7 @@ CLIDIR	= cli
 SFSDDIR = sfsd
 COMMONDIR = common
 CACHINGDIR = lib/memcache
+GENCACHEDIR = lib/cache
 COMPRESSION_PLUGIN = lib/storage/plugins/compression
 OSS_INSTALL_DIR = $(PWD)/oss_install
 PROTOBUF_DIR = $(PWD)/protobuf-template/proto
@@ -52,6 +53,7 @@ all:
 	$(MAKE) -C $(POLICYDIR)
 	$(MAKE) -C $(CLIDIR)
 	$(MAKE) -C $(CACHINGDIR)
+	$(MAKE) -C $(GENCACHEDIR)
 	$(MAKE) -C $(COMPRESSION_PLUGIN)
 	$(MAKE) -C $(SERDES_DIR)
 	$(MAKE) -C $(COMMONDIR)
@@ -74,6 +76,7 @@ clean:
 	$(MAKE) -C $(POLICYDIR) clean
 	$(MAKE) -C $(CLIDIR) clean
 	$(MAKE) -C $(CACHINGDIR) clean
+	$(MAKE) -C $(GENCACHEDIR) clean
 	$(MAKE) -C $(COMPRESSION_PLUGIN) clean
 	$(MAKE) -C $(SERDES_DIR) clean
 	$(MAKE) -C $(SFSDDIR) clean
