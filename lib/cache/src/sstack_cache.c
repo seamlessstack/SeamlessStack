@@ -26,6 +26,7 @@
 #include <sstack_cache.h>
 #include <sstack_cache_api.h>
 
+
 rb_red_blk_tree *cache_tree = NULL;
 
 /*
@@ -77,6 +78,39 @@ cache_init(log_ctx_t *ctx)
 	return cache_tree;
 }
 
+/*
+ * sstack_memcache_evict_objects - Create space in memcached by evicting
+ * 									objects based on LRU.
+ *
+ * NOTE:
+ * This is heart of the two-tier caching functionality. This function checks
+ * for availability of SSD caching functionality before throwing out the
+ * items permanently.
+ * If SSD caching is enabled, evicted items are pushed to SSD. If SSD is full,
+ * SSD caching functionality will evict items according to chosen algo.
+ */
+
+int
+sstack_memcache_evict_objects(void)
+{
+	// FIXME:
+	// Eviction functionality goes here
+
+#if 0
+	// Check whether SSD caching is enabled
+	if (ssd_caching_enabled && ssd_cache && ssd_cache->ops.ssd_cache_init) {
+		// Store the elements into cache
+		if (ssd_cache && ssd_cache->ops.ssd_cache_store) {
+			ssd_cache_entry_t entry;
+
+			entry = ssd_cache->ops.ssd_cache_store(handle, data, len, ctx);
+		}
+	} else {
+		// Do nothing as objects are already evicted.
+	}
+#endif
+	return 0;
+}
 
 /*
  * sstack_cache_store - Store data into cache
@@ -110,10 +144,35 @@ sstack_cache_store(void *data, size_t len, sstack_cache_t *entry,
 					(const char *) data, len, ctx);
 	if (ret != 0) {
 		sfs_log(ctx, SFS_ERR, "%s: sstack_cache_store failed \n", __FUNCTION__);
-		// FIXME
-		// Check for out of memory condition
-		// If so, use LRU map for eviction into SSD.
-		return -1;
+		if (ret == -MEMCACHED_MEMORY_ALLOCATION_FAILURE) {
+			// Memcached is out of memory.
+			// This is due to configuring memcached to not to evict objects
+			// and fail stores with PROTOCOL_BINARY_RESPONSE_ENOMEM error
+			// code.
+			// FIXME:
+			// libmemcached returns MEMCACHED_MEMORY_ALLOCATION_FAILURE
+			// for this error. But it also seem to return same error code
+			// when malloc fails internally. This needs to be fixed.
+			sfs_log(ctx, SFS_INFO, "%s: Memcached is out of memory. "
+							"Objects will be evicted based on LRU \n",
+							__FUNCTION__);
+			ret = sstack_memcache_evict_objects();
+			// Retry store again
+			ret = sstack_memcache_store(entry->memcache.mc,
+					(const char *) entry->hashkey,
+					(const char *) data, len, ctx);
+			if (ret != 0) {
+				// Failed to store even after making space
+				// Log an error and exit
+				sfs_log(ctx, SFS_ERR, "%s: Failed to store element in cache."
+								"Error = %d \n", __FUNCTION__, -ret);
+
+				return -1;
+			}
+		} else {
+			// Some other error
+			return -1;
+		}
 	}
 	// memcache store succeeded.
 	entry->on_ssd = false;

@@ -1,0 +1,66 @@
+This library implements generic data caching functionality.
+
+Caching is divided into two parts:
+1> In-memory caching using libmemcached/memcached
+2> SSD based caching
+
+SSD based caching is implemented as an optional feature. This functionality is
+implemented in lib/ssdcache (libssdcache.so). 
+
+Here are the salient points:
+1> This library implements what is known as "read cache". This means data in
+cache and disk are always in sync. Wtiteback cache will be implemented in 
+future if needed. Most probably this will not be the case as most recent items
+are served from memcached.
+
+2> Mecached based and SSD based caches are exclusive in nature. Object is either
+on memcached cache or on SSD cache if it is present in cache. Exclusivity is
+important to avoid data corruptions.
+
+3> There is a RB-tree (root at cache_tree) maintaining the metadata on the
+cached objects. This tree has following information:
+
+typedef struct ssdcache {
+	ssd_cache_handle_t handle;
+	ssd_cache_entry_t entry;
+} sstack_ssdcache_t;
+
+typedef struct mcache {
+	memcached_st *mc; // Memcached connection info
+	size_t len; // Size of the object
+} sstack_mcache_t;
+
+typedef struct sstack_cache {
+	uint8_t hashkey[SHA256_DIGEST_LENGTH + 1]; // Hash of file name and offset
+	bool on_ssd; // Is it on SSD?
+	union {
+		sstack_ssdcache_t ssdcache; // Cache entry for SSD cache	
+		sstack_mcache_t memcache; // Memcached structure
+	};
+	time_t time; // Used for LRU impl
+
+} sstack_cache_t;
+
+Key for searching the record is a SHA256 has of <filename:offset> comination.
+Use create_hash() defined in sstack_helper.h for generating the hash value.
+SHA256 is chosen to avoid hash collisions as much as possible. Though collisions
+are possible with SHA256, they are very rare. Check
+http://stackoverflow.com/questions/4014090/is-it-safe-to-ignore-the-possibility-of-sha-collisions-in-practice
+for reference.
+
+4> SSD caching functionality is a plug-and-play functionality. This isn't
+designed for licensing purposes as SSD caching is a must for all storage
+products now. Main reason for pluggable model is availability of SSDs for
+caching.
+
+5> Multiple SSDs can be used as cache devices. Addition of each cache device
+retruns a handle. This handle is required for locating the data. RAID-0 like
+functionality can be developed later to combine multiple SSD caches.
+
+6> SSD caching can be implemented either at block-level or at file system level.
+File system implementation makes life easy for us as average object size is in
+KBs(in most cases entire extent is stored as an object).
+
+7> SSD caching kicks in only when memcached is full. To make this work,
+memcached needs to be started with -M option to avoid implicit evictions.
+
