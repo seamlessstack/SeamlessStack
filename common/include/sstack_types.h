@@ -41,13 +41,28 @@ typedef enum {
 	IPV6 = 2,
 } sstack_network_protocol_t ;
 
+/*
+ * Changing this struture would affect cli structures, specifically
+ * struct storage_input in cli/include/sfscli.h
+ */
 typedef struct {
 	sstack_network_protocol_t protocol;
 	union {
 		char ipv4_address[IPV4_ADDR_MAX];
 		char ipv6_address[IPV6_ADDR_MAX];
 	};
+	/* Used in CLI. Lists the number of field
+	   the structure has. Please update this when
+	   changing the structure
+	*/
+#define NUM_SSTACK_ADDRESS_FIELDS 2
 } sstack_address_t;
+
+typedef enum {
+	SSTACK_STORAGE_HDD = 1,
+	SSTACK_STORAGE_SSD = 2,
+} sstack_storage_type_t;
+
 typedef enum sstack_return_code {
 	SSTACK_SUCCESS = 100,
 	SSTACK_FAILURE = 101, // other than cksum and no-memory

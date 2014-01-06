@@ -31,6 +31,7 @@ CC = gcc
 
 LOG_DECODE_OBJS = src/sstack_log_decode.o
 SFSCLI_OBJS = src/sfscli.o src/sfscli_policy.o  src/sfscli_serdes.o
+SFSCLI_OBJS += src/sfscli_storage.o
 SFSCLID_OBJS = src/sfscli_clid.o
 
 

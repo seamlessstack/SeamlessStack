@@ -47,6 +47,8 @@ static void clid_handle_sigterm(int signum);
 
 static volatile int32_t not_terminating;
 
+static uint8_t *command_buffer = NULL;
+
 int32_t main(int argc, char *argv[])
 {
 	int32_t ret = 0;
@@ -67,7 +69,11 @@ int32_t main(int argc, char *argv[])
 	/* Register signal handlers */
 	if (signal(SIGTERM, clid_handle_sigterm) == SIG_ERR)
 		return -errno;
-
+	
+	/* Allocate command buffer */
+	if ((command_buffer = malloc(SFSCLI_MAX_BUFFER_SIZE)) == NULL)
+		return -ENOMEM;
+	
 	/* O.K we have valid parameters to start */
 	app_sockfd = clid_start(clid_addr, clid_port);
 	printf ("App sockfd: %d\n", app_sockfd);
@@ -81,6 +87,8 @@ int32_t main(int argc, char *argv[])
 
 	daemon(0,0);
 	clid_process_commands(app_sockfd, sfs_addr, sfs_port);
+
+	free(command_buffer);
 
 
 	return ret;
@@ -177,13 +185,13 @@ static void clid_process_commands(int32_t app_sockfd,
 								  in_addr_t sfs_addr, uint16_t sfs_port)
 {
 	int32_t sfs_sockfd;
-	uint8_t buffer[SFSCLI_MAX_BUFFER_SIZE];
 	ssize_t rnbytes = 0;
 	ssize_t wnbytes = 0;
 	int32_t ret = 0;
 	struct sockaddr_in app_addr;
 	socklen_t app_addr_len = sizeof(app_addr);
 	int32_t app_rw_sockfd;
+	uint8_t *buffer = command_buffer;
 
 	sfs_sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -193,15 +201,20 @@ static void clid_process_commands(int32_t app_sockfd,
 	}
 
 	while(not_terminating) {
+		memset(buffer, 0, SFSCLI_MAX_BUFFER_SIZE);
 		/* Do an accept here and then proceed */
 		app_rw_sockfd = accept(app_sockfd,
 							   (struct sockaddr *)&app_addr, &app_addr_len);
 		printf ("Connection received..\n");
 		/* Receive commands from the CLI app */
 		bzero(buffer, SFSCLI_MAX_BUFFER_SIZE);
+		printf ("Wating for a packet from the cli app\n");
+		/* TODO: Do a select/poll here */
 		rnbytes = read(app_rw_sockfd, buffer, SFSCLI_MAX_BUFFER_SIZE);
+		printf ("bytes read: %d\n", rnbytes);
 
 		/* No processing here, just forward the buffer to SFS */
+#if 0
 		if (rnbytes > 0) {
 			wnbytes = write(sfs_sockfd, buffer, rnbytes);
 			if (wnbytes < 0) {
@@ -211,7 +224,7 @@ static void clid_process_commands(int32_t app_sockfd,
 					/* Do a retry */
 					wnbytes = write(sfs_sockfd, buffer, rnbytes);
 				} else {
-					/* TODO: Still cannot write, send an erro
+					/* TODO: Still cannot write, send an error
 					   to CLI App */
 				}
 			}
@@ -226,6 +239,7 @@ static void clid_process_commands(int32_t app_sockfd,
 				}
 			}
 		}
+#endif
 	}
 	/* cleanup and return */
 	close(app_sockfd);

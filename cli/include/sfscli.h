@@ -21,6 +21,7 @@
 #define __SFSCLI_H_
 
 #include <policy.h>
+#include <sstack_types.h>
 
 #define SFSCLI_MAGIC 0xdeadbeef
 #define SFSCLI_MAGIC_LEN sizeof(SFSCLI_MAGIC);
@@ -76,18 +77,30 @@ typedef enum {
 } sfscli_storage_cmd_t;
 
 
+struct storage_input {
+	sstack_address_t address;
+	char rpath[PATH_MAX];
+	sfs_protocol_t access_protocol;
+	sstack_storage_type_t type;
+	size_t size;
+
+	/* Please change this when modifying this structure
+	   This lists the number of elements in the structure
+	*/
+#define NUM_SI_FIELDS 5
+};
+
 struct sfscli_xxx_input {
 	union {
 		sfscli_policy_cmd_t policy_cmd;
-		sfscli_sfsd_cmd_t sfsd_cmd;
 		sfscli_storage_cmd_t storage_cmd;
+		sfscli_sfsd_cmd_t sfsd_cmd;
 		sfscli_license_cmd_t license_cmd;
 	};
 	union {
 		struct policy_input pi;
-		/*
 		struct storage_input sti;
-		struct sfsd_input sdi;
+/*		struct sfsd_input sdi;
 		struct license_input li;
 		*/
 	};
@@ -160,9 +173,15 @@ struct sfscli_cli_cmd {
 
 
 struct sfscli_cli_cmd *parse_fill_policy_input(int32_t argc, char *args[]);
+struct sfscli_cli_cmd *parse_fill_storage_input(int32_t argc, char *args[]);
+
 int32_t sfscli_serialize_policy(struct sfscli_cli_cmd *cli_cmd,
 								uint8_t **buffer);
 int32_t sfscli_deserialize_policy(uint8_t *buffer, size_t buf_len,
 								  struct sfscli_cli_cmd **cli_cmd);
+int32_t sfscli_serialize_storage(struct sfscli_cli_cmd *cli_cmd,
+								 uint8_t **buffer);
+int32_t sfscli_deserialize_storage(uint8_t *buffer, size_t buf_len,
+								   struct sfscli_cli_cmd **cli_cmd);
 
 #endif /* __SFSCLI_H_ */

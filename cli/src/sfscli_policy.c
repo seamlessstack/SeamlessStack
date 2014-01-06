@@ -25,7 +25,7 @@
 #include <policy.h>
 #include <sfscli.h>
 
-struct sfscli_cli_cmd *parse_fill_policy_input(int32_t argc, char *args[])
+struct sfscli_cli_cmd *parse_fill_policy_input(int32_t argc, char *argv[])
 {
 
 	int32_t c;
@@ -37,8 +37,8 @@ struct sfscli_cli_cmd *parse_fill_policy_input(int32_t argc, char *args[])
 	if (!p_cli)
 		return NULL;
 
+	memset(p_cli, 0, sizeof(*p_cli));
 	/* Its a policy cmd */
-
 	p_cli->cmd = SFSCLI_POLICY_CMD;
 	pi = &p_cli->input.pi;
 	attr = &pi->pi_attr;
@@ -59,10 +59,13 @@ struct sfscli_cli_cmd *parse_fill_policy_input(int32_t argc, char *args[])
 			{"qos", required_argument, 0, 0}, /* index 7 */
 			{"hidden", required_argument, 0, 0}, /* index 8 */
 			{"plugin", required_argument, 0, 0}, /* index 9 */
+			{"add", no_argument, 0 ,'a'}, /* index 10 */
+			{"delete", no_argument, 0, 'd'}, /* index 11 */
+			{"list", no_argument, 0, 'l'}, /* index 12 */
 			{0, 0, 0, 0}
 		};
 
-		c = getopt_long(argc, args, "ald:",
+		c = getopt_long(argc, argv, "ald:",
 						policy_longopts, &option_index);
 		if (c == -1)
 			break;
@@ -77,6 +80,8 @@ struct sfscli_cli_cmd *parse_fill_policy_input(int32_t argc, char *args[])
 		case 'l':
 			p_cli->input.policy_cmd = POLICY_SHOW_CMD;
 			break;
+		case '?':
+			goto error;
 		}
 
 		/* The check is based on the indexes in the policy_longopts table
@@ -140,6 +145,13 @@ struct sfscli_cli_cmd *parse_fill_policy_input(int32_t argc, char *args[])
 			printf ("plugin: %s\n", pi->pi_policy_tag[0]);
 			break;
 		}
+	}
+
+	/* No command to do for us!! */
+	if (p_cli->input.policy_cmd == 0) {
+		fprintf (stderr,
+				 "Please specify atleast one of --add --delete --list\n");
+		goto error;
 	}
 
 	return p_cli;
