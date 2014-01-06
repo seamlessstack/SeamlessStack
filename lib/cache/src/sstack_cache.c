@@ -19,6 +19,7 @@
 
 #include <inttypes.h>
 #include <errno.h>
+#include <stdlib.h>
 #include <red_black_tree.h>
 #include <sstack_log.h>
 #include <sstack_jobs.h>
@@ -32,26 +33,24 @@ rb_red_blk_tree *cache_tree = NULL;
 /*
  * compare_func - RB-tree compare function
  */
-int
+static int
 compare_func(const void *val1, const void *val2)
 {
-	sstack_cache_t *cache1 = (sstack_cache_t *) val1;
-	sstack_cache_t *cache2 = (sstack_cache_t *) val2;
-
-
 	// NOTE:
 	// Hashkeys are generated using SHA256. So it is unlikely that
 	// hashkeys will clash.
-	switch(strcmp(cache1->hashkey, cache2->hashkey)) {
+	switch(strcmp((const char *) val1, (const char *) val2)) {
 		case -1: return -1;
 		case 1: return 1;
 	}
+
+	return 0;
 }
 
 /*
  * destroy_func - RB-tree node free function
  */
-void
+static void
 destroy_func(void *val)
 {
 	if (val)
@@ -62,7 +61,7 @@ destroy_func(void *val)
 /*
  * cache_init - Create RB-tree to maintain cache metadata
  *
- * Returns initialized cache_tree pointer upon success. Returns NULL upon
+ * Returns initialized cache_tree pointer on success. Returns NULL upon
  * failure.
  */
 
@@ -204,14 +203,13 @@ sstack_cache_t *
 sstack_cache_search(uint8_t *hashkey, log_ctx_t *ctx)
 {
 	sstack_cache_t c;
-	sstack_cache_t *ret = NULL;
+	// sstack_cache_t *ret = NULL;
 	rb_red_blk_node *node = NULL;
 
 	// Parameter validation
 	if (NULL == hashkey) {
 		sfs_log(ctx, SFS_ERR, "%s: Invalid paramter specified \n",
 						__FUNCTION__);
-
 		errno = EINVAL;
 
 		return NULL;
@@ -231,3 +229,50 @@ sstack_cache_search(uint8_t *hashkey, log_ctx_t *ctx)
 
 	return node->info;
 }
+
+/*
+ * sstack_cache_purge - Purge the entry corresponding to hashkey from
+ *						memcached
+ *
+ * hashkey - Key
+ * ctx - Log context
+ *
+ * Returns 0 on success and -1 on failure.
+ */
+
+int
+sstack_cache_purge(uint8_t *hashkey, log_ctx_t *ctx)
+{
+	sstack_cache_t c;
+	sstack_cache_t *entry = NULL;
+	rb_red_blk_node *node = NULL;
+
+	// Parameter validation
+	if (NULL == hashkey) {
+		sfs_log(ctx, SFS_ERR, "%s: Invalid parameter specified \n",
+						__FUNCTION__);
+		errno = EINVAL;
+
+		return -1;
+	}
+
+	memcpy((void *) &c.hashkey, (void *) hashkey, (SHA256_DIGEST_LENGTH + 1));
+
+	node = RBExactQuery(cache_tree, (void *) &c);
+	if (NULL == node) {
+		sfs_log(ctx, SFS_CRIT, "%s: hashkey %s not found in RB-tree \n",
+						__FUNCTION__, (char *) hashkey);
+		errno = EFAULT;
+
+		return -1;
+	}
+
+	// Delete the node from the tree and from memcached pool
+	entry = (sstack_cache_t *) node->info;
+	sstack_cache_remove(entry->memcache.mc,
+					(const char *) entry->hashkey, ctx);
+	RBDelete(cache_tree, node);
+
+	return 0;
+}
+
