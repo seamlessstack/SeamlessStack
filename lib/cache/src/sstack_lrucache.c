@@ -20,6 +20,8 @@
 #include <time.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <pthread.h>
+#include <string.h>
 #include <openssl/sha.h>
 #include <red_black_tree.h>
 #include <sstack_log.h>
@@ -32,6 +34,7 @@
 // a hash table with improper hash function.
 
 rb_red_blk_tree *lru_tree = NULL;
+pthread_spinlock_t lru_lock;
 
 /*
  * compare_func - RB-tree compare function
@@ -77,6 +80,8 @@ lru_init(log_ctx_t *ctx)
 		sfs_log(ctx, SFS_ERR, "%s: Failed to create RB-tree for LRU "
 						"metadata.\n", __FUNCTION__);
 
+	pthread_spin_init(&lru_lock, PTHREAD_PROCESS_PRIVATE);
+
 	return lru_tree;
 }
 
@@ -115,12 +120,16 @@ lru_insert_entry(rb_red_blk_tree *tree, void *hashval, log_ctx_t *ctx)
 	strncpy(entry->hashkey, (const char *)hashval, SHA256_DIGEST_LENGTH);
 	t = time(NULL);
 
+	pthread_spin_lock(&lru_lock);
 	node = RBTreeInsert(tree, (void *) t, (void *) entry);
 	if (NULL == node) {
 		sfs_log(ctx, SFS_ERR, "%s: Failed to insert into RB-tree."
 						" Hashval = %s \n", __FUNCTION__, hashval);
+		pthread_spin_unlock(&lru_lock);
+
 		return -1;
 	}
+	pthread_spin_unlock(&lru_lock);
 
 	return 0;
 }
@@ -179,6 +188,7 @@ lru_delete_entry(rb_red_blk_tree *tree, int num, cache_purge_func_t func,
 	}
 
 	// Delete num entries from the tree
+	pthread_spin_lock(&lru_lock);
 	for (i = 0; i < num; i++) {
 		rb_red_blk_node *node;
 		sstack_lru_entry_t *entry;
@@ -187,6 +197,7 @@ lru_delete_entry(rb_red_blk_tree *tree, int num, cache_purge_func_t func,
 		if (NULL == node) {
 			sfs_log(ctx, SFS_ERR, "%s: LRU RB-tree has no elements! \n",
 							__FUNCTION__);
+			pthread_spin_unlock(&lru_lock);
 
 			return -1;
 		}
@@ -198,6 +209,7 @@ lru_delete_entry(rb_red_blk_tree *tree, int num, cache_purge_func_t func,
 		// RBDelete deletes the node and readjusts the RB-tree
 		RBDelete(tree, node);
 	}
+	pthread_spin_unlock(&lru_lock);
 
 	return 0;
 }

@@ -32,6 +32,9 @@ GENCACHE_OBJECTS = src/sstack_cache.o src/sstack_lrucache.o
 LDFLAGS = -shared -o
 OSS_DIR = $(TOPDIR)/oss_install/lib
 LIBS = -L$(OSS_DIR) -lmemcached
+LIBS += -lpthread
+LIBS += -L$(TOPDIR)/oss_install/lib -lrbtree
+LIBS += -L$(TOPDIR)/lib/memcache -lmcache
 CC = gcc
 
 all:: $(GENCACHE_LIB_NAME)

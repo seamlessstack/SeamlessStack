@@ -64,3 +64,9 @@ KBs(in most cases entire extent is stored as an object).
 7> SSD caching kicks in only when memcached is full. To make this work,
 memcached needs to be started with -M option to avoid implicit evictions.
 
+Cache maintenance
+-----------------
+Idea is to use simple LRU implementation to maintain the cache. LRU is
+implemented using RB-tree with time used as key. Value stored in tree node is
+hashvalue which is the key for cache tree. 
+

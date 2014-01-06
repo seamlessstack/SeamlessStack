@@ -20,6 +20,8 @@
 #include <inttypes.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <pthread.h>
+#include <string.h>
 #include <red_black_tree.h>
 #include <sstack_log.h>
 #include <sstack_jobs.h>
@@ -29,6 +31,7 @@
 
 
 rb_red_blk_tree *cache_tree = NULL;
+pthread_spinlock_t cache_lock;
 
 /*
  * compare_func - RB-tree compare function
@@ -73,6 +76,8 @@ cache_init(log_ctx_t *ctx)
 	if (NULL == cache_tree)
 		sfs_log(ctx, SFS_ERR, "%s: Failed to create RB-tree for cache \n",
 						__FUNCTION__);
+
+	pthread_spin_init(&cache_lock, PTHREAD_PROCESS_PRIVATE);
 
 	return cache_tree;
 }
@@ -142,7 +147,8 @@ sstack_cache_store(void *data, size_t len, sstack_cache_t *entry,
 					(const char *) entry->hashkey,
 					(const char *) data, len, ctx);
 	if (ret != 0) {
-		sfs_log(ctx, SFS_ERR, "%s: sstack_cache_store failed \n", __FUNCTION__);
+		sfs_log(ctx, SFS_ERR, "%s: sstack_cache_store failed \n",
+						__FUNCTION__);
 		if (ret == -MEMCACHED_MEMORY_ALLOCATION_FAILURE) {
 			// Memcached is out of memory.
 			// This is due to configuring memcached to not to evict objects
@@ -177,15 +183,18 @@ sstack_cache_store(void *data, size_t len, sstack_cache_t *entry,
 	entry->on_ssd = false;
 	entry->time = time(NULL);
 
+	pthread_spin_lock(&cache_lock);
 	node = RBTreeInsert(cache_tree, (void *) entry->hashkey, (void *) entry);
 	if (NULL == node) {
 		sfs_log(ctx, SFS_ERR, "%s: Failed to insert node into RB-tree \n",
 						__FUNCTION__);
 		sstack_cache_remove(entry->memcache.mc,
 						(const char *) entry->hashkey, ctx);
+		pthread_spin_unlock(&cache_lock);
 
 		return -1;
 	}
+	pthread_spin_unlock(&cache_lock);
 
 	return 0;
 }
@@ -217,15 +226,17 @@ sstack_cache_search(uint8_t *hashkey, log_ctx_t *ctx)
 
 	memcpy((void *) &c.hashkey, (void *) hashkey, (SHA256_DIGEST_LENGTH + 1));
 
+	pthread_spin_lock(&cache_lock);
 	node = RBExactQuery(cache_tree, (void *) &c);
 	if (NULL == node) {
 		sfs_log(ctx, SFS_CRIT, "%s: hashkey %s not found in RB-tree \n",
 						__FUNCTION__, (char *) hashkey);
-
 		errno = EFAULT;
+		pthread_spin_unlock(&cache_lock);
 
 		return NULL;
 	}
+	pthread_spin_unlock(&cache_lock);
 
 	return node->info;
 }
@@ -258,11 +269,13 @@ sstack_cache_purge(uint8_t *hashkey, log_ctx_t *ctx)
 
 	memcpy((void *) &c.hashkey, (void *) hashkey, (SHA256_DIGEST_LENGTH + 1));
 
+	pthread_spin_lock(&cache_lock);
 	node = RBExactQuery(cache_tree, (void *) &c);
 	if (NULL == node) {
 		sfs_log(ctx, SFS_CRIT, "%s: hashkey %s not found in RB-tree \n",
 						__FUNCTION__, (char *) hashkey);
 		errno = EFAULT;
+		pthread_spin_unlock(&cache_lock);
 
 		return -1;
 	}
@@ -272,6 +285,7 @@ sstack_cache_purge(uint8_t *hashkey, log_ctx_t *ctx)
 	sstack_cache_remove(entry->memcache.mc,
 					(const char *) entry->hashkey, ctx);
 	RBDelete(cache_tree, node);
+	pthread_spin_unlock(&cache_lock);
 
 	return 0;
 }
