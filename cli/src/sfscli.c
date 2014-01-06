@@ -150,6 +150,7 @@ int32_t process_args(int32_t argc, char *argv[], int32_t sockfd)
 	struct sfscli_cli_cmd *cli_cmd = NULL, *an_cmd = NULL;
 	uint8_t *buffer = NULL;
 	size_t buf_len = 0;
+	
 	if (argc == 1) {
 		usage(argv[0]);
 		return -EINVAL;
@@ -157,35 +158,53 @@ int32_t process_args(int32_t argc, char *argv[], int32_t sockfd)
 
 	command_str = basename(argv[0]);
 	if (!strcmp(argv[1], "storage") || !strcmp(command_str, "storage")) {
-		fprintf (stdout, "storage command\n");
+		cli_cmd = parse_fill_storage_input(argc, argv);
+		if (cli_cmd == NULL)
+			return -1;
+		else {
+			buf_len = sfscli_serialize_storage(cli_cmd, &buffer);
+			printf ("Now deserialize--\n");
+			sfscli_deserialize_storage(buffer, buf_len, &an_cmd);
+		}
 	} else if (!strcmp(argv[1], "policy") || !strcmp(command_str, "policy")) {
 		cli_cmd = parse_fill_policy_input(argc, argv);
 		if (cli_cmd == NULL) {
-			fprintf(stderr, "Please check parameters\n");
 			return -1;
 		} else {
 			buf_len = sfscli_serialize_policy(cli_cmd, &buffer);
-			printf ("Now deserialize---\n");
 			sfscli_deserialize_policy(buffer, buf_len, &an_cmd);
 		}
 	} else if (!strcmp(argv[1], "sfsd") || !strcmp(command_str, "sfsd")) {
-		printf ("sfsd command\n");
-	} else if (!strcmp(argv[1], "key") || !strcmp(command_str, "key")) {
-		printf ("key command\n");
+		cli_cmd = parse_fill_sfsd_input(argc, argv);
+		if (cli_cmd == NULL)
+			return -1;
+		else {
+			buf_len = sfscli_serialize_sfsd(cli_cmd, &buffer);
+			printf ("Now deserialize sfsd--\n");
+			sfscli_deserialize_sfsd(buffer, buf_len, &an_cmd);
+		}
 	} else if (!strcmp(argv[1], "license") || !strcmp(command_str, "license")) {
+		cli_cmd = parse_fill_license_input(argc, argv);
+		if (cli_cmd == NULL)
+			return -1;
+		else {
+			buf_len = sfscli_serialize_license(cli_cmd, &buffer);
+			printf ("Now deserialize sfsd--\n");
+			sfscli_deserialize_license(buffer, buf_len, &an_cmd);
+		}
 		printf ("license command\n");
 	} else {
 		printf ("invalid command\n");
 	}
 
 	if (buf_len) {
-		/* Send message to CLID */
-		/* Wait for response */
-		printf ("serialized buffer size: %d\n", buf_len);
-		for(int i = 0; i < buf_len; ++i) {
-			printf("%#x ", buffer[i]);
-		}
+		for(int i = 0; i < buf_len ; ++i)
+			printf ("%#x ", buffer[i]);
 		printf ("\n");
+		/* Send message to CLID */
+		int ret  = write(sockfd, buffer, buf_len);
+		printf ("Wrote %d bytes\n", ret);
+		/* Wait for response */
 			   
 	}
 		

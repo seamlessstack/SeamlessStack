@@ -90,6 +90,23 @@ struct storage_input {
 #define NUM_SI_FIELDS 5
 };
 
+struct sfsd_input {
+	sstack_address_t address;
+	uint16_t port;
+	/* Please change the below define to the number of
+	   fields in the structure when changing this structure
+	*/
+#define NUM_SDI_FIELDS 2
+};
+
+struct license_input {
+	char license_path[PATH_MAX];
+	/* Please change the below define to the number of
+	   fields in the structure when changing this structure
+	*/
+#define NUM_LI_FIELDS 1
+};
+
 struct sfscli_xxx_input {
 	union {
 		sfscli_policy_cmd_t policy_cmd;
@@ -100,9 +117,8 @@ struct sfscli_xxx_input {
 	union {
 		struct policy_input pi;
 		struct storage_input sti;
-/*		struct sfsd_input sdi;
+		struct sfsd_input sdi;
 		struct license_input li;
-		*/
 	};
 	/* Please change this when modifying this structure
 	   This lists the number of elements in the structure
@@ -174,14 +190,27 @@ struct sfscli_cli_cmd {
 
 struct sfscli_cli_cmd *parse_fill_policy_input(int32_t argc, char *args[]);
 struct sfscli_cli_cmd *parse_fill_storage_input(int32_t argc, char *args[]);
+struct sfscli_cli_cmd *parse_fill_sfsd_input(int32_t argc, char *args[]);
+struct sfscli_cli_cmd *parse_fill_license_input(int32_t argc, char *args[]);
 
 int32_t sfscli_serialize_policy(struct sfscli_cli_cmd *cli_cmd,
 								uint8_t **buffer);
 int32_t sfscli_deserialize_policy(uint8_t *buffer, size_t buf_len,
 								  struct sfscli_cli_cmd **cli_cmd);
+
 int32_t sfscli_serialize_storage(struct sfscli_cli_cmd *cli_cmd,
 								 uint8_t **buffer);
 int32_t sfscli_deserialize_storage(uint8_t *buffer, size_t buf_len,
+								   struct sfscli_cli_cmd **cli_cmd);
+
+int32_t sfscli_serialize_sfsd(struct sfscli_cli_cmd *cli_cmd,
+							  uint8_t **buffer);
+int32_t sfscli_deserialize_sfsd(uint8_t *buffer, size_t buf_len,
+								struct sfscli_cli_cmd **cli_cmd);
+
+int32_t sfscli_serialize_license(struct sfscli_cli_cmd *cli_cmd,
+								 uint8_t **buffer);
+int32_t sfscli_deserialize_license(uint8_t *buffer, size_t buf_len,
 								   struct sfscli_cli_cmd **cli_cmd);
 
 #endif /* __SFSCLI_H_ */

@@ -267,8 +267,153 @@ int32_t sfscli_deserialize_storage(uint8_t *buffer, size_t buf_len,
 	/* si->size */
 	sfscli_deser_nfield(si->size, p);
 
-	cli_cmd = cmd;
+	*cli_cmd = cmd;
 
 	return 0;
 }
 		
+int32_t sfscli_serialize_sfsd(struct sfscli_cli_cmd *cli_cmd,
+							  uint8_t **buffer)
+{
+	uint8_t *p = NULL, *q = NULL;
+	struct sfsd_input *si = &cli_cmd->input.sdi;
+
+	p = malloc(sizeof(struct sfscli_cli_cmd) + 4 /* FOR MAGIC */
+			   + (2 * (NUM_SDI_FIELDS + NUM_SSTACK_ADDRESS_FIELDS
+					   + NUM_XXX_INPUT_FIELDS + NUM_CLI_CMD_FIELDS)));
+
+	if (p == NULL)
+		return -ENOMEM;
+	
+	q = p;
+	/* MAGIC (*/
+	sfscli_ser_uint(SFSCLI_MAGIC, p, 4);
+	p += 4;
+	/* cmd */
+	sfscli_ser_nfield(cli_cmd->cmd, p);
+	/* si->address.protocol */
+	sfscli_ser_nfield(si->address.protocol, p);
+	/* si->address.ipv4_addr[] / si->address.ipv6_addr[] */
+	if (si->address.protocol == IPV4)
+		sfscli_ser_sfield(si->address.ipv4_address, p);
+	else
+		sfscli_ser_sfield(si->address.ipv6_address, p);
+
+	/* si->port */
+	sfscli_ser_nfield(si->port, p);
+	*buffer = q;
+	return ((int32_t) (p - q));
+}
+
+
+int32_t sfscli_deserialize_sfsd(uint8_t *buffer, size_t buf_len,
+								struct sfscli_cli_cmd **cli_cmd)
+{
+	struct sfscli_cli_cmd *cmd = NULL;
+	struct sfsd_input *si = NULL;
+	uint32_t magic = 0;
+	uint8_t *p = buffer;
+
+	/* Check for the magic */
+	sfscli_deser_uint(magic, buffer, 4);
+
+	if (magic != SFSCLI_MAGIC) {
+		printf ("Magic not found\n");
+		return -EINVAL;
+	}
+	p+=4;
+
+	cmd = malloc(sizeof(*cmd));
+
+	if (cmd == NULL) {
+		printf ("Allocation failed:\n");
+		return -ENOMEM;
+	}
+
+	si = &cmd->input.sdi;
+
+	/* cmd */
+	sfscli_deser_nfield(cmd->cmd, p);
+	/* si->address.protocol */
+	sfscli_deser_nfield(si->address.protocol, p);
+	/* si->address.ipv4_address[]/ si->address.ipv6_address[] */
+	if (si->address.protocol == IPV4)
+		sfscli_deser_sfield(si->address.ipv4_address, p);
+	else
+		sfscli_deser_sfield(si->address.ipv6_address, p);
+	/* si->port */
+	sfscli_deser_nfield(si->port, p);
+
+	*cli_cmd = cmd;
+
+	printf ("command: %d\n", cmd->cmd);
+    printf ("Address type: %d\n", si->address.protocol);
+	printf ("Address string: %s\n", si->address.ipv4_address);
+	printf ("Port: %d\n", si->port);
+
+	return 0;
+}
+
+int32_t sfscli_serialize_license(struct sfscli_cli_cmd *cli_cmd,
+								 uint8_t **buffer)
+{
+	uint8_t *p = NULL, *q = NULL;
+	struct license_input *si = &cli_cmd->input.li;
+
+	p = malloc(sizeof(struct sfscli_cli_cmd) + 4 /* FOR MAGIC */
+			   + (2 * (NUM_LI_FIELDS + NUM_SSTACK_ADDRESS_FIELDS
+					   + NUM_XXX_INPUT_FIELDS + NUM_CLI_CMD_FIELDS)));
+
+	if (p == NULL)
+		return -ENOMEM;
+	
+	q = p;
+	/* MAGIC (*/
+	sfscli_ser_uint(SFSCLI_MAGIC, p, 4);
+	p += 4;
+	/* cmd */
+	sfscli_ser_nfield(cli_cmd->cmd, p);
+	/* li->lisence_path */
+	sfscli_ser_sfield(si->license_path, p);
+	return ((int32_t) (p - q));
+}
+
+
+int32_t sfscli_deserialize_license(uint8_t *buffer, size_t buf_len,
+								   struct sfscli_cli_cmd **cli_cmd)
+{
+	struct sfscli_cli_cmd *cmd = NULL;
+	struct license_input *li = NULL;
+	uint32_t magic = 0;
+	uint8_t *p = buffer;
+
+	/* Check for the magic */
+	sfscli_deser_uint(magic, buffer, 4);
+
+	if (magic != SFSCLI_MAGIC) {
+		printf ("Magic not found\n");
+		return -EINVAL;
+	}
+	p+=4;
+
+	cmd = malloc(sizeof(*cmd));
+
+	if (cmd == NULL) {
+		printf ("Allocation failed:\n");
+		return -ENOMEM;
+	}
+
+	li = &cmd->input.li;
+
+	/* cmd */
+	sfscli_deser_nfield(cmd->cmd, p);
+	/* li->license_path */
+	sfscli_deser_sfield(li->license_path, p);
+
+	*cli_cmd = cmd;
+
+	printf ("Command: %d\n", cmd->cmd);
+	printf ("License path: %s\n", li->license_path);
+
+	return 0;
+}
