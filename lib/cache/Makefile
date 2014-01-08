@@ -28,10 +28,13 @@ CFLAGS += -I $(TOPDIR)/lib/memcache/include
 CFLAGS += -I $(TOPDIR)/common/include/bds_slab
 CFLAGS += -D_GNU_SOURCE -fPIC
 GENCACHE_LIB_NAME = libcache.so
-GENCACHE_OBJECTS = src/sstack_cache.o
+GENCACHE_OBJECTS = src/sstack_cache.o src/sstack_lrucache.o
 LDFLAGS = -shared -o
 OSS_DIR = $(TOPDIR)/oss_install/lib
 LIBS = -L$(OSS_DIR) -lmemcached
+LIBS += -lpthread
+LIBS += -L$(TOPDIR)/oss_install/lib -lrbtree
+LIBS += -L$(TOPDIR)/lib/memcache -lmcache
 CC = gcc
 
 all:: $(GENCACHE_LIB_NAME)

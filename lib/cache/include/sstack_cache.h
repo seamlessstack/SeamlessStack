@@ -164,6 +164,7 @@ typedef struct sstack_cache {
 extern uint8_t * create_hash(void * , size_t , uint8_t *, log_ctx_t *);
 extern int sstack_cache_store(void *, size_t , sstack_cache_t *, log_ctx_t *);
 extern sstack_cache_t *sstack_cache_search(uint8_t *, log_ctx_t *);
+extern int sstack_cache_purge(uint8_t *, log_ctx_t *);
 extern rb_red_blk_tree *  cache_init(log_ctx_t *);
 
 
