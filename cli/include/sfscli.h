@@ -38,12 +38,28 @@
 		}																\
 	} while (0);
 
+
+#define select_read_to_buffer(readsockfd, rc, buffer, buf_size, read_bytes)	\
+	for (;;) {															\
+		fd_set readsockfds;												\
+		FD_SET(readsockfd, &readsockfds);								\
+		rc = select(readsockfd + 1, &readsockfds, NULL, NULL, NULL);	\
+		if (rc == -1)													\
+			break;														\
+		if (FD_ISSET(readsockfd, &readsockfds)) {						\
+			rnbytes = read(readsockfd, buffer, buf_size);				\
+			if (rnbytes > 0)											\
+				break;													\
+		}																\
+	}
+	
 typedef enum {
 	SFSCLI_POLICY_CMD = 1,
 	SFSCLI_STORAGE_CMD = 2,
 	SFSCLI_LICENSE_CMD = 3,
 	SFSCLI_SFSD_CMD = 4,
-	SFSCLI_MAX_CMD = 4,
+	SFSCLI_CLID_TEARDOWN = 5,
+	SFSCLI_MAX_CMD = 5,
 } sfscli_cmd_types_t;
 
 typedef enum {

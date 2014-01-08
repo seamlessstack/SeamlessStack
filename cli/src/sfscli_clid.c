@@ -24,9 +24,16 @@
 #include <unistd.h>
 #include <signal.h>
 #include <sys/socket.h>
+#include <sys/select.h>
+#include <sys/types.h>
+#include <sys/time.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <sfscli.h>
 #include <sfscli_clid.h>
+
+#define INACTIVITY_INTERVAL_S 180 /* 3 minutes (3 * 60) */
+#define INACTIVITY_INTERVAL_US 0
 
 /* ===================== Function Declatations ============================ */
 static int32_t clid_validate_params(char *clid_name,
@@ -69,11 +76,11 @@ int32_t main(int argc, char *argv[])
 	/* Register signal handlers */
 	if (signal(SIGTERM, clid_handle_sigterm) == SIG_ERR)
 		return -errno;
-	
+
 	/* Allocate command buffer */
 	if ((command_buffer = malloc(SFSCLI_MAX_BUFFER_SIZE)) == NULL)
 		return -ENOMEM;
-	
+
 	/* O.K we have valid parameters to start */
 	app_sockfd = clid_start(clid_addr, clid_port);
 	printf ("App sockfd: %d\n", app_sockfd);
@@ -85,7 +92,7 @@ int32_t main(int argc, char *argv[])
 
 	not_terminating = 1;
 
-	daemon(0,0);
+	//daemon(0,0);
 	clid_process_commands(app_sockfd, sfs_addr, sfs_port);
 
 	free(command_buffer);
@@ -181,17 +188,24 @@ static int32_t clid_start(in_addr_t clid_addr, uint16_t clid_port)
 	return ret;
 }
 
+static int handle_sigalarm(int signum)
+{
+	if (signum)
+		printf ("Timer fired\n");
+}
 static void clid_process_commands(int32_t app_sockfd,
 								  in_addr_t sfs_addr, uint16_t sfs_port)
 {
-	int32_t sfs_sockfd;
+	int32_t sfs_sockfd = -1;
 	ssize_t rnbytes = 0;
 	ssize_t wnbytes = 0;
-	int32_t ret = 0;
+	int32_t ret = 0, rc = -1;
 	struct sockaddr_in app_addr;
 	socklen_t app_addr_len = sizeof(app_addr);
 	int32_t app_rw_sockfd;
 	uint8_t *buffer = command_buffer;
+	struct itimerval it_val_arm;
+	struct itimerval it_val_unarm;
 
 	sfs_sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -200,53 +214,74 @@ static void clid_process_commands(int32_t app_sockfd,
 		return;
 	}
 
+	signal(SIGPIPE, SIG_IGN);
+	signal(SIGALRM, handle_sigalarm);
+
+	/* Set an inactivity timer of 180 seconds */
+	it_val_arm.it_interval.tv_sec = 0;
+	it_val_arm.it_interval.tv_usec = 0;
+	it_val_arm.it_value.tv_sec = INACTIVITY_INTERVAL_S;
+	it_val_arm.it_value.tv_usec = INACTIVITY_INTERVAL_US;
+
+	memset(&it_val_unarm, 0, sizeof(struct itimerval));
+
 	while(not_terminating) {
+		rnbytes = wnbytes = 0;
 		memset(buffer, 0, SFSCLI_MAX_BUFFER_SIZE);
 		/* Do an accept here and then proceed */
 		app_rw_sockfd = accept(app_sockfd,
 							   (struct sockaddr *)&app_addr, &app_addr_len);
-		printf ("Connection received..\n");
+		if (app_rw_sockfd < 0)
+			continue;
+
+		printf ("Connection received\n");
+		setitimer(ITIMER_REAL, &it_val_unarm, 0);
 		/* Receive commands from the CLI app */
 		bzero(buffer, SFSCLI_MAX_BUFFER_SIZE);
-		printf ("Wating for a packet from the cli app\n");
-		/* TODO: Do a select/poll here */
-		rnbytes = read(app_rw_sockfd, buffer, SFSCLI_MAX_BUFFER_SIZE);
-		printf ("bytes read: %d\n", rnbytes);
-
+		rc = -1;
+		select_read_to_buffer(app_rw_sockfd, rc,
+							  buffer, SFSCLI_MAX_BUFFER_SIZE, rnbytes);
 		/* No processing here, just forward the buffer to SFS */
-#if 0
-		if (rnbytes > 0) {
+		printf ("Time to forward to sfs.. rnbytes : %d, rc : %d\n", rnbytes, rc);
+		if (rnbytes > 0 && rc > 0) {
+			printf ("Read %d bytes from the CLI APP\n");
 			wnbytes = write(sfs_sockfd, buffer, rnbytes);
+			printf ("wrote %d bytes to sfs\n", wnbytes);
 			if (wnbytes < 0) {
-				/* Oops we are in unconnected state, lets connect first */
 				ret = clid_connect_sfs(sfs_sockfd, sfs_addr, sfs_port);
 				if (ret == 0) {
-					/* Do a retry */
 					wnbytes = write(sfs_sockfd, buffer, rnbytes);
-				} else {
-					/* TODO: Still cannot write, send an error
-					   to CLI App */
-				}
-			}
-
-			if (wnbytes > 0) {
-				/* Wait for a response from SFS */
-				rnbytes = read(sfs_sockfd, buffer, SFSCLI_MAX_BUFFER_SIZE);
-				if (rnbytes > 0) {
-					wnbytes = write(app_rw_sockfd, buffer, rnbytes);
-				} else {
-					/* TODO: Error reading from SFS, send an error to CLI app */
+					printf ("wnbytes (2nd) %d bytes to sfs\n", wnbytes);
 				}
 			}
 		}
-#endif
+
+		if (wnbytes > 0) {
+			rnbytes = 0;
+			rc = -1;
+			/* Wait for a response from SFS */
+			select_read_to_buffer(sfs_sockfd, rc,
+								  buffer, SFSCLI_MAX_BUFFER_SIZE, rnbytes);
+			if (rnbytes > 0 && rc > 0) {
+				printf ("Read %d bytes from SFS\n", rnbytes);
+				wnbytes = write(app_rw_sockfd, buffer, rnbytes);
+				printf ("Wrote %d bytes to the APP\n", wnbytes);
+			} else {
+				/* TODO: Error reading from SFS, send an error to CLI app */
+			}
+		} else {
+			/* Send an error to CLI app */
+		}
+		close(app_rw_sockfd);
+		setitimer(ITIMER_REAL, &it_val_arm, 0);
+
 	}
+
 	/* cleanup and return */
 	close(app_sockfd);
 	close(sfs_sockfd);
 	return;
 }
-
 
 static int32_t clid_connect_sfs(int32_t sockfd,
 								in_addr_t sfs_addr,uint16_t sfs_port)
@@ -257,7 +292,7 @@ static int32_t clid_connect_sfs(int32_t sockfd,
 	servaddr.sin_family = AF_INET;
 	servaddr.sin_addr.s_addr = sfs_addr;
 	servaddr.sin_port = htons(sfs_port);
-
+	printf ("clid Connecting to sfs...\n");
 	ret = connect(sockfd, &servaddr, sizeof(servaddr));
 
 	return ret;
