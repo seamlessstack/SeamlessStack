@@ -39,7 +39,8 @@
 	} while (0);
 
 
-#define select_read_to_buffer(readsockfd, rc, buffer, buf_size, read_bytes)	\
+#define select_read_to_buffer(readsockfd, rc, buffer, buf_size,			\
+							  read_bytes)								\
 	for (;;) {															\
 		fd_set readsockfds;												\
 		FD_SET(readsockfd, &readsockfds);								\

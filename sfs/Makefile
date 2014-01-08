@@ -23,7 +23,7 @@ CFLAGS += -I $(TOPDIR)/common/include -I include -I $(TOPDIR)/db/mongo/include
 CFLAGS += -I $(TOPDIR)/common/include/bds_slab
 CFLAGS += -I $(TOPDIR)/policy/include
 CFLAGS += -I $(TOPDIR)/lib/memcache/include -I $(TOPDIR)/oss_install/include
-CFLAGS += -I $(TOPDIR)/lib/serdes/include
+CFLAGS += -I $(TOPDIR)/lib/serdes/include -I $(TOPDIR)/cli/include/
 CFLAGS += -I$(TOPDIR)/oss
 CFLAGS += -I $(TOPDIR)/oss/mongo-c-driver/src
 CFLAGS += -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DFUSE_USE_VERSION=26
@@ -38,10 +38,16 @@ LIB += -L$(TOPDIR)/oss_install/lib -lmemcached
 LIB += -L$(TOPDIR)/lib/serdes -lserdes
 LIB += -L$(TOPDIR)/lib/validate -lvalidate
 
+
 SFS_OBJS = src/sfs.o src/sfs_entry.o src/sfs_job.o src/sfs_idp.o
 SFS_OBJS += src/sfs_traceroute.o
 
-all:: sfs
+SFSCLI_OBJS = src/sfs_sfscli.o
+
+all:: sfscli_handler
+
+sfscli_handler: $(SFSCLI_OBJS)
+	$(CC) $(LDFLAGS) -o $@ $(SFSCLI_OBJS)
 
 sfs: $(SFS_OBJS)
 	$(CC) $(LDFLAGS) -o $@ $(SFS_OBJS) $(LIB)
