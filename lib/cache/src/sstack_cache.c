@@ -32,6 +32,7 @@
 #include <sstack_cache_api.h>
 
 #define SSD_CACHE_LIBNAME "/opt/sfs/lib/libssdcache.so"
+#define NUM_EVICT 8
 
 rb_red_blk_tree *cache_tree = NULL;
 pthread_spinlock_t cache_lock;
@@ -98,26 +99,40 @@ cache_init(log_ctx_t *ctx)
  */
 
 int
-sstack_memcache_evict_objects(void)
+sstack_memcache_evict_objects(log_ctx_t *ctx)
 {
-	// FIXME:
-	// Eviction functionality goes here
+	int ret = -1;
 
-#if 0
-	// Check whether SSD caching is enabled
-	if (ssd_caching_enabled && ssd_cache && ssd_cache->ops.ssd_cache_init) {
-		// Store the elements into cache
-		if (ssd_cache && ssd_cache->ops.ssd_cache_store) {
-			ssd_cache_entry_t entry;
+	// Evict NUM_EVICT entries each time
+	// FIXME: Set NUM_EVICT for performance
+	ret = lru_demote_entries(lru_tree, NUM_EVICT, ctx);
+	if (ret == -1) {
+		sfs_log(ctx, SFS_ERR, "%s: Failed to demote cache entries \n",
+						__FUNCTION__);
 
-			entry = ssd_cache->ops.ssd_cache_store(handle, data, len, ctx);
-		}
-	} else {
-		// Do nothing as objects are already evicted.
+		return -1;
 	}
-#endif
+
 	return 0;
 }
+
+sstack_cache_t *
+sstack_allocate_cache_entry(log_ctx_t *ctx)
+{
+	sstack_cache_t *cache_entry = NULL;
+
+	cache_entry = (sstack_cache_t *) calloc(sizeof(sstack_cache_t), 1);
+	if (NULL == cache_entry) {
+		sfs_log(ctx, SFS_ERR, "%s: Out of memory \n", __FUNCTION__);
+
+		return NULL;
+	}
+	pthread_spin_init(&cache_entry->lock, PTHREAD_PROCESS_PRIVATE);
+	cache_entry->on_ssd = false;
+
+	return cache_entry;
+}
+
 
 /*
  * sstack_cache_store - Store data into cache
@@ -164,7 +179,15 @@ sstack_cache_store(void *data, size_t len, sstack_cache_t *entry,
 			sfs_log(ctx, SFS_INFO, "%s: Memcached is out of memory. "
 							"Objects will be evicted based on LRU \n",
 							__FUNCTION__);
-			ret = sstack_memcache_evict_objects();
+			ret = sstack_memcache_evict_objects(ctx);
+			if (ret == -1) {
+				// Unable to create space in memcached cache
+				// Fail the request
+				sfs_log(ctx, SFS_ERR, "%s: sstack_memcache_evict_objects "
+								"failed\n", __FUNCTION__);
+
+				return -1;
+			}
 			// Retry store again
 			ret = sstack_memcache_store(entry->memcache.mc,
 					(const char *) entry->hashkey,
@@ -401,6 +424,17 @@ ssd_cache_register(log_ctx_t *ctx)
 			dlsym(handle, "sstack_ssd_cache_destroy");
 	if (NULL == cache->ops.ssd_cache_destroy) {
 		sfs_log(ctx, SFS_ERR, "%s: sstack_ssd_cache_destroy not defined \n",
+						__FUNCTION__);
+		errno = EINVAL;
+		free(cache);
+
+		return NULL;
+	}
+
+	cache->ops.ssd_cache_get_handle = (ssd_cache_get_handle_t)
+			dlsym(handle, "sstack_ssd_cache_get_handle_t");
+	if (NULL == cache->ops.ssd_cache_get_handle) {
+		sfs_log(ctx, SFS_ERR, "%s: sstack_ssd_cache_get_handle not defined \n",
 						__FUNCTION__);
 		errno = EINVAL;
 		free(cache);

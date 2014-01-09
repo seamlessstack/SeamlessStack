@@ -32,14 +32,9 @@ typedef struct sstack_lru_entry {
 	// Add fields if needed
 } sstack_lru_entry_t;
 
-typedef int (*cache_purge_func_t) (uint8_t *, log_ctx_t *);
-
 // LRU functions
 extern rb_red_blk_tree *lru_init(log_ctx_t *);
 extern int lru_insert_entry(rb_red_blk_tree *, void *, log_ctx_t *);
-extern int lru_delete_entry(rb_red_blk_tree *, int , cache_purge_func_t ,
-				log_ctx_t *);
+extern int lru_demote_entries(rb_red_blk_tree *, int , log_ctx_t *);
 
 #endif // __SSTACK_LRU_H__
-
-
