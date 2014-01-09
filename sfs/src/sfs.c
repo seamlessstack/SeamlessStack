@@ -341,6 +341,7 @@ populate_db(const char *dir_name)
 	}
 }
 
+#if 0
 void
 del_branch(char *path)
 {
@@ -422,119 +423,7 @@ sigchld_handler(int signal)
 	while(waitpid(-1, NULL, WNOHANG) > 0);
 }
 
-static void *
-handle_cli_requests(void * arg)
-{
-	int sockfd, new_fd;
-	socklen_t sin_size;
-	int yes=1;
-	struct sigaction sa;
-	struct addrinfo hints, *servinfo, *p;
-	struct sockaddr_storage client_addr;
-	int rv = -1;
-
-	memset(&hints, 0, sizeof(struct addrinfo));
-	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_flags = AI_PASSIVE; // use my IP
-
-	if ((rv = getaddrinfo(NULL, CLI_PORT, &hints, &servinfo)) != 0) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: getaddrinfo: %s\n",
-			__FUNCTION__, gai_strerror(rv));
-		return NULL;
-	}
-
-	// loop through all the results and bind to the first we can
-
-	for(p = servinfo; p != NULL; p = p->ai_next) {
-		if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-			sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to create socket \n",
-				__FUNCTION__);
-			continue;
-		}
-
-		if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes,
-				sizeof(int)) == -1) {
-			sfs_log(sfs_ctx, SFS_ERR, "%s: setsockopt failed \n", __FUNCTION__);
-			return NULL;
-		}
-
-		if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
-			close(sockfd);
-			continue;
-		}
-		break;
-	}
-
-	if (NULL == p) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to bind \n", __FUNCTION__);
-		return NULL;
-	}
-	freeaddrinfo(servinfo);
-
-	if (listen(sockfd, LISTEN_QUEUE_SIZE) == -1) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: Listen failed \n", __FUNCTION__);
-		close(sockfd);
-		return NULL;
-	}
-
-	sa.sa_handler = sigchld_handler;
-	sigemptyset(&sa.sa_mask);
-	sa.sa_flags = SA_RESTART;
-	if (sigaction(SIGCHLD, &sa, NULL) == -1) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: sigaction failed\n", __FUNCTION__);
-		close(sockfd);
-		return NULL;
-	}
-
-	// Start handling connections
-	while(1) {
-		int nbytes = -1;
-		sfs_client_request_t req ;
-		char buf[sizeof(sfs_client_request_t)];
-		char addr[INET6_ADDRSTRLEN];
-
-		sin_size = sizeof(struct sockaddr_storage);
-		new_fd = accept(sockfd, (struct sockaddr *) &client_addr, &sin_size);
-		if (new_fd == -1) {
-			sfs_log(sfs_ctx, SFS_ERR, "%s: Accept failed\n", __FUNCTION__);
-			continue;
-		}
-
-		// Connection is from addr
-		// Store it to check whether request is from local box or the remote
-		inet_ntop(client_addr.ss_family,
-			get_in_addr((struct sockaddr *)&client_addr), addr,
-			INET6_ADDRSTRLEN);
-		// Not a concurrent server.
-		// No ned for a concurrent server as add/del requests should be rare
-		// To convert to concurrent server, create a new thread call handle
-		// from that thread.
-
-		sfs_log(sfs_ctx, SFS_INFO, "%s: Got a connection\n", __FUNCTION__);
-		nbytes = recv(new_fd, buf, sizeof(sfs_client_request_t), 0);
-		if (nbytes < sizeof(sfs_client_request_t)) {
-			sfs_log(sfs_ctx, SFS_ERR, "%s: Incomplete request read \n",
-				__FUNCTION__);
-			close(sockfd);
-			return NULL;
-		}
-
-		// Deserialize
-		deserialize(&req, buf);
-
-		// Get local IP addresses and match it with incoming connection's IP
-		// address. If not a local IP address, use sshfs to mount remote
-		// directory to a local directory. Update req with the local mount
-		// point
-//		if (req.u1.req_type == ADD_BRANCH)
-//			update_request(addr, &req);
-		handle(&req);
-		close(new_fd);
-	}
-
-	return NULL;
-}
+#endif
 
 static void
 sfs_process_read_response(sstack_payload_t *payload)
@@ -911,17 +800,6 @@ sfs_init(struct fuse_conn_info *conn)
 	sstack_transport_type_t type;
 	char *intf_addr = NULL;
 	int i = 0;
-
-	// Create a thread to handle client requests
-	if(pthread_attr_init(&attr) == 0) {
-		pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
-		pthread_attr_setstacksize(&attr, 65536);
-		pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-		ret = pthread_create(&thread, &attr, handle_cli_requests, NULL);
-	}
-
-	ASSERT((ret == 0),"Unable to create thread to handle cli requests",
-			0, 0, 0);
 
 	// Create a thread to handle sfs<->sfsd communication
 	if(pthread_attr_init(&recv_attr) == 0) {

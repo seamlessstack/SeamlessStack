@@ -44,7 +44,7 @@ SFS_OBJS += src/sfs_traceroute.o
 
 SFSCLI_OBJS = src/sfs_sfscli.o
 
-all:: sfscli_handler
+all:: sfscli_handler sfs
 
 sfscli_handler: $(SFSCLI_OBJS)
 	$(CC) $(LDFLAGS) -o $@ $(SFSCLI_OBJS)
