@@ -126,29 +126,6 @@ destroy_ssd_cache(ssd_cache_t *ssd_cache)
 		free(ssd_cache);
 }
 
-
-// SSD cache registration function
-static inline void
-ssd_cache_register(ssd_cache_t *cache, ssd_cache_init_t cache_init,
-		ssd_cache_open_t cache_open, ssd_cache_close_t cache_close,
-		ssd_cache_store_t cache_store, ssd_cache_purge_t cache_purge,
-		ssd_cache_update_t cache_update,
-		ssd_cache_retrieve_t cache_retrieve,
-		ssd_cache_destroy_t cache_destroy, log_ctx_t *ctx)
-{
-	if (cache) {
-		cache->ops.ssd_cache_init = cache_init;
-		cache->ops.ssd_cache_open = cache_open;
-		cache->ops.ssd_cache_close = cache_close;
-		cache->ops.ssd_cache_store = cache_store;
-		cache->ops.ssd_cache_purge = cache_purge;
-		cache->ops.ssd_cache_update = cache_update;
-		cache->ops.ssd_cache_retrieve = cache_retrieve;
-		cache->ops.ssd_cache_destroy = cache_destroy;
-		cache->ctx = ctx;
-	}
-}
-
 typedef struct sstack_cache {
 	uint8_t hashkey[SHA256_DIGEST_LENGTH + 1]; // Hash of file name and offset
 	bool on_ssd; // Is it on SSD?

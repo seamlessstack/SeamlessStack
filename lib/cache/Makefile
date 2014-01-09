@@ -35,6 +35,7 @@ LIBS = -L$(OSS_DIR) -lmemcached
 LIBS += -lpthread
 LIBS += -L$(TOPDIR)/oss_install/lib -lrbtree
 LIBS += -L$(TOPDIR)/lib/memcache -lmcache
+LIBS += -ldl
 CC = gcc
 
 all:: $(GENCACHE_LIB_NAME)

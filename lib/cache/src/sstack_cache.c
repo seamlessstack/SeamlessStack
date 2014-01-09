@@ -22,6 +22,8 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <string.h>
+#include <dlfcn.h>
+#include <errno.h>
 #include <red_black_tree.h>
 #include <sstack_log.h>
 #include <sstack_jobs.h>
@@ -29,6 +31,7 @@
 #include <sstack_cache.h>
 #include <sstack_cache_api.h>
 
+#define SSD_CACHE_LIBNAME "/opt/sfs/lib/libssdcache.so"
 
 rb_red_blk_tree *cache_tree = NULL;
 pthread_spinlock_t cache_lock;
@@ -288,5 +291,125 @@ sstack_cache_purge(uint8_t *hashkey, log_ctx_t *ctx)
 	pthread_spin_unlock(&cache_lock);
 
 	return 0;
+}
+
+/*
+ * ssd_cache_register - Register ssd caching infrastructure
+ */
+
+ssd_cache_t *
+ssd_cache_register(log_ctx_t *ctx)
+{
+	ssd_cache_t *cache = NULL;
+	void *handle = NULL;
+
+	cache = create_ssd_cache();
+	if (NULL == cache) {
+		sfs_log(ctx, SFS_ERR, "%s: create_ssd_cache failed. Out of memory \n",
+						__FUNCTION__);
+
+		return NULL;
+	}
+
+	handle = dlopen(SSD_CACHE_LIBNAME, RTLD_NOW);
+	if (NULL == handle) {
+		sfs_log(ctx, SFS_ERR, "%s: dlopen failed on %s. Error = %d \n",
+						__FUNCTION__, errno);
+
+		free(cache);
+		return NULL;
+	}
+
+	cache->ops.ssd_cache_init = (ssd_cache_init_t)
+			dlsym(handle, "sstack_ssd_cache_init");
+	if (NULL == cache->ops.ssd_cache_init) {
+		sfs_log(ctx, SFS_ERR, "%s: sstack_ssd_cache_init not defined \n",
+						__FUNCTION__);
+		errno = EINVAL;
+		free(cache);
+
+		return NULL;
+	}
+
+	cache->ops.ssd_cache_open = (ssd_cache_open_t)
+			dlsym(handle, "sstack_ssd_cache_open");
+	if (NULL == cache->ops.ssd_cache_open) {
+		sfs_log(ctx, SFS_ERR, "%s: sstack_ssd_cache_open not defined \n",
+						__FUNCTION__);
+		errno = EINVAL;
+		free(cache);
+
+		return NULL;
+	}
+
+	cache->ops.ssd_cache_close = (ssd_cache_close_t)
+			dlsym(handle, "sstack_ssd_cache_close");
+	if (NULL == cache->ops.ssd_cache_close) {
+		sfs_log(ctx, SFS_ERR, "%s: sstack_ssd_cache_close not defined \n",
+						__FUNCTION__);
+		errno = EINVAL;
+		free(cache);
+
+		return NULL;
+	}
+
+	cache->ops.ssd_cache_store = (ssd_cache_store_t)
+			dlsym(handle, "sstack_ssd_cache_store");
+	if (NULL == cache->ops.ssd_cache_store) {
+		sfs_log(ctx, SFS_ERR, "%s: sstack_ssd_cache_store not defined \n",
+						__FUNCTION__);
+		errno = EINVAL;
+		free(cache);
+
+		return NULL;
+	}
+
+	cache->ops.ssd_cache_purge = (ssd_cache_purge_t)
+			dlsym(handle, "sstack_ssd_cache_purge");
+	if (NULL == cache->ops.ssd_cache_purge) {
+		sfs_log(ctx, SFS_ERR, "%s: sstack_ssd_cache_purge not defined \n",
+						__FUNCTION__);
+		errno = EINVAL;
+		free(cache);
+
+		return NULL;
+	}
+
+	cache->ops.ssd_cache_update = (ssd_cache_update_t)
+			dlsym(handle, "sstack_ssd_cache_update");
+	if (NULL == cache->ops.ssd_cache_update) {
+		sfs_log(ctx, SFS_ERR, "%s: sstack_ssd_cache_update not defined \n",
+						__FUNCTION__);
+		errno = EINVAL;
+		free(cache);
+
+		return NULL;
+	}
+
+	cache->ops.ssd_cache_retrieve = (ssd_cache_retrieve_t)
+			dlsym(handle, "sstack_ssd_cache_retrieve");
+	if (NULL == cache->ops.ssd_cache_retrieve) {
+		sfs_log(ctx, SFS_ERR, "%s: sstack_ssd_cache_retrieve not defined \n",
+						__FUNCTION__);
+		errno = EINVAL;
+		free(cache);
+
+		return NULL;
+	}
+
+	cache->ops.ssd_cache_destroy = (ssd_cache_destroy_t)
+			dlsym(handle, "sstack_ssd_cache_destroy");
+	if (NULL == cache->ops.ssd_cache_destroy) {
+		sfs_log(ctx, SFS_ERR, "%s: sstack_ssd_cache_destroy not defined \n",
+						__FUNCTION__);
+		errno = EINVAL;
+		free(cache);
+
+		return NULL;
+	}
+
+	dlclose(handle);
+
+	return cache;
 }
 
