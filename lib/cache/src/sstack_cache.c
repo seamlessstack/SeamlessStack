@@ -29,6 +29,7 @@
 #include <sstack_jobs.h>
 #include <sstack_helper.h>
 #include <sstack_cache.h>
+#include <sstack_lrucache.h>
 #include <sstack_cache_api.h>
 
 #define SSD_CACHE_LIBNAME "/opt/sfs/lib/libssdcache.so"
@@ -443,6 +444,11 @@ ssd_cache_register(log_ctx_t *ctx)
 	}
 
 	dlclose(handle);
+	// NOTE:
+	// There is no better place to initialize cache list lock. We need it
+	// in ssd_cache_init itself.
+
+	pthread_spin_init(&cache_list_lock, PTHREAD_PROCESS_PRIVATE);
 
 	return cache;
 }

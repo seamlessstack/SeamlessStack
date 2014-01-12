@@ -24,6 +24,8 @@
 #include <sys/param.h>
 #include <sstack_log.h>
 
+#define MAX_SSD_CACHEDEV 8
+
 
 // SSD cache operations
 typedef uint32_t ssd_cache_handle_t;
@@ -35,7 +37,7 @@ typedef struct ssdcache {
 	size_t len; // Size of the object
 } sstack_ssdcache_t;
 
-typedef ssd_cache_handle_t (*ssd_cache_init_t) (char *, log_ctx_t *);
+typedef ssd_cache_handle_t (*ssd_cache_init_t) (char *,log_ctx_t *);
 // Returns the next SSD cache to be used for store
 // Useful when there are multiple cache devices in the system
 typedef ssd_cache_handle_t  (*ssd_cache_get_handle_t) (void);
@@ -70,9 +72,21 @@ typedef struct ssd_cache {
 	log_ctx_t *ctx;
 } ssd_cache_t;
 
+typedef struct ssd_stats {
+	pthread_spinlock_t lock;
+	uint64_t num_cachelines;
+	uint64_t inuse;
+	// FIXME:
+	// Add more fields here
+} ssd_stats_t;
+
 // Data structure to maintain multiple SSDs
+// NOTE:
+// Since file system is used for maintaining the SSDs, we don't need
+// locks per SSD. Lock is needed only for stats
 typedef struct ssd_cache_struct {
 	ssd_cache_handle_t handle;
+	ssd_stats_t stats;
 	// FIXME:
 	// SSD cache can be maintained in two ways:
 	// 1. Use blocks directly and use SCSI READ/WRITE
@@ -88,8 +102,7 @@ typedef struct ssd_cache_struct {
 
 extern ssd_cache_struct_t ssd_caches[];
 extern pthread_spinlock_t cache_list_lock;
-extern ssd_cache_handle_t max_ssd_cache_handle;
-extern rb_red_blk_tree *lru_tree;
+extern ssd_cache_handle_t cur_ssd_cache_handle;
 // Needs to be declared in calling application
 extern ssd_cache_t *ssd_cache;
 
@@ -97,10 +110,13 @@ static inline ssd_cache_handle_t
 get_next_ssd_cache_handle(void)
 {
 	pthread_spin_lock(&cache_list_lock);
-	max_ssd_cache_handle ++;
+	if (cur_ssd_cache_handle < MAX_SSD_CACHEDEV)
+		cur_ssd_cache_handle ++;
+	else
+		return -1;
 	pthread_spin_unlock(&cache_list_lock);
 
-	return max_ssd_cache_handle;
+	return cur_ssd_cache_handle;
 }
 
 
@@ -121,5 +137,13 @@ destroy_ssd_cache(ssd_cache_t *ssd_cache)
 	if (ssd_cache)
 		free(ssd_cache);
 }
+
+typedef struct ssd_cachedev_info {
+	char mntpnt[PATH_MAX];
+	uint64_t num_cachelines;
+} ssd_cachedev_info_t;
+
+extern ssd_cache_handle_t sstack_add_cache(char *path);
+extern void sstack_show_cache(void);
 
 #endif // __SSTACK_SSDCACHE_H__

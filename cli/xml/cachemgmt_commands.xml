@@ -16,6 +16,10 @@
              help="Device entry of the SSD cache"
              ptype="STRING"
              default="*"/>
+      <PARAM name="size"
+             help="Size of SSD to be used as cache. Use 0 to use entire SSD"
+             ptype="UINT"
+             default="0"/>
       <ACTION>echo sfscli cache -a ${path} </ACTION>
 	</COMMAND>
 	<!--======================================================-->

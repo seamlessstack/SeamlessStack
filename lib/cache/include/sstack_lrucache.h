@@ -37,4 +37,6 @@ extern rb_red_blk_tree *lru_init(log_ctx_t *);
 extern int lru_insert_entry(rb_red_blk_tree *, void *, log_ctx_t *);
 extern int lru_demote_entries(rb_red_blk_tree *, int , log_ctx_t *);
 
+extern rb_red_blk_tree *lru_tree;
+
 #endif // __SSTACK_LRU_H__
