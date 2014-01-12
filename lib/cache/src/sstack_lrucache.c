@@ -229,7 +229,7 @@ lru_demote_entries(rb_red_blk_tree *tree, int num, log_ctx_t *ctx)
 		// Get data stored in memcached
 		data = sstack_memcache_read_one(cache->memcache.mc,
 						(const char *) entry->hashkey,
-						strlen(entry->hashkey),
+						(size_t) strlen(entry->hashkey),
 						&data_len, ctx);
 		if (NULL == data) {
 			sfs_log(ctx, SFS_ERR, "%s: Failed to read cached data "

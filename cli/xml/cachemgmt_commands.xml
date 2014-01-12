@@ -4,27 +4,27 @@
  xsi:schemaLocation="http://clish.sourceforge.net/XMLSchema
                      http://clish.sourceforge.net/XMLSchema/clish.xsd">
 	<!--=======================================================-->
-	<COMMAND name="license"
-			 help="license management commands"/>
+	<COMMAND name="cache"
+			 help="cache management commands"/>
 	<!--======================================================-->
-	<COMMAND name="license add"
-             help="license add">
+	<COMMAND name="cache add"
+             help="cache add">
       <DETAIL>
-		Add license
+	  Add SSD to cache
       </DETAIL>
-      <PARAM name="path"
-             help="Path of the license file"
+      <PARAM name="device"
+             help="Device entry of the SSD cache"
              ptype="STRING"
              default="*"/>
-      <ACTION>echo sfscli license -a ${path} </ACTION>
+      <ACTION>echo sfscli cache -a ${path} </ACTION>
 	</COMMAND>
 	<!--======================================================-->
-	<COMMAND name="license show"
-   			 help="license show">
+	<COMMAND name="cache show"
+   			 help="cache show">
 	  <DETAIL>
-		Show license
+		Show SSDs used for caching along with stats.
 	  </DETAIL>
-      <ACTION> echo sfscli license -l </ACTION>
+      <ACTION> echo sfscli cache -l </ACTION>
 	</COMMAND>
    <!--=======================================================-->
 </CLISH_MODULE>
