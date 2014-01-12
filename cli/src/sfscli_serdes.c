@@ -3,7 +3,7 @@
  * SEAMLESSSTACK CONFIDENTIAL
  * __________________________
  *
- *  [2012] - [2013]  SeamlessStack Inc
+ *  [2012] - [2014]  SeamlessStack Inc
  *  All Rights Reserved.
  *
  * NOTICE:  All information contained herein is, and remains
@@ -195,7 +195,7 @@ int32_t sfscli_serialize_storage(struct sfscli_cli_cmd *cli_cmd,
 
 	if (p == NULL)
 		return -ENOMEM;
-	
+
 	q = p;
 	/* MAGIC (*/
 	sfscli_ser_uint(SFSCLI_MAGIC, p, 4);
@@ -271,7 +271,7 @@ int32_t sfscli_deserialize_storage(uint8_t *buffer, size_t buf_len,
 
 	return 0;
 }
-		
+
 int32_t sfscli_serialize_sfsd(struct sfscli_cli_cmd *cli_cmd,
 							  uint8_t **buffer)
 {
@@ -284,7 +284,7 @@ int32_t sfscli_serialize_sfsd(struct sfscli_cli_cmd *cli_cmd,
 
 	if (p == NULL)
 		return -ENOMEM;
-	
+
 	q = p;
 	/* MAGIC (*/
 	sfscli_ser_uint(SFSCLI_MAGIC, p, 4);
@@ -366,7 +366,7 @@ int32_t sfscli_serialize_license(struct sfscli_cli_cmd *cli_cmd,
 
 	if (p == NULL)
 		return -ENOMEM;
-	
+
 	q = p;
 	/* MAGIC (*/
 	sfscli_ser_uint(SFSCLI_MAGIC, p, 4);

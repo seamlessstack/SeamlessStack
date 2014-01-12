@@ -1,11 +1,11 @@
 /*************************************************************************
- * 
+ *
  * SEAMLESSSTACK CONFIDENTIAL
  * __________________________
- * 
- *  [2012] - [2013]  SeamlessStack Inc
+ *
+ *  [2012] - [2014]  SeamlessStack Inc
  *  All Rights Reserved.
- * 
+ *
  * NOTICE:  All information contained herein is, and remains
  * the property of SeamlessStack Incorporated and its suppliers,
  * if any.  The intellectual and technical concepts contained
@@ -54,7 +54,7 @@ files_db_close(void)
 }
 
 // db_init is where directory structure for the db is/are created
-// 
+//
 
 int
 files_db_init(void)
@@ -99,7 +99,7 @@ files_db_insert(uint64_t key, char *data, size_t len, db_type_t type)
 		pthread_mutex_unlock(&files_db_mutex);
 		return -errno;
 	}
-	USYSLOG(LOG_ERR, "%s: Created file %s\n", __FUNCTION__, filename);	
+	USYSLOG(LOG_ERR, "%s: Created file %s\n", __FUNCTION__, filename);
 	ret = gzwrite(outfile, data, len);
 	if (ret == 0) {
 		syslog(LOG_ERR, "%s: gzwrite failed for %s error %d \n",
@@ -126,7 +126,7 @@ files_db_insert(uint64_t key, char *data, size_t len, db_type_t type)
 // Needed to read extents from inode
 int
 files_db_seekread(uint64_t key, char *data, size_t len, off_t offset,
-	int whence, db_type_t type) 
+	int whence, db_type_t type)
 {
 	char filename[FNAME_LEN];
 	gzFile infile;

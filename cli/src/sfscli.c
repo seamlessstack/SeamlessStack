@@ -3,7 +3,7 @@
  * SEAMLESSSTACK CONFIDENTIAL
  * __________________________
  *
- *  [2012] - [2013]  SeamlessStack Inc
+ *  [2012] - [2014]  SeamlessStack Inc
  *  All Rights Reserved.
  *
  * NOTICE:  All information contained herein is, and remains
@@ -150,7 +150,7 @@ int32_t process_args(int32_t argc, char *argv[], int32_t sockfd)
 	struct sfscli_cli_cmd *cli_cmd = NULL, *an_cmd = NULL;
 	uint8_t *buffer = NULL;
 	size_t buf_len = 0;
-	
+
 	if (argc == 1) {
 		usage(argv[0]);
 		return -EINVAL;
@@ -205,8 +205,8 @@ int32_t process_args(int32_t argc, char *argv[], int32_t sockfd)
 		int ret  = write(sockfd, buffer, buf_len);
 		printf ("Wrote %d bytes\n", ret);
 		/* Wait for response */
-			   
+
 	}
-		
+
 	return 0;
 }

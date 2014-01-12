@@ -1,11 +1,11 @@
 /*************************************************************************
- * 
+ *
  * SEAMLESSSTACK CONFIDENTIAL
  * __________________________
- * 
- *  [2012] - [2013]  SeamlessStack Inc
+ *
+ *  [2012] - [2014]  SeamlessStack Inc
  *  All Rights Reserved.
- * 
+ *
  * NOTICE:  All information contained herein is, and remains
  * the property of SeamlessStack Incorporated and its suppliers,
  * if any.  The intellectual and technical concepts contained
@@ -31,7 +31,7 @@ static void sfs_sha_calculate(char *path, char *hash);
 int
 main(void)
 {
-	char path[100]; 	
+	char path[100];
 	RSA *pub_key, *priv_key;
 
 	strcpy(path,"/home/shank/libabc.so");
@@ -50,39 +50,39 @@ sfs_sha_calculate(char *path, char *hash)
 	int buf_size = 32768;
 	char *buf = malloc(buf_size * sizeof(char));
 	int num_bytes = 0;
-	
+
 	SHA256_Init(&sha256);
 	while (num_bytes = fread(buf, 1, buf_size, file)) {
 		SHA256_Update(&sha256, buf, num_bytes);
 	}
-	 
+
 	SHA256_Final(hash, &sha256);
-	
+
 }
 
-int 
+int
 sfs_elf_encode(char *path, RSA *pub_key)
 {
 	unsigned char hash[SHA256_DIGEST_LENGTH];
 	int res = 0;
-	
+
 	sfs_sha_calculate(path, hash);
-	res = elf_encode_hash(hash, path, sizeof(hash), pub_key); 	
-	
+	res = elf_encode_hash(hash, path, sizeof(hash), pub_key);
+
 	return (res);
 }
 
-static int 
+static int
 elf_encode_hash(char *hash, char *path, int size, RSA *pub_key)
-{	
+{
 	int fd;
-	int offset = 0; 
+	int offset = 0;
 	int	num_entries = 0;
 	int bytes = 0;
 	char enc_code[SHA256_DIGEST_LENGTH];
 	int	err;
 
-	err = RSA_public_encrypt(size, hash, enc_code, pub_key, 
+	err = RSA_public_encrypt(size, hash, enc_code, pub_key,
 					RSA_PKCS1_PADDING);
 	if (err < 0) {
 		return (VLDT_ENCR_FAIL);
@@ -101,7 +101,7 @@ elf_encode_hash(char *hash, char *path, int size, RSA *pub_key)
 	close(fd);
 
 	return (VLDT_SUCCESS);
-}	
+}
 
 int
 sfs_elf_validate(char *path, RSA *priv_key)
@@ -114,7 +114,7 @@ sfs_elf_validate(char *path, RSA *priv_key)
 	int bytes = 0, i, key_size, err;
 	unsigned char hash[SHA256_DIGEST_LENGTH];
 	unsigned char signature[SHA256_DIGEST_LENGTH];
-	
+
 	fd = open(path, O_RDWR, 0777);
 	if (fd < 0) {
 		// Log to print errno
@@ -123,7 +123,7 @@ sfs_elf_validate(char *path, RSA *priv_key)
 
 	fstat(fd, &sts);
 	size = sts.st_size;
-			
+
 	if (size < 32) {
 		close (fd);
 		return (VLDT_SIZE_MISMATCH);
@@ -140,7 +140,7 @@ sfs_elf_validate(char *path, RSA *priv_key)
 		close (fd);
 		return (VLDT_READ_FAIL);
 	}
-	
+
 	key_size = RSA_size(priv_key);
 	err = RSA_private_decrypt(key_size, buf, signature, priv_key,
 					RSA_PKCS1_PADDING);
@@ -148,24 +148,24 @@ sfs_elf_validate(char *path, RSA *priv_key)
 		close (fd);
 		return (VLDT_DECR_FAIL);
 	}
-	
+
 	i = ftruncate(fd, size-32);
 	if (i < 0) {
 		// LOG to print errno
 		close (fd);
 		return (VLDT_TRUNC_FAIL);
 	}
-	
+
 	sfs_sha_calculate(path, hash);
-	if (!memcmp(hash, signature, bytes)) {	
+	if (!memcmp(hash, signature, bytes)) {
 		res = VLDT_SUCCESS;
-	} else { 
+	} else {
 		res = VLDT_FAIL;
 	}
 
 	off = lseek(fd, 0, SEEK_END);
 	bytes = write(fd, buf, size);
 	close(fd);
-	
+
 	return (res);
 }

@@ -1,11 +1,11 @@
 /*************************************************************************
- * 
+ *
  * SEAMLESSSTACK CONFIDENTIAL
  * __________________________
- * 
- *  [2012] - [2013]  SeamlessStack Inc
+ *
+ *  [2012] - [2014]  SeamlessStack Inc
  *  All Rights Reserved.
- * 
+ *
  * NOTICE:  All information contained herein is, and remains
  * the property of SeamlessStack Incorporated and its suppliers,
  * if any.  The intellectual and technical concepts contained
@@ -65,11 +65,11 @@ tcp_client_init(sstack_transport_t *transport)
 	int sockfd  = -1;
 
 	// Only IPv4 implemented.
-	// Use ipv4 field in the sstack_transport_t.tcp to determine 
+	// Use ipv4 field in the sstack_transport_t.tcp to determine
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (sockfd == -1) {
 		sfs_log(transport->ctx, SFS_ERR, "%s: Socket creation failed with"
-			"error %d\n", __FUNCTION__, errno); 
+			"error %d\n", __FUNCTION__, errno);
 		return -1;
 	}
 
@@ -80,7 +80,7 @@ tcp_client_init(sstack_transport_t *transport)
 
 	if (connect(sockfd, (struct sockaddr *) &addr, sizeof(addr)) < 0) {
 		sfs_log(transport->ctx, SFS_ERR, "%s: Connect failed with"
-			"error %d\n", __FUNCTION__, errno); 
+			"error %d\n", __FUNCTION__, errno);
 		return -1;
 	}
 
@@ -89,7 +89,7 @@ tcp_client_init(sstack_transport_t *transport)
 	sa.sa_flags = SA_RESTART;
 	if (sigaction(SIGCHLD, &sa, NULL) == -1) {
 		sfs_log(transport->ctx, SFS_ERR, "%s: sigaction failed with"
-			"error %d\n", __FUNCTION__, errno); 
+			"error %d\n", __FUNCTION__, errno);
 		close(sockfd);
 
 		return  -1;
@@ -100,7 +100,7 @@ tcp_client_init(sstack_transport_t *transport)
 
 
 /*
- * tcp_tx - Send payload 
+ * tcp_tx - Send payload
  *
  * handle - client handle i.e. socket fd
  * payload_len - Length of the payload. sfs(d) uses packed size of
@@ -117,17 +117,17 @@ tcp_tx(sstack_client_handle_t handle, size_t payload_len, void *payload)
 }
 
 /*
- * tcp_rx - Receive payload 
+ * tcp_rx - Receive payload
  *
  * handle - client handle i.e. socket fd
  * payload_len - Length of the payload. sfs(d) uses packed size of
  * sstack_payload_t which is <= sizeof(sstack_payload_t).
  * payload - Real payload to be transmitted. sfs(d) use sstack_payload_t
  *
- * Reads sstack_payload_hdr_t to determine real payload size. Returns 
+ * Reads sstack_payload_hdr_t to determine real payload size. Returns
  * sizeof(sstack_payload_hdr_t) + payload length on success.
  *
- * Returns number of bytes received on success and a negative number 
+ * Returns number of bytes received on success and a negative number
  * indicating errno on failure.
  */
 
@@ -204,7 +204,7 @@ tcp_select(sstack_client_handle_t handle, uint32_t block_flags)
 	fd_set readfds, writefds;
 	struct timeval timeout;
 	int ret;
-	
+
 	FD_ZERO(&readfds);
 	FD_ZERO(&writefds);
 	FD_SET(handle, &readfds);
@@ -216,9 +216,9 @@ tcp_select(sstack_client_handle_t handle, uint32_t block_flags)
 	/* Call the select now. */
 	ret = select(handle + 1, &readfds, &writefds, NULL, &timeout);
 
-	ASSERT((ret >= 0), "Select failed",1, 0, 0); 
+	ASSERT((ret >= 0), "Select failed",1, 0, 0);
 	if (ret != 0) {
-		if (FD_ISSET(handle, &readfds) && 
+		if (FD_ISSET(handle, &readfds) &&
 				(block_flags & READ_BLOCK_MASK)) {
 			return READ_NO_BLOCK;
 		} else if (FD_ISSET(handle, &writefds) &&
@@ -255,14 +255,14 @@ tcp_server_setup(sstack_transport_t *transport)
 	if (sockfd == -1) {
 		sfs_log(transport->ctx, SFS_ERR,
 				"%s: Socket creation failed with"
-				"error %d\n", __FUNCTION__, errno); 
+				"error %d\n", __FUNCTION__, errno);
 		return -1;
 	}
 
 	if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes,
 			sizeof(int)) == -1) {
 		sfs_log(transport->ctx, SFS_ERR, "%s: setsockopt failed with"
-			"error %d\n", __FUNCTION__, errno); 
+			"error %d\n", __FUNCTION__, errno);
 		return -1;
 	}
 
@@ -273,14 +273,14 @@ tcp_server_setup(sstack_transport_t *transport)
 
 	if (bind(sockfd, (const struct sockaddr *) &addr, sizeof(addr)) == -1) {
 		sfs_log(transport->ctx, SFS_ERR, "%s: bind failed with"
-			"error %d\n", __FUNCTION__, errno); 
+			"error %d\n", __FUNCTION__, errno);
 		close(sockfd);
 		return -1;
 	}
 
 	if (listen(sockfd, SSTACK_BACKLOG) == -1) {
 		sfs_log(transport->ctx, SFS_ERR, "%s: listen failed with"
-			"error %d\n", __FUNCTION__, errno); 
+			"error %d\n", __FUNCTION__, errno);
 		close(sockfd);
 
 		return -1;
@@ -291,7 +291,7 @@ tcp_server_setup(sstack_transport_t *transport)
 	sa.sa_flags = SA_RESTART;
 	if (sigaction(SIGCHLD, &sa, NULL) == -1) {
 		sfs_log(transport->ctx, SFS_ERR, "%s: sigaction failed with"
-			"error %d\n", __FUNCTION__, errno); 
+			"error %d\n", __FUNCTION__, errno);
 		close(sockfd);
 
 		return  -1;
@@ -311,7 +311,7 @@ tcp_server_setup(sstack_transport_t *transport)
 sstack_transport_t *get_tcp_transport(char *addr)
 {
 	sstack_transport_t *transport = NULL;
-	
+
 	transport = alloc_transport();
 
 	ASSERT((transport != NULL),

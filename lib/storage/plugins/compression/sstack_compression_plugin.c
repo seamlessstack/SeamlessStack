@@ -3,7 +3,7 @@
  * SEAMLESSSTACK CONFIDENTIAL
  * __________________________
  *
- *  [2012] - [2013]  SeamlessStack Inc
+ *  [2012] - [2014]  SeamlessStack Inc
  *  All Rights Reserved.
  *
  * NOTICE:  All information contained herein is, and remains
@@ -67,7 +67,7 @@ void
 compression_deinit(void)
 {
 	(void) sfs_log_close(ctx);
-	(void) sfs_destroy_log_ctx(ctx);	
+	(void) sfs_destroy_log_ctx(ctx);
 }
 
 
@@ -102,7 +102,7 @@ compression_apply(char *buf, char **outbuf, size_t size)
  *								plugin
  *
  * path - Full path of the file to be compressed.
- * buffer - Buffer that contains the uncompressed output. This is allocated 
+ * buffer - Buffer that contains the uncompressed output. This is allocated
  *			inside this function. It is caller's responsibility to free
  *
  * Returns size of uncompressed data on success and negative number on failure.
@@ -277,12 +277,12 @@ compress(lzma_stream *strm, char *buf, char **out_buf,  size_t size)
 					sfs_log(ctx, SFS_ERR, "%s: Memory allocation failed \n",
 							__FUNCTION__);
 					return -1;
-	
+
 				case LZMA_DATA_ERROR:
 					sfs_log(ctx, SFS_ERR, "%s: File size limits exceeded \n",
 							__FUNCTION__);
 					return -1;
-	
+
 				default:
 					sfs_log(ctx, SFS_ERR, "%s: Unknown error, possibly a bug \n",
 							__FUNCTION__);

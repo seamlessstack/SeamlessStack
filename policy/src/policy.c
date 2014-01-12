@@ -3,7 +3,7 @@
  * SEAMLESSSTACK CONFIDENTIAL
  * __________________________
  *
- *  [2012] - [2013]  SeamlessStack Inc
+ *  [2012] - [2014]  SeamlessStack Inc
  *  All Rights Reserved.
  *
  * NOTICE:  All information contained herein is, and remains
@@ -655,7 +655,7 @@ void read_load_plugins(const char **paths, size_t num_paths, RSA *priv_key,
 	if (reload)
 		unload_free_plugins();
 
-	/* Go through each of the paths being passed and list down all the 
+	/* Go through each of the paths being passed and list down all the
 	 * plugins there */
 	for(i = 0; i < num_paths; ++i) {
 		dir = opendir(paths[i]);

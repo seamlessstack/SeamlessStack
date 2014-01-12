@@ -3,7 +3,7 @@
  * SEAMLESSSTACK CONFIDENTIAL
  * __________________________
  *
- *  [2012] - [2013]  SeamlessStack Inc
+ *  [2012] - [2014]  SeamlessStack Inc
  *  All Rights Reserved.
  *
  * NOTICE:  All information contained herein is, and remains
@@ -50,7 +50,7 @@ int32_t validate_plugin(const char *plugin_path, struct plugin_entry_points
 	} else {
 		char function_name[64];
 		start = start + 3; /* ignore the string "lib" from the
-					 plugin lib name */	
+					 plugin lib name */
 		strncpy(plugin_prefix, start, (end - start)/sizeof(char));
 		/* Check the *_init, *_deinit, *_apply, *_remove functions */
 		sprintf (function_name, "%s_init", plugin_prefix);
