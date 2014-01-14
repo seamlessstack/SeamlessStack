@@ -50,7 +50,7 @@ typedef int (*ssd_cache_purge_t) (ssd_cache_handle_t , ssd_cache_entry_t ,
 typedef int (*ssd_cache_update_t) (ssd_cache_handle_t , ssd_cache_entry_t ,
 				void *, size_t , log_ctx_t *);
 typedef void * (*ssd_cache_retrieve_t) (ssd_cache_handle_t ,
-				ssd_cache_entry_t , log_ctx_t *);
+				ssd_cache_entry_t , size_t ,log_ctx_t *);
 typedef void (*ssd_cache_destroy_t) (ssd_cache_handle_t );
 
 

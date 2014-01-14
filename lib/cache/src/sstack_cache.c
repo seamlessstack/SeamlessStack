@@ -69,22 +69,30 @@ destroy_func(void *val)
 /*
  * cache_init - Create RB-tree to maintain cache metadata
  *
- * Returns initialized cache_tree pointer on success. Returns NULL upon
- * failure.
+ * Returns 0 on success and -1 on failure.
  */
 
-rb_red_blk_tree *
+int
 cache_init(log_ctx_t *ctx)
 {
 	// Create RB-tree for managing the cache
 	cache_tree = RBTreeCreate(compare_func, destroy_func, NULL, NULL, NULL);
-	if (NULL == cache_tree)
+	if (NULL == cache_tree) {
 		sfs_log(ctx, SFS_ERR, "%s: Failed to create RB-tree for cache \n",
 						__FUNCTION__);
+		return -1;
+	}
 
 	pthread_spin_init(&cache_lock, PTHREAD_PROCESS_PRIVATE);
 
-	return cache_tree;
+	lru_tree = lru_init(ctx);
+	if (NULL == lru_tree) {
+		sfs_log(ctx, SFS_ERR, "%s: Failed to create RB-tree for LRU \n",
+						__FUNCTION__);
+		return -1;
+	}
+
+	return 0;
 }
 
 /*
@@ -128,7 +136,7 @@ sstack_allocate_cache_entry(log_ctx_t *ctx)
 
 		return NULL;
 	}
-	pthread_spin_init(&cache_entry->lock, PTHREAD_PROCESS_PRIVATE);
+	pthread_mutex_init(&cache_entry->lock, NULL);
 	cache_entry->on_ssd = false;
 
 	return cache_entry;
@@ -201,6 +209,7 @@ sstack_cache_store(void *data, size_t len, sstack_cache_t *entry,
 
 				return -1;
 			}
+
 		} else {
 			// Some other error
 			return -1;
@@ -213,15 +222,25 @@ sstack_cache_store(void *data, size_t len, sstack_cache_t *entry,
 	pthread_spin_lock(&cache_lock);
 	node = RBTreeInsert(cache_tree, (void *) entry->hashkey, (void *) entry);
 	if (NULL == node) {
-		sfs_log(ctx, SFS_ERR, "%s: Failed to insert node into RB-tree \n",
-						__FUNCTION__);
-		sstack_cache_remove(entry->memcache.mc,
-						(const char *) entry->hashkey, ctx);
-		pthread_spin_unlock(&cache_lock);
+		sfs_log(ctx, SFS_ERR, "%s: Failed to insert node into cache tree "
+						". Hash = %s \n", __FUNCTION__, entry->hashkey);
 
 		return -1;
 	}
 	pthread_spin_unlock(&cache_lock);
+	// Insert into LRU tree
+	ret = lru_insert_entry(lru_tree, (void *) entry->hashkey, ctx);
+	if (ret == -1) {
+		sfs_log(ctx, SFS_ERR, "%s: Failed to insert node into LRU tree. "
+						"Hash = %s\n", __FUNCTION__, entry->hashkey);
+		sstack_cache_remove(entry->memcache.mc,
+						(const char *) entry->hashkey, ctx);
+		pthread_spin_lock(&cache_lock);
+		RBDelete(cache_tree, node);
+		pthread_spin_unlock(&cache_lock);
+
+		return -1;
+	}
 
 	return 0;
 }
@@ -269,8 +288,104 @@ sstack_cache_search(uint8_t *hashkey, log_ctx_t *ctx)
 }
 
 /*
+ * sstack_cache_get - Get cached data
+ *
+ * hashkey - Hash of the key of the data. Should be non-NULL
+ * ctx - log context
+ * size - number of bytes to read from cache
+ *
+ * Returns the data on success and NULL on failure. On partial data,
+ * returns NULL.
+ */
+
+char *
+sstack_cache_get(uint8_t *hashkey, size_t size, log_ctx_t *ctx)
+{
+	sstack_cache_t c;
+	// sstack_cache_t *ret = NULL;
+	rb_red_blk_node *node = NULL;
+	char *data = NULL;
+
+	// Parameter validation
+	if (NULL == hashkey) {
+		sfs_log(ctx, SFS_ERR, "%s: Invalid paramter specified \n",
+						__FUNCTION__);
+		errno = EINVAL;
+
+		return NULL;
+	}
+
+	memcpy((void *) &c.hashkey, (void *) hashkey, (SHA256_DIGEST_LENGTH + 1));
+
+	pthread_spin_lock(&cache_lock);
+	node = RBExactQuery(cache_tree, (void *) &c);
+	if (NULL == node) {
+		sfs_log(ctx, SFS_CRIT, "%s: hashkey %s not found in RB-tree \n",
+						__FUNCTION__, (char *) hashkey);
+		errno = EFAULT;
+		pthread_spin_unlock(&cache_lock);
+
+		return NULL;
+	}
+	pthread_spin_unlock(&cache_lock);
+
+	pthread_mutex_lock(&c.lock);
+	if (c.on_ssd == true) {
+		// Data is on SSD cache
+		// Retrieve it
+		if (c.ssdcache.len < size) {
+			sfs_log(ctx, SFS_ERR, "%s: Incomplete data present on SSD cache "
+							"for key %s \n", __FUNCTION__, hashkey);
+			errno = EIO;
+			pthread_mutex_unlock(&c.lock);
+
+			return NULL;
+		}
+		// Full data present on cache
+		// Return the size
+		if (ssd_cache && ssd_cache->ops.ssd_cache_retrieve) {
+			data = ssd_cache->ops.ssd_cache_retrieve(c.ssdcache.handle,
+							c.ssdcache.entry, size, ctx);
+			if (NULL == data) {
+				sfs_log(ctx, SFS_ERR, "%s: Unable to read complete data from "
+								"SSD for hash %s \n", __FUNCTION__, hashkey);
+				errno = EIO;
+				pthread_mutex_unlock(&c.lock);
+
+				return NULL;
+			}
+		} else {
+			sfs_log(ctx, SFS_ERR, "%s: No retrieve function defined for SSD !!"
+							" . Memory corruption !!!. Hash %s \n",
+							__FUNCTION__, hashkey);
+			errno = EIO;
+
+			return NULL;
+		}
+	} else {
+		size_t datalen;
+		// Data is on memcached
+		data = sstack_memcache_read_one(c.memcache.mc, (const char *) hashkey,
+						strlen(hashkey), &datalen, ctx);
+		if (NULL == data || datalen != size) {
+			sfs_log(ctx, SFS_ERR, "%s: Cache data is absent or incomplete on"
+							"memcached for hash %s\n", __FUNCTION__, hashkey);
+			errno = EIO;
+			pthread_mutex_unlock(&c.lock);
+
+			return NULL;
+		}
+	}
+
+	// SUCCESS
+	pthread_mutex_unlock(&c.lock);
+
+	return data;
+}
+
+/*
  * sstack_cache_purge - Purge the entry corresponding to hashkey from
- *						memcached
+ *						cache
  *
  * hashkey - Key
  * ctx - Log context
@@ -284,6 +399,7 @@ sstack_cache_purge(uint8_t *hashkey, log_ctx_t *ctx)
 	sstack_cache_t c;
 	sstack_cache_t *entry = NULL;
 	rb_red_blk_node *node = NULL;
+	int ret = -1;
 
 	// Parameter validation
 	if (NULL == hashkey) {
@@ -306,11 +422,41 @@ sstack_cache_purge(uint8_t *hashkey, log_ctx_t *ctx)
 
 		return -1;
 	}
+	pthread_spin_unlock(&cache_lock);
 
-	// Delete the node from the tree and from memcached pool
 	entry = (sstack_cache_t *) node->info;
-	sstack_cache_remove(entry->memcache.mc,
+	pthread_mutex_lock(&entry->lock);
+	if (entry->on_ssd == true) {
+		// Cached on SSD
+		if (ssd_cache && ssd_cache->ops.ssd_cache_purge) {
+			ret = ssd_cache->ops.ssd_cache_purge(entry->ssdcache.handle,
+							entry->ssdcache.entry, ctx);
+			if (ret == -1) {
+				sfs_log(ctx, SFS_ERR, "%s: SSD cache purge operation failed "
+								"for hash %s \n", __FUNCTION__, hashkey);
+
+				return -1;
+			}
+		} else {
+			sfs_log(ctx, SFS_ERR, "%s: No purge function defined for SSD !!"
+							" . Memory corruption !!!. Hash %s \n",
+							__FUNCTION__, hashkey);
+			errno = EIO;
+
+			return -1;
+		}
+	} else {
+		ret = sstack_cache_remove(entry->memcache.mc,
 					(const char *) entry->hashkey, ctx);
+		if (ret == -1) {
+			sfs_log(ctx, SFS_ERR, "%s: Removing cache entry from memcache "
+							"failed for hash %s\n", __FUNCTION__, hashkey);
+			return -1;
+		}
+	}
+
+	// Remove entry from cache tree
+	pthread_spin_lock(&cache_lock);
 	RBDelete(cache_tree, node);
 	pthread_spin_unlock(&cache_lock);
 

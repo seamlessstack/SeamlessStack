@@ -38,7 +38,7 @@ typedef struct mcache {
 // This file defines the generic cache structure
 
 typedef struct sstack_cache {
-	pthread_spinlock_t lock;
+	pthread_mutex_t lock;
 	uint8_t hashkey[SHA256_DIGEST_LENGTH + 1]; // Hash of file name and offset
 	bool on_ssd; // Is it on SSD?
 	union {
@@ -53,8 +53,9 @@ typedef struct sstack_cache {
 extern uint8_t * create_hash(void * , size_t , uint8_t *, log_ctx_t *);
 extern int sstack_cache_store(void *, size_t , sstack_cache_t *, log_ctx_t *);
 extern sstack_cache_t *sstack_cache_search(uint8_t *, log_ctx_t *);
+extern char *sstack_cache_get(uint8_t *, size_t , log_ctx_t *);
 extern int sstack_cache_purge(uint8_t *, log_ctx_t *);
-extern rb_red_blk_tree *  cache_init(log_ctx_t *);
+extern int cache_init(log_ctx_t *);
 
 
 #endif // __SSTACK_CACHE_H__

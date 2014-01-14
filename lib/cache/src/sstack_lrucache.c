@@ -224,7 +224,7 @@ lru_demote_entries(rb_red_blk_tree *tree, int num, log_ctx_t *ctx)
 			return -1;
 		}
 
-		pthread_spin_lock(&cache->lock);
+		pthread_mutex_lock(&cache->lock);
 
 		// Get data stored in memcached
 		data = sstack_memcache_read_one(cache->memcache.mc,
@@ -236,7 +236,7 @@ lru_demote_entries(rb_red_blk_tree *tree, int num, log_ctx_t *ctx)
 							"in memcached. \n", __FUNCTION__);
 			(void) sstack_cache_purge(entry->hashkey, ctx);
 			RBDelete(tree, node);
-			pthread_spin_unlock(&cache->lock);
+			pthread_mutex_unlock(&cache->lock);
 
 			return -1;
 		}
@@ -255,7 +255,7 @@ lru_demote_entries(rb_red_blk_tree *tree, int num, log_ctx_t *ctx)
 				sfs_log(ctx, SFS_ERR, "%s: Failed to get cache handle. "
 						"Either SSD cache is full or fatal error \n",
 						__FUNCTION__);
-				pthread_spin_unlock(&cache->lock);
+				pthread_mutex_unlock(&cache->lock);
 
 				return -1;
 			}
@@ -266,7 +266,7 @@ lru_demote_entries(rb_red_blk_tree *tree, int num, log_ctx_t *ctx)
 				sfs_log(ctx, SFS_ERR, "%s: Failed to store data into "
 						"ssd cache. Error = %d \n",
 						__FUNCTION__, errno);
-				pthread_spin_unlock(&cache->lock);
+				pthread_mutex_unlock(&cache->lock);
 
 				return -1;
 			}
@@ -276,7 +276,7 @@ lru_demote_entries(rb_red_blk_tree *tree, int num, log_ctx_t *ctx)
 			if (ret == -1) {
 				sfs_log(ctx, SFS_ERR, "%s: Unable to evict entry from"
 								" memcached\n", __FUNCTION__);
-				pthread_spin_unlock(&cache->lock);
+				pthread_mutex_unlock(&cache->lock);
 
 				return -1;
 			}
@@ -293,7 +293,7 @@ lru_demote_entries(rb_red_blk_tree *tree, int num, log_ctx_t *ctx)
 			if (ret == -1) {
 				sfs_log(ctx, SFS_ERR, "%s: Failed to purge entry from "
 								"cache tree \n", __FUNCTION__);
-				pthread_spin_unlock(&cache->lock);
+				pthread_mutex_unlock(&cache->lock);
 
 				return -1;
 			}
@@ -303,11 +303,25 @@ lru_demote_entries(rb_red_blk_tree *tree, int num, log_ctx_t *ctx)
 			if (ret == -1) {
 				sfs_log(ctx, SFS_ERR, "%s: Failed to store data into "
 								"memcached \n", __FUNCTION__);
-				pthread_spin_unlock(&cache->lock);
+				pthread_mutex_unlock(&cache->lock);
 
 				return -1;
 			}
-			pthread_spin_unlock(&cache->lock);
+			pthread_mutex_unlock(&cache->lock);
+			// Update LRU tree
+			// FIXME:
+			// Ther is is no way to update an existing entry other than
+			// remove and add back.
+			RBDelete(tree, node);
+			ret = lru_insert_entry(lru_tree, entry->hashkey, ctx);
+			if (ret == -1) {
+				sfs_log(ctx, SFS_ERR, "%s: Failed to store lru info \n",
+								__FUNCTION__);
+				// FIXME:
+				// Handle failure
+
+				return -1;
+			}
 		} else {
 			// Remove the entry from memcached
 			ret =  sstack_memcache_remove(cache->memcache.mc,
@@ -315,7 +329,7 @@ lru_demote_entries(rb_red_blk_tree *tree, int num, log_ctx_t *ctx)
 			if (ret == -1) {
 				sfs_log(ctx, SFS_ERR, "%s: Unable to evict entry from"
 								" memcached\n", __FUNCTION__);
-				pthread_spin_unlock(&cache->lock);
+				pthread_mutex_unlock(&cache->lock);
 
 				return -1;
 			}
@@ -324,10 +338,11 @@ lru_demote_entries(rb_red_blk_tree *tree, int num, log_ctx_t *ctx)
 			if (ret == -1) {
 				sfs_log(ctx, SFS_ERR, "%s: Failed to purge entry from "
 								"cache tree \n", __FUNCTION__);
-				pthread_spin_unlock(&cache->lock);
+				pthread_mutex_unlock(&cache->lock);
 
 				return -1;
 			}
+			pthread_mutex_unlock(&cache->lock);
 			// Remove entry from LRU tree
 			RBDelete(tree, node);
 		}

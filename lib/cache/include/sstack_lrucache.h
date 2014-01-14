@@ -28,6 +28,7 @@
 // Key used for the RB-tree node is time()
 typedef struct sstack_lru_entry {
 	uint8_t hashkey[SHA256_DIGEST_LENGTH + 1];
+	size_t len;
 	// FIXME:
 	// Add fields if needed
 } sstack_lru_entry_t;
