@@ -180,3 +180,58 @@ sstack_ssd_cache_init(char *path, int64_t size, log_ctx_t *ctx)
 
 	return 0;
 }
+
+/*
+ * sstack_ssd_cache_open - SSD cache open entry point
+ *
+ * handle - SSD cache handle
+ * ctx - log context
+ *
+ * Returns 0 on success and -1 on failure.
+ * NOTE:
+ * This is just a placeholder for now.
+ */
+
+int
+sstack_ssd_cache_open(ssd_cache_handle_t handle, log_ctx_t *ctx)
+{
+	// Parameter validation
+	if (handle < 0) {
+		sfs_log(ctx, SFS_ERR, "%s: Invalid parameter specified \n",
+						__FUNCTION__);
+		errno = EINVAL;
+
+		return -1;
+	}
+	sfs_log(ctx, SFS_INFO, "%s: SSD cache with handle %d opened "
+					"successfully\n", __FUNCTION__, handle);
+
+	return 0;
+}
+
+/*
+ * sstack_ssd_cache_close - SSD cache close entry point
+ *
+ * handle - SSD cache handle
+ * ctx - log context
+ *
+ * NOTE:
+ * This is just a placeholder for now.
+ */
+
+void
+sstack_ssd_cache_close(ssd_cache_handle_t handle, log_ctx_t *ctx)
+{
+	// Parameter validation
+	if (handle < 0) {
+		sfs_log(ctx, SFS_ERR, "%s: Invalid parameter specified \n",
+						__FUNCTION__);
+		errno = EINVAL;
+
+		return;
+	}
+	sfs_log(ctx, SFS_INFO, "%s: SSD cache with handle %d closed "
+					"successfully\n", __FUNCTION__, handle);
+
+}
+
