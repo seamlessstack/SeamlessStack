@@ -23,8 +23,10 @@
 #include <inttypes.h>
 #include <sys/param.h>
 #include <sstack_log.h>
+#include <sstack_bitops.h>
 
 #define MAX_SSD_CACHEDEV 8
+#define MOUNT_PATH_MAX 32
 
 
 // SSD cache operations
@@ -94,10 +96,14 @@ typedef struct ssd_cache_struct {
 	// Option 2 is easy and useful to us as we are going to cache
 	// an extent at a time. This can be changed in future easily.
 	// mnpnt here is for option 2.
-	char mountpt[PATH_MAX];
+	char mountpt[MOUNT_PATH_MAX];
 	// FIXME:
 	// If ssd_cache_ops differ with each SSD type, add ops into this
 	// structure and add identifier(o/p of ATA IDENTIFY) to ops.
+	rb_red_blk_tree *tree;
+	sstack_bitmap_t *ce_bitmap;
+	ssd_cache_entry_t current_ssd_ce;
+	pthread_mutex_t ssd_ce_mutex;
 } ssd_cache_struct_t;
 
 extern ssd_cache_struct_t ssd_caches[];
@@ -145,5 +151,6 @@ typedef struct ssd_cachedev_info {
 
 extern ssd_cache_handle_t sstack_add_cache(char *path);
 extern void sstack_show_cache(void);
+
 
 #endif // __SSTACK_SSDCACHE_H__

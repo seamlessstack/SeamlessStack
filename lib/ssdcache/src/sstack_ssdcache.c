@@ -21,9 +21,12 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
+#include <stdlib.h>
 #include <sys/statvfs.h>
 #include <sstack_log.h>
 #include <sstack_ssdcache.h>
+#include <sstack_ssdcache_files.h>
+#include <sstack_bitops.h>
 
 #define COMMAND_LEN 1024
 
@@ -235,3 +238,247 @@ sstack_ssd_cache_close(ssd_cache_handle_t handle, log_ctx_t *ctx)
 
 }
 
+/*
+ * get_ssdcache_entry - Obtain free cache entry in the given SSD cache
+ *
+ * cache_struct - Structure representing unique SSD cache device. Shoule be
+ *					 non-NULL
+ *
+ * Returns next avaialable entry on success and returns -1 on failure.
+ */
+
+static ssd_cache_entry_t
+get_ssdcache_entry(ssd_cache_struct_t *cache_struct, log_ctx_t *ctx)
+{
+	int max_entries = -1;
+	ssd_cache_entry_t sssd_ce = -1;
+
+	// Parameter validation
+	if (NULL == cache_struct) {
+		sfs_log(ctx, SFS_ERR, "%s: Invalid parameter specified \n",
+						__FUNCTION__);
+		errno = EINVAL;
+
+		return -1;
+	}
+	// Get SSD cache device specific maximum cache lines
+	pthread_spin_lock(&cache_struct->stats.lock);
+	max_entries = cache_struct->stats.num_cachelines;
+	pthread_spin_unlock(&cache_struct->stats.lock);
+
+	pthread_mutex_lock(&cache_struct->ssd_ce_mutex);
+	if (cache_struct->current_ssd_ce >= max_entries) {
+		int i = 0;
+
+		// Wrap around happened
+		// Set cache_struct->current_ssd_ce to the first undet bit in the bitmap
+		for (i = 0; i < max_entries; i++) {
+			if (BITTEST(cache_struct->ce_bitmap, i) == 0)
+				break;
+		}
+		if (i == max_entries) {
+			sfs_log(sfs_ctx, SFS_ERR, "%s: All SSD cache entry slots currently "
+							"occupied.\n", __FUNCTION__);
+			// FIXME:
+			// Use LRU to manage cache
+			return -1;
+		}
+		ssd_ce = i;
+		cache_struct->current_ssd_ce = i;
+		BITSET(cache_struct->ce_bitmap,i); // Make this bit busy
+		// Reinitalize cache_struct->current_ssd_ce
+		for (i = cache_struct->current_ssd_ce; i < max_entries; i++) {
+			if (BITTEST(cache_struct->ce_bitmap, i) == 0)
+				break;
+		}
+		if (i < max_entries) {
+			cache_struct->current_ssd_ce = i;
+		} else {
+			// No free slots available at this time for SSD cache entry
+			// Set current ssd cache entry in such a way that next caller
+			// will have to go through bitmap once again.
+			cache_struct->current_ssd_ce = max_entries;
+		}
+	} else {
+		// No wrap around
+		ssd_ce = cache_struct->current_ssd_ce;
+		cache_struct->current_ssd_ce ++;
+		BITSET(sstack_job_id_bitmap,ssd_ce); // Make this bit busy
+	}
+
+	pthread_mutex_unlock(&cache_struct->ssd_ce_mutex);
+	// Update cache stats
+	pthread_spin_lock(&cache_struct->stats.lock);
+	cache_struct->stats.inuse ++;
+	pthread_spin_unlock(&cache_struct->stats.lock);
+
+	return ssd_ce;
+}
+
+/*
+ * free_ssdcache_entry - Free SSD cache entry
+ *
+ * cache_struct - Structure representing unique SSD cache device
+ * entry - unique id representing cache line
+ * ctx - Log context
+ *
+ * Frees the cache entry if valid.
+ */
+
+static void
+free_ssdcache_entry(ssd_cache_struct_t *cache_struct, ssd_cache_entry_t entry,
+				log_ctx_t *ctx)
+{
+	// Validate
+	if (NULL == cache_struct) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameter specified\n",
+						__FUNCTION__);
+		errno = EINVAL;
+		return -1;
+	}
+
+	pthread_spin_lock(&cache_struct->stats.lock);
+	if (entry > cache_struct->stats.num_cachelines) {
+		pthread_spin_unlock(&cache_struct->stats.lock);
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameter specified\n",
+						__FUNCTION__);
+		errno = EINVAL;
+		return -1;
+	}
+	pthread_spin_unlock(&cache_struct->stats.lock);
+
+	pthread_mutex_lock(&cache_struct->ssd_ce_mutex);
+	BITCLEAR(cache_struct->ce_bitmap, entry);
+	pthread_mutex_unlock(&cache_struct->ssd_ce_mutex);
+
+	return 0;
+}
+
+/*
+ * sstack_ssd_cache_store - Store data into SSD cache
+ *
+ * handle - unique id representing SSD. Should be >0
+ * data - Data to be stored. Should be non-NULL
+ * size - Size of the data. Shoule be >0
+ * ctx - Log context
+ *
+ * Stores the data into SSD cache and returns entry corresponding to the data.
+ *
+ * Returns non-zero cache entry on success and returns -1 on failure.
+ */
+
+ssd_cache_entry_t
+sstack_ssd_cache_store(ssd_cache_handle_t handle, void *data,
+				size_t size, log_ctx_t *ctx)
+{
+	ssd_cache_entry_t ssd_ce = -1;
+	ssd_cache_struct_t *cache_struct = NULL;
+	ssdcachemd_entry_t *md_entry = NULL;
+	char filename[FILENAME_MAX + MOUNT_PATH_MAX] = { '\0' };
+	int fd = -1;
+	int ret = -1;
+
+	// Parameter validation
+	if (handle < 0 || NULL == data || size <= 0) {
+		sfs_log(ctx, SFS_ERR, "%s: Invalid parameters passed \n", __FUNCTION__);
+		errno = EINVAL;
+
+		return -1;
+	}
+
+	pthread_spin_lock(&cache_list_lock);
+	if (handle > cur_ssd_cache_handle) {
+		pthread_spin_unlock(&cache_list_lock);
+		sfs_log(ctx, SFS_ERR, "%s: Invalid SSD cache handle specified. "
+						"Handle = %d Current handle = %d\n", __FUNCTION__,
+						handle, cur_ssd_cache_handle);
+		errno = EINVAL;
+
+		return -1;
+	}
+	cache_struct = ssd_caches[handle];
+	pthread_spin_unlock(&cache_list_lock);
+
+	ssd_ce = get_ssdcache_entry(cache_struct, ctx);
+	if (ssd_ce < 0) {
+		sfs_log(ctx, SFS_ERR, "%s: get_ssdcache_entry failed \n", __FUNCTION__);
+		errno = EIO;
+
+		return -1;
+	}
+
+	// Create a new file name
+	sprintf(filename, "%s/cacheXXXXXX", cache_struct->mntpnt);
+	fd = mkstemp(filename);
+	if (fd == -1) {
+		sfs_log(ctx, SFS_ERR, "%s: mkstemp failed with error %d \n",
+						__FUNCTION__, errno);
+		free_ssdcache_entry(cache_struct, ssd_ce, ctx);
+
+		return -1;
+	}
+	// Write the data into the file
+	ret = write(fd, data, size);
+	if (ret < size) {
+		unlink(filename);
+		sfs_log(ctx, SFS_ERR, "%s: Failed to write data to SSD cache. "
+						"Error = %d \n", __FUNCTION__, errno);
+		free_ssdcache_entry(cache_struct, ssd_ce, ctx);
+
+		return -1;
+	}
+	close(fd);
+
+	// Add cache entry to filename mapping
+	md_entry = malloc(sizeof(ssdcachemd_entry_t));
+	if (NULL == md_entry) {
+		sfs_log(ctx, SFS_ERR, "%s: Failed to allocate memory for ssd "
+						"cache metadata entry\n", __FUNCTION__);
+		ulink(filename);
+		free_ssdcache_entry(cache_struct, ssd_ce, ctx);
+
+		return -1;
+	}
+
+	md_entry->ssd_ce = ssd_ce;
+	strcpy(md_entry->name, filename);
+	// Insert metadata entry into RB tree
+	ret = ssdmd_add(cache_struct->tree, md_entry);
+	if (ret == -1) {
+		sfs_log(ctx, SFS_ERR, "%s: Failed to insert ssd cache metadata into "
+						"mdstore \n", __FUNCTION__);
+		ulink(filename);
+		free_ssdcache_entry(cache_struct, ssd_ce, ctx);
+		free(md_entry);
+
+		return -1;
+	}
+
+	return ssd_ce;
+}
+
+
+int
+sstack_ssd_cache_purge(ssd_cache_handle_t handle, ssd_cache_entry_t entry,
+				log_ctx_t * ctx)
+{
+}
+
+
+int
+sstack_ssd_cache_update(ssd_cache_handle_t handle, ssd_cache_entry_t entry, void
+				*data, size_t size, log_ctx_t *ctx)
+{
+
+}
+
+void *
+sstack_ssd_cache_retrieve(ssd_cache_handle_t handle, ssd_cache_entry_t entry,
+				size_t size, log_ctx_t *ctx)
+{
+}
+
+void
+sstack_ssd_cache_destroy(ssd_cache_handle_t handle)
+{
+}
