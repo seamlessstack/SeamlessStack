@@ -98,13 +98,16 @@ typedef struct ssd_cache_struct {
 	// an extent at a time. This can be changed in future easily.
 	// mnpnt here is for option 2.
 	char mountpt[MOUNT_PATH_MAX];
-	// FIXME:
-	// If ssd_cache_ops differ with each SSD type, add ops into this
-	// structure and add identifier(o/p of ATA IDENTIFY) to ops.
-	rb_red_blk_tree *tree;
+	rb_red_blk_tree *md_tree;
+	pthread_spinlock_t md_lock;
+	rb_red_blk_tree *lru_tree;
+	pthread_spinlock_t lru_lock;
 	sstack_bitmap_t *ce_bitmap;
 	ssd_cache_entry_t current_ssd_ce;
 	pthread_mutex_t ssd_ce_mutex;
+	// FIXME:
+	// If ssd_cache_ops differ with each SSD type, add ops into this
+	// structure and add identifier(o/p of ATA IDENTIFY) to ops.
 } ssd_cache_struct_t;
 
 extern ssd_cache_struct_t ssd_caches[];

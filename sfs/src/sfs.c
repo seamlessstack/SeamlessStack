@@ -88,6 +88,7 @@ filelock_tree_t *filelock_tree = NULL;
 pthread_spinlock_t jobmap_lock;
 pthread_spinlock_t jobid_lock;
 pthread_spinlock_t filelock_lock;
+extern sstack_bitmap_t *sstack_job_id_bitmap;
 
 /*
  * jobs is the job list of unsubmitted (to sfsd) jobs
@@ -935,6 +936,19 @@ sfs_init(struct fuse_conn_info *conn)
 		free(jobmap_tree);
 		return NULL;
 	}
+	// Create job_id bitmap
+	ret  = sfs_init_bitmap(sstack_job_id_bitmap,
+					MAX_OUTSTANDING_JOBS, sfs_ctx);
+	if (ret == -1) {
+		db->db_ops.db_close(sfs_ctx);
+		pthread_kill(recv_thread, SIGKILL);
+		sstack_transport_deregister(type, &transport);
+		sstack_thread_pool_destroy(sfs_thread_pool);
+		(void) sfs_job_queue_destroy(jobs);
+		free(jobmap_tree);
+		free(jobid_tree);
+	}
+
 
 	// Create filelock tree
 	filelock_tree = filelock_tree_init();
@@ -948,6 +962,7 @@ sfs_init(struct fuse_conn_info *conn)
 		(void) sfs_job_queue_destroy(jobs);
 		free(jobmap_tree);
 		free(jobid_tree);
+		free(sstack_job_id_bitmap);
 		return NULL;
 	}
 
@@ -971,6 +986,7 @@ sfs_init(struct fuse_conn_info *conn)
 		free(jobmap_tree);
 		free(jobid_tree);
 		free(filelock_tree);
+		free(sstack_job_id_bitmap);
 		pthread_spin_destroy(&jobmap_lock);
 		pthread_spin_destroy(&jobid_lock);
 		pthread_spin_destroy(&filelock_lock);
@@ -995,6 +1011,7 @@ sfs_init(struct fuse_conn_info *conn)
 			free(jobmap_tree);
 			free(jobid_tree);
 			free(filelock_tree);
+			free(sstack_job_id_bitmap);
 			pthread_spin_destroy(&jobmap_lock);
 			pthread_spin_destroy(&jobid_lock);
 			pthread_spin_destroy(&filelock_lock);

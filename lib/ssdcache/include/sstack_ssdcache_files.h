@@ -25,6 +25,7 @@
 #include <openssl/sha.h>
 #include <sstack_log.h>
 #include <red_black_tree.h>
+#include <sstack_ssdcache.h>
 
 #define CACHENAME_MAX (32 + FILENAME_MAX)
 
@@ -33,8 +34,8 @@ typedef struct ssdcache_entry {
 	char name[CACHENAME_MAX];
 } ssdcachemd_entry_t;
 
-extern int ssdmd_add(rb_red_blk_tree *, ssdcachemd_entry_t *);
-extern int ssdmd_del(rb_red_blk_tree *, ssdcachemd_entry_t *);
+extern int ssdmd_add(ssd_cache_struct_t *, ssdcachemd_entry_t *);
+extern int ssdmd_del(ssd_cache_struct_t *, ssdcachemd_entry_t *);
 
 #endif // __SSTACK_SSDCACHE_FILES_H__
 

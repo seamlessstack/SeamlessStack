@@ -110,6 +110,46 @@ ssd_create_cachedev(char *path, int64_t size, log_ctx_t *ctx)
 	return cachedev;
 }
 
+/* compare and destroy functions for md tree */
+static int
+md_comp_func(const void *val1, const void *val2)
+{
+	if (*(ssd_cache_entry_t *)val1 > *(ssd_cache_entry_t *)val2)
+		return 1;
+	if (*(ssd_cache_entry_t *)val1 < *(ssd_cache_entry_t *)val2)
+		return -1;
+
+	return 0;
+}
+
+static void
+md_destroy_func(void *val)
+{
+	if (val)
+		free(val);
+
+}
+
+/* compare and destroy functions for LRU tree */
+static int
+lru_comp_func(const void *val1, const void *val2)
+{
+	if (*(time_t *)val1 > *(time_t *)val2)
+		return 1;
+	if (*(time_t *)val1 < *(time_t *)val2)
+		return -1;
+
+	return 0;
+}
+
+static void
+lru_destroy_func(void *val)
+{
+	if (val)
+		free(val);
+
+}
+
 
 // SSD entry points
 
@@ -137,6 +177,7 @@ sstack_ssd_cache_init(char *path, int64_t size, log_ctx_t *ctx)
 	ssd_cache_handle_t handle;
 	ssd_cache_struct_t cache_struct;
 	ssd_cachedev_info_t *info = NULL;
+	int ret = -1;
 
 	// Parameter validation
 	if (NULL == path || size < 0) {
@@ -175,11 +216,49 @@ sstack_ssd_cache_init(char *path, int64_t size, log_ctx_t *ctx)
 
 		return -1;
 	}
+	// Create ssdmd tree and LRU tree for the SSD cache device
+	cache_struct.md_tree = RBTreeCreate(md_comp_func, md_destroy_func, NULL,
+					                     NULL, NULL);
+	if (NULL == cache_struct.md_tree) {
+		sfs_log(ctx, SFS_ERR, "%s: Failed to allocate memory for md_tree \n",
+						__FUNCTION__);
+		// FIXME:
+		// Implement and call free_ssd_cache_handle(handle);
+		return -1;
+	}
+	pthread_spin_init(&cache_struct.md_lock, PTHREAD_PROCESS_PRIVATE);
+
+	cache_struct.lru_tree = RBTreeCreate(lru_comp_func, lru_destroy_func, NULL,
+					NULL, NULL);
+	if (NULL == cache_struct.lru_tree) {
+		sfs_log(ctx, SFS_ERR, "%s: Failed to allocate memory for lru_tree \n",
+						__FUNCTION__);
+		RBTreeDestroy(cache_struct.md_tree);
+		pthread_spin_destroy(&cache_struct.md_lock);
+		// FIXME:
+		// Implement and call free_ssd_cache_handle(handle);
+		return -1;
+	}
+	pthread_spin_init(&cache_struct.lru_lock, PTHREAD_PROCESS_PRIVATE);
+
+	// Create ce_bitmap
+	ret = sfs_init_bitmap(cache_struct.ce_bitmap,
+					cache_struct.stats.num_cachelines, ctx);
+	if (ret == -1) {
+		RBTreeDestroy(cache_struct.md_tree);
+		pthread_spin_destroy(&cache_struct.md_lock);
+		pthread_spin_destroy(&cache_struct.lru_lock);
+		// FIXME:
+		// Implement and call free_ssd_cache_handle(handle);
+		return -1;
+	}
+
 	pthread_spin_lock(&cache_list_lock);
 	memcpy((void *) &ssd_caches[handle], &cache_struct,
 					sizeof(ssd_cache_struct_t));
 	pthread_spin_init(&ssd_caches[handle].stats.lock, PTHREAD_PROCESS_PRIVATE);
 	pthread_spin_unlock(&cache_list_lock);
+
 
 	return 0;
 }
@@ -443,7 +522,7 @@ sstack_ssd_cache_store(ssd_cache_handle_t handle, void *data,
 	md_entry->ssd_ce = ssd_ce;
 	strcpy(md_entry->name, filename);
 	// Insert metadata entry into RB tree
-	ret = ssdmd_add(cache_struct->tree, md_entry);
+	ret = ssdmd_add(cache_struct, md_entry);
 	if (ret == -1) {
 		sfs_log(ctx, SFS_ERR, "%s: Failed to insert ssd cache metadata into "
 						"mdstore \n", __FUNCTION__);
