@@ -55,7 +55,7 @@ all:
 	$(MAKE) -C $(CLIDIR)
 	$(MAKE) -C $(CACHINGDIR)
 	$(MAKE) -C $(GENCACHEDIR)
-#	$(MAKE) -C $(SSDCACHEDIR)
+	$(MAKE) -C $(SSDCACHEDIR)
 	$(MAKE) -C $(COMPRESSION_PLUGIN)
 	$(MAKE) -C $(SERDES_DIR)
 	$(MAKE) -C $(COMMONDIR)
@@ -79,7 +79,7 @@ clean:
 	$(MAKE) -C $(CLIDIR) clean
 	$(MAKE) -C $(CACHINGDIR) clean
 	$(MAKE) -C $(GENCACHEDIR) clean
-#	$(MAKE) -C $(SSDCACHEDIR) clean
+	$(MAKE) -C $(SSDCACHEDIR) clean
 	$(MAKE) -C $(COMPRESSION_PLUGIN) clean
 	$(MAKE) -C $(SERDES_DIR) clean
 	$(MAKE) -C $(SFSDDIR) clean

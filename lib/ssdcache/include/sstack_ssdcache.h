@@ -24,6 +24,7 @@
 #include <sys/param.h>
 #include <sstack_log.h>
 #include <sstack_bitops.h>
+#include <red_black_tree.h>
 
 #define MAX_SSD_CACHEDEV 8
 #define MOUNT_PATH_MAX 32

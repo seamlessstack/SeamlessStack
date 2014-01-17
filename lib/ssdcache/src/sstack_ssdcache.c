@@ -251,7 +251,7 @@ static ssd_cache_entry_t
 get_ssdcache_entry(ssd_cache_struct_t *cache_struct, log_ctx_t *ctx)
 {
 	int max_entries = -1;
-	ssd_cache_entry_t sssd_ce = -1;
+	ssd_cache_entry_t ssd_ce = -1;
 
 	// Parameter validation
 	if (NULL == cache_struct) {
@@ -277,7 +277,7 @@ get_ssdcache_entry(ssd_cache_struct_t *cache_struct, log_ctx_t *ctx)
 				break;
 		}
 		if (i == max_entries) {
-			sfs_log(sfs_ctx, SFS_ERR, "%s: All SSD cache entry slots currently "
+			sfs_log(ctx, SFS_ERR, "%s: All SSD cache entry slots currently "
 							"occupied.\n", __FUNCTION__);
 			// FIXME:
 			// Use LRU to manage cache
@@ -303,7 +303,7 @@ get_ssdcache_entry(ssd_cache_struct_t *cache_struct, log_ctx_t *ctx)
 		// No wrap around
 		ssd_ce = cache_struct->current_ssd_ce;
 		cache_struct->current_ssd_ce ++;
-		BITSET(sstack_job_id_bitmap,ssd_ce); // Make this bit busy
+		BITSET(cache_struct->ce_bitmap,ssd_ce); // Make this bit busy
 	}
 
 	pthread_mutex_unlock(&cache_struct->ssd_ce_mutex);
@@ -325,13 +325,13 @@ get_ssdcache_entry(ssd_cache_struct_t *cache_struct, log_ctx_t *ctx)
  * Frees the cache entry if valid.
  */
 
-static void
+static int
 free_ssdcache_entry(ssd_cache_struct_t *cache_struct, ssd_cache_entry_t entry,
 				log_ctx_t *ctx)
 {
 	// Validate
 	if (NULL == cache_struct) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameter specified\n",
+		sfs_log(ctx, SFS_ERR, "%s: Invalid parameter specified\n",
 						__FUNCTION__);
 		errno = EINVAL;
 		return -1;
@@ -340,7 +340,7 @@ free_ssdcache_entry(ssd_cache_struct_t *cache_struct, ssd_cache_entry_t entry,
 	pthread_spin_lock(&cache_struct->stats.lock);
 	if (entry > cache_struct->stats.num_cachelines) {
 		pthread_spin_unlock(&cache_struct->stats.lock);
-		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameter specified\n",
+		sfs_log(ctx, SFS_ERR, "%s: Invalid parameter specified\n",
 						__FUNCTION__);
 		errno = EINVAL;
 		return -1;
@@ -396,7 +396,7 @@ sstack_ssd_cache_store(ssd_cache_handle_t handle, void *data,
 
 		return -1;
 	}
-	cache_struct = ssd_caches[handle];
+	cache_struct = &ssd_caches[handle];
 	pthread_spin_unlock(&cache_list_lock);
 
 	ssd_ce = get_ssdcache_entry(cache_struct, ctx);
@@ -408,7 +408,7 @@ sstack_ssd_cache_store(ssd_cache_handle_t handle, void *data,
 	}
 
 	// Create a new file name
-	sprintf(filename, "%s/cacheXXXXXX", cache_struct->mntpnt);
+	sprintf(filename, "%s/cacheXXXXXX", cache_struct->mountpt);
 	fd = mkstemp(filename);
 	if (fd == -1) {
 		sfs_log(ctx, SFS_ERR, "%s: mkstemp failed with error %d \n",
