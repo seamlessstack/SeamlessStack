@@ -150,6 +150,75 @@ lru_destroy_func(void *val)
 
 }
 
+/*
+ * ssdmd_add - Add the entry into md_tree and update lru tree
+ *
+ * cache_struct - ssd cache information structure. Should be non-NULL.
+ * md_entry - metadata entry. Should be non-NULL.
+ * ctx - Log context
+ *
+ * Adds an entry into md_tree and lru_tree.
+ * Returns 0 on success and -1 on failure.
+ */
+
+static int
+ssdmd_add(ssd_cache_struct_t *cache_struct, ssdcachemd_entry_t *md_entry,
+				log_ctx_t *ctx)
+{
+	ssdcachelru_entry_t *lru_entry = NULL;
+	rb_red_blk_node *node = NULL;
+	time_t t;
+
+	// Parameter validation
+	if (NULL == cache_struct || NULL == md_entry) {
+		sfs_log(ctx, SFS_ERR, "%s: Invalid parameters specified \n",
+						__FUNCTION__);
+		errno = EINVAL;
+
+		return -1;
+	}
+
+	// Insert into md_tree
+	pthread_spin_lock(&cache_struct->md_lock);
+	node = RBTreeInsert(cache_struct->md_tree,
+					(void *) md_entry->ssd_ce, (void *) md_entry);
+	if (NULL == node) {
+		sfs_log(ctx, SFS_ERR, "%s: Failed to insert mdentry for ce"
+						" %d\n", __FUNCTION__, md_entry->ssd_ce);
+		pthread_spin_unlock(&cache_struct->md_lock);
+
+		return -1;
+	}
+	pthread_spin_lock(&cache_struct->md_lock);
+
+	// Insert into lru_tree
+	lru_entry = calloc(sizeof(ssdcachelru_entry_t), 1);
+	if (NULL == lru_entry) {
+		sfs_log(ctx, SFS_ERR, "%s: Failed to allocate memory for lruentry\n",
+						__FUNCTION__);
+		RBTreeDelete(cache_struct->md_tree, node);
+
+		return -1;
+	}
+
+	t = time(NULL);
+	pthread_spin_lock(&cache_struct->lru_lock);
+	node = RBTreeInsert(cache_struct->lru_tree,
+					(void*) t, (void *) lru_entry);
+	if (NULL == node) {
+		sfs_log(ctx, SFS_ERR, "%s: Failed to insert lruentry for ce"
+						" %d\n", __FUNCTION__, md_entry->ssd_ce);
+		pthread_spin_unlock(&cache_struct->lru_lock);
+		free(lru_entry);
+		RBTreeDelete(cache_struct->md_tree, node);
+
+		return -1;
+	}
+	pthread_spin_unlock(&cache_struct->lru_lock);
+
+	return 0;
+}
+
 
 // SSD entry points
 
@@ -522,7 +591,7 @@ sstack_ssd_cache_store(ssd_cache_handle_t handle, void *data,
 	md_entry->ssd_ce = ssd_ce;
 	strcpy(md_entry->name, filename);
 	// Insert metadata entry into RB tree
-	ret = ssdmd_add(cache_struct, md_entry);
+	ret = ssdmd_add(cache_struct, md_entry, ctx);
 	if (ret == -1) {
 		sfs_log(ctx, SFS_ERR, "%s: Failed to insert ssd cache metadata into "
 						"mdstore \n", __FUNCTION__);

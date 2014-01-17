@@ -34,8 +34,10 @@ typedef struct ssdcache_entry {
 	char name[CACHENAME_MAX];
 } ssdcachemd_entry_t;
 
-extern int ssdmd_add(ssd_cache_struct_t *, ssdcachemd_entry_t *);
-extern int ssdmd_del(ssd_cache_struct_t *, ssdcachemd_entry_t *);
+typedef struct ssdcache_lru_entry {
+	ssd_cache_entry_t ssd_ce;
+} ssdcachelru_entry_t;
+
 
 #endif // __SSTACK_SSDCACHE_FILES_H__
 
