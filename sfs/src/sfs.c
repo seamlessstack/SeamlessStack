@@ -1066,7 +1066,7 @@ sfs_store_branch(char *branch)
 
 	temp = realloc(sfs_chunks,
 			(nchunks + 1) * sizeof(sfs_chunk_entry_t));
-	ASSERT((sfs_chunks != NULL), "Memory alocation failed", 0, 1, 0);
+	ASSERT((temp != NULL), "Memory alocation failed", 0, 1, 0);
 	if (NULL == temp)
 		exit(-1);
 	sfs_chunks = (sfs_chunk_entry_t *) temp;
@@ -1076,10 +1076,14 @@ sfs_store_branch(char *branch)
 	if (!res)
 		return 0;
 	strncpy(sfs_chunks[nchunks].ipaddr, res, IPV6_ADDR_LEN - 1);
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: ipaddr = %s \n", __FUNCTION__,
+					sfs_chunks[nchunks].ipaddr);
 	res = strsep(ptr, ",");
 	if (!res)
 		return 0;
 	sfs_chunks[nchunks].chunk_path = strndup(res, PATH_MAX - 1);
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: chunk_path = %s \n", __FUNCTION__,
+					sfs_chunks[nchunks].chunk_path);
 	sfs_chunks[nchunks].chunk_pathlen = strlen(res) + 1;
 	sfs_chunks[nchunks].rw = 0;
 	sfs_chunks[nchunks].weight = DEFAULT_WEIGHT;
@@ -1088,6 +1092,8 @@ sfs_store_branch(char *branch)
 	if (res) {
 		if (strcasecmp(res, "rw") == 0) {
 			sfs_chunks[nchunks].rw = 1;
+			sfs_log(sfs_ctx, SFS_DEBUG, "%s: rw = %d \n", __FUNCTION__,
+							sfs_chunks[nchunks].rw);
 		}
 	}
 
@@ -1097,6 +1103,8 @@ sfs_store_branch(char *branch)
 
 		if (weight > MINIMUM_WEIGHT && weight < MAXIMUM_WEIGHT)
 			sfs_chunks[nchunks].weight = weight;
+		sfs_log(sfs_ctx, SFS_DEBUG, "%s: weight = %d \n", __FUNCTION__,
+						sfs_chunks[nchunks].weight);
 	}
 
 	return 1;
@@ -1165,8 +1173,10 @@ sfs_parse_branches(const char *arg)
 	while((branch = strsep(ptr, ROOT_SEP)) != NULL) {
 		if (strlen(branch) == 0)
 			continue;
-
+		sfs_log(sfs_ctx, SFS_DEBUG, "%s: branch = %s\n", __FUNCTION__, branch);
 		nbranches += sfs_store_branch(branch);
+		sfs_log(sfs_ctx, SFS_DEBUG, "%s: nbranches = %d\n",
+						__FUNCTION__, nbranches);
 	}
 
 	free(buf);
@@ -1181,6 +1191,12 @@ sfs_opt_proc(void *data, const char *arg, int key,
 	int res = -1;
 
 	switch(key) {
+		case FUSE_OPT_KEY_NONOPT:
+			res = sfs_parse_branches(arg);
+			if (res > 0)
+				return 0;
+			else
+				return 1;
 		case KEY_BRANCHES:
 			res = sfs_parse_branches(arg + 9);
 			if (res > 0)
@@ -1255,6 +1271,7 @@ main(int argc, char *argv[])
 	int gid = getgid();
 	int ret = -1;
 
+#if 0
 	// Check if root is mounting the file system.
 	// If so, return error
 	if (uid == 0 && gid == 0) {
@@ -1262,9 +1279,8 @@ main(int argc, char *argv[])
 			" Please try mounting as a normal user\n");
 		return -1;
 	}
+#endif
 
-	ret = fuse_opt_parse(&args, NULL, sfs_opts, sfs_opt_proc);
-	ASSERT((ret != -1), "Parsing arguments failed. Exiting ...", 0, 1, -1);
 	// Initialize logging
 	sfs_ctx = sfs_create_log_ctx();
 	if (NULL == sfs_ctx) {
@@ -1272,9 +1288,11 @@ main(int argc, char *argv[])
 			__FUNCTION__);
 	} else {
 		ret = sfs_log_init(sfs_ctx, sstack_log_level, "sfs");
-		ASSERT((ret != 0), "Log initialization failed. Logging disabled",
+		ASSERT((ret == 0), "Log initialization failed. Logging disabled",
 			0, 0, 0);
 	}
+	ret = fuse_opt_parse(&args, NULL, sfs_opts, sfs_opt_proc);
+	ASSERT((ret != -1), "Parsing arguments failed. Exiting ...", 0, 1, -1);
 	mc = sstack_memcache_init("localhost", 1, sfs_ctx);
 
 	ret = fuse_opt_add_arg(&args, "-obig_writes");

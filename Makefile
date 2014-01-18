@@ -84,7 +84,7 @@ install:
 	$(CP) $(COMMONDIR)/*.so $(LIBDIR)
 	$(CP) $(VALIDATE_DIR)/*.so $(LIBDIR)
 	$(CP) $(SFSDIR)/sfs $(BINDIR)
-	$(CP) $(SFSDDIR)/sfsd $(BINDIR)
+#$(CP) $(SFSDDIR)/sfsd $(BINDIR)
 	$(LN) -s $(LIBDIR)/libbson.so $(LIBDIR)/libbson.so.0.7
 	$(LN) -s $(LIBDIR)/libmongoc.so $(LIBDIR)/libmongoc.so.0.7
 
