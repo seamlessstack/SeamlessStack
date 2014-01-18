@@ -116,38 +116,37 @@ mongo_db_init(log_ctx_t *ctx)
 #endif // MONGO_TEST
 
 	// Go ahead and create collections
-	ret = mongo_create_collection(conn, DB_NAME, POLICY_COLLECTION,
-		0, NULL);
+	// FIXME:
+	// Uncapped collections are not working.
+	// Try gridfs stuff with latest library
+	ret = mongo_create_capped_collection(conn, DB_NAME, POLICY_COLLECTION,
+		10000, 4096,  NULL);
 	if (ret != MONGO_OK) {
 		sfs_log(ctx, SFS_ERR, "%s: Creating policy collection failed. "
-			"Default collections are capped which makes sharding impossible.\n",
+			" Error = %d \n", __FUNCTION__, ret);
+		return -1;
+	}
+
+	ret = mongo_create_capped_collection(conn, DB_NAME, INODE_COLLECTION,
+		2147483648, 2147483648, NULL);
+	if (ret != MONGO_OK) {
+		sfs_log(ctx, SFS_ERR, "%s: Creating inode collection failed. \n",
 			__FUNCTION__);
 		return -1;
 	}
 
-	ret = mongo_create_collection(conn, DB_NAME, INODE_COLLECTION,
-		0, NULL);
+	ret = mongo_create_capped_collection(conn, DB_NAME, JOURNAL_COLLECTION,
+		1000000,10000, NULL);
 	if (ret != MONGO_OK) {
-		sfs_log(ctx, SFS_ERR, "%s: Creating inode collection failed. "
-			"Default collections are capped which makes sharding impossible.\n",
-			__FUNCTION__);
-		return -1;
-	}
-
-	ret = mongo_create_collection(conn, DB_NAME, JOURNAL_COLLECTION,
-		0, NULL);
-	if (ret != MONGO_OK) {
-		sfs_log(ctx, SFS_ERR, "%s: Creating journal collection failed. "
-			"Default collections are capped which makes sharding impossible.\n",
+		sfs_log(ctx, SFS_ERR, "%s: Creating journal collection failed.\n",
 			__FUNCTION__);
 		return -1;
 	}
 
 	ret = mongo_create_collection(conn, DB_NAME, CONFIG_COLLECTION,
-		0, NULL);
+		10000, NULL);
 	if (ret != MONGO_OK) {
-		sfs_log(ctx, SFS_ERR, "%s: Creating config collection failed. "
-			"Default collections are capped which makes sharding impossible.\n",
+		sfs_log(ctx, SFS_ERR, "%s: Creating config collection failed.\n ",
 			__FUNCTION__);
 		return -1;
 	}

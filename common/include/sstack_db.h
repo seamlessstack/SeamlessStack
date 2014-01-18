@@ -84,11 +84,7 @@ extern db_t *db;
 static inline db_t *
 create_db(void)
 {
-	db_t *db;
-
-	db = malloc(sizeof(db_t));
-
-	return db;
+	return malloc(sizeof(db_t));
 }
 
 static inline void
@@ -106,6 +102,7 @@ db_register(db_t *db, db_init_t db_init, db_open_t db_open,
 	db_update_t db_update, db_delete_t db_delete, db_cleanup_t db_cleanup,
 	log_ctx_t *ctx)
 {
+	sfs_log(ctx, SFS_DEBUG, "%s: db = 0x%x \n", __FUNCTION__, db);
 	if (db) {
 		db->db_ops.db_init = db_init;
 		db->db_ops.db_open = db_open;

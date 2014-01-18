@@ -108,6 +108,7 @@ static struct fuse_opt sfs_opts[] = {
 	FUSE_OPT_KEY("branches=%s", KEY_BRANCHES),
 	FUSE_OPT_KEY("--help", KEY_HELP),
 	FUSE_OPT_KEY("-h", KEY_HELP),
+	FUSE_OPT_KEY("-d", KEY_DEBUG),
 	FUSE_OPT_KEY("--version", KEY_VERSION),
 	FUSE_OPT_KEY("-v", KEY_VERSION),
 	FUSE_OPT_KEY("log_level=%d", KEY_LOG_LEVEL),
@@ -806,6 +807,7 @@ sfs_init(struct fuse_conn_info *conn)
 
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s: Started \n", __FUNCTION__);
 
+#if 0
 	// Create a thread to handle sfs<->sfsd communication
 	if(pthread_attr_init(&recv_attr) == 0) {
 		pthread_attr_setscope(&recv_attr, PTHREAD_SCOPE_SYSTEM);
@@ -821,34 +823,23 @@ sfs_init(struct fuse_conn_info *conn)
 						"handle sfs<->sfsd communication\n", __FUNCTION__);
 		return NULL;
 	}
-	// Create a dispatcher thread
-	if (pthread_attr_init(&dispatcher_attr) == 0) {
-		pthread_attr_setscope(&dispatcher_attr, PTHREAD_SCOPE_SYSTEM);
-		pthread_attr_setstacksize(&dispatcher_attr, 131072); // 128KiB
-		pthread_attr_setdetachstate(&dispatcher_attr, PTHREAD_CREATE_DETACHED);
-		ret = pthread_create(&dispatcher_thread, &dispatcher_attr,
-						sfs_dispatcher, (void *) jobs);
-	}
-	if (ret != 0) {
-		sfs_log(sfs_ctx, SFS_CRIT, "%s: Unable to create job dispatcher "
-						"thread\n", __FUNCTION__);
-		return NULL;
-	}
+#endif
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
 
 	// Create db instance
-	db = create_db();
+	db = malloc(sizeof(db_t));
 	if (NULL == db) {
 		sfs_log(sfs_ctx, SFS_CRIT, "%s: Unable to create db. FATAL ERROR\n",
 						__FUNCTION__);
 		return NULL;
 	}
-	sfs_log(sfs_ctx, SFS_INFO, "%s: db = 0x%x \n", __FUNCTION__, db);
+	sfs_log(sfs_ctx, SFS_INFO, "%s: db = 0x%x  mongo_db_init = 0x%x\n",
+					__FUNCTION__, db, mongo_db_init);
 	db_register(db, mongo_db_init, mongo_db_open, mongo_db_close,
 		mongo_db_insert, mongo_db_remove, mongo_db_iterate, mongo_db_get,
 		mongo_db_seekread, mongo_db_update, mongo_db_delete,
 		mongo_db_cleanup, sfs_ctx);
-	if (db->db_ops.db_init(sfs_ctx) != 0) {
+	if (db->db_ops.db_init && db->db_ops.db_init(sfs_ctx) != 0) {
 		sfs_log(sfs_ctx, SFS_CRIT, "%s: DB init faled with error %d\n",
 			__FUNCTION__, errno);
 		return NULL;
@@ -860,12 +851,15 @@ sfs_init(struct fuse_conn_info *conn)
 	type = TCPIP;
 	ops.rx = tcp_rx;
 	ops.tx = tcp_tx;
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: tcp_client_init = 0x%x \n", __FUNCTION__,
+					tcp_client_init);
 	ops.client_init = tcp_client_init;
 	ops.server_setup = tcp_server_setup;
 	transport.transport_hdr.tcp.ipv4 = 1; // IPv4 adress for now
 	transport.transport_ops = ops;
 	// get local ip address
 	// eth0 is the assumed interface
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
 
 	ret = get_local_ip("eth0", intf_addr, IPv4);
 	if (ret == -1) {
@@ -873,7 +867,8 @@ sfs_init(struct fuse_conn_info *conn)
 						"and retry.\n", __FUNCTION__);
 		return NULL;
 	}
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d  intf_addr = 0x%x\n",
+					__FUNCTION__, __LINE__, intf_addr);
 
 	strcpy((char *) &transport.transport_hdr.tcp.ipv4_addr, intf_addr);
 	transport.transport_hdr.tcp.port = SFS_SERVER_PORT;
@@ -920,6 +915,24 @@ sfs_init(struct fuse_conn_info *conn)
 		return NULL;
 	}
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
+	// Create a dispatcher thread
+	if (pthread_attr_init(&dispatcher_attr) == 0) {
+		pthread_attr_setscope(&dispatcher_attr, PTHREAD_SCOPE_SYSTEM);
+		pthread_attr_setstacksize(&dispatcher_attr, 131072); // 128KiB
+		pthread_attr_setdetachstate(&dispatcher_attr, PTHREAD_CREATE_DETACHED);
+		ret = pthread_create(&dispatcher_thread, &dispatcher_attr,
+						sfs_dispatcher, (void *) jobs);
+	}
+	if (ret != 0) {
+		sfs_log(sfs_ctx, SFS_CRIT, "%s: Unable to create job dispatcher "
+						"thread\n", __FUNCTION__);
+		db->db_ops.db_close(sfs_ctx);
+		pthread_kill(recv_thread, SIGKILL);
+		sstack_transport_deregister(type, &transport);
+		sstack_thread_pool_destroy(sfs_thread_pool);
+		(void) sfs_job_queue_destroy(&jobs);
+		return NULL;
+	}
 	// Initialize pending job queues
 	ret = sfs_job_list_init(&pending_jobs);
 	if (ret == -1) {
@@ -929,7 +942,7 @@ sfs_init(struct fuse_conn_info *conn)
 		pthread_kill(recv_thread, SIGKILL);
 		sstack_transport_deregister(type, &transport);
 		sstack_thread_pool_destroy(sfs_thread_pool);
-		(void) sfs_job_queue_destroy(jobs);
+		(void) sfs_job_queue_destroy(&jobs);
 		return NULL;
 	}
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
@@ -943,7 +956,8 @@ sfs_init(struct fuse_conn_info *conn)
 		pthread_kill(recv_thread, SIGKILL);
 		sstack_transport_deregister(type, &transport);
 		sstack_thread_pool_destroy(sfs_thread_pool);
-		(void) sfs_job_queue_destroy(jobs);
+		(void) sfs_job_queue_destroy(&jobs);
+		(void) sfs_job_queue_destroy(&pending_jobs);
 		return NULL;
 	}
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
@@ -957,7 +971,8 @@ sfs_init(struct fuse_conn_info *conn)
 		pthread_kill(recv_thread, SIGKILL);
 		sstack_transport_deregister(type, &transport);
 		sstack_thread_pool_destroy(sfs_thread_pool);
-		(void) sfs_job_queue_destroy(jobs);
+		(void) sfs_job_queue_destroy(&jobs);
+		(void) sfs_job_queue_destroy(&pending_jobs);
 		free(jobmap_tree);
 		return NULL;
 	}
@@ -970,7 +985,8 @@ sfs_init(struct fuse_conn_info *conn)
 		pthread_kill(recv_thread, SIGKILL);
 		sstack_transport_deregister(type, &transport);
 		sstack_thread_pool_destroy(sfs_thread_pool);
-		(void) sfs_job_queue_destroy(jobs);
+		(void) sfs_job_queue_destroy(&jobs);
+		(void) sfs_job_queue_destroy(&pending_jobs);
 		free(jobmap_tree);
 		free(jobid_tree);
 	}
@@ -986,7 +1002,8 @@ sfs_init(struct fuse_conn_info *conn)
 		pthread_kill(recv_thread, SIGKILL);
 		sstack_transport_deregister(type, &transport);
 		sstack_thread_pool_destroy(sfs_thread_pool);
-		(void) sfs_job_queue_destroy(jobs);
+		(void) sfs_job_queue_destroy(&jobs);
+		(void) sfs_job_queue_destroy(&pending_jobs);
 		free(jobmap_tree);
 		free(jobid_tree);
 		free(sstack_job_id_bitmap);
@@ -1010,8 +1027,8 @@ sfs_init(struct fuse_conn_info *conn)
 		pthread_kill(recv_thread, SIGKILL);
 		sstack_transport_deregister(type, &transport);
 		sstack_thread_pool_destroy(sfs_thread_pool);
-		(void) sfs_job_queue_destroy(jobs);
-		(void) sfs_job_queue_destroy(pending_jobs);
+		(void) sfs_job_queue_destroy(&jobs);
+		(void) sfs_job_queue_destroy(&pending_jobs);
 		free(jobmap_tree);
 		free(jobid_tree);
 		free(filelock_tree);
@@ -1036,8 +1053,8 @@ sfs_init(struct fuse_conn_info *conn)
 			pthread_kill(recv_thread, SIGKILL);
 			sstack_transport_deregister(type, &transport);
 			sstack_thread_pool_destroy(sfs_thread_pool);
-			(void) sfs_job_queue_destroy(jobs);
-			(void) sfs_job_queue_destroy(pending_jobs);
+			(void) sfs_job_queue_destroy(&jobs);
+			(void) sfs_job_queue_destroy(&pending_jobs);
 			free(jobmap_tree);
 			free(jobid_tree);
 			free(filelock_tree);
@@ -1234,6 +1251,8 @@ sfs_opt_proc(void *data, const char *arg, int key,
 				return 0;
 			else
 				return 1;
+		case KEY_DEBUG:
+			return 0;
 		case KEY_LOG_FILE_DIR:
 			strncpy(sstack_log_directory,
 					get_opt_str(arg, "log_file_dir"),

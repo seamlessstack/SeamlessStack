@@ -183,19 +183,19 @@ sfs_job_list_init(sfs_job_queue_t **job_list)
  */
 
 static inline int
-sfs_job_queue_destroy(sfs_job_queue_t *job_list)
+sfs_job_queue_destroy(sfs_job_queue_t **job_list)
 {
 	int i = 0;
 	sfs_job_queue_t *temp = NULL;
 
 	// Parameter validation
-	if (NULL == job_list) {
+	if (NULL == *job_list) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters specified \n",
 						__FUNCTION__);
 		return -1;
 	}
 
-	temp = job_list;
+	temp = *job_list;
 	for (i = 0; i < NUM_PRIORITY_MAX; i++) {
 		temp->priority = -1;
 		// TODO
@@ -205,8 +205,8 @@ sfs_job_queue_destroy(sfs_job_queue_t *job_list)
 		temp ++;
 	}
 
-	free(job_list);
-	job_list = NULL;
+	free(*job_list);
+	*job_list = NULL;
 
 	return 0;
 }

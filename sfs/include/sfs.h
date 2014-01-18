@@ -60,7 +60,8 @@ typedef enum {
 	KEY_LOG_FILE_DIR,
 	KEY_HELP,
 	KEY_VERSION,
-	KEY_LOG_LEVEL
+	KEY_LOG_LEVEL,
+	KEY_DEBUG,
 } key_type_t;
 
 typedef struct sfs_chunk_entry {

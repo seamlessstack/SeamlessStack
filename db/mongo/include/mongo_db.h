@@ -123,7 +123,7 @@ int mongo_create_collection( mongo *conn, const char *db,
 
 	bson_init( b );
 	bson_append_string( b, "create", collection );
-	bson_append_bool( b, "capped", 0 );
+	bson_append_bool( b, "capped", 1 );
 	bson_append_int( b, "size", size );
 	bson_finish( b );
 

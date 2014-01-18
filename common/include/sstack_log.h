@@ -32,7 +32,7 @@
 #include <pthread.h>
 
 
-#define SFS_LOG_DIRECTORY "/var/log/sfs"
+#define SFS_LOG_DIRECTORY "/tmp/sfs"
 #define SFS_LOGFILE_LEN 32
 #define SFS_TIME_FORMAT_LEN 64
 #define SFS_LOGLEVEL_LEN 16

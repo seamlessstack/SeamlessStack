@@ -102,6 +102,7 @@ sfs_getattr(const char *path, struct stat *stbuf)
 	sstack_inode_t inode;
 	size_t size = 0;
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: path = %s \n", __FUNCTION__, path);
 	// Parameter validation
 	if (NULL == path || NULL == stbuf) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters passed. \n",
@@ -111,56 +112,11 @@ sfs_getattr(const char *path, struct stat *stbuf)
 		return -1;
 	}
 
-	// Get the inode number for the file.
-	inodestr = sstack_memcache_read_one(mc, path, strlen(path), &size, sfs_ctx);
-	if (NULL == inodestr) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
-					"for path %s.\n", __FUNCTION__, path);
-		errno = ENOENT;
+	ret = lstat(path, stbuf);
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: Returning with status %d\n", __FUNCTION__,
+					ret);
 
-		return -1;
-	}
-	inode_num = atoll((const char *)inodestr);
-	// Obtain read lock for the inode
-	ret = sfs_rdlock(inode_num);
-	if (ret == -1) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to obtain read lock for the "
-						"file %s. Try again later \n", __FUNCTION__, path);
-		errno = EAGAIN;
-		return -1;
-	}
-	// Get inode from DB
-	ret = get_inode(inode_num, &inode, db);
-	if (ret != 0) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to get inode %lld. Path = %s "
-						"error = %d\n", __FUNCTION__, inode_num, path, ret);
-		errno = ret;
-		sfs_unlock(inode_num);
-
-		return -1;
-	}
-	sfs_unlock(inode_num);
-
-	// Fill up stat
-	stbuf->st_dev = 0; // TBD. Not sure whether this field makes sense
-	stbuf->st_ino = inode.i_num;
-	stbuf->st_mode = inode.i_mode;
-	stbuf->st_nlink = inode.i_links;
-	stbuf->st_uid = inode.i_uid;
-	stbuf->st_gid = inode.i_gid;
-	stbuf->st_rdev = 0; // TBD.
-	stbuf->st_size = inode.i_size;
-	stbuf->st_blksize = 4096; // Default file system block size
-	stbuf->st_blocks = (inode.i_ondisksize / 512);
-	// Stat structure only requires time in seconds.
-	stbuf->st_atime = inode.i_atime.tv_sec;
-	stbuf->st_mtime = inode.i_mtime.tv_sec;
-	stbuf->st_ctime = inode.i_ctime.tv_sec;
-
-	// Free up dynamically allocated fields in inode structure
-	sstack_free_inode_res(&inode, sfs_ctx);
-
-	return 0;
+	return ret;
 }
 
 /*
@@ -381,7 +337,7 @@ sfs_mkdir(const char *path, mode_t mode)
 				inode.i_name, errno);
 		return -1;
 	}
-	// Populate memcahed for reverse lookup
+	// Populate memcached for reverse lookup
 	sprintf(inode_str, "%lld", inode.i_num);
 	ret = sstack_memcache_store(mc, path, inode_str, (strlen(inode_str) + 1),
 					sfs_ctx);
@@ -613,7 +569,7 @@ sfs_unlink(const char *path)
 	// Handle failure scenarios (HOW??)
 	// Success is assumed
 
-	// Delete the inode from DB and free memcahed reverse lookup entry
+	// Delete the inode from DB and free memcached reverse lookup entry
 	ret = del_inode(&inode, db);
 	if (ret != 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to delete inode from DB for "
@@ -958,7 +914,7 @@ sfs_symlink(const char *from, const char *to)
 		return -1;
 	}
 
-	// Populate memcahed for reverse lookup
+	// Populate memcached for reverse lookup
 	sprintf(inode_str, "%lld", inode.i_num);
 	ret = sstack_memcache_store(mc, to, inode_str, (strlen(inode_str) + 1),
 					sfs_ctx);
@@ -1119,7 +1075,7 @@ sfs_link(const char *from, const char *to)
 		return -1;
 	}
 
-	// Populate memcahed for reverse lookup
+	// Populate memcached for reverse lookup
 	sprintf(inode_str, "%lld", inode.i_num);
 	ret = sstack_memcache_store(mc, to, inode_str, (strlen(inode_str) + 1),
 					sfs_ctx);
@@ -1506,7 +1462,7 @@ sfs_open(const char *path, struct fuse_file_info *fi)
 	}
 
 
-	// Populate memcahed for reverse lookup
+	// Populate memcached for reverse lookup
 	sprintf(inode_str, "%lld", inode.i_num);
 	ret = sstack_memcache_store(mc, path, inode_str, (strlen(inode_str) + 1),
 					sfs_ctx);
@@ -3302,7 +3258,7 @@ sfs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 	}
 
 
-	// Populate memcahed for reverse lookup
+	// Populate memcached for reverse lookup
 	sprintf(inode_str, "%lld", inode.i_num);
 	ret = sstack_memcache_store(mc, path, inode_str, (strlen(inode_str) + 1),
 					sfs_ctx);
