@@ -32,12 +32,16 @@ OSS_INSTALL_DIR = $(PWD)/oss_install
 PROTOBUF_DIR = $(PWD)/protobuf-template/proto
 SERDES_DIR = $(PWD)/lib/serdes
 VALIDATE_DIR= $(PWD)/lib/validate
+BUILDDIR = $(PWD)/build
+BINDIR = $(BUILDDIR)/bin
+LIBDIR = $(BUILDDIR)/lib
 MKDIR = mkdir
 PROTOC = protoc-c
 LN = ln -sf
 CSCOPE = cscope
 CTAGS = ctags
 RM = rm
+CP = cp
 
 all:
 	$(MKDIR) -p $(OSS_INSTALL_DIR)
@@ -62,6 +66,25 @@ all:
 	$(MAKE) -C $(VALIDATE_DIR)
 	$(MAKE) -C $(SFSDDIR)
 	$(MAKE) -C $(SFSDIR)
+
+install:
+	$(MKDIR) -p $(BUILDDIR) $(BINDIR) $(LIBDIR)
+	$(CP) $(MONGODIR)/*.so $(LIBDIR)
+	$(CP) $(MONGODRV)/*.so $(LIBDIR)
+	$(CP) $(POLICYDIR)/*.so $(LIBDIR)
+	$(CP) $(CLIDIR)/*.so $(LIBDIR)
+	$(CP) $(CLIDIR)/sfscli $(BINDIR)
+	$(CP) $(CLIDIR)/sfsclid $(BINDIR)
+	$(CP) $(CLIDIR)/sstack_log_decode $(BINDIR)
+	$(CP) $(CACHINGDIR)/*.so $(LIBDIR)
+	$(CP) $(GENCACHEDIR)/*.so $(LIBDIR)
+	$(CP) $(SSDCACHEDIR)/*.so $(LIBDIR)
+	$(CP) $(COMPRESSION_PLUGIN)/*.so $(LIBDIR)
+	$(CP) $(SERDES_DIR)/*.so $(LIBDIR)
+	$(CP) $(COMMONDIR)/*.so $(LIBDIR)
+	$(CP) $(VALIDATE_DIR)/*.so $(LIBDIR)
+	$(CP) $(SFSDIR)/sfs $(BINDIR)
+	$(CP) $(SFSDDIR)/sfsd $(BINDIR)
 
 cscope:
 	$(RM) -f cscope.out
@@ -91,3 +114,4 @@ clean:
 	$(RM) -f $(PROTOBUF_DIR)/cli.pb-c.h  $(PROTOBUF_DIR)/cli.pb-c.c
 	$(RM) -f cscope.out
 	$(RM) -f tags
+	$(RM) -rf $(BUILDDIR)
