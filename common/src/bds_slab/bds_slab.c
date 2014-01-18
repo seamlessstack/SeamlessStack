@@ -354,8 +354,8 @@ bds_status_t bds_cache_create (const char *name, size_t size,
 	bds_cache_desc_t cache_p;
 	bds_uint linger = 8;
 	/* Check whether the cache already exists or not */
-	if (__find_cache(name) == BDS_FOUND)
-		return -EEXIST;
+	//if (__find_cache(name) == BDS_FOUND)
+	//return -EEXIST;
 
 	cache_p = __allocate_bds_cache_desc();
 	if (!cache_p)
