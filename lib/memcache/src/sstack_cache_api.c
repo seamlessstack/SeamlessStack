@@ -85,7 +85,7 @@ sstack_memcache_init(const char *config, int num_servers, log_ctx_t *ctx)
 		}
 	}
 
-	sfs_log(ctx, SFS_INFO, "%s: memcahed init succeeded\n", __FUNCTION__);
+	sfs_log(ctx, SFS_INFO, "%s: memcached init succeeded\n", __FUNCTION__);
 
 	return memc;
 }

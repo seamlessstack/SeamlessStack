@@ -708,6 +708,8 @@ sfs_handle_connection(void * arg)
 	sstack_payload_t *payload;
 	int num_retries = 0;
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: Started \n", __FUNCTION__);
+
 	while (1) {
 		ret = transport.transport_ops.select(sfs_handle, mask);
 		if (ret != READ_NO_BLOCK) {
@@ -802,6 +804,8 @@ sfs_init(struct fuse_conn_info *conn)
 	char *intf_addr = NULL;
 	int i = 0;
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: Started \n", __FUNCTION__);
+
 	// Create a thread to handle sfs<->sfsd communication
 	if(pthread_attr_init(&recv_attr) == 0) {
 		pthread_attr_setscope(&recv_attr, PTHREAD_SCOPE_SYSTEM);
@@ -811,8 +815,12 @@ sfs_init(struct fuse_conn_info *conn)
 						sfs_handle_connection, NULL);
 	}
 
-	ASSERT((ret == 0),"Unable to create thread to handle sfs<->sfsd comm",
-			0, 0, 0);
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
+	if (ret != 0) {
+		sfs_log(sfs_ctx, SFS_CRIT, "%s: Unable to create thread to "
+						"handle sfs<->sfsd communication\n", __FUNCTION__);
+		return NULL;
+	}
 	// Create a dispatcher thread
 	if (pthread_attr_init(&dispatcher_attr) == 0) {
 		pthread_attr_setscope(&dispatcher_attr, PTHREAD_SCOPE_SYSTEM);
@@ -821,11 +829,21 @@ sfs_init(struct fuse_conn_info *conn)
 		ret = pthread_create(&dispatcher_thread, &dispatcher_attr,
 						sfs_dispatcher, (void *) jobs);
 	}
-	ASSERT((ret == 0),"Unable to create job dispatcher thread", 0, 0, 0);
+	if (ret != 0) {
+		sfs_log(sfs_ctx, SFS_CRIT, "%s: Unable to create job dispatcher "
+						"thread\n", __FUNCTION__);
+		return NULL;
+	}
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
 
 	// Create db instance
 	db = create_db();
-	ASSERT((db != NULL), "Unable to create db. FATAL ERROR", 0, 1, NULL);
+	if (NULL == db) {
+		sfs_log(sfs_ctx, SFS_CRIT, "%s: Unable to create db. FATAL ERROR\n",
+						__FUNCTION__);
+		return NULL;
+	}
+	sfs_log(sfs_ctx, SFS_INFO, "%s: db = 0x%x \n", __FUNCTION__, db);
 	db_register(db, mongo_db_init, mongo_db_open, mongo_db_close,
 		mongo_db_insert, mongo_db_remove, mongo_db_iterate, mongo_db_get,
 		mongo_db_seekread, mongo_db_update, mongo_db_delete,
@@ -835,6 +853,7 @@ sfs_init(struct fuse_conn_info *conn)
 			__FUNCTION__, errno);
 		return NULL;
 	}
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
 
 	// Other init()s go here
 	// Initialize TCP transport
@@ -854,6 +873,7 @@ sfs_init(struct fuse_conn_info *conn)
 						"and retry.\n", __FUNCTION__);
 		return NULL;
 	}
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
 
 	strcpy((char *) &transport.transport_hdr.tcp.ipv4_addr, intf_addr);
 	transport.transport_hdr.tcp.port = SFS_SERVER_PORT;
@@ -872,6 +892,7 @@ sfs_init(struct fuse_conn_info *conn)
 		return NULL;
 	}
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
 	ret = sfs_init_thread_pool();
 	if (ret != 0) {
 		// Thread pool creation failed.
@@ -885,6 +906,7 @@ sfs_init(struct fuse_conn_info *conn)
 		return NULL;
 	}
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
 	// Initialize job queues
 	ret = sfs_job_list_init(&jobs);
 	if (ret == -1) {
@@ -897,6 +919,7 @@ sfs_init(struct fuse_conn_info *conn)
 
 		return NULL;
 	}
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
 	// Initialize pending job queues
 	ret = sfs_job_list_init(&pending_jobs);
 	if (ret == -1) {
@@ -909,6 +932,7 @@ sfs_init(struct fuse_conn_info *conn)
 		(void) sfs_job_queue_destroy(jobs);
 		return NULL;
 	}
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
 
 	// Create jobmap tree
 	jobmap_tree = jobmap_tree_init();
@@ -922,6 +946,7 @@ sfs_init(struct fuse_conn_info *conn)
 		(void) sfs_job_queue_destroy(jobs);
 		return NULL;
 	}
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
 
 	// Create jobid tree
 	jobid_tree = jobid_tree_init();
@@ -936,6 +961,7 @@ sfs_init(struct fuse_conn_info *conn)
 		free(jobmap_tree);
 		return NULL;
 	}
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
 	// Create job_id bitmap
 	ret  = sfs_init_bitmap(sstack_job_id_bitmap,
 					MAX_OUTSTANDING_JOBS, sfs_ctx);
@@ -949,6 +975,7 @@ sfs_init(struct fuse_conn_info *conn)
 		free(jobid_tree);
 	}
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
 
 	// Create filelock tree
 	filelock_tree = filelock_tree_init();
@@ -965,11 +992,13 @@ sfs_init(struct fuse_conn_info *conn)
 		free(sstack_job_id_bitmap);
 		return NULL;
 	}
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
 
 	pthread_spin_init(&jobmap_lock, PTHREAD_PROCESS_PRIVATE);
 	pthread_spin_init(&jobid_lock, PTHREAD_PROCESS_PRIVATE);
 	pthread_spin_init(&filelock_lock, PTHREAD_PROCESS_PRIVATE);
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
 
 	// Initialize sfsd_pool
 	sfsd_pool = sstack_sfsd_pool_init();
@@ -992,6 +1021,7 @@ sfs_init(struct fuse_conn_info *conn)
 		pthread_spin_destroy(&filelock_lock);
 		return NULL;
 	}
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
 
 	// Create pool for payload structure
 	for (i = 0; i < MAX_CACHE_OFFSET; i++) {
@@ -1018,6 +1048,7 @@ sfs_init(struct fuse_conn_info *conn)
 			return NULL;
 		}
 	}
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
 
 
 
