@@ -25,6 +25,7 @@
 #define __SSTACK_BITOPS_H__
 #include <limits.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sstack_types.h>
 #include <sstack_log.h>
 
@@ -38,23 +39,29 @@
 /*
  * sfs_init_bitmap - Allocate bitmap and set the bits to 0
  *
- * bitmap - unalloacted bitmap
  * num_bits - Number of bits in bitmap. Rounded off to next nultiple of 8
  * ctx - log ctx
  *
- * Returns 0 on success and -1 on memory allocation failure.
+ * Returns allocated bitmap on success and NULL on failure.
  */
-static inline int
-sfs_init_bitmap(sstack_bitmap_t *bitmap, int num_bits, log_ctx_t *ctx)
+static inline sstack_bitmap_t *
+sfs_init_bitmap(int num_bits, log_ctx_t *ctx)
 {
-	bitmap = (sstack_bitmap_t *) calloc(BITNSLOTS(num_bits), 1);
+	sstack_bitmap_t *bitmap = NULL;
+
+	sfs_log(ctx, SFS_DEBUG, "%s: %d size = %d \n",
+					__FUNCTION__, __LINE__, BITNSLOTS(num_bits));
+
+	bitmap = (sstack_bitmap_t *) malloc(BITNSLOTS(num_bits));
 	if (NULL == bitmap) {
 		sfs_log(ctx, SFS_ERR, "%s: Failed to allocate memory for bitmap \n",
 						__FUNCTION__);
-		return -1;
+		return NULL;
 	}
+	memset(bitmap, 0x0, BITNSLOTS(num_bits));
+	sfs_log(ctx, SFS_ERR, "%s: bitmap = 0x%x \n", __FUNCTION__, bitmap);
 
-	return 0;
+	return bitmap;
 }
 
 #endif // __SSTACK_BITOPS_H__

@@ -311,7 +311,7 @@ sstack_ssd_cache_init(char *path, int64_t size, log_ctx_t *ctx)
 	pthread_spin_init(&cache_struct.lru_lock, PTHREAD_PROCESS_PRIVATE);
 
 	// Create ce_bitmap
-	ret = sfs_init_bitmap(cache_struct.ce_bitmap,
+	cache_struct.ce_bitmap = sfs_init_bitmap(
 					cache_struct.stats.num_cachelines, ctx);
 	if (ret == -1) {
 		RBTreeDestroy(cache_struct.md_tree);

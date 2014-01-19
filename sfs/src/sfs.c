@@ -74,6 +74,7 @@ char sstack_log_directory[PATH_MAX] = { '\0' };
 sfs_log_level_t sstack_log_level = SFS_DEBUG;
 sfs_chunk_entry_t	*sfs_chunks = NULL;
 uint64_t nchunks = 0;
+char sfs_mountpoint[MOUNTPOINT_MAXPATH] = { '\0' };
 db_t *db = NULL;
 memcached_st *mc = NULL;
 pthread_mutex_t inode_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -802,7 +803,7 @@ sfs_init(struct fuse_conn_info *conn)
 	int chunk_index = 0;
 	sstack_transport_ops_t ops;
 	sstack_transport_type_t type;
-	char *intf_addr = NULL;
+	char **intf_addr;
 	int i = 0;
 
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s: Started \n", __FUNCTION__);
@@ -861,16 +862,18 @@ sfs_init(struct fuse_conn_info *conn)
 	// eth0 is the assumed interface
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
 
-	ret = get_local_ip("eth0", intf_addr, IPv4);
+	ret = get_local_ip("eth0", intf_addr,  IPv4, sfs_ctx);
 	if (ret == -1) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Please enable eth0 interface "
 						"and retry.\n", __FUNCTION__);
 		return NULL;
 	}
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d  intf_addr = 0x%x\n",
-					__FUNCTION__, __LINE__, intf_addr);
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d  intf_addr = %s\n",
+					__FUNCTION__, __LINE__, *intf_addr);
 
-	strcpy((char *) &transport.transport_hdr.tcp.ipv4_addr, intf_addr);
+	strcpy((char *) &transport.transport_hdr.tcp.ipv4_addr, *intf_addr);
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d ipv4_addr = %s \n",
+			__FUNCTION__, __LINE__, transport.transport_hdr.tcp.ipv4_addr);
 	transport.transport_hdr.tcp.port = SFS_SERVER_PORT;
 	ret = sstack_transport_register(type, &transport, ops);
 	// Call server setup
@@ -978,9 +981,8 @@ sfs_init(struct fuse_conn_info *conn)
 	}
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
 	// Create job_id bitmap
-	ret  = sfs_init_bitmap(sstack_job_id_bitmap,
-					MAX_OUTSTANDING_JOBS, sfs_ctx);
-	if (ret == -1) {
+	sstack_job_id_bitmap  = sfs_init_bitmap(MAX_OUTSTANDING_JOBS, sfs_ctx);
+	if (NULL == sstack_job_id_bitmap) {
 		db->db_ops.db_close(sfs_ctx);
 		pthread_kill(recv_thread, SIGKILL);
 		sstack_transport_deregister(type, &transport);
