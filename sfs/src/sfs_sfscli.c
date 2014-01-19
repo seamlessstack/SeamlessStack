@@ -22,6 +22,7 @@
 #include <strings.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <errno.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
@@ -60,10 +61,65 @@ static void *init_cli_thread(void *arg)
 	return NULL;
 }
 
-size_t get_command_response(uint8_t *buffer, size_t buf_len, uint8_t **resp_buf)
+ssize_t get_sfsd_command_response(uint8_t *buffer, size_t buf_len, uint8_t **resp_buf)
 {
-	*resp_buf = buffer;
-	return buf_len;
+	/* All the validation checks are done in get_command_response
+	   No validation here
+	*/
+	struct sfscli_cli_cmd *cmd;
+	ssize_t resp_len = 0;
+	int32_t ret = -1;
+
+	if (sfscli_deserialize_sfsd(buffer, buf_len, &cmd) != 0)
+		return 0;
+
+	/* Now we have a valid cli_cmd structure in place, lets
+	   process it */
+
+	switch(cmd->input.sfsd_cmd) {
+	case SFSD_ADD_CMD:
+		break;
+	default:
+		printf ("Not implemented\n");
+	}
+	
+}
+
+ssize_t get_command_response(uint8_t *buffer, size_t buf_len, uint8_t **resp_buf)
+{
+	uint32_t magic = 0;
+	sfscli_cmd_types_t cmd;
+	uint8_t *p = buffer;
+	size_t resp_len;
+
+	if (p == NULL) {
+		printf ("Invalid input buffer \n");
+		return -ENOMEM;
+	}
+	
+	/* Check for the magic */
+	sfscli_deser_uint(magic, buffer, 4);
+
+	if (magic != SFSCLI_MAGIC) {
+		printf ("Magic not found\n");
+		return -EINVAL;
+	}
+	p+=4;
+
+	/* Peek into the command structure to
+	 * see what command is it */
+	sfscli_deser_nfield(cmd, p);
+
+	switch (cmd) {
+	case SFSCLI_SFSD_CMD:
+		resp_len = get_sfsd_command_response(buffer, buf_len, resp_buf);
+		break;
+	default:
+		printf ("Not implemented\n");
+		resp_len = 0;
+	}
+
+	return resp_len;
 }
 
 void handle_cli_requests(int32_t sockfd)
@@ -102,7 +158,7 @@ void handle_cli_requests(int32_t sockfd)
 
 		rc = -1;
 		select_read_to_buffer(conn_sockfd, rc, cmd_buffer,
-							  SFSCLI_MAX_BUFFER_SIZE, rnbytes)
+							  SFSCLI_MAX_BUFFER_SIZE, rnbytes);
 		if (rnbytes > 0 && rc > 0) {
 			resp_size = get_command_response(cmd_buffer, rnbytes, &resp_buffer);
 			if (resp_buffer && (resp_size > 0)) {

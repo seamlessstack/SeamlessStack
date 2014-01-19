@@ -291,6 +291,8 @@ int32_t sfscli_serialize_sfsd(struct sfscli_cli_cmd *cli_cmd,
 	p += 4;
 	/* cmd */
 	sfscli_ser_nfield(cli_cmd->cmd, p);
+	/* cmd->input.sfsd_cmd */
+	sfscli_ser_nfield(cli_cmd->input.sfsd_cmd, p);
 	/* si->address.protocol */
 	sfscli_ser_nfield(si->address.protocol, p);
 	/* si->address.ipv4_addr[] / si->address.ipv6_addr[] */
@@ -334,6 +336,8 @@ int32_t sfscli_deserialize_sfsd(uint8_t *buffer, size_t buf_len,
 
 	/* cmd */
 	sfscli_deser_nfield(cmd->cmd, p);
+	/* si->sfsd_cmd */
+	sfscli_deser_nfield(cmd->input.sfsd_cmd, p);
 	/* si->address.protocol */
 	sfscli_deser_nfield(si->address.protocol, p);
 	/* si->address.ipv4_address[]/ si->address.ipv6_address[] */
@@ -350,6 +354,7 @@ int32_t sfscli_deserialize_sfsd(uint8_t *buffer, size_t buf_len,
     printf ("Address type: %d\n", si->address.protocol);
 	printf ("Address string: %s\n", si->address.ipv4_address);
 	printf ("Port: %d\n", si->port);
+	printf ("SFSD command: %d\n", cmd->input.sfsd_cmd);
 
 	return 0;
 }
