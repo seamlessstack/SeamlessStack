@@ -467,7 +467,9 @@ static ssize_t deapply_policies(struct policy_entry *pe, void *in_buf,
 	void *run_buf = in_buf;
 	void *policy_buf = NULL;
 	size_t out_size = 0;
-	for(int i = pe->pe_num_plugins - 1; i >= 0; i--) {
+	int i = 0;
+
+	for(i = pe->pe_num_plugins - 1; i >= 0; i--) {
 		struct plugin_entry_points *entry =
 			get_plugin_entry_points(pe->pe_policy[i]->pp_policy_name);
 		if (entry) {
@@ -492,7 +494,9 @@ static ssize_t apply_policies(struct policy_entry *pe, void *in_buf,
 	void *run_buf = in_buf;
 	void *policy_buf = NULL;
 	size_t out_size = 0;
-	for(int i = 0; i < pe->pe_num_plugins; i++) {
+	int i = 0;
+
+	for(i = 0; i < pe->pe_num_plugins; i++) {
 		struct plugin_entry_points *entry =
 			get_plugin_entry_points(pe->pe_policy[i]->pp_policy_name);
 		if (entry) {
@@ -821,13 +825,13 @@ error:
 
 }
 
-sstack_payload_t *sstack_esure_code(sstack_payload_t *payload, 
+sstack_payload_t *sstack_esure_code(sstack_payload_t *payload,
 										sfsd_t *sfsd, log_ctx_t *ctx)
 {
 	int32_t i, j, k, min_start_ext = 0, ret = 0;
 	int32_t	command_stat = SSTACK_SUCCESS;
 	sstack_inode_t	*inode = NULL;
-	struct sstack_nfs_esure_code_cmd *cmd = 
+	struct sstack_nfs_esure_code_cmd *cmd =
 								&payload->command_struct.esure_code_cmd;
 	void *d_stripes[MAX_DATA_STRIPES], *c_stripes[CODE_STRIPES];
 	char mount_path[PATH_MAX];
@@ -850,33 +854,33 @@ sstack_payload_t *sstack_esure_code(sstack_payload_t *payload,
 	if (cmd->num_blocks == 0) {
 		command_stat = SSTACK_SUCCESS;
 		goto done;
-	}	
-		
-	/* Find the min start ext index and do erasure code from there on for 
-	 * all following extents.  
-	 * This is for both simplying as well as performance optimization as 
-	 * the erasure code groups for all the extents from the min start ext 
-	 * will now change and hence every group requires erasure code 
-	 */  
+	}
+
+	/* Find the min start ext index and do erasure code from there on for
+	 * all following extents.
+	 * This is for both simplying as well as performance optimization as
+	 * the erasure code groups for all the extents from the min start ext
+	 * will now change and hence every group requires erasure code
+	 */
 	min_start_ext = cmd->ext_blocks[0].start_ext;
 	for (i = 1 ; i < cmd->num_blocks; i++) {
-		if (cmd->ext_blocks[i].start_ext < min_start_ext) 
+		if (cmd->ext_blocks[i].start_ext < min_start_ext)
 			min_start_ext = cmd->ext_blocks[i].start_ext;
-	}		
+	}
 
 	min_start_ext = min_start_ext - (min_start_ext % MAX_DATA_STRIPES);
-	/* Check the data extents from the min_start_ext to the end. Even if one 
+	/* Check the data extents from the min_start_ext to the end. Even if one
 	 * of them is corrupted, we will terminate this command and notify SFS
-	 * to recover the extents from the DR or its replicas and then issue this 
+	 * to recover the extents from the DR or its replicas and then issue this
 	 * esure command
-	 */   
+	 */
 	for (j = 0; j < MAX_DATA_STRIPES; j++) {
 		d_stripes[j] =
 				bds_cache_alloc(sfsd_global_cache_arr[DATA64K_CACHE_OFFSET]);
 		if (d_stripes[j] == NULL) {
 			sfs_log(ctx, SFS_ERR, "%s(): Error getting read buffer\n",
 					__FUNCTION__);
-			for (k = 0; k < j; k++) 
+			for (k = 0; k < j; k++)
 				bds_cache_free(sfsd_global_cache_arr[DATA64K_CACHE_OFFSET],
 								d_stripes[k]);
 			command_stat = -ENOMEM;
@@ -890,7 +894,7 @@ sstack_payload_t *sstack_esure_code(sstack_payload_t *payload,
 		if (c_stripes[j] == NULL) {
 			sfs_log(ctx, SFS_ERR, "%s(): Error getting read buffer\n",
 					__FUNCTION__);
-			for (k = 0; k < j; k++) 
+			for (k = 0; k < j; k++)
 				bds_cache_free(sfsd_global_cache_arr[DATA64K_CACHE_OFFSET],
 								c_stripes[k]);
 			command_stat = -ENOMEM;
@@ -904,7 +908,7 @@ sstack_payload_t *sstack_esure_code(sstack_payload_t *payload,
 							sfsd, mount_path, ctx);
 		command_stat = read_check_extent(mount_path, ERASURE_STRIPE_SIZE, TRUE,
 							inode->i_extent[i].e_cksum, d_stripes[j], ctx);
-		if (command_stat == -SSTACK_ECKSUM) 
+		if (command_stat == -SSTACK_ECKSUM)
 			goto done;
 		j++;
 		if (!(j % MAX_DATA_STRIPES)) {
@@ -917,9 +921,9 @@ sstack_payload_t *sstack_esure_code(sstack_payload_t *payload,
 			// Write c_stripes to the chunk domain
 		}
 	}
-	
+
 	if (j > 0) {
-		ret = sfs_esure_encode(d_stripes, j, c_stripes, 
+		ret = sfs_esure_encode(d_stripes, j, c_stripes,
 							CODE_STRIPES, ERASURE_STRIPE_SIZE);
 		if (ret != 0) {
 			command_stat = -SSTACK_FAILURE;
@@ -931,14 +935,14 @@ sstack_payload_t *sstack_esure_code(sstack_payload_t *payload,
 done:
 	for (j = 0; j < MAX_DATA_STRIPES; j++)
 		bds_cache_free(sfsd_global_cache_arr[DATA64K_CACHE_OFFSET],
-						d_stripes[j]);				
+						d_stripes[j]);
 	for (j = 0; j < CODE_STRIPES; j++)
 		bds_cache_free(sfsd_global_cache_arr[DATA64K_CACHE_OFFSET],
 						c_stripes[j]);
 
-	/* Is an inode level lock required to make the change */	
-	if (command_stat != SSTACK_SUCCESS)	
-		inode->i_esure_valid = 0;	
+	/* Is an inode level lock required to make the change */
+	if (command_stat != SSTACK_SUCCESS)
+		inode->i_esure_valid = 0;
 	else
 		inode->i_esure_valid = 1;
 	payload->response_struct.command_ok = command_stat;
