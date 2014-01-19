@@ -334,7 +334,7 @@ static int32_t write_update_extent(char *mounted_path, size_t write_size,
 	ssize_t nbytes;
 	/* Parameter Validation */
 	if (mounted_path == NULL || buffer == NULL
-		||(calculate_cksum && (cksum == NULL)))) {
+		||(calculate_cksum && (cksum == NULL))) {
 		sfs_log(ctx, SFS_ERR, "%s() - Invalid Parameters", __FUNCTION__);
 		goto ret;
 	}
@@ -464,10 +464,10 @@ static ssize_t write_erasure_code(void *d_stripes[], void *c_stripes[],
 static ssize_t deapply_policies(struct policy_entry *pe, void *in_buf,
 									  size_t in_size, void **out_buf)
 {
-	void *run_buf = in_buf
+	void *run_buf = in_buf;
 	void *policy_buf = NULL;
-	out_size = 0;
-	for(i = pe->pe_num_plugins - 1; i >= 0; i--) {
+	size_t out_size = 0;
+	for(int i = pe->pe_num_plugins - 1; i >= 0; i--) {
 		struct plugin_entry_points *entry =
 			get_plugin_entry_points(pe->pe_policy[i]->pp_policy_name);
 		if (entry) {
@@ -491,8 +491,8 @@ static ssize_t apply_policies(struct policy_entry *pe, void *in_buf,
 {
 	void *run_buf = in_buf;
 	void *policy_buf = NULL;
-	out_size = 0;
-	for(i = 0; i < pe->pe_num_plugins; i++) {
+	size_t out_size = 0;
+	for(int i = 0; i < pe->pe_num_plugins; i++) {
 		struct plugin_entry_points *entry =
 			get_plugin_entry_points(pe->pe_policy[i]->pp_policy_name);
 		if (entry) {
@@ -631,6 +631,7 @@ sstack_payload_t *sstack_write(sstack_payload_t *payload,
 	ssize_t extent_index = -1, erasure_index = -1;
 	int fd;
 	char *policy_inbuf, *policy_outbuf;
+	uint32_t cksum = 0;
 
 	inode = bds_cache_alloc(sfsd_global_cache_arr[INODE_CACHE_OFFSET]);
 	if (inode == NULL) {
@@ -699,7 +700,7 @@ sstack_payload_t *sstack_write(sstack_payload_t *payload,
 									   policy_outbuf, ctx);
 	if (command_stat < 0)
 		goto error;
-	command_stat = write_erasure_code();
+//	command_stat = write_erasure_code();
 
 	if (command_stat < 0)
 		goto error;
@@ -768,8 +769,6 @@ sstack_payload_t *sstack_write(sstack_payload_t *payload,
 	}
 
 #endif
-
-}
 
 error:
 	sfs_log(ctx, SFS_INFO, "%s(): function not implemented", __FUNCTION__);
