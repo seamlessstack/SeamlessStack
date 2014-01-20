@@ -24,6 +24,8 @@
 #define NUM_MAX_POLICY 64
 
 #include <Judy.h>
+#include <sstack_db.h>
+
 #define SHA256_DIGEST_LENGTH 32
 
 // QoS levels
@@ -77,10 +79,11 @@ struct policy_input
 	char	pi_fname[PATH_MAX];
 	size_t	pi_num_policy;
 	struct attribute pi_attr;
+	int		pi_index;
 	/* Please change the macro when adding/removing fields in the
 	 * structure
 	 */
-#define NUM_PI_FIELDS 7
+#define NUM_PI_FIELDS 8
 };
 
 typedef struct policy_plugin
@@ -155,6 +158,13 @@ uint32_t activate_plugin(uint32_t plugin_id);
 /* Get policy, to be called from read/write ops */
 struct policy_entry* get_policy(const char *path);
 struct plugin_entry_points *get_plugin_entry_points(const char *);
+
+int32_t submit_policy_entry(struct policy_input *pi, db_t *db,
+		                db_type_t db_type);
+int32_t delete_policy_entry(struct policy_input *pi, db_t *db,
+		                db_type_t db_type);
+uint32_t show_policy_entries(uint8_t **resp_buf, ssize_t *resp_len,
+		                            db_t *db, db_type_t db_type);
 
 /* Configuration , get, set routines */
 #endif /* __POLICY_H__ */

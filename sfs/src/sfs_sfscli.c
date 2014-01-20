@@ -29,7 +29,10 @@
 #include <sstack_types.h>
 #include <sfscli.h>
 #include <sfscli_clid.h>
+#include <sstack_db.h>
 
+#define MAX_RESPONSE_LEN	1000
+char sfscli_response[MAX_RESPONSE_LEN];
 static int32_t not_terminating = 1;
 static int32_t connection_dropped = 1;
 
@@ -59,6 +62,123 @@ static void *init_cli_thread(void *arg)
 		}
 	}
 	return NULL;
+}
+
+ssize_t get_policy_command_response(uint8_t *buffer, size_t buf_len, 
+									uint8_t **resp_buf)
+{
+	struct sfscli_cli_cmd *cmd;
+	ssize_t	resp_len = 0;
+	int		ret = -1;
+
+	if (sfscli_deserialize_policy(buffer, buf_len, &cmd) != 0)
+		return (0);
+
+	switch (cmd->input.policy_cmd) {
+		case POLICY_ADD_CMD:
+			ret = submit_policy_entry(&(cmd->input.pi), db, POLICY_TYPE);		
+			if (ret < 0) {
+				strncpy(sfscli_response, "CLI Error", MAX_RESPONSE_LEN);
+				resp_len = strlen(sfscli_response);
+				*resp_buf = malloc(resp_len);
+				strncpy(*resp_buf, sfscli_response, resp_len);
+			} else {
+				strncpy(sfscli_response, "Policy added successfully",
+								MAX_RESPONSE_LEN);
+				resp_len = strlen(sfscli_response);
+				*resp_buf = malloc(resp_len);
+				strncpy(*resp_buf, sfscli_response, resp_len);
+			}
+			break;
+		
+		case POLICY_DEL_CMD:
+			ret = delete_policy_entry(&(cmd->input.pi), db, POLICY_TYPE);
+			if (ret < 0) {
+				strncpy(sfscli_response, "Policy doesn't exist",
+								MAX_RESPONSE_LEN);
+				resp_len = strlen(sfscli_response);
+				*resp_buf = malloc(resp_len);
+				strncpy(*resp_buf, sfscli_response, resp_len);
+			} else {
+				strncpy(sfscli_response, "Policy delete successfully",
+								MAX_RESPONSE_LEN);
+				resp_len = strlen(sfscli_response);
+				*resp_buf = malloc(resp_len);
+				strncpy(*resp_buf, sfscli_response, resp_len);
+			}
+			break;
+
+		case POLICY_SHOW_CMD:
+			ret = show_policy_entries(resp_buf, &resp_len, db,
+										POLICY_TYPE);
+			if (ret < 0) {
+				strncpy(sfscli_response, "CLI Error", MAX_RESPONSE_LEN);
+				resp_len = strlen(sfscli_response);
+				*resp_buf = malloc(resp_len);
+				strncpy(*resp_buf, sfscli_response, resp_len);
+			}
+			break;
+
+		default:
+			break;
+	}
+
+	return (resp_len);
+}	
+
+ssize_t get_storage_command_response(uint8_t *buffer, size_t buf_len,
+	                                        uint8_t **resp_buf)
+{
+	struct sfscli_cli_cmd *cmd;
+	ssize_t resp_len = 0;
+	
+	if (sfscli_deserialize_storage(buffer, buf_len, &cmd) != 0)
+		return (0);
+
+	switch(cmd->input.storage_cmd) {
+		case STORAGE_ADD_CMD:
+			break;
+		
+		case STORAGE_DEL_CMD:
+			break;
+		
+		case STORAGE_UPDATE_CMD:
+			break;
+		
+		case STORAGE_SHOW_CMD:
+			break;
+
+		default:
+			break;
+	}
+
+	return (resp_len);
+}
+
+ssize_t get_license_command_response(uint8_t *buffer, size_t buf_len,
+										uint8_t **resp_buf)
+{
+	struct sfscli_cli_cmd *cmd;
+	ssize_t resp_len = 0;
+
+	if (sfscli_deserialize_license(buffer, buf_len, &cmd) != 0) 
+		return (0);
+
+	switch(cmd->input.license_cmd) {
+		case LICENSE_ADD_CMD:
+			break;
+
+		case LICENSE_SHOW_CMD:
+			break;
+		
+		case LICENSE_DEL_CMD:
+			break;
+
+		default:
+			break;
+	}
+
+	return (resp_len);
 }
 
 ssize_t get_sfsd_command_response(uint8_t *buffer, size_t buf_len, uint8_t **resp_buf)
@@ -114,6 +234,19 @@ ssize_t get_command_response(uint8_t *buffer, size_t buf_len, uint8_t **resp_buf
 	case SFSCLI_SFSD_CMD:
 		resp_len = get_sfsd_command_response(buffer, buf_len, resp_buf);
 		break;
+	
+	case SFSCLI_POLICY_CMD:
+		resp_len = get_policy_command_response(buffer, buf_len, resp_buf);
+		break;
+
+	case SFSCLI_STORAGE_CMD:
+		resp_len = get_storage_command_response(buffer, buf_len, resp_buf);
+		break;
+
+	case SFSCLI_LICENSE_CMD:
+		resp_len = get_license_command_response(buffer, buf_len, resp_buf);
+		break;
+	
 	default:
 		printf ("Not implemented\n");
 		resp_len = 0;

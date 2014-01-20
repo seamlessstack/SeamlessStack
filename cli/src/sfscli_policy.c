@@ -62,6 +62,7 @@ struct sfscli_cli_cmd *parse_fill_policy_input(int32_t argc, char *argv[])
 			{"add", no_argument, 0 ,'a'}, /* index 10 */
 			{"delete", no_argument, 0, 'd'}, /* index 11 */
 			{"list", no_argument, 0, 'l'}, /* index 12 */
+			{"index", required_argument, 0, 0}, /* index 13 */
 			{0, 0, 0, 0}
 		};
 
@@ -143,6 +144,11 @@ struct sfscli_cli_cmd *parse_fill_policy_input(int32_t argc, char *argv[])
 		case 9:
 			strncpy(pi->pi_policy_tag[0], optarg, POLICY_TAG_LEN);
 			printf ("plugin: %s\n", pi->pi_policy_tag[0]);
+			break;
+		case 13:
+			strtol_check_error_jump(pi->pi_index, endptr, error, 10,
+									optarg, option_index, policy_longopts);
+			printf ("uid: %d\n", pi->pi_uid);
 			break;
 		}
 	}

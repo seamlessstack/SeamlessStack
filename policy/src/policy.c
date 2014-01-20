@@ -79,6 +79,8 @@ static void  get_pe_from_tags(const char *tags[], size_t num_tags,
 				struct policy_entry *pe);
 static void policy_iterate(void *params, char *key,
 			   void *data, ssize_t data_len);
+static void collect_policy_entries(void *params, char *key, void *data,
+				ssize_t data_len);
 static void free_policy_pst(void);
 void unload_free_plugins(void);
 
@@ -89,6 +91,10 @@ static struct policy_search_table pst;
 static struct plugin_entry_point_tab entry_point_tab;
 static log_ctx_t *policy_ctx;
 static uint8_t policy_initialized = 0;
+static struct policy_input **pol_list;
+int	num_pol = 0;
+#define MAX_POLICY_STRLEN 1000
+char	policy_string[MAX_POLICY_STRLEN];
 
 /*=================Policy registration public APIs========================*/
 
@@ -122,7 +128,7 @@ int32_t submit_policy_entry(struct policy_input *pi, db_t *db,
 	uint8_t index = 0;
 	int rcint;
 	int32_t ret = 0;
-	struct policy_db_entry pdb_entry;
+	struct policy_db_entry pdb_entry, *dummy_pdb_entry = NULL;
 	struct policy_entry  *pe = NULL;
 
 	char key[PATH_MAX + 16 /* UID + GID */
@@ -152,27 +158,132 @@ int32_t submit_policy_entry(struct policy_input *pi, db_t *db,
 	sprintf(key, "%s^%s^%d^%d", pi->pi_fname, pi->pi_ftype,
 		pi->pi_uid, pi->pi_gid);
 
+		
 	pthread_rwlock_rdlock(&policy_tab.pt_table_lock);
 	get_pe_from_pi(pi, pe);
 	add_policy_to_pst(key, index, pe);
 	get_pdbe_from_pe(pe, &pdb_entry);
 
-	if (db->db_ops.db_insert(key, (char *)&pdb_entry,
-				 sizeof(pdb_entry), db_type, policy_ctx) == 0) {
-		sfs_log(policy_ctx, SFS_INFO,
-			"Policy submitted successfully");
+	if (db->db_ops.db_get(key, (char *)dummy_pdb_entry, 
+									db_type, policy_ctx) != 0) {
+		/* Its an update operation */
+		if (db->db_ops.db_update(key, (char *)&pdb_entry, 
+				sizeof(pdb_entry), db_type, policy_ctx) == 0) {
+			sfs_log(policy_ctx, SFS_INFO,
+					"Policy submitted successfully");
+		} else {
+			sfs_log(policy_ctx, SFS_ERR, "Policy submit to db failed");
+			/* Remove policy entry Judy array */
+			JSLD(rcint, pst.pst_head[index], (uint8_t *)key);
+			free(pe);
+			ret = -EINVAL;
+		}
+		free(dummy_pdb_entry);
 	} else {
-		sfs_log(policy_ctx, SFS_ERR, "Policy submit to db failed");
-		/* Remove policy entry Judy array */
-		JSLD(rcint, pst.pst_head[index], (uint8_t *)key);
-		free(pe);
-		ret = -EINVAL;
-	}
+		/* Its and insert operation */
+		if (db->db_ops.db_insert(key, (char *)&pdb_entry,
+				 sizeof(pdb_entry), db_type, policy_ctx) == 0) {
+			sfs_log(policy_ctx, SFS_INFO,
+				"Policy submitted successfully");
+		} else {
+			sfs_log(policy_ctx, SFS_ERR, "Policy submit to db failed");
+			/* Remove policy entry Judy array */
+			JSLD(rcint, pst.pst_head[index], (uint8_t *)key);
+			free(pe);
+			ret = -EINVAL;
+		}
+	}	
 	pthread_rwlock_unlock(&policy_tab.pt_table_lock);
 
 ret:
 	free(pi);
 	return ret;
+}
+
+int32_t delete_policy_entry(struct policy_input *pi, db_t *db,
+			    db_type_t db_type)
+{
+	uint8_t index = 0;
+	int rcint;
+	struct policy_input  *p_input = NULL;
+	char key[PATH_MAX + 16 /* UID + GID */
+		+ TYPE_LEN + 4 /* \0 + 3 guard characters */];
+
+	if (policy_initialized == FALSE || pi == NULL ||
+	    db == NULL || db_type == 0) {
+		return -EINVAL;
+	}
+
+	if (!pol_list[pi->pi_index] || (pi->pi_index >= num_pol)
+			|| (pi->pi_index < 0)) 
+		return -EINVAL;
+
+	p_input = pol_list[pi->pi_index];
+	if (p_input->pi_ftype[0] != '*')
+		index |= 1;
+	if (p_input->pi_gid != -1)
+		index |= 2;
+	if (p_input->pi_uid != -1)
+		index |= 4;
+	if (p_input->pi_fname[0] != '*')
+		index |= 8;
+
+	sprintf(key, "%s^%s^%d^%d", p_input->pi_fname, p_input->pi_ftype,
+		p_input->pi_uid, p_input->pi_gid);
+
+	pthread_rwlock_rdlock(&policy_tab.pt_table_lock);
+	db->db_ops.db_remove(key, db_type, policy_ctx);
+	JSLD(rcint, pst.pst_head[index], (uint8_t *)key);
+	pthread_rwlock_unlock(&policy_tab.pt_table_lock);
+
+	free(pol_list[pi->pi_index]);
+	return (0);
+}	
+		
+uint32_t show_policy_entries(uint8_t **resp_buf, ssize_t *resp_len,
+							db_t *db, db_type_t db_type)
+{
+	int		i = 0, j = 0;
+	struct	policy_input *pi;
+	struct attribute attr;
+	uint8_t	*temp = NULL;
+
+	if (pol_list) {
+		for (i = 0; i < num_pol; i++) {
+			if (pol_list[i]) 
+				free(pol_list[i]);
+		}	
+		free(pol_list);
+	}
+
+	num_pol = 0;
+	db->db_ops.db_iterate(db_type, collect_policy_entries, &num_pol, 
+									policy_ctx);
+	for (i = 0; i < num_pol; i++) {
+		pi = pol_list[i];
+		attr = pi->pi_attr;
+
+		sprintf(policy_string, "Index: %d\tuid: %d  gid: %d  ftype: %s  "
+				"fname: %s\t\tquota: %d  QoS: %d  ishidden: %d  "
+				"num_replica: %d  DR: %d\n\t\t\t\tPlugins: ", i, pi->pi_uid,
+				pi->pi_gid, pi->pi_ftype, pi->pi_fname, attr.a_quota,
+				attr.a_qoslevel, attr.a_ishidden, attr.a_numreplicas,
+				attr.a_enable_dr);
+		for (j = 0; j < pi->pi_num_policy; j++) {
+			sprintf(policy_string + strlen(policy_string),
+					"%s  ", pi->pi_policy_tag[j]);
+		}
+
+		temp = realloc(*resp_buf, strlen(policy_string));
+		if (temp == NULL) {
+			return -ENOMEM;
+		}
+		*resp_buf = temp;
+		strncpy(*resp_buf, policy_string, strlen(policy_string));
+	}
+
+	*resp_len = strlen(*resp_buf);
+	return (*resp_len);
 }
 
 uint32_t register_plugin(const char *plugin_path, uint32_t *plugin_id)
@@ -255,6 +366,50 @@ uint32_t unregister_plugin(uint32_t plugin_id)
 }
 
 /* =================== PRIVATE FUNCTIONS =========================== */
+
+static void collect_policy_entries(void *params, char *key, void *data,
+				ssize_t data_len)
+{
+	int	i = 0;
+	struct policy_db_entry *pdbe;
+	struct policy_entry *pe;
+	struct policy_input **temp = NULL;
+	struct policy_input *p_input = NULL;
+
+	if (key == NULL || data == NULL || data_len == 0) {
+		sfs_log(policy_ctx, SFS_ERR, "%s(), line: %d: %s\n",
+			__FUNCTION__, __LINE__, "Invalid Parameters");
+		return;
+	}
+
+	pdbe = (struct policy_db_entry *)data;
+	if ((pe = malloc(sizeof(*pe))) == NULL) {
+		sfs_log(policy_ctx, SFS_ERR, "%s(): line %d, %s",
+			__FUNCTION__, __LINE__, "pe allocate failed");
+		return;
+	}
+	get_pe_from_pdbe(pdbe, pe);
+
+	num_pol++;
+	temp = realloc(pol_list, (num_pol) * sizeof(struct policy_input *));
+	if (temp == NULL) 
+		return;
+	pol_list = temp;
+	
+	p_input = malloc(sizeof(struct policy_input));
+	strcpy(p_input->pi_fname, strtok(key, "^"));
+	strcpy(p_input->pi_ftype, strtok(NULL, "^"));
+	p_input->pi_uid = atoi(strtok(NULL, "^"));
+	p_input->pi_gid = atoi(strtok(NULL, "^"));
+
+	p_input->pi_attr = pe->pe_attr;
+	p_input->pi_num_policy = pe->pe_num_plugins;
+	for (i = 0; i < pe->pe_num_plugins; i++) 
+		strncpy(p_input->pi_policy_tag[i], pe->pe_policy[i]->pp_policy_name,
+					POLICY_TAG_LEN);
+	pol_list[num_pol - 1] = p_input;
+	free(pe);
+}
 
 static void policy_iterate(void *params, char *key, void *data,
 			   ssize_t data_len)
