@@ -39,7 +39,7 @@
 #define MAX_QUEUE_SIZE 1024
 #define MAX_EXTENT_SIZE 65536 /* (64 * 1024 bytes) */
 #define SFS_JOB_VERSION 1
-#define MAX_OUTSTANDING_JOBS 2147483647 // 2^31 -1
+#define MAX_OUTSTANDING_JOBS 8192 
 
 // Cache indexes
 /* To add a new cache define a 

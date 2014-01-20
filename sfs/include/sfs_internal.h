@@ -88,6 +88,7 @@ sstack_sfsd_pool_init(void)
 
 		return NULL;
 	}
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: pool = 0x%x \n", __FUNCTION__, pool);
 
 	// Initialize individual members
 	temp = pool;
@@ -100,9 +101,11 @@ sstack_sfsd_pool_init(void)
 		temp->weight_range.low = low;
 		temp->weight_range.high = high;
 		INIT_LIST_HEAD((bds_list_head_t) &temp->list);
+		sfs_log(sfs_ctx, SFS_ERR, "%s: %d\n", __FUNCTION__, __LINE__);
 		pthread_spin_init(&temp->lock, PTHREAD_PROCESS_PRIVATE);
 		temp ++;
 	}
+	sfs_log(sfs_ctx, SFS_ERR, "%s: %d  success\n", __FUNCTION__, __LINE__);
 
 	return pool;
 }

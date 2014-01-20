@@ -114,29 +114,29 @@ mongo_db_init(log_ctx_t *ctx)
 			__FUNCTION__, POLICY_COLLECTION, DB_NAME);
 	}
 #endif // MONGO_TEST
-
+#if 0
 	// Go ahead and create collections
 	// FIXME:
 	// Uncapped collections are not working.
 	// Try gridfs stuff with latest library
-	ret = mongo_create_capped_collection(conn, DB_NAME, POLICY_COLLECTION,
-		10000, 4096,  NULL);
+	ret = mongo_create_collection(conn, DB_NAME, POLICY_COLLECTION,
+		10000,  NULL);
 	if (ret != MONGO_OK) {
 		sfs_log(ctx, SFS_ERR, "%s: Creating policy collection failed. "
 			" Error = %d \n", __FUNCTION__, ret);
 		return -1;
 	}
 
-	ret = mongo_create_capped_collection(conn, DB_NAME, INODE_COLLECTION,
-		2147483648, 2147483648, NULL);
+	ret = mongo_create_collection(conn, DB_NAME, INODE_COLLECTION,
+		10000, NULL);
 	if (ret != MONGO_OK) {
 		sfs_log(ctx, SFS_ERR, "%s: Creating inode collection failed. \n",
 			__FUNCTION__);
 		return -1;
 	}
 
-	ret = mongo_create_capped_collection(conn, DB_NAME, JOURNAL_COLLECTION,
-		1000000,10000, NULL);
+	ret = mongo_create_collection(conn, DB_NAME, JOURNAL_COLLECTION,
+		10000, NULL);
 	if (ret != MONGO_OK) {
 		sfs_log(ctx, SFS_ERR, "%s: Creating journal collection failed.\n",
 			__FUNCTION__);
@@ -150,6 +150,7 @@ mongo_db_init(log_ctx_t *ctx)
 			__FUNCTION__);
 		return -1;
 	}
+#endif
 
 	return 0;
 }

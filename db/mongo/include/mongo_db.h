@@ -122,12 +122,13 @@ int mongo_create_collection( mongo *conn, const char *db,
 	int result;
 
 	bson_init( b );
-	bson_append_string( b, "create", collection );
-	bson_append_bool( b, "capped", 1 );
-	bson_append_int( b, "size", size );
-	bson_finish( b );
+	bson_append_string(b, "create", collection);
+	bson_append_bool(b, "capped", 1);
+	bson_append_int(b, "size", size);
+	bson_append_int(b, "max", 2147483647);
+	bson_finish(b);
 
-	result = mongo_run_command( conn, db, b, out );
+	result = mongo_run_command(conn, db, b, out);
 
 	bson_destroy( b );
 

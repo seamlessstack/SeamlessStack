@@ -32,6 +32,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <string.h>
 #include <sstack_log.h>
 #include <sstack_db.h>
 #include <sstack_types.h>
@@ -49,6 +50,7 @@
 #define LISTEN_QUEUE_SIZE 128
 #define IPV6_ADDR_LEN 40
 #define IPV4_ADDR_LEN 40
+#define MOUNTPOINT_MAXPATH 256
 // Form is <ipaddr>,<path>,<[r|rw]>,<weight>
 #define BRANCH_MAX (IPV6_ADDR_LEN + 1 + PATH_MAX + 1 + 2 + 1 + 6)
 #define SFS_MAGIC 0x11101974 // A unique number to differentiate FS
@@ -157,14 +159,14 @@ typedef struct sfs_metadata {
  * get_local_ip - Return IP address of the interface specified.
  *
  * interface - string representing the interface. Should be non-NULL
- * intf_addr - Return paramater. Can be NULL.
+ * intf_addr - Ouput parameter. Will be allocated here
  * type -  1 for IPv4 and 0 for IPv6
  *
  * Returns 0 on success. Returns -1 on error.
  */
 
 static inline int
-get_local_ip(char *interface, char *intf_addr, int type)
+get_local_ip(char *interface, char **intf_addr, int type, log_ctx_t *ctx)
 {
 	int fd;
 	struct ifreq ifr;
@@ -175,6 +177,8 @@ get_local_ip(char *interface, char *intf_addr, int type)
 	if (NULL == interface || type < 0 || type > IPv4) {
 		// Invalid parameters
 		errno = EINVAL;
+		sfs_log(ctx, SFS_ERR, "%s: Invalid parameters specified \n",
+						__FUNCTION__);
 
 		return -1;
 	}
@@ -183,18 +187,27 @@ get_local_ip(char *interface, char *intf_addr, int type)
 	if (type == IPv6) {
 		len = IPV6_ADDR_LEN;
 		family = AF_INET6;
+		sfs_log(ctx, SFS_DEBUG, "%s:%d IPV6 interface \n",
+						__FUNCTION__, __LINE__);
 	} else {
 		len = IPV4_ADDR_LEN;
 		family = AF_INET;
+		sfs_log(ctx, SFS_DEBUG, "%s:%d IPV4 interface \n",
+						__FUNCTION__, __LINE__);
 	}
-	intf_addr = (char *) malloc(len);
-	if (NULL == intf_addr) {
+
+	*intf_addr = (char *) malloc(len);
+	if (NULL == *intf_addr) {
+		sfs_log(ctx, SFS_ERR, "%s:%d Failed to allocate \n",
+						__FUNCTION__, __LINE__);
 		return -1;
 	}
 
 	fd = socket(family, SOCK_DGRAM, 0);
 	if (fd == -1) {
 		// Socket creation failed
+		sfs_log(ctx, SFS_ERR, "%s:%d socket creation failed\n",
+						__FUNCTION__, __LINE__);
 		return -1;
 	}
 	// IPv4 IP address
@@ -205,14 +218,16 @@ get_local_ip(char *interface, char *intf_addr, int type)
 	close(fd);
 
 	if (type == IPv4) {
-		strncpy(intf_addr,
+		strncpy(*intf_addr,
 				inet_ntoa(((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr),
 				IPV4_ADDR_LEN);
 	} else {
 		inet_ntop(family,
 				(void *) &((struct sockaddr_in6 *) &ifr.ifr_addr)->sin6_addr,
-				intf_addr, IPV6_ADDR_LEN);
+				*intf_addr, IPV6_ADDR_LEN);
 	}
+	sfs_log(ctx, SFS_DEBUG, "%s:%d intf_addr = %s \n", 
+					__FUNCTION__, __LINE__, *intf_addr);
 
 	return 0;
 }
