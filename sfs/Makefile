@@ -49,7 +49,7 @@ SFSCLI_SRCS = src/sfs_sfscli.c
 all:: sfscli_handler sfs
 
 sfscli_handler: $(SFSCLI_OBJS)
-	$(CC) $(LDFLAGS) -o $@ $(SFSCLI_OBJS) -L$(TOPDIR)/cli -lsfscli
+	$(CC) $(LDFLAGS) -o $@ $(SFSCLI_OBJS) -L$(TOPDIR)/cli -lsfscli $(LIB) 
 
 $(SFSCLI_OBJS):$(SFSCLI_SRCS)
 	$(C99) $(CFLAGS) -o $@ -c $<

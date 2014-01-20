@@ -29,7 +29,7 @@
 #include <sstack_types.h>
 #include <sfscli.h>
 #include <sfscli_clid.h>
-#include <sstack_db.h>
+#include <policy.h>
 
 #define MAX_RESPONSE_LEN	1000
 char sfscli_response[MAX_RESPONSE_LEN];

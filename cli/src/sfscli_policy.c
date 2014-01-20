@@ -149,7 +149,7 @@ parse_fill_policy_input(int32_t argc, char *argv[])
 		case 13:
 			strtol_check_error_jump(pi->pi_index, endptr, error, 10,
 									optarg, option_index, policy_longopts);
-			printf ("uid: %d\n", pi->pi_uid);
+			printf ("index: %d\n", pi->pi_index);
 			break;
 		}
 	}
