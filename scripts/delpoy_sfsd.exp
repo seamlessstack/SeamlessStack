@@ -1,0 +1,57 @@
+#!/usr/bin/expect
+
+# This script deploys sfsd on a remote machine
+# It needs to be executed as follows:-
+# deploy_sfsd <remote ip> <remote port> <local ip> <user> <password> <install prefix>
+
+set raddr [lindex $argv 0]
+set rport [lindex $argv 1]
+set laddr [lindex $argv 2]
+set user [lindex $argv 3]
+set password [lindex $argv 4]
+set install_prefix [lindex $argv 5]
+
+spawn scp /usr/local/sstack/sfsd_distrib.tgz $user@$raddr:/tmp/
+
+expect {
+	"Are you sure you want to continue connecting" { send "Yes\r" }
+	"password:" {send "$password\r"}
+}
+
+spawn ssh -l $user $raddr
+
+expect {
+	"Are you sure you want to continue connecting" { send "Yes\r" }
+	"password:" {send "$password\r"}
+}
+
+#Change the command prompt to something we know. We are going to use it
+send "export PS1=\"sstack_prompt>\"\r"
+expect {
+	"sstack_prompt>" { send "echo \"Able to login.. Real action now\"\r"}
+}
+
+# Files are copied ; lets unzip and copy over
+send "sudo mkdir -p /usr/local/sstack/\r"
+expect {
+	"password for $user" { send "$password\r"}
+}
+
+expect {
+	"sstack_prompt>" {send "sudo tar xf /tmp/sfsd_distrib.tgz -C /usr/local/sstack/\r"}
+}
+expect {
+	"sstack_prompt>" {send "sudo mv /usr/local/sstack/sstack/sfsd_distrib/bin/* /usr/local/bin/\r"}
+}
+expect {
+	"sstack_prompt>" {send "sudo mv /usr/local/sstack/sstack/sfsd_distrib/lib/* /usr/local/lib/\r"}
+}
+
+# Now start sfsd 
+expect {
+	"sstack_prompt>" {send "/usr/local/bin/sfsd /var/log/sfsd.log $laddr\r"}
+}
+
+expect {
+	"sstack_prompt>" {send "exit\r"}
+}
