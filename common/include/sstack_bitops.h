@@ -59,7 +59,7 @@ sfs_init_bitmap(int num_bits, log_ctx_t *ctx)
 		return NULL;
 	}
 	memset(bitmap, 0x0, BITNSLOTS(num_bits));
-	sfs_log(ctx, SFS_ERR, "%s: bitmap = 0x%x \n", __FUNCTION__, bitmap);
+	sfs_log(ctx, SFS_DEBUG, "%s: bitmap = 0x%x \n", __FUNCTION__, bitmap);
 
 	return bitmap;
 }

@@ -110,6 +110,7 @@ filelock_tree_init(void)
 		return NULL;
 	}
 	filelock_tree_new(tree);
+	sfs_log(sfs_ctx, SFS_INFO, "%s: tree = 0x%x \n", __FUNCTION__, tree);
 
 	return tree;
 }

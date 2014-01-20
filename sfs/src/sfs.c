@@ -60,6 +60,9 @@
 #include <sfs_jobmap_tree.h>
 #include <sfs_lock_tree.h>
 
+#define RECV_THREAD 1
+
+
 /* Macros */
 #define MAX_INODE_LEN 40 // Maximum len of uint64_t is 39
 #define MAX_JOB_SUBMIT_RETRIES 10 // Maximum number of retries
@@ -884,7 +887,9 @@ sfs_init(struct fuse_conn_info *conn)
 					"Error = %d \n", __FUNCTION__, errno);
 		// cleanup
 		db->db_ops.db_close(sfs_ctx);
+#ifdef RECV_THREAD
 		pthread_kill(recv_thread, SIGKILL);
+#endif
 		sstack_transport_deregister(type, &transport);
 
 		return NULL;
@@ -898,7 +903,9 @@ sfs_init(struct fuse_conn_info *conn)
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to create thread pool. "
 						"Exiting ...\n", __FUNCTION__);
 		db->db_ops.db_close(sfs_ctx);
+#ifdef RECV_THREAD
 		pthread_kill(recv_thread, SIGKILL);
+#endif
 		sstack_transport_deregister(type, &transport);
 
 		return NULL;
@@ -911,7 +918,9 @@ sfs_init(struct fuse_conn_info *conn)
 		// Job list creation failed
 		// No point in continuing
 		db->db_ops.db_close(sfs_ctx);
+#ifdef RECV_THREAD
 		pthread_kill(recv_thread, SIGKILL);
+#endif
 		sstack_transport_deregister(type, &transport);
 		sstack_thread_pool_destroy(sfs_thread_pool);
 
@@ -930,7 +939,9 @@ sfs_init(struct fuse_conn_info *conn)
 		sfs_log(sfs_ctx, SFS_CRIT, "%s: Unable to create job dispatcher "
 						"thread\n", __FUNCTION__);
 		db->db_ops.db_close(sfs_ctx);
+#ifdef RECV_THREAD
 		pthread_kill(recv_thread, SIGKILL);
+#endif
 		sstack_transport_deregister(type, &transport);
 		sstack_thread_pool_destroy(sfs_thread_pool);
 		(void) sfs_job_queue_destroy(&jobs);
@@ -942,7 +953,9 @@ sfs_init(struct fuse_conn_info *conn)
 		// Job list creation failed
 		// No point in continuing
 		db->db_ops.db_close(sfs_ctx);
+#ifdef RECV_THREAD
 		pthread_kill(recv_thread, SIGKILL);
+#endif
 		sstack_transport_deregister(type, &transport);
 		sstack_thread_pool_destroy(sfs_thread_pool);
 		(void) sfs_job_queue_destroy(&jobs);
@@ -956,7 +969,9 @@ sfs_init(struct fuse_conn_info *conn)
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to create jobmap RB-tree \n",
 						__FUNCTION__);
 		db->db_ops.db_close(sfs_ctx);
+#ifdef RECV_THREAD
 		pthread_kill(recv_thread, SIGKILL);
+#endif
 		sstack_transport_deregister(type, &transport);
 		sstack_thread_pool_destroy(sfs_thread_pool);
 		(void) sfs_job_queue_destroy(&jobs);
@@ -967,11 +982,15 @@ sfs_init(struct fuse_conn_info *conn)
 
 	// Create jobid tree
 	jobid_tree = jobid_tree_init();
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d jobid_tree = 0x%x \n",
+					__FUNCTION__, __LINE__, jobid_tree);
 	if (NULL == jobid_tree) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to create jobid RB-tree \n",
 						__FUNCTION__);
 		db->db_ops.db_close(sfs_ctx);
+#ifdef RECV_THREAD
 		pthread_kill(recv_thread, SIGKILL);
+#endif
 		sstack_transport_deregister(type, &transport);
 		sstack_thread_pool_destroy(sfs_thread_pool);
 		(void) sfs_job_queue_destroy(&jobs);
@@ -984,7 +1003,9 @@ sfs_init(struct fuse_conn_info *conn)
 	sstack_job_id_bitmap  = sfs_init_bitmap(MAX_OUTSTANDING_JOBS, sfs_ctx);
 	if (NULL == sstack_job_id_bitmap) {
 		db->db_ops.db_close(sfs_ctx);
+#ifdef RECV_THREAD
 		pthread_kill(recv_thread, SIGKILL);
+#endif
 		sstack_transport_deregister(type, &transport);
 		sstack_thread_pool_destroy(sfs_thread_pool);
 		(void) sfs_job_queue_destroy(&jobs);
@@ -1001,7 +1022,9 @@ sfs_init(struct fuse_conn_info *conn)
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to create filelock "
 						" RB-tree \n", __FUNCTION__);
 		db->db_ops.db_close(sfs_ctx);
+#ifdef RECV_THREAD
 		pthread_kill(recv_thread, SIGKILL);
+#endif
 		sstack_transport_deregister(type, &transport);
 		sstack_thread_pool_destroy(sfs_thread_pool);
 		(void) sfs_job_queue_destroy(&jobs);
@@ -1014,19 +1037,25 @@ sfs_init(struct fuse_conn_info *conn)
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
 
 	pthread_spin_init(&jobmap_lock, PTHREAD_PROCESS_PRIVATE);
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
 	pthread_spin_init(&jobid_lock, PTHREAD_PROCESS_PRIVATE);
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
 	pthread_spin_init(&filelock_lock, PTHREAD_PROCESS_PRIVATE);
-
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
 
+	return NULL;
 	// Initialize sfsd_pool
 	sfsd_pool = sstack_sfsd_pool_init();
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d sfsd_pool = 0x%x \n", __FUNCTION__,
+					__LINE__, sfsd_pool);
 	if (NULL == sfsd_pool) {
 		// sfsd_pool creation failed.
 		// Product is not scalable and useless.
 		// Exit
 		db->db_ops.db_close(sfs_ctx);
+#ifdef RECV_THREAD
 		pthread_kill(recv_thread, SIGKILL);
+#endif
 		sstack_transport_deregister(type, &transport);
 		sstack_thread_pool_destroy(sfs_thread_pool);
 		(void) sfs_job_queue_destroy(&jobs);
@@ -1052,7 +1081,9 @@ sfs_init(struct fuse_conn_info *conn)
 			sfs_log(sfs_ctx, SFS_ERR, "%s: Could not allocate cache for %s\n",
 							slabs[i].name);
 			db->db_ops.db_close(sfs_ctx);
+#ifdef RECV_THREAD
 			pthread_kill(recv_thread, SIGKILL);
+#endif
 			sstack_transport_deregister(type, &transport);
 			sstack_thread_pool_destroy(sfs_thread_pool);
 			(void) sfs_job_queue_destroy(&jobs);
@@ -1103,6 +1134,28 @@ sfs_print_help(const char *progname)
 	progname);
 }
 
+#if 0
+static int
+strsearch(char *str, char c)
+{
+	int i = 0;
+	// Parameter validation
+	if (NULL == str) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameter specified \n",
+						__FUNCTION__);
+		return -1;
+	}
+
+	for (i = 0; i < strlen(str); i ++) {
+		if (*(str + i) == c)
+			return 0;
+	}
+
+	return -1;
+}
+#endif
+
+
 // Store chunk paths found in a temporary space before populating db
 // This is to avoid db initialization before arguments are validated
 // Each branch is of type path,RW/RO,weight. Last two parameters are
@@ -1113,6 +1166,7 @@ sfs_store_branch(char *branch)
 	char *res = NULL;
 	char **ptr = NULL;
 	char *temp = NULL;
+	int ret = -1;
 
 	temp = realloc(sfs_chunks,
 			(nchunks + 1) * sizeof(sfs_chunk_entry_t));
@@ -1122,6 +1176,16 @@ sfs_store_branch(char *branch)
 	sfs_chunks = (sfs_chunk_entry_t *) temp;
 	memset((void *) (sfs_chunks + nchunks), '\0', sizeof(sfs_chunk_entry_t));
 	ptr = (char **) &branch;
+#if 0
+	ret = strsearch(branch, ',');
+	if (ret == -1) {
+		strcpy(sfs_mountpoint, branch);
+		sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d Mount point = %s \n",
+						__FUNCTION__, __LINE__, sfs_mountpoint);
+
+		return 1;
+	}
+#endif
 	res = strsep(ptr, ",");
 	if (!res)
 		return 0;
@@ -1323,7 +1387,6 @@ main(int argc, char *argv[])
 	int gid = getgid();
 	int ret = -1;
 
-#if 0
 	// Check if root is mounting the file system.
 	// If so, return error
 	if (uid == 0 && gid == 0) {
@@ -1331,7 +1394,6 @@ main(int argc, char *argv[])
 			" Please try mounting as a normal user\n");
 		return -1;
 	}
-#endif
 
 	// Initialize logging
 	sfs_ctx = sfs_create_log_ctx();
