@@ -25,7 +25,8 @@
 #include <policy.h>
 #include <sfscli.h>
 
-struct sfscli_cli_cmd *parse_fill_policy_input(int32_t argc, char *argv[])
+struct sfscli_cli_cmd *
+parse_fill_policy_input(int32_t argc, char *argv[])
 {
 
 	int32_t c;

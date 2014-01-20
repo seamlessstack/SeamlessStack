@@ -52,8 +52,9 @@
  * -----------------------------------------------------------------------------
  **/
 
-int32_t sfscli_serialize_policy(struct sfscli_cli_cmd *cli_cmd,
-								uint8_t **buffer)
+int32_t
+sfscli_serialize_policy(struct sfscli_cli_cmd *cli_cmd,
+						uint8_t **buffer)
 {
 	uint8_t *p = NULL, *q = NULL;
 	struct policy_input *pi = &cli_cmd->input.pi;
@@ -102,8 +103,9 @@ int32_t sfscli_serialize_policy(struct sfscli_cli_cmd *cli_cmd,
 }
 
 
-int32_t sfscli_deserialize_policy(uint8_t *buffer, size_t buf_len,
-								  struct sfscli_cli_cmd **cli_cmd)
+int32_t
+sfscli_deserialize_policy(uint8_t *buffer, size_t buf_len,
+						  struct sfscli_cli_cmd **cli_cmd)
 {
 	struct sfscli_cli_cmd *cmd = NULL;
 	struct policy_input *pi = NULL;
@@ -183,8 +185,9 @@ int32_t sfscli_deserialize_policy(uint8_t *buffer, size_t buf_len,
  * |MAGIC|sizeof(cmd)|cmd|sizeof(protocol)| protocol| ........................
  * -----------------------------------------------------------------------------
  **/
-int32_t sfscli_serialize_storage(struct sfscli_cli_cmd *cli_cmd,
-								 uint8_t **buffer)
+int32_t
+sfscli_serialize_storage(struct sfscli_cli_cmd *cli_cmd,
+						 uint8_t **buffer)
 {
 	uint8_t *p = NULL, *q = NULL;
 	struct storage_input *si = &cli_cmd->input.sti;
@@ -223,8 +226,9 @@ int32_t sfscli_serialize_storage(struct sfscli_cli_cmd *cli_cmd,
 }
 
 
-int32_t sfscli_deserialize_storage(uint8_t *buffer, size_t buf_len,
-								   struct sfscli_cli_cmd **cli_cmd)
+int32_t
+sfscli_deserialize_storage(uint8_t *buffer, size_t buf_len,
+						   struct sfscli_cli_cmd **cli_cmd)
 {
 	struct sfscli_cli_cmd *cmd = NULL;
 	struct storage_input *si = NULL;
@@ -272,8 +276,9 @@ int32_t sfscli_deserialize_storage(uint8_t *buffer, size_t buf_len,
 	return 0;
 }
 
-int32_t sfscli_serialize_sfsd(struct sfscli_cli_cmd *cli_cmd,
-							  uint8_t **buffer)
+int32_t
+sfscli_serialize_sfsd(struct sfscli_cli_cmd *cli_cmd,
+					  uint8_t **buffer)
 {
 	uint8_t *p = NULL, *q = NULL;
 	struct sfsd_input *si = &cli_cmd->input.sdi;
@@ -308,8 +313,9 @@ int32_t sfscli_serialize_sfsd(struct sfscli_cli_cmd *cli_cmd,
 }
 
 
-int32_t sfscli_deserialize_sfsd(uint8_t *buffer, size_t buf_len,
-								struct sfscli_cli_cmd **cli_cmd)
+int32_t
+sfscli_deserialize_sfsd(uint8_t *buffer, size_t buf_len,
+						struct sfscli_cli_cmd **cli_cmd)
 {
 	struct sfscli_cli_cmd *cmd = NULL;
 	struct sfsd_input *si = NULL;
@@ -359,8 +365,9 @@ int32_t sfscli_deserialize_sfsd(uint8_t *buffer, size_t buf_len,
 	return 0;
 }
 
-int32_t sfscli_serialize_license(struct sfscli_cli_cmd *cli_cmd,
-								 uint8_t **buffer)
+int32_t
+sfscli_serialize_license(struct sfscli_cli_cmd *cli_cmd,
+						 uint8_t **buffer)
 {
 	uint8_t *p = NULL, *q = NULL;
 	struct license_input *si = &cli_cmd->input.li;
@@ -384,8 +391,9 @@ int32_t sfscli_serialize_license(struct sfscli_cli_cmd *cli_cmd,
 }
 
 
-int32_t sfscli_deserialize_license(uint8_t *buffer, size_t buf_len,
-								   struct sfscli_cli_cmd **cli_cmd)
+int32_t
+sfscli_deserialize_license(uint8_t *buffer, size_t buf_len,
+						   struct sfscli_cli_cmd **cli_cmd)
 {
 	struct sfscli_cli_cmd *cmd = NULL;
 	struct license_input *li = NULL;

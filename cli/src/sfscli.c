@@ -39,12 +39,14 @@ static int32_t sfscli_connect_clid(in_addr_t clid_addr, uint16_t clid_port);
 static int32_t process_args(int32_t args, char *argv[], int32_t sockfd);
 
 /* ====================== FUNCTION DEFINITIONS ======================== */
-void usage(char *progname)
+void
+usage(char *progname)
 {
 	fprintf(stderr, "Usage %s\n", progname);
 }
 
-int main(int argc, char *argv[])
+int
+main(int argc, char *argv[])
 {
 	char *clid_addr_str = getenv("SSTACK_CLID_ADDR");
 	char *clid_port_str = getenv("SSTACK_CLID_PORT");
@@ -90,7 +92,8 @@ int main(int argc, char *argv[])
 }
 
 
-static int32_t sfscli_connect_clid(in_addr_t clid_addr, uint16_t clid_port)
+static int32_t
+sfscli_connect_clid(in_addr_t clid_addr, uint16_t clid_port)
 {
 	int32_t sockfd;
 	struct sockaddr_in clid_addr_in;
@@ -144,7 +147,8 @@ static int32_t sfscli_connect_clid(in_addr_t clid_addr, uint16_t clid_port)
 	return sockfd;
 }
 
-int32_t process_args(int32_t argc, char *argv[], int32_t sockfd)
+int32_t
+process_args(int32_t argc, char *argv[], int32_t sockfd)
 {
 	char *command_str = NULL;
 	struct sfscli_cli_cmd *cli_cmd = NULL, *an_cmd = NULL;
@@ -183,7 +187,8 @@ int32_t process_args(int32_t argc, char *argv[], int32_t sockfd)
 			printf ("Now deserialize sfsd--\n");
 			sfscli_deserialize_sfsd(buffer, buf_len, &an_cmd);
 		}
-	} else if (!strcmp(argv[1], "license") || !strcmp(command_str, "license")) {
+	} else if (!strcmp(argv[1], "license") ||
+					!strcmp(command_str, "license")) {
 		cli_cmd = parse_fill_license_input(argc, argv);
 		if (cli_cmd == NULL)
 			return -1;

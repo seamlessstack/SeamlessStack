@@ -38,17 +38,21 @@ LIB += -L$(TOPDIR)/common -lsstack_common
 LIB += -L$(TOPDIR)/oss_install/lib -lmemcached
 LIB += -L$(TOPDIR)/lib/serdes -lserdes
 LIB += -L$(TOPDIR)/lib/validate -lvalidate
-
+C99 = c99
 
 SFS_OBJS = src/sfs.o src/sfs_entry.o src/sfs_job.o src/sfs_idp.o
 SFS_OBJS += src/sfs_traceroute.o
 
 SFSCLI_OBJS = src/sfs_sfscli.o
+SFSCLI_SRCS = src/sfs_sfscli.c
 
 all:: sfscli_handler sfs
 
 sfscli_handler: $(SFSCLI_OBJS)
-	$(CC) $(LDFLAGS) -o $@ $(SFSCLI_OBJS)
+	$(CC) $(LDFLAGS) -o $@ $(SFSCLI_OBJS) -L$(TOPDIR)/cli -lsfscli
+
+$(SFSCLI_OBJS):$(SFSCLI_SRCS)
+	$(C99) $(CFLAGS) -o $@ -c $<
 
 sfs: $(SFS_OBJS)
 	$(CC) $(LDFLAGS) -o $@ $(SFS_OBJS) $(LIB)
