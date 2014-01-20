@@ -35,7 +35,8 @@ static int32_t connection_dropped = 1;
 
 static void handle_cli_requests(int32_t sockfd);
 
-static void *init_cli_thread(void *arg)
+static void *
+init_cli_thread(void *arg)
 {
 	int32_t sockfd;
 	int32_t optval;
@@ -53,7 +54,8 @@ static void *init_cli_thread(void *arg)
 		servaddr.sin_port = htons(atoi(SFSCLI_DEF_SFS_PORT));
 
 		if (bind(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr)) == 0) {
-			printf ("Bind done, waiting for incoming connections %s\n", SFSCLI_DEF_SFS_PORT);
+			printf ("Bind done, waiting for incoming connections %s\n",
+							SFSCLI_DEF_SFS_PORT);
 			listen(sockfd, 5);
 			handle_cli_requests(sockfd);
 		}
@@ -61,14 +63,13 @@ static void *init_cli_thread(void *arg)
 	return NULL;
 }
 
-ssize_t get_sfsd_command_response(uint8_t *buffer, size_t buf_len, uint8_t **resp_buf)
+ssize_t
+get_sfsd_command_response(uint8_t *buffer, size_t buf_len, uint8_t **resp_buf)
 {
 	/* All the validation checks are done in get_command_response
 	   No validation here
 	*/
 	struct sfscli_cli_cmd *cmd;
-	ssize_t resp_len = 0;
-	int32_t ret = -1;
 
 	if (sfscli_deserialize_sfsd(buffer, buf_len, &cmd) != 0)
 		return 0;
@@ -82,10 +83,11 @@ ssize_t get_sfsd_command_response(uint8_t *buffer, size_t buf_len, uint8_t **res
 	default:
 		printf ("Not implemented\n");
 	}
-	
+
 }
 
-ssize_t get_command_response(uint8_t *buffer, size_t buf_len, uint8_t **resp_buf)
+ssize_t
+get_command_response(uint8_t *buffer, size_t buf_len, uint8_t **resp_buf)
 {
 	uint32_t magic = 0;
 	sfscli_cmd_types_t cmd;
@@ -96,7 +98,7 @@ ssize_t get_command_response(uint8_t *buffer, size_t buf_len, uint8_t **resp_buf
 		printf ("Invalid input buffer \n");
 		return -ENOMEM;
 	}
-	
+
 	/* Check for the magic */
 	sfscli_deser_uint(magic, buffer, 4);
 
@@ -111,18 +113,20 @@ ssize_t get_command_response(uint8_t *buffer, size_t buf_len, uint8_t **resp_buf
 	sfscli_deser_nfield(cmd, p);
 
 	switch (cmd) {
-	case SFSCLI_SFSD_CMD:
-		resp_len = get_sfsd_command_response(buffer, buf_len, resp_buf);
-		break;
-	default:
-		printf ("Not implemented\n");
-		resp_len = 0;
+		case SFSCLI_SFSD_CMD:
+			resp_len = get_sfsd_command_response(buffer, buf_len, resp_buf);
+			break;
+		default:
+			printf ("Not implemented\n");
+			resp_len = 0;
+			break;
 	}
 
 	return resp_len;
 }
 
-void handle_cli_requests(int32_t sockfd)
+void
+handle_cli_requests(int32_t sockfd)
 {
 	int32_t conn_sockfd = -1;
 	struct sockaddr_in client_addr;
@@ -166,7 +170,7 @@ void handle_cli_requests(int32_t sockfd)
 				if (wnbytes < resp_size)
 					printf ("Less no of response sent\n");
 				else
-					printf ("Wrote %d bytes to clid\n", wnbytes);
+					printf ("Wrote %ld bytes to clid\n", wnbytes);
 			}
 		} else {
 			printf ("Error reading command\n");
@@ -174,7 +178,8 @@ void handle_cli_requests(int32_t sockfd)
 	}
 }
 
-int main(void)
+int
+main(void)
 {
 	init_cli_thread(NULL);
 }

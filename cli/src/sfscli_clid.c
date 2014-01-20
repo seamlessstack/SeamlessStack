@@ -29,6 +29,7 @@
 #include <sys/time.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <string.h>
 #include <sfscli.h>
 #include <sfscli_clid.h>
 
@@ -56,7 +57,8 @@ static volatile int32_t not_terminating;
 
 static uint8_t *command_buffer = NULL;
 
-int32_t main(int argc, char *argv[])
+int32_t
+main(int argc, char *argv[])
 {
 	int32_t ret = 0;
 	int32_t app_sockfd = -1;
@@ -103,11 +105,12 @@ int32_t main(int argc, char *argv[])
 
 
 /* ========================== Private Functions ======================== */
-static int32_t clid_validate_params(char *clid_name, char *clid_port_str,
-									char *clid_addr_str, char *sfs_port_str,
-									char *sfs_addr_str, uint16_t *clid_port,
-									in_addr_t *clid_addr, uint16_t *sfs_port,
-									in_addr_t *sfs_addr)
+static int32_t
+clid_validate_params(char *clid_name, char *clid_port_str,
+					char *clid_addr_str, char *sfs_port_str,
+					char *sfs_addr_str, uint16_t *clid_port,
+					in_addr_t *clid_addr, uint16_t *sfs_port,
+					in_addr_t *sfs_addr)
 {
 	char *laddr = clid_addr_str;
 	char *raddr = sfs_addr_str;
@@ -151,7 +154,8 @@ static int32_t clid_validate_params(char *clid_name, char *clid_port_str,
 	return 0;
 }
 
-static int32_t clid_start(in_addr_t clid_addr, uint16_t clid_port)
+static int32_t
+clid_start(in_addr_t clid_addr, uint16_t clid_port)
 {
 	struct sockaddr_in servaddr;
 	struct in_addr inaddr;
@@ -169,7 +173,8 @@ static int32_t clid_start(in_addr_t clid_addr, uint16_t clid_port)
 		servaddr.sin_addr.s_addr = clid_addr;
 		servaddr.sin_port = htons(clid_port);
 		inaddr.s_addr = clid_addr;
-		if (bind(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr)) == 0) {
+		if (bind(sockfd, (struct sockaddr *)&servaddr,
+								sizeof(servaddr)) == 0) {
 			fprintf(stdout, "Waiting for connections at %s:%d\n",
 					inet_ntoa(inaddr), clid_port);
 			listen(sockfd, 128);
@@ -188,13 +193,15 @@ static int32_t clid_start(in_addr_t clid_addr, uint16_t clid_port)
 	return ret;
 }
 
-static int handle_sigalarm(int signum)
+void
+handle_sigalarm(int signum)
 {
 	if (signum)
 		printf ("Timer fired\n");
 }
-static void clid_process_commands(int32_t app_sockfd,
-								  in_addr_t sfs_addr, uint16_t sfs_port)
+static void
+clid_process_commands(int32_t app_sockfd,
+					  in_addr_t sfs_addr, uint16_t sfs_port)
 {
 	int32_t sfs_sockfd = -1;
 	ssize_t rnbytes = 0;
@@ -242,16 +249,17 @@ static void clid_process_commands(int32_t app_sockfd,
 		select_read_to_buffer(app_rw_sockfd, rc,
 							  buffer, SFSCLI_MAX_BUFFER_SIZE, rnbytes);
 		/* No processing here, just forward the buffer to SFS */
-		printf ("Time to forward to sfs.. rnbytes : %d, rc : %d\n", rnbytes, rc);
+		printf ("Time to forward to sfs.. rnbytes : %ld, rc : %d\n",
+						rnbytes, rc);
 		if (rnbytes > 0 && rc > 0) {
-			printf ("Read %d bytes from the CLI APP\n");
+			printf ("Read %ld bytes from the CLI APP\n", rnbytes);
 			wnbytes = write(sfs_sockfd, buffer, rnbytes);
-			printf ("wrote %d bytes to sfs\n", wnbytes);
+			printf ("wrote %ld bytes to sfs\n", wnbytes);
 			if (wnbytes < 0) {
 				ret = clid_connect_sfs(sfs_sockfd, sfs_addr, sfs_port);
 				if (ret == 0) {
 					wnbytes = write(sfs_sockfd, buffer, rnbytes);
-					printf ("wnbytes (2nd) %d bytes to sfs\n", wnbytes);
+					printf ("wnbytes (2nd) %ld bytes to sfs\n", wnbytes);
 				}
 			}
 		}
@@ -263,9 +271,9 @@ static void clid_process_commands(int32_t app_sockfd,
 			select_read_to_buffer(sfs_sockfd, rc,
 								  buffer, SFSCLI_MAX_BUFFER_SIZE, rnbytes);
 			if (rnbytes > 0 && rc > 0) {
-				printf ("Read %d bytes from SFS\n", rnbytes);
+				printf ("Read %ld bytes from SFS\n", rnbytes);
 				wnbytes = write(app_rw_sockfd, buffer, rnbytes);
-				printf ("Wrote %d bytes to the APP\n", wnbytes);
+				printf ("Wrote %ld bytes to the APP\n", wnbytes);
 			} else {
 				/* TODO: Error reading from SFS, send an error to CLI app */
 			}
@@ -283,8 +291,9 @@ static void clid_process_commands(int32_t app_sockfd,
 	return;
 }
 
-static int32_t clid_connect_sfs(int32_t sockfd,
-								in_addr_t sfs_addr,uint16_t sfs_port)
+static int32_t
+clid_connect_sfs(int32_t sockfd,
+				in_addr_t sfs_addr,uint16_t sfs_port)
 {
 	struct sockaddr_in servaddr;
 	int32_t ret = -1;
@@ -298,7 +307,8 @@ static int32_t clid_connect_sfs(int32_t sockfd,
 	return ret;
 }
 
-static void clid_handle_sigterm(int signum)
+static void
+clid_handle_sigterm(int signum)
 {
 	if (signum == SIGTERM)
 		not_terminating = 0;

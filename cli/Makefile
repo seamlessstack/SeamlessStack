@@ -30,7 +30,7 @@ LDFLAGS = -shared -lc -Wl,-soname
 LIBS = -lpthread -L.
 SONAME = libsfscli.so
 RM = rm
-CC = gcc
+CC = c99
 
 LOG_DECODE_OBJS = src/sstack_log_decode.o
 SFSCLI_OBJS = src/sfscli.o 
