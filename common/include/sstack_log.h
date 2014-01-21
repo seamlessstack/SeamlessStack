@@ -236,6 +236,8 @@ sfs_log_init(log_ctx_t *ctx, sfs_log_level_t level, char *compname)
 	if (access(sstack_log_directory, W_OK) == 0) {
 		sprintf(log_file_abspath, "%s/%s_%ld%s", sstack_log_directory,
 				file_name, time(NULL), ".log");
+		fprintf(stderr, "%s: log file path = %s \n", __FUNCTION__,
+						log_file_abspath);
 	} else {
 		// Go ahead and use default SFS directory
 		// Check if SFS_LOG_DIRECTORY exists
@@ -245,6 +247,8 @@ sfs_log_init(log_ctx_t *ctx, sfs_log_level_t level, char *compname)
 	 	}
 		sprintf(log_file_abspath, "%s/%s_%ld%s", SFS_LOG_DIRECTORY,
 				file_name, time(NULL), ".log");
+		fprintf(stderr, "%s: log file path = %s \n", __FUNCTION__,
+						log_file_abspath);
 	}
 
 	// TODO
@@ -317,27 +321,27 @@ sfs_log(log_ctx_t *ctx, sfs_log_level_t level, char *format, ...)
 	switch(level) {
 		case SFS_EMERG:
 			snprintf((char * __restrict__) &log_entry.level,
-				SFS_LOGLEVEL_LEN, "%s: ", "EMERGENCY");
+				SFS_LOGLEVEL_LEN, "%s ", "EMERGENCY");
 			break;
 		case SFS_CRIT:
 			snprintf((char * __restrict__) &log_entry.level,
-				SFS_LOGLEVEL_LEN, "%s: ", "CRITICAL");
+				SFS_LOGLEVEL_LEN, "%s ", "CRITICAL");
 			break;
 		case SFS_ERR:
 			snprintf((char * __restrict__) &log_entry.level,
-				SFS_LOGLEVEL_LEN, "%s: ", "ERROR");
+				SFS_LOGLEVEL_LEN, "%s ", "ERROR");
 			break;
 		case SFS_WARNING:
 			snprintf((char * __restrict__) &log_entry.level,
-				SFS_LOGLEVEL_LEN, "%s: ", "warning");
+				SFS_LOGLEVEL_LEN, "%s ", "warning");
 			break;
 		case SFS_INFO:
 			snprintf((char * __restrict__) &log_entry.level,
-				SFS_LOGLEVEL_LEN, "%s: ", "info");
+				SFS_LOGLEVEL_LEN, "%s ", "info");
 			break;
 		case SFS_DEBUG:
 			snprintf((char * __restrict__) &log_entry.level,
-				SFS_LOGLEVEL_LEN, "%s: ", "debug");
+				SFS_LOGLEVEL_LEN, "%s ", "debug");
 			break;
 		default:
 			break;
@@ -348,15 +352,8 @@ sfs_log(log_ctx_t *ctx, sfs_log_level_t level, char *format, ...)
 			(char * __restrict__) format, list);
 	va_end(list);
 	pthread_mutex_lock(&ctx->log_mutex);
-#if 1
 	// Go ahead and write to the log file
 	res = write(ctx->log_fd, &log_entry, sizeof(log_entry_t));
-#else
-	/* Till the time decoding utility is done,
-	   dump raw text */
-	res = fprintf(ctx->log_fp, "%s == %s == %s \n", log_entry.time,
-			log_entry.level, log_entry.log);
-#endif // if 1
 	pthread_mutex_unlock(&ctx->log_mutex);
 	// Not sure whether fclose(out) will cause close(ctx->log_fd)
 	// TBD

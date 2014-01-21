@@ -46,7 +46,8 @@ SFS_OBJS += src/sfs_traceroute.o
 SFSCLI_OBJS = src/sfs_sfscli.o
 SFSCLI_SRCS = src/sfs_sfscli.c
 
-all:: sfscli_handler sfs
+#all:: sfscli_handler sfs
+all:: sfs
 
 sfscli_handler: $(SFSCLI_OBJS)
 	$(CC) $(LDFLAGS) -o $@ $(SFSCLI_OBJS) -L$(TOPDIR)/cli -lsfscli $(LIB) 

@@ -501,7 +501,7 @@ void bds_cache_init (void)
 	pthread_attr_init(&attr);
 	ret = pthread_create(&thread, &attr, bds_garbage_collect, NULL);
 	if (ret == 0) {
-		printf ("Garbage collector thread created\n");
+		// printf ("Garbage collector thread created\n");
 	} else {
 		perror("thread creation failed");
 	}

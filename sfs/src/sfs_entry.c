@@ -47,6 +47,8 @@ pthread_mutex_t sfs_job_id_mutex;
 sstack_bitmap_t *sstack_job_id_bitmap = NULL;
 sstack_job_id_t current_job_id = 0;
 
+extern char sfs_mountpoint[];
+
 static inline int
 sfs_send_read_status(sstack_job_map_t *job_map, char *buf, size_t size);
 
@@ -75,6 +77,26 @@ create_payload(void)
 }
 
 
+static char *
+prepend_mntpath(char *path)
+{
+	char *fullpath = NULL;
+
+	// Parameter validation
+	if (NULL == path)
+		return NULL;
+
+	fullpath = malloc(strlen(path) + strlen(sfs_mountpoint) + 1);
+	if (NULL == fullpath)
+		return NULL;
+
+	strcpy(fullpath, sfs_mountpoint);
+	strcat(fullpath, path);
+
+	return fullpath;
+}
+
+
 
 /*
  * NOTE:
@@ -97,10 +119,7 @@ int
 sfs_getattr(const char *path, struct stat *stbuf)
 {
 	int ret = -1;
-	unsigned long long inode_num = 0;
-	char *inodestr = NULL;
-	sstack_inode_t inode;
-	size_t size = 0;
+	char *fullpath = NULL;
 
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s: path = %s \n", __FUNCTION__, path);
 	// Parameter validation
@@ -112,9 +131,11 @@ sfs_getattr(const char *path, struct stat *stbuf)
 		return -1;
 	}
 
-	ret = lstat(path, stbuf);
+	fullpath = prepend_mntpath(path);
+	ret = lstat(fullpath, stbuf);
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s: Returning with status %d\n", __FUNCTION__,
 					ret);
+	free(fullpath);
 
 	return ret;
 }

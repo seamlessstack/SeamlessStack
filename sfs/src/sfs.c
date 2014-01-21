@@ -60,8 +60,6 @@
 #include <sfs_jobmap_tree.h>
 #include <sfs_lock_tree.h>
 
-#define RECV_THREAD 1
-
 
 /* Macros */
 #define MAX_INODE_LEN 40 // Maximum len of uint64_t is 39
@@ -108,14 +106,12 @@ bds_cache_desc_t sfs_global_cache[MAX_CACHE_OFFSET];
 /* Structure definitions */
 
 static struct fuse_opt sfs_opts[] = {
-	FUSE_OPT_KEY("log_file_dir=%s", KEY_LOG_FILE_DIR),
-	FUSE_OPT_KEY("branches=%s", KEY_BRANCHES),
+	FUSE_OPT_KEY("-D=%s", KEY_LOG_FILE_DIR),
 	FUSE_OPT_KEY("--help", KEY_HELP),
 	FUSE_OPT_KEY("-h", KEY_HELP),
-	FUSE_OPT_KEY("-d", KEY_DEBUG),
+	FUSE_OPT_KEY("-L=%d", KEY_LOG_LEVEL),
 	FUSE_OPT_KEY("--version", KEY_VERSION),
-	FUSE_OPT_KEY("-v", KEY_VERSION),
-	FUSE_OPT_KEY("log_level=%d", KEY_LOG_LEVEL),
+	FUSE_OPT_KEY("-V", KEY_VERSION),
 	FUSE_OPT_END
 };
 
@@ -587,6 +583,8 @@ sfs_dispatcher(void * arg)
 	sfs_job_queue_t *job_list = (sfs_job_queue_t *) arg;
 	bds_list_head_t temp = NULL;
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d job = 0x%x\n", __FUNCTION__, __LINE__,
+					job_list);
 	// Parameter validation
 	if (NULL == arg) {
 		// This is to catch BSS corruption only.
@@ -608,9 +606,13 @@ sfs_dispatcher(void * arg)
 
 		// Process hi priority queue
 		temp = &job_list->list;
+		if (list_empty(temp))
+			continue;
+
 		list_for_each_entry(job, temp, wait_list) {
 			if (i == MAX_HIGH_PRIO)
 				break;
+			sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
 			// Detach the job
 			bds_list_del((bds_list_head_t) &job->wait_list);
 			// process the job
@@ -871,12 +873,8 @@ sfs_init(struct fuse_conn_info *conn)
 						"and retry.\n", __FUNCTION__);
 		return NULL;
 	}
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d  intf_addr = %s\n",
-					__FUNCTION__, __LINE__, *intf_addr);
 
 	strcpy((char *) &transport.transport_hdr.tcp.ipv4_addr, *intf_addr);
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d ipv4_addr = %s \n",
-			__FUNCTION__, __LINE__, transport.transport_hdr.tcp.ipv4_addr);
 	transport.transport_hdr.tcp.port = SFS_SERVER_PORT;
 	ret = sstack_transport_register(type, &transport, ops);
 	// Call server setup
@@ -887,9 +885,7 @@ sfs_init(struct fuse_conn_info *conn)
 					"Error = %d \n", __FUNCTION__, errno);
 		// cleanup
 		db->db_ops.db_close(sfs_ctx);
-#ifdef RECV_THREAD
 		pthread_kill(recv_thread, SIGKILL);
-#endif
 		sstack_transport_deregister(type, &transport);
 
 		return NULL;
@@ -903,9 +899,7 @@ sfs_init(struct fuse_conn_info *conn)
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to create thread pool. "
 						"Exiting ...\n", __FUNCTION__);
 		db->db_ops.db_close(sfs_ctx);
-#ifdef RECV_THREAD
 		pthread_kill(recv_thread, SIGKILL);
-#endif
 		sstack_transport_deregister(type, &transport);
 
 		return NULL;
@@ -918,9 +912,7 @@ sfs_init(struct fuse_conn_info *conn)
 		// Job list creation failed
 		// No point in continuing
 		db->db_ops.db_close(sfs_ctx);
-#ifdef RECV_THREAD
 		pthread_kill(recv_thread, SIGKILL);
-#endif
 		sstack_transport_deregister(type, &transport);
 		sstack_thread_pool_destroy(sfs_thread_pool);
 
@@ -939,9 +931,7 @@ sfs_init(struct fuse_conn_info *conn)
 		sfs_log(sfs_ctx, SFS_CRIT, "%s: Unable to create job dispatcher "
 						"thread\n", __FUNCTION__);
 		db->db_ops.db_close(sfs_ctx);
-#ifdef RECV_THREAD
 		pthread_kill(recv_thread, SIGKILL);
-#endif
 		sstack_transport_deregister(type, &transport);
 		sstack_thread_pool_destroy(sfs_thread_pool);
 		(void) sfs_job_queue_destroy(&jobs);
@@ -953,9 +943,7 @@ sfs_init(struct fuse_conn_info *conn)
 		// Job list creation failed
 		// No point in continuing
 		db->db_ops.db_close(sfs_ctx);
-#ifdef RECV_THREAD
 		pthread_kill(recv_thread, SIGKILL);
-#endif
 		sstack_transport_deregister(type, &transport);
 		sstack_thread_pool_destroy(sfs_thread_pool);
 		(void) sfs_job_queue_destroy(&jobs);
@@ -969,9 +957,7 @@ sfs_init(struct fuse_conn_info *conn)
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to create jobmap RB-tree \n",
 						__FUNCTION__);
 		db->db_ops.db_close(sfs_ctx);
-#ifdef RECV_THREAD
 		pthread_kill(recv_thread, SIGKILL);
-#endif
 		sstack_transport_deregister(type, &transport);
 		sstack_thread_pool_destroy(sfs_thread_pool);
 		(void) sfs_job_queue_destroy(&jobs);
@@ -988,9 +974,7 @@ sfs_init(struct fuse_conn_info *conn)
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to create jobid RB-tree \n",
 						__FUNCTION__);
 		db->db_ops.db_close(sfs_ctx);
-#ifdef RECV_THREAD
 		pthread_kill(recv_thread, SIGKILL);
-#endif
 		sstack_transport_deregister(type, &transport);
 		sstack_thread_pool_destroy(sfs_thread_pool);
 		(void) sfs_job_queue_destroy(&jobs);
@@ -1003,9 +987,7 @@ sfs_init(struct fuse_conn_info *conn)
 	sstack_job_id_bitmap  = sfs_init_bitmap(MAX_OUTSTANDING_JOBS, sfs_ctx);
 	if (NULL == sstack_job_id_bitmap) {
 		db->db_ops.db_close(sfs_ctx);
-#ifdef RECV_THREAD
 		pthread_kill(recv_thread, SIGKILL);
-#endif
 		sstack_transport_deregister(type, &transport);
 		sstack_thread_pool_destroy(sfs_thread_pool);
 		(void) sfs_job_queue_destroy(&jobs);
@@ -1022,9 +1004,7 @@ sfs_init(struct fuse_conn_info *conn)
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to create filelock "
 						" RB-tree \n", __FUNCTION__);
 		db->db_ops.db_close(sfs_ctx);
-#ifdef RECV_THREAD
 		pthread_kill(recv_thread, SIGKILL);
-#endif
 		sstack_transport_deregister(type, &transport);
 		sstack_thread_pool_destroy(sfs_thread_pool);
 		(void) sfs_job_queue_destroy(&jobs);
@@ -1043,7 +1023,6 @@ sfs_init(struct fuse_conn_info *conn)
 	pthread_spin_init(&filelock_lock, PTHREAD_PROCESS_PRIVATE);
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
 
-	return NULL;
 	// Initialize sfsd_pool
 	sfsd_pool = sstack_sfsd_pool_init();
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d sfsd_pool = 0x%x \n", __FUNCTION__,
@@ -1053,9 +1032,7 @@ sfs_init(struct fuse_conn_info *conn)
 		// Product is not scalable and useless.
 		// Exit
 		db->db_ops.db_close(sfs_ctx);
-#ifdef RECV_THREAD
 		pthread_kill(recv_thread, SIGKILL);
-#endif
 		sstack_transport_deregister(type, &transport);
 		sstack_thread_pool_destroy(sfs_thread_pool);
 		(void) sfs_job_queue_destroy(&jobs);
@@ -1081,9 +1058,7 @@ sfs_init(struct fuse_conn_info *conn)
 			sfs_log(sfs_ctx, SFS_ERR, "%s: Could not allocate cache for %s\n",
 							slabs[i].name);
 			db->db_ops.db_close(sfs_ctx);
-#ifdef RECV_THREAD
 			pthread_kill(recv_thread, SIGKILL);
-#endif
 			sstack_transport_deregister(type, &transport);
 			sstack_thread_pool_destroy(sfs_thread_pool);
 			(void) sfs_job_queue_destroy(&jobs);
@@ -1118,42 +1093,21 @@ sfs_print_help(const char *progname)
 {
 
 	fprintf(stderr,
-	"Usage: %s [options] branch[,RO/RW,weight][:branch...] mountpoint\n"
-	"The first argement is a colon separated list of client directories\n"
-	"\n"
-	"general options:\n"
-	"	-o opt,[opt...]		Mount options\n"
-	"	-h --help			print help\n"
-	"	-V --version		print version\n"
-	"\n"
-	"Mount options:\n"
-	"	-o log_file_dir		Directory where log files are stored\n"
-	"	-o dirs=branch[,RO/RW,weight][:branch...]\n"
-	"	alternate way to specify client directories\n"
-	"\n",
-	progname);
+		"Usage: %s ipaddr1,branch[,RO/RW,storage_weight][:ipadddr2...] "
+		" mountpoint \n"
+		" For local directory, use 127.0.0.1 as ipaddr. \n"
+		" RO/RW is optional. By default, RO is used \n"
+		" Storage weight is optional. By default, medium weight is chosen\n"
+		"\n"
+		"General options:\n"
+		"	-h --help			print help\n"
+		"	-V --version		print version\n"
+		"	-D=<log_file_dir>	Directory where log files are stored\n"
+		"	-L=<log_level>		Logging level\n"
+		"\n",
+		progname);
+
 }
-
-#if 0
-static int
-strsearch(char *str, char c)
-{
-	int i = 0;
-	// Parameter validation
-	if (NULL == str) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameter specified \n",
-						__FUNCTION__);
-		return -1;
-	}
-
-	for (i = 0; i < strlen(str); i ++) {
-		if (*(str + i) == c)
-			return 0;
-	}
-
-	return -1;
-}
-#endif
 
 
 // Store chunk paths found in a temporary space before populating db
@@ -1176,28 +1130,14 @@ sfs_store_branch(char *branch)
 	sfs_chunks = (sfs_chunk_entry_t *) temp;
 	memset((void *) (sfs_chunks + nchunks), '\0', sizeof(sfs_chunk_entry_t));
 	ptr = (char **) &branch;
-#if 0
-	ret = strsearch(branch, ',');
-	if (ret == -1) {
-		strcpy(sfs_mountpoint, branch);
-		sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d Mount point = %s \n",
-						__FUNCTION__, __LINE__, sfs_mountpoint);
-
-		return 1;
-	}
-#endif
 	res = strsep(ptr, ",");
 	if (!res)
 		return 0;
 	strncpy(sfs_chunks[nchunks].ipaddr, res, IPV6_ADDR_LEN - 1);
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s: ipaddr = %s \n", __FUNCTION__,
-					sfs_chunks[nchunks].ipaddr);
 	res = strsep(ptr, ",");
 	if (!res)
 		return 0;
 	sfs_chunks[nchunks].chunk_path = strndup(res, PATH_MAX - 1);
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s: chunk_path = %s \n", __FUNCTION__,
-					sfs_chunks[nchunks].chunk_path);
 	sfs_chunks[nchunks].chunk_pathlen = strlen(res) + 1;
 	sfs_chunks[nchunks].rw = 0;
 	sfs_chunks[nchunks].weight = DEFAULT_WEIGHT;
@@ -1206,8 +1146,6 @@ sfs_store_branch(char *branch)
 	if (res) {
 		if (strcasecmp(res, "rw") == 0) {
 			sfs_chunks[nchunks].rw = 1;
-			sfs_log(sfs_ctx, SFS_DEBUG, "%s: rw = %d \n", __FUNCTION__,
-							sfs_chunks[nchunks].rw);
 		}
 	}
 
@@ -1217,8 +1155,6 @@ sfs_store_branch(char *branch)
 
 		if (weight > MINIMUM_WEIGHT && weight < MAXIMUM_WEIGHT)
 			sfs_chunks[nchunks].weight = weight;
-		sfs_log(sfs_ctx, SFS_DEBUG, "%s: weight = %d \n", __FUNCTION__,
-						sfs_chunks[nchunks].weight);
 	}
 
 	return 1;
@@ -1287,10 +1223,7 @@ sfs_parse_branches(const char *arg)
 	while((branch = strsep(ptr, ROOT_SEP)) != NULL) {
 		if (strlen(branch) == 0)
 			continue;
-		sfs_log(sfs_ctx, SFS_DEBUG, "%s: branch = %s\n", __FUNCTION__, branch);
 		nbranches += sfs_store_branch(branch);
-		sfs_log(sfs_ctx, SFS_DEBUG, "%s: nbranches = %d\n",
-						__FUNCTION__, nbranches);
 	}
 
 	free(buf);
@@ -1305,24 +1238,12 @@ sfs_opt_proc(void *data, const char *arg, int key,
 	int res = -1;
 
 	switch(key) {
-		case FUSE_OPT_KEY_NONOPT:
-			res = sfs_parse_branches(arg);
-			if (res > 0)
-				return 0;
-			else
-				return 1;
-		case KEY_BRANCHES:
-			res = sfs_parse_branches(arg + 9);
-			if (res > 0)
-				return 0;
-			else
-				return 1;
-		case KEY_DEBUG:
-			return 0;
 		case KEY_LOG_FILE_DIR:
 			strncpy(sstack_log_directory,
-					get_opt_str(arg, "log_file_dir"),
+					get_opt_str(arg, "-D="),
 				PATH_MAX - 1);
+			fprintf(stderr, "Log directory = %s \n", __FUNCTION__,
+							sstack_log_directory);
 			return 0;
 		case KEY_HELP:
 			sfs_print_help(outargs->argv[0]);
@@ -1331,8 +1252,16 @@ sfs_opt_proc(void *data, const char *arg, int key,
 			fprintf(stderr, "sfs version: %s\n", SSTACK_VERSION);
 			exit(0);
 		case KEY_LOG_LEVEL:
-			sstack_log_level = atoi(get_opt_str(arg, "log_level"));
+			sstack_log_level = atoi(get_opt_str(arg, "-L="));
+			fprintf(stderr, "Logging level = %d\n",
+							__FUNCTION__, sstack_log_level);
 			return 0;
+		case FUSE_OPT_KEY_NONOPT:
+			res = sfs_parse_branches(arg);
+			if (res > 0)
+				return 0;
+			else
+				return 1;
 		default:
 			ASSERT((1 == 0), "Invalid argument specified. Exiting",
 					0, 0, 0);
@@ -1386,6 +1315,7 @@ main(int argc, char *argv[])
 	int uid = getuid();
 	int gid = getgid();
 	int ret = -1;
+	int i = 0;
 
 	// Check if root is mounting the file system.
 	// If so, return error
@@ -1394,6 +1324,9 @@ main(int argc, char *argv[])
 			" Please try mounting as a normal user\n");
 		return -1;
 	}
+	// Option parsing
+	ret = fuse_opt_parse(&args, NULL, sfs_opts, sfs_opt_proc);
+	ASSERT((ret != -1), "Parsing arguments failed. Exiting ...", 0, 1, -1);
 
 	// Initialize logging
 	sfs_ctx = sfs_create_log_ctx();
@@ -1405,12 +1338,20 @@ main(int argc, char *argv[])
 		ASSERT((ret == 0), "Log initialization failed. Logging disabled",
 			0, 0, 0);
 	}
-	ret = fuse_opt_parse(&args, NULL, sfs_opts, sfs_opt_proc);
-	ASSERT((ret != -1), "Parsing arguments failed. Exiting ...", 0, 1, -1);
 	mc = sstack_memcache_init("localhost", 1, sfs_ctx);
+
+
+	strcpy(sfs_mountpoint, args.argv[args.argc - 1]);
+	fprintf(stderr, "File system mount point = %s \n",
+					__FUNCTION__, sfs_mountpoint);
 
 	ret = fuse_opt_add_arg(&args, "-obig_writes");
 	ASSERT((ret != -1), "Enabling big writes failed.", 0, 0, 0);
+#if 1
+	for (i = 0; i < args.argc; i++) {
+		fprintf(stderr, "%d %s \n", i, args.argv[i]);
+	}
+#endif
 
 	return fuse_main(args.argc, args.argv, &sfs_oper, NULL);
 }

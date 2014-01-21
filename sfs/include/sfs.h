@@ -187,13 +187,9 @@ get_local_ip(char *interface, char **intf_addr, int type, log_ctx_t *ctx)
 	if (type == IPv6) {
 		len = IPV6_ADDR_LEN;
 		family = AF_INET6;
-		sfs_log(ctx, SFS_DEBUG, "%s:%d IPV6 interface \n",
-						__FUNCTION__, __LINE__);
 	} else {
 		len = IPV4_ADDR_LEN;
 		family = AF_INET;
-		sfs_log(ctx, SFS_DEBUG, "%s:%d IPV4 interface \n",
-						__FUNCTION__, __LINE__);
 	}
 
 	*intf_addr = (char *) malloc(len);
@@ -226,8 +222,6 @@ get_local_ip(char *interface, char **intf_addr, int type, log_ctx_t *ctx)
 				(void *) &((struct sockaddr_in6 *) &ifr.ifr_addr)->sin6_addr,
 				*intf_addr, IPV6_ADDR_LEN);
 	}
-	sfs_log(ctx, SFS_DEBUG, "%s:%d intf_addr = %s \n", 
-					__FUNCTION__, __LINE__, *intf_addr);
 
 	return 0;
 }
