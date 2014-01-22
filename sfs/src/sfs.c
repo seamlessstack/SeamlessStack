@@ -58,6 +58,7 @@
 #include <mongo_db.h>
 #include <sfs_jobid_tree.h>
 #include <sfs_jobmap_tree.h>
+#include <sfs_storage_tree.h>
 #include <sfs_lock_tree.h>
 
 
@@ -87,6 +88,7 @@ sstack_transport_t transport;
 jobmap_tree_t *jobmap_tree = NULL;
 jobid_tree_t *jobid_tree = NULL;
 filelock_tree_t *filelock_tree = NULL;
+storage_tree_t	*storage_tree = NULL;
 pthread_spinlock_t jobmap_lock;
 pthread_spinlock_t jobid_lock;
 pthread_spinlock_t filelock_lock;
@@ -559,6 +561,38 @@ sfs_process_payload(void *arg)
 			//sfs_process_esure_code_response(payload);
 			break;
 
+		case (SSTACK_ADD_STORAGE_RSP):
+		case (SSTACK_REMOVE_STORAGE_RSP):
+		case (SSTACK_UPDATE_STORAGE_RSP):
+		{
+			pthread_t           thread_id;
+			sstack_jm_t         *jm_node = NULL, jm_key;
+		    sstack_jt_t         *jt_node = NULL, jt_key;
+			sstack_job_id_t     job_id;
+			sstack_job_map_t    *job_map = NULL;
+
+			job_id = payload->hdr.job_id;
+			
+			jt_key.magic = JTNODE_MAGIC;
+		    jt_key.job_id = job_id;
+		    jt_node = jobid_tree_search(jobid_tree, &jt_key);
+			if (jt_node == NULL) {
+				errno = SSTACK_CRIT_FAILURE;
+				return NULL;
+			}
+			thread_id = jt_node->thread_id;
+			jm_key.magic = JMNODE_MAGIC;
+		    jm_key.thread_id = thread_id;
+		    jm_node = jobmap_tree_search(jobmap_tree, &jm_key);
+		    if (jm_node == NULL) {
+				errno = SSTACK_CRIT_FAILURE;
+				return NULL;
+			}	
+			job_map = jm_node->job_map;
+			pthread_cond_signal(&job_map->condition);
+			break;
+		}	
+
 		default:
 			break;
 	}
@@ -966,6 +1000,7 @@ sfs_init(struct fuse_conn_info *conn)
 	}
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
 
+	storage_tree = storage_tree_init();
 	// Create jobid tree
 	jobid_tree = jobid_tree_init();
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d jobid_tree = 0x%x \n",

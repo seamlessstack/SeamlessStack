@@ -247,6 +247,7 @@ uint32_t show_policy_entries(uint8_t **resp_buf, ssize_t *resp_len,
 	struct	policy_input *pi;
 	struct attribute attr;
 	uint8_t	*temp = NULL;
+	int entry_len = 0;
 
 	if (pol_list) {
 		for (i = 0; i < num_pol; i++) {
@@ -259,6 +260,7 @@ uint32_t show_policy_entries(uint8_t **resp_buf, ssize_t *resp_len,
 	num_pol = 0;
 	db->db_ops.db_iterate(db_type, collect_policy_entries, &num_pol, 
 									policy_ctx);
+	*resp_len = 0;
 	for (i = 0; i < num_pol; i++) {
 		pi = pol_list[i];
 		attr = pi->pi_attr;
@@ -273,16 +275,18 @@ uint32_t show_policy_entries(uint8_t **resp_buf, ssize_t *resp_len,
 			sprintf(policy_string + strlen(policy_string),
 					"%s  ", pi->pi_policy_tag[j]);
 		}
-
-		temp = realloc(*resp_buf, strlen(policy_string));
+		
+		entry_len = strlen(policy_string);
+		temp = realloc(*resp_buf, *resp_len + entry_len);
 		if (temp == NULL) {
 			return -ENOMEM;
 		}
+//		strncpy(temp, *resp_buf, *resp_len);
 		*resp_buf = temp;
-		strncpy(*resp_buf, policy_string, strlen(policy_string));
+		strncpy(*resp_buf + *resp_len, policy_string, entry_len);
+		*resp_len += entry_len;
 	}
 
-	*resp_len = strlen(*resp_buf);
 	return (*resp_len);
 }
 

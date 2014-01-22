@@ -27,17 +27,86 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <sstack_types.h>
+#include <sfs_internal.h>
+#include <sstack_jobs.h>
+#include <sstack_storage.h>
 #include <sfscli.h>
 #include <sfscli_clid.h>
 #include <policy.h>
+#include <sfs_storage_tree.h>
+#include <sfs_jobid_tree.h>
+#include <sfs_jobmap_tree.h>
+#include <sstack_nfs.h>
 
 #define MAX_RESPONSE_LEN	1000
 char sfscli_response[MAX_RESPONSE_LEN];
 static int32_t not_terminating = 1;
 static int32_t connection_dropped = 1;
+char *buf = NULL;
+int	buf_len = 0;
 
 static void handle_cli_requests(int32_t sockfd);
 
+static sfs_st_t *
+display_storage_devices(storage_tree_t *tree, sfs_st_t *node, void *arg)
+{
+	char dev_type[4];
+	char proto[8];
+	char *temp = NULL;
+	static int index = 0;
+	int	entry_len = 0;
+
+	if (node == NULL) {
+		printf("Critical error in tree\n");
+		return NULL;
+	}
+
+	switch (node->type) {
+		case SSTACK_STORAGE_HDD: 
+			strcpy(dev_type, "HDD");
+			break;
+		case SSTACK_STORAGE_SSD:
+			strcpy(dev_type, "SSD");
+			break;
+		default:
+			strcpy(dev_type, "ERR");
+	}
+
+	switch (node->access_protocol) {
+		case NFS:
+			strcpy(proto, "NFS");
+			break;
+		case CIFS:
+			strcpy(proto, "CIFS");
+			break;
+		case ISCSI:
+			strcpy(proto, "ISCSI");
+			break;
+		case NATIVE:
+			strcpy(proto, "NATIVE");
+			break;
+		default:
+			strcpy(proto, "ERR");
+	}
+
+	sprintf(sfscli_response, "Index: %d\t IP: %s   Remotepath: %s\t"
+			"Proto: %s   Type: %s  Size: %d\n",
+			index++, node->address.ipv4_address,
+			node->rpath, proto, dev_type, node->size);
+	entry_len = strlen(sfscli_response);
+	temp = realloc(buf, entry_len + buf_len);
+	if (temp == NULL) {
+		printf("%s: Line %d: Critical error\n", __FUNCTION__, __LINE__);
+		return NULL;
+	}	
+//	strncpy(temp, buf, buf_len);
+	buf = temp;
+	strncpy(buf + buf_len, sfscli_response, entry_len);
+	buf_len += entry_len;
+	
+	return (NULL);
+}	
+	
 static void *
 init_cli_thread(void *arg)
 {
@@ -133,27 +202,165 @@ ssize_t get_storage_command_response(uint8_t *buffer, size_t buf_len,
 {
 	struct sfscli_cli_cmd *cmd;
 	ssize_t resp_len = 0;
+	pthread_t thread_id;
+	sstack_job_map_t *job_map = NULL;
+	sfs_job_t *job = NULL;
+	sstack_payload_t *payload = NULL;
+	int		ret = 0;
 	
 	if (sfscli_deserialize_storage(buffer, buf_len, &cmd) != 0)
 		return (0);
 
 	switch(cmd->input.storage_cmd) {
-		case STORAGE_ADD_CMD:
-			break;
-		
-		case STORAGE_DEL_CMD:
-			break;
-		
-		case STORAGE_UPDATE_CMD:
-			break;
-		
 		case STORAGE_SHOW_CMD:
+			sfs_storage_tree_iter(display_storage_devices);
+			strncpy(*resp_buf, buf, buf_len);
+			resp_len = buf_len;
+			free(buf);
+			buf_len = 0;
 			break;
 
+		case STORAGE_ADD_CMD:
+		case STORAGE_DEL_CMD:
+		case STORAGE_UPDATE_CMD: 
+		{
+			thread_id = pthread_self();
+			job_map = create_job_map();
+			if (NULL == job_map) {
+		        sfs_log(sfs_ctx, SFS_ERR, "%s: Failed allocate memory for "
+					                        "job map \n", __FUNCTION__);
+				goto err;
+			}	
+			
+			job = sfs_job_init();
+	        if (NULL == job) {
+	            sfs_log(sfs_ctx, SFS_ERR, "%s: Fail to allocate job memory.\n",
+					                    __FUNCTION__);
+				goto err;
+			}
+			job->id = get_next_job_id();
+	        job->job_type = SFSD_IO;
+	        job->num_clients = 1;
+//	        job->sfsds[0] = inode.i_primary_sfsd->sfsd;
+	        job->job_status[0] = JOB_STARTED;
+
+			job->priority = QOS_HIGH;
+			payload = create_payload();
+			payload->hdr.sequence = 0; // Reinitialized by transport
+	        payload->hdr.payload_len = sizeof(sstack_payload_t);
+	        payload->hdr.job_id = job->id;
+	        payload->hdr.priority = job->priority;
+	        payload->hdr.arg = (uint64_t) job;
+			if (cmd->input.storage_cmd == STORAGE_ADD_CMD) {
+				payload->command = SSTACK_ADD_STORAGE;	
+				payload->command_struct.add_chunk_cmd.storage.address =
+						cmd->input.sti.address;
+				strcpy(payload->command_struct.add_chunk_cmd.storage.path, 
+						cmd->input.sti.rpath);
+				payload->command_struct.add_chunk_cmd.storage.protocol =
+						cmd->input.sti.access_protocol;
+				payload->command_struct.add_chunk_cmd.storage.nblocks =
+						cmd->input.sti.size;
+				payload->command_struct.add_chunk_cmd.storage.weight = 
+						cmd->input.sti.type; //need to map type to weight TBD
+			} else if (cmd->input.storage_cmd == STORAGE_DEL_CMD) {
+				payload->command = SSTACK_REMOVE_STORAGE;
+				payload->command_struct.delete_chunk_cmd.storage.address =
+					                        cmd->input.sti.address;
+				strcpy(payload->command_struct.delete_chunk_cmd.storage.path,
+					                        cmd->input.sti.rpath);
+			} else if (cmd->input.storage_cmd == STORAGE_UPDATE_CMD) {
+				payload->command = SSTACK_UPDATE_STORAGE;
+				payload->command_struct.update_chunk_cmd.storage.address =
+					                        cmd->input.sti.address;
+				strcpy(payload->command_struct.update_chunk_cmd.storage.path,
+						                        cmd->input.sti.rpath);
+				payload->command_struct.update_chunk_cmd.storage.nblocks =
+					                        cmd->input.sti.size;
+			}	
+	       	 
+			job->payload_len = sizeof(sstack_payload_t);
+	        job->payload = payload;
+			job_map->num_jobs = 1;
+			job_map->job_ids = malloc(sizeof(sstack_job_id_t));
+	        if (NULL == job_map->job_ids) {
+	            sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to allocate memory for "
+			                            "job_ids \n", __FUNCTION__);
+				goto err;
+			}
+			job_map->job_ids[0] = job->id;
+			ret = sfs_job2thread_map_insert(thread_id, job->id);
+			if (ret == -1) {
+	            sfs_log(sfs_ctx, SFS_ERR, "%s: Failed insert the job context "
+			                            "into RB tree \n", __FUNCTION__);
+				goto err;
+			}
+			ret = sfs_job_context_insert(thread_id, job_map);
+		    if (ret == -1) {
+		        sfs_log(sfs_ctx, SFS_ERR, "%s: Failed insert the job context "
+				                        "into RB tree \n", __FUNCTION__);
+		        sfs_job2thread_map_remove(thread_id);
+				goto err;
+			}
+			ret = sfs_submit_job(job->priority, jobs, job);
+	        if (ret == -1) {
+	            sfs_job_context_remove(thread_id);
+	            sfs_job2thread_map_remove(thread_id);
+				goto err;
+			}
+
+			ret = sfs_wait_for_completion(job_map);
+			if (job_map->err_no != SSTACK_SUCCESS) 
+				goto err;
+			if (cmd->input.storage_cmd == STORAGE_ADD_CMD) {
+				strncpy(sfscli_response, "Add storage successful",
+									MAX_RESPONSE_LEN);
+				sfs_storage_node_insert(cmd->input.sti.address, 
+						cmd->input.sti.rpath, cmd->input.sti.access_protocol,
+						cmd->input.sti.type, cmd->input.sti.size);
+			} else if (cmd->input.storage_cmd == STORAGE_DEL_CMD) {
+				strncpy(sfscli_response, "Del storage successful",
+			                          MAX_RESPONSE_LEN);
+				sfs_storage_node_remove(cmd->input.sti.address,
+										cmd->input.sti.rpath);
+			} else if (cmd->input.storage_cmd == STORAGE_UPDATE_CMD) {
+				strncpy(sfscli_response, "Update storage successful",
+									MAX_RESPONSE_LEN);
+				sfs_storage_node_update(cmd->input.sti.address,  
+                        cmd->input.sti.rpath, cmd->input.sti.size);
+			}	
+			resp_len = strlen(sfscli_response);
+			*resp_buf = malloc(resp_len);
+			strncpy(*resp_buf, sfscli_response, resp_len);
+			
+			sfs_job_context_remove(thread_id);
+		    free(job_map->job_ids);
+		    free_job_map(job_map);
+			free(job);
+			free_payload(sfs_global_cache, payload);
+
+			break;
+		}	
+		
 		default:
 			break;
 	}
 
+	return (resp_len);
+err:
+	if (job_map) {
+		if (job_map->job_ids)
+			free(job_map->job_ids);
+		free_job_map(job_map);
+	}
+	if (job)
+		free(job);
+	if (payload) 
+		free_payload(sfs_global_cache, payload);
+	strncpy(sfscli_response, "CLI Error", MAX_RESPONSE_LEN);
+	resp_len = strlen(sfscli_response);
+	*resp_buf = malloc(resp_len);
+	strncpy(*resp_buf, sfscli_response, resp_len);
 	return (resp_len);
 }
 
