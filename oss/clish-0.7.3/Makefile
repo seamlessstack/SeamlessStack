@@ -2633,7 +2633,7 @@ distcleancheck: distclean
 	       exit 1; } >&2
 check-am: all-am
 check: check-am
-all-am: Makefile $(LIBRARIES) $(LTLIBRARIES) $(PROGRAMS) $(HEADERS) \
+all-am: $(LIBRARIES) $(LTLIBRARIES) $(PROGRAMS) $(HEADERS) \
 		config.h
 install-binPROGRAMS: install-libLTLIBRARIES
 
