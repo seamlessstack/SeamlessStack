@@ -19,8 +19,8 @@
 
 srcdir = .
 top_srcdir = .
-TOPDIR = ../../
-OSSDIR=$(TOPDIR)/..
+TOPDIR = ../..
+OSSDIR=$(TOPDIR)/oss
 pkgdatadir = $(datadir)/clish
 pkglibdir = $(libdir)/clish
 pkgincludedir = $(includedir)/clish
