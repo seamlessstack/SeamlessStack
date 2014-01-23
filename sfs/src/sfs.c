@@ -572,7 +572,7 @@ sfs_process_payload(void *arg)
 			sstack_job_map_t    *job_map = NULL;
 
 			job_id = payload->hdr.job_id;
-			
+
 			jt_key.magic = JTNODE_MAGIC;
 		    jt_key.job_id = job_id;
 		    jt_node = jobid_tree_search(jobid_tree, &jt_key);
@@ -587,11 +587,11 @@ sfs_process_payload(void *arg)
 		    if (jm_node == NULL) {
 				errno = SSTACK_CRIT_FAILURE;
 				return NULL;
-			}	
+			}
 			job_map = jm_node->job_map;
 			pthread_cond_signal(&job_map->condition);
 			break;
-		}	
+		}
 
 		default:
 			break;
@@ -832,8 +832,6 @@ sfs_init_thread_pool(void)
 static void *
 sfs_init(struct fuse_conn_info *conn)
 {
-	pthread_t thread;
-	pthread_attr_t attr;
 	pthread_t recv_thread;
 	pthread_attr_t recv_attr;
 	pthread_t dispatcher_thread;
@@ -1001,12 +999,8 @@ sfs_init(struct fuse_conn_info *conn)
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
 
 	storage_tree = storage_tree_init();
-	// Create jobid tree
-	jobid_tree = jobid_tree_init();
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d jobid_tree = 0x%x \n",
-					__FUNCTION__, __LINE__, jobid_tree);
-	if (NULL == jobid_tree) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to create jobid RB-tree \n",
+	if (NULL == storage_tree) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to create storage RB-tree \n",
 						__FUNCTION__);
 		db->db_ops.db_close(sfs_ctx);
 		pthread_kill(recv_thread, SIGKILL);
@@ -1017,7 +1011,24 @@ sfs_init(struct fuse_conn_info *conn)
 		free(jobmap_tree);
 		return NULL;
 	}
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
+
+	// Create jobid tree
+	jobid_tree = jobid_tree_init();
+	if (NULL == jobid_tree) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to create jobid RB-tree \n",
+						__FUNCTION__);
+		db->db_ops.db_close(sfs_ctx);
+		pthread_kill(recv_thread, SIGKILL);
+		sstack_transport_deregister(type, &transport);
+		sstack_thread_pool_destroy(sfs_thread_pool);
+		(void) sfs_job_queue_destroy(&jobs);
+		(void) sfs_job_queue_destroy(&pending_jobs);
+		free(jobmap_tree);
+		free(storage_tree);
+		return NULL;
+	}
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d jobid_tree = 0x%x \n",
+					__FUNCTION__, __LINE__, jobid_tree);
 	// Create job_id bitmap
 	sstack_job_id_bitmap  = sfs_init_bitmap(MAX_OUTSTANDING_JOBS, sfs_ctx);
 	if (NULL == sstack_job_id_bitmap) {
@@ -1029,6 +1040,7 @@ sfs_init(struct fuse_conn_info *conn)
 		(void) sfs_job_queue_destroy(&pending_jobs);
 		free(jobmap_tree);
 		free(jobid_tree);
+		free(storage_tree);
 	}
 
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
@@ -1046,6 +1058,7 @@ sfs_init(struct fuse_conn_info *conn)
 		(void) sfs_job_queue_destroy(&pending_jobs);
 		free(jobmap_tree);
 		free(jobid_tree);
+		free(storage_tree);
 		free(sstack_job_id_bitmap);
 		return NULL;
 	}
@@ -1075,6 +1088,7 @@ sfs_init(struct fuse_conn_info *conn)
 		free(jobmap_tree);
 		free(jobid_tree);
 		free(filelock_tree);
+		free(storage_tree);
 		free(sstack_job_id_bitmap);
 		pthread_spin_destroy(&jobmap_lock);
 		pthread_spin_destroy(&jobid_lock);
@@ -1102,6 +1116,7 @@ sfs_init(struct fuse_conn_info *conn)
 			free(jobid_tree);
 			free(filelock_tree);
 			free(sstack_job_id_bitmap);
+			free(storage_tree);
 			pthread_spin_destroy(&jobmap_lock);
 			pthread_spin_destroy(&jobid_lock);
 			pthread_spin_destroy(&filelock_lock);
@@ -1277,7 +1292,7 @@ sfs_opt_proc(void *data, const char *arg, int key,
 			strncpy(sstack_log_directory,
 					get_opt_str(arg, "-D="),
 				PATH_MAX - 1);
-			fprintf(stderr, "Log directory = %s \n", __FUNCTION__,
+			fprintf(stderr, "%s: Log directory = %s \n", __FUNCTION__,
 							sstack_log_directory);
 			return 0;
 		case KEY_HELP:
@@ -1288,7 +1303,7 @@ sfs_opt_proc(void *data, const char *arg, int key,
 			exit(0);
 		case KEY_LOG_LEVEL:
 			sstack_log_level = atoi(get_opt_str(arg, "-L="));
-			fprintf(stderr, "Logging level = %d\n",
+			fprintf(stderr, "%s: Logging level = %d\n",
 							__FUNCTION__, sstack_log_level);
 			return 0;
 		case FUSE_OPT_KEY_NONOPT:
@@ -1377,7 +1392,7 @@ main(int argc, char *argv[])
 
 
 	strcpy(sfs_mountpoint, args.argv[args.argc - 1]);
-	fprintf(stderr, "File system mount point = %s \n",
+	fprintf(stderr, "%s: File system mount point = %s \n",
 					__FUNCTION__, sfs_mountpoint);
 
 	ret = fuse_opt_add_arg(&args, "-obig_writes");

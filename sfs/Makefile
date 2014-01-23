@@ -53,7 +53,7 @@ sfscli_handler: $(SFSCLI_OBJS)
 	$(CC) $(LDFLAGS) -o $@ $(SFSCLI_OBJS) -L$(TOPDIR)/cli -lsfscli $(LIB) 
 
 $(SFSCLI_OBJS):$(SFSCLI_SRCS)
-	$(C99) $(CFLAGS) -o $@ -c $<
+	$(CC) $(CFLAGS) -o $@ -c $<
 
 sfs: $(SFS_OBJS)
 	$(CC) $(LDFLAGS) -o $@ $(SFS_OBJS) $(LIB)

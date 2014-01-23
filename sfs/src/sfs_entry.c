@@ -59,7 +59,7 @@ sfs_send_read_status(sstack_job_map_t *job_map, char *buf, size_t size);
  * Retrurns valid pointer on success and NULL upon failure.
  */
 
-static inline sstack_payload_t *
+sstack_payload_t *
 create_payload(void)
 {
 	sstack_payload_t *payload = NULL;

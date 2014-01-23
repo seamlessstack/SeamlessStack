@@ -62,7 +62,7 @@ display_storage_devices(storage_tree_t *tree, sfs_st_t *node, void *arg)
 	}
 
 	switch (node->type) {
-		case SSTACK_STORAGE_HDD: 
+		case SSTACK_STORAGE_HDD:
 			strcpy(dev_type, "HDD");
 			break;
 		case SSTACK_STORAGE_SSD:
@@ -90,7 +90,7 @@ display_storage_devices(storage_tree_t *tree, sfs_st_t *node, void *arg)
 	}
 
 	sprintf(sfscli_response, "Index: %d\t IP: %s   Remotepath: %s\t"
-			"Proto: %s   Type: %s  Size: %d\n",
+			"Proto: %s   Type: %s  Size: %ld\n",
 			index++, node->address.ipv4_address,
 			node->rpath, proto, dev_type, node->size);
 	entry_len = strlen(sfscli_response);
@@ -98,15 +98,15 @@ display_storage_devices(storage_tree_t *tree, sfs_st_t *node, void *arg)
 	if (temp == NULL) {
 		printf("%s: Line %d: Critical error\n", __FUNCTION__, __LINE__);
 		return NULL;
-	}	
+	}
 //	strncpy(temp, buf, buf_len);
 	buf = temp;
 	strncpy(buf + buf_len, sfscli_response, entry_len);
 	buf_len += entry_len;
-	
+
 	return (NULL);
-}	
-	
+}
+
 static void *
 init_cli_thread(void *arg)
 {
@@ -135,7 +135,7 @@ init_cli_thread(void *arg)
 	return NULL;
 }
 
-ssize_t get_policy_command_response(uint8_t *buffer, size_t buf_len, 
+ssize_t get_policy_command_response(uint8_t *buffer, size_t buf_len,
 									uint8_t **resp_buf)
 {
 	struct sfscli_cli_cmd *cmd;
@@ -147,21 +147,21 @@ ssize_t get_policy_command_response(uint8_t *buffer, size_t buf_len,
 
 	switch (cmd->input.policy_cmd) {
 		case POLICY_ADD_CMD:
-			ret = submit_policy_entry(&(cmd->input.pi), db, POLICY_TYPE);		
+			ret = submit_policy_entry(&(cmd->input.pi), db, POLICY_TYPE);
 			if (ret < 0) {
 				strncpy(sfscli_response, "CLI Error", MAX_RESPONSE_LEN);
 				resp_len = strlen(sfscli_response);
 				*resp_buf = malloc(resp_len);
-				strncpy(*resp_buf, sfscli_response, resp_len);
+				strncpy((char *) *resp_buf, sfscli_response, resp_len);
 			} else {
 				strncpy(sfscli_response, "Policy added successfully",
 								MAX_RESPONSE_LEN);
 				resp_len = strlen(sfscli_response);
 				*resp_buf = malloc(resp_len);
-				strncpy(*resp_buf, sfscli_response, resp_len);
+				strncpy((char *) *resp_buf, sfscli_response, resp_len);
 			}
 			break;
-		
+
 		case POLICY_DEL_CMD:
 			ret = delete_policy_entry(&(cmd->input.pi), db, POLICY_TYPE);
 			if (ret < 0) {
@@ -169,13 +169,13 @@ ssize_t get_policy_command_response(uint8_t *buffer, size_t buf_len,
 								MAX_RESPONSE_LEN);
 				resp_len = strlen(sfscli_response);
 				*resp_buf = malloc(resp_len);
-				strncpy(*resp_buf, sfscli_response, resp_len);
+				strncpy((char *) *resp_buf, sfscli_response, resp_len);
 			} else {
 				strncpy(sfscli_response, "Policy delete successfully",
 								MAX_RESPONSE_LEN);
 				resp_len = strlen(sfscli_response);
 				*resp_buf = malloc(resp_len);
-				strncpy(*resp_buf, sfscli_response, resp_len);
+				strncpy((char *) *resp_buf, sfscli_response, resp_len);
 			}
 			break;
 
@@ -186,7 +186,7 @@ ssize_t get_policy_command_response(uint8_t *buffer, size_t buf_len,
 				strncpy(sfscli_response, "CLI Error", MAX_RESPONSE_LEN);
 				resp_len = strlen(sfscli_response);
 				*resp_buf = malloc(resp_len);
-				strncpy(*resp_buf, sfscli_response, resp_len);
+				strncpy((char *) *resp_buf, sfscli_response, resp_len);
 			}
 			break;
 
@@ -195,7 +195,7 @@ ssize_t get_policy_command_response(uint8_t *buffer, size_t buf_len,
 	}
 
 	return (resp_len);
-}	
+}
 
 ssize_t get_storage_command_response(uint8_t *buffer, size_t buf_len,
 	                                        uint8_t **resp_buf)
@@ -207,14 +207,14 @@ ssize_t get_storage_command_response(uint8_t *buffer, size_t buf_len,
 	sfs_job_t *job = NULL;
 	sstack_payload_t *payload = NULL;
 	int		ret = 0;
-	
+
 	if (sfscli_deserialize_storage(buffer, buf_len, &cmd) != 0)
 		return (0);
 
 	switch(cmd->input.storage_cmd) {
 		case STORAGE_SHOW_CMD:
 			sfs_storage_tree_iter(display_storage_devices);
-			strncpy(*resp_buf, buf, buf_len);
+			strncpy((char *) *resp_buf, buf, buf_len);
 			resp_len = buf_len;
 			free(buf);
 			buf_len = 0;
@@ -222,7 +222,7 @@ ssize_t get_storage_command_response(uint8_t *buffer, size_t buf_len,
 
 		case STORAGE_ADD_CMD:
 		case STORAGE_DEL_CMD:
-		case STORAGE_UPDATE_CMD: 
+		case STORAGE_UPDATE_CMD:
 		{
 			thread_id = pthread_self();
 			job_map = create_job_map();
@@ -230,8 +230,8 @@ ssize_t get_storage_command_response(uint8_t *buffer, size_t buf_len,
 		        sfs_log(sfs_ctx, SFS_ERR, "%s: Failed allocate memory for "
 					                        "job map \n", __FUNCTION__);
 				goto err;
-			}	
-			
+			}
+
 			job = sfs_job_init();
 	        if (NULL == job) {
 	            sfs_log(sfs_ctx, SFS_ERR, "%s: Fail to allocate job memory.\n",
@@ -252,16 +252,16 @@ ssize_t get_storage_command_response(uint8_t *buffer, size_t buf_len,
 	        payload->hdr.priority = job->priority;
 	        payload->hdr.arg = (uint64_t) job;
 			if (cmd->input.storage_cmd == STORAGE_ADD_CMD) {
-				payload->command = SSTACK_ADD_STORAGE;	
+				payload->command = SSTACK_ADD_STORAGE;
 				payload->command_struct.add_chunk_cmd.storage.address =
 						cmd->input.sti.address;
-				strcpy(payload->command_struct.add_chunk_cmd.storage.path, 
+				strcpy(payload->command_struct.add_chunk_cmd.storage.path,
 						cmd->input.sti.rpath);
 				payload->command_struct.add_chunk_cmd.storage.protocol =
 						cmd->input.sti.access_protocol;
 				payload->command_struct.add_chunk_cmd.storage.nblocks =
 						cmd->input.sti.size;
-				payload->command_struct.add_chunk_cmd.storage.weight = 
+				payload->command_struct.add_chunk_cmd.storage.weight =
 						cmd->input.sti.type; //need to map type to weight TBD
 			} else if (cmd->input.storage_cmd == STORAGE_DEL_CMD) {
 				payload->command = SSTACK_REMOVE_STORAGE;
@@ -277,8 +277,8 @@ ssize_t get_storage_command_response(uint8_t *buffer, size_t buf_len,
 						                        cmd->input.sti.rpath);
 				payload->command_struct.update_chunk_cmd.storage.nblocks =
 					                        cmd->input.sti.size;
-			}	
-	       	 
+			}
+
 			job->payload_len = sizeof(sstack_payload_t);
 	        job->payload = payload;
 			job_map->num_jobs = 1;
@@ -310,12 +310,12 @@ ssize_t get_storage_command_response(uint8_t *buffer, size_t buf_len,
 			}
 
 			ret = sfs_wait_for_completion(job_map);
-			if (job_map->err_no != SSTACK_SUCCESS) 
+			if (job_map->err_no != SSTACK_SUCCESS)
 				goto err;
 			if (cmd->input.storage_cmd == STORAGE_ADD_CMD) {
 				strncpy(sfscli_response, "Add storage successful",
 									MAX_RESPONSE_LEN);
-				sfs_storage_node_insert(cmd->input.sti.address, 
+				sfs_storage_node_insert(cmd->input.sti.address,
 						cmd->input.sti.rpath, cmd->input.sti.access_protocol,
 						cmd->input.sti.type, cmd->input.sti.size);
 			} else if (cmd->input.storage_cmd == STORAGE_DEL_CMD) {
@@ -326,13 +326,13 @@ ssize_t get_storage_command_response(uint8_t *buffer, size_t buf_len,
 			} else if (cmd->input.storage_cmd == STORAGE_UPDATE_CMD) {
 				strncpy(sfscli_response, "Update storage successful",
 									MAX_RESPONSE_LEN);
-				sfs_storage_node_update(cmd->input.sti.address,  
+				sfs_storage_node_update(cmd->input.sti.address,
                         cmd->input.sti.rpath, cmd->input.sti.size);
-			}	
+			}
 			resp_len = strlen(sfscli_response);
 			*resp_buf = malloc(resp_len);
-			strncpy(*resp_buf, sfscli_response, resp_len);
-			
+			strncpy((char *) *resp_buf, sfscli_response, resp_len);
+
 			sfs_job_context_remove(thread_id);
 		    free(job_map->job_ids);
 		    free_job_map(job_map);
@@ -340,8 +340,8 @@ ssize_t get_storage_command_response(uint8_t *buffer, size_t buf_len,
 			free_payload(sfs_global_cache, payload);
 
 			break;
-		}	
-		
+		}
+
 		default:
 			break;
 	}
@@ -355,12 +355,12 @@ err:
 	}
 	if (job)
 		free(job);
-	if (payload) 
+	if (payload)
 		free_payload(sfs_global_cache, payload);
 	strncpy(sfscli_response, "CLI Error", MAX_RESPONSE_LEN);
 	resp_len = strlen(sfscli_response);
 	*resp_buf = malloc(resp_len);
-	strncpy(*resp_buf, sfscli_response, resp_len);
+	strncpy((char *) *resp_buf, sfscli_response, resp_len);
 	return (resp_len);
 }
 
@@ -370,7 +370,7 @@ ssize_t get_license_command_response(uint8_t *buffer, size_t buf_len,
 	struct sfscli_cli_cmd *cmd;
 	ssize_t resp_len = 0;
 
-	if (sfscli_deserialize_license(buffer, buf_len, &cmd) != 0) 
+	if (sfscli_deserialize_license(buffer, buf_len, &cmd) != 0)
 		return (0);
 
 	switch(cmd->input.license_cmd) {
@@ -379,7 +379,7 @@ ssize_t get_license_command_response(uint8_t *buffer, size_t buf_len,
 
 		case LICENSE_SHOW_CMD:
 			break;
-		
+
 		case LICENSE_DEL_CMD:
 			break;
 
@@ -443,7 +443,7 @@ get_command_response(uint8_t *buffer, size_t buf_len, uint8_t **resp_buf)
 	case SFSCLI_SFSD_CMD:
 		resp_len = get_sfsd_command_response(buffer, buf_len, resp_buf);
 		break;
-	
+
 	case SFSCLI_POLICY_CMD:
 		resp_len = get_policy_command_response(buffer, buf_len, resp_buf);
 		break;
@@ -455,7 +455,7 @@ get_command_response(uint8_t *buffer, size_t buf_len, uint8_t **resp_buf)
 	case SFSCLI_LICENSE_CMD:
 		resp_len = get_license_command_response(buffer, buf_len, resp_buf);
 		break;
-	
+
 	default:
 		printf ("Not implemented\n");
 		resp_len = 0;

@@ -284,4 +284,5 @@ struct sfs_cache_entry {
 	size_t size;
 };
 
+extern sstack_payload_t *  create_payload(void);
 #endif // __SFS_INTERNAL_H__

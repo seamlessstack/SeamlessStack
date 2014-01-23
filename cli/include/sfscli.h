@@ -181,10 +181,13 @@ struct sfscli_cli_cmd {
 /* ================= Deserialization Macros ========================= */
 
 #define sfscli_deser_uint(val, buffer, num_bytes)						\
-	for(int32_t i = 0; i < num_bytes; ++i) {							\
-		int32_t shifter = (i<<3);										\
-		val |= (buffer[i] << shifter);									\
-	};																	\
+	{																	\
+		int32_t i;														\
+		for(i = 0; i < num_bytes; ++i) {						\
+			int32_t shifter = (i<<3);									\
+			val |= (buffer[i] << shifter);								\
+		};																\
+	}																	\
 
 #define sfscli_deser_nfield(field, buffer)								\
 	do {																\
