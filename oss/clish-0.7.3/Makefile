@@ -19,8 +19,7 @@
 
 srcdir = .
 top_srcdir = .
-TOPDIR = ../..
-OSSDIR=$(TOPDIR)/oss
+
 pkgdatadir = $(datadir)/clish
 pkglibdir = $(libdir)/clish
 pkgincludedir = $(includedir)/clish
@@ -473,21 +472,21 @@ DIST_ARCHIVES = $(distdir).tar.gz
 GZIP_ENV = --best
 distuninstallcheck_listfiles = find . -type f -print
 distcleancheck_listfiles = find . -type f -print
-ACLOCAL = ${SHELL} $(OSSDIR)/clish-0.7.3/aux_scripts/missing --run aclocal-1.9
+ACLOCAL = ${SHELL} /home/anand/sstack/oss/clish-0.7.3/aux_scripts/missing --run aclocal-1.9
 AMDEP_FALSE = #
 AMDEP_TRUE = 
-AMTAR = ${SHELL} $(OSSDIR)/clish-0.7.3/aux_scripts/missing --run tar
+AMTAR = ${SHELL} /home/anand/sstack/oss/clish-0.7.3/aux_scripts/missing --run tar
 AR = ar
 AS = as
-AUTOCONF = ${SHELL} $(OSSDIR)/clish-0.7.3/aux_scripts/missing --run autoconf
-AUTOHEADER = ${SHELL} $(OSSDIR)/clish-0.7.3/aux_scripts/missing --run autoheader
-AUTOMAKE = ${SHELL} $(OSSDIR)/clish-0.7.3/aux_scripts/missing --run automake-1.9
+AUTOCONF = ${SHELL} /home/anand/sstack/oss/clish-0.7.3/aux_scripts/missing --run autoconf
+AUTOHEADER = ${SHELL} /home/anand/sstack/oss/clish-0.7.3/aux_scripts/missing --run autoheader
+AUTOMAKE = ${SHELL} /home/anand/sstack/oss/clish-0.7.3/aux_scripts/missing --run automake-1.9
 AWK = gawk
 BFD_LIBS = 
-CC = gcc
+CC = gcc-4.7
 CCDEPMODE = depmode=gcc3
 CFLAGS = -g -O2
-CPP = gcc -E
+CPP = gcc-4.7 -E
 CPPFLAGS = 
 CXX = g++
 CXXCPP = g++ -E
@@ -525,7 +524,7 @@ LUBHEAP_LIBS =
 LUBHEAP_TRUE = #
 LUB_CFLAGS = 
 LUB_LIBS = -llub
-MAKEINFO = ${SHELL} $(OSSDIR)/clish-0.7.3/aux_scripts/missing --run makeinfo
+MAKEINFO = ${SHELL} /home/anand/sstack/oss/clish-0.7.3/aux_scripts/missing --run makeinfo
 NMEDIT = 
 OBJDUMP = objdump
 OBJEXT = o
@@ -553,7 +552,7 @@ TINYRL_LIBS = -ltinyrl
 TINYXML_CXXFLAGS = -std=gnu++98
 TINYXML_LIBS = -ltinyxml
 VERSION = 0.7.3
-ac_ct_CC = gcc
+ac_ct_CC = gcc-4.7
 ac_ct_CXX = g++
 ac_ct_F77 = 
 am__fastdepCC_FALSE = #
@@ -584,7 +583,7 @@ host_vendor = unknown
 htmldir = ${docdir}
 includedir = ${prefix}/include
 infodir = ${datarootdir}/info
-install_sh = $(OSSDIR)/clish-0.7.3/aux_scripts/install-sh
+install_sh = /home/anand/sstack/oss/clish-0.7.3/aux_scripts/install-sh
 libdir = /usr/local/lib
 libexecdir = ${exec_prefix}/libexec
 localedir = ${datarootdir}/locale
@@ -2376,28 +2375,28 @@ test/test_mallocTest-mallocTest.obj: test/mallocTest.c
 #	$(LTCXXCOMPILE) -c -o $@ $<
 
 tinyxml/libtinyxml_la-tinyxml.lo: tinyxml/tinyxml.cpp
-	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libtinyxml_la_CXXFLAGS) $(CXXFLAGS) -MT tinyxml/libtinyxml_la-tinyxml.lo -MD -MP -MF "tinyxml/$(DEPDIR)/libtinyxml_la-tinyxml.Tpo" -c -o tinyxml/libtinyxml_la-tinyxml.lo `test -f 'tinyxml/tinyxml.cpp' || echo '$(srcdir)/'`tinyxml/tinyxml.cpp; \
+	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libtinyxml_la_CXXFLAGS) $(CXXFLAGS) -MT tinyxml/libtinyxml_la-tinyxml.lo -MD -MP -MF "tinyxml/$(DEPDIR)/libtinyxml_la-tinyxml.Tpo" -c -o tinyxml/libtinyxml_la-tinyxml.lo `test -f 'tinyxml/tinyxml.cpp' || echo '$(srcdir)/'`tinyxml/tinyxml.cpp; \
 	then mv -f "tinyxml/$(DEPDIR)/libtinyxml_la-tinyxml.Tpo" "tinyxml/$(DEPDIR)/libtinyxml_la-tinyxml.Plo"; else rm -f "tinyxml/$(DEPDIR)/libtinyxml_la-tinyxml.Tpo"; exit 1; fi
 #	source='tinyxml/tinyxml.cpp' object='tinyxml/libtinyxml_la-tinyxml.lo' libtool=yes \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
 #	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libtinyxml_la_CXXFLAGS) $(CXXFLAGS) -c -o tinyxml/libtinyxml_la-tinyxml.lo `test -f 'tinyxml/tinyxml.cpp' || echo '$(srcdir)/'`tinyxml/tinyxml.cpp
 
 tinyxml/libtinyxml_la-tinyxmlerror.lo: tinyxml/tinyxmlerror.cpp
-	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libtinyxml_la_CXXFLAGS) $(CXXFLAGS) -MT tinyxml/libtinyxml_la-tinyxmlerror.lo -MD -MP -MF "tinyxml/$(DEPDIR)/libtinyxml_la-tinyxmlerror.Tpo" -c -o tinyxml/libtinyxml_la-tinyxmlerror.lo `test -f 'tinyxml/tinyxmlerror.cpp' || echo '$(srcdir)/'`tinyxml/tinyxmlerror.cpp; \
+	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libtinyxml_la_CXXFLAGS) $(CXXFLAGS) -MT tinyxml/libtinyxml_la-tinyxmlerror.lo -MD -MP -MF "tinyxml/$(DEPDIR)/libtinyxml_la-tinyxmlerror.Tpo" -c -o tinyxml/libtinyxml_la-tinyxmlerror.lo `test -f 'tinyxml/tinyxmlerror.cpp' || echo '$(srcdir)/'`tinyxml/tinyxmlerror.cpp; \
 	then mv -f "tinyxml/$(DEPDIR)/libtinyxml_la-tinyxmlerror.Tpo" "tinyxml/$(DEPDIR)/libtinyxml_la-tinyxmlerror.Plo"; else rm -f "tinyxml/$(DEPDIR)/libtinyxml_la-tinyxmlerror.Tpo"; exit 1; fi
 #	source='tinyxml/tinyxmlerror.cpp' object='tinyxml/libtinyxml_la-tinyxmlerror.lo' libtool=yes \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
 #	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libtinyxml_la_CXXFLAGS) $(CXXFLAGS) -c -o tinyxml/libtinyxml_la-tinyxmlerror.lo `test -f 'tinyxml/tinyxmlerror.cpp' || echo '$(srcdir)/'`tinyxml/tinyxmlerror.cpp
 
 tinyxml/libtinyxml_la-tinyxmlparser.lo: tinyxml/tinyxmlparser.cpp
-	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libtinyxml_la_CXXFLAGS) $(CXXFLAGS) -MT tinyxml/libtinyxml_la-tinyxmlparser.lo -MD -MP -MF "tinyxml/$(DEPDIR)/libtinyxml_la-tinyxmlparser.Tpo" -c -o tinyxml/libtinyxml_la-tinyxmlparser.lo `test -f 'tinyxml/tinyxmlparser.cpp' || echo '$(srcdir)/'`tinyxml/tinyxmlparser.cpp; \
+	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libtinyxml_la_CXXFLAGS) $(CXXFLAGS) -MT tinyxml/libtinyxml_la-tinyxmlparser.lo -MD -MP -MF "tinyxml/$(DEPDIR)/libtinyxml_la-tinyxmlparser.Tpo" -c -o tinyxml/libtinyxml_la-tinyxmlparser.lo `test -f 'tinyxml/tinyxmlparser.cpp' || echo '$(srcdir)/'`tinyxml/tinyxmlparser.cpp; \
 	then mv -f "tinyxml/$(DEPDIR)/libtinyxml_la-tinyxmlparser.Tpo" "tinyxml/$(DEPDIR)/libtinyxml_la-tinyxmlparser.Plo"; else rm -f "tinyxml/$(DEPDIR)/libtinyxml_la-tinyxmlparser.Tpo"; exit 1; fi
 #	source='tinyxml/tinyxmlparser.cpp' object='tinyxml/libtinyxml_la-tinyxmlparser.lo' libtool=yes \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
 #	$(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libtinyxml_la_CXXFLAGS) $(CXXFLAGS) -c -o tinyxml/libtinyxml_la-tinyxmlparser.lo `test -f 'tinyxml/tinyxmlparser.cpp' || echo '$(srcdir)/'`tinyxml/tinyxmlparser.cpp
 
 tinyxml/libtinyxml_la-tinystr.lo: tinyxml/tinystr.cpp
-	if $(LIBTOOL) --tag=CXX --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libtinyxml_la_CXXFLAGS) $(CXXFLAGS) -MT tinyxml/libtinyxml_la-tinystr.lo -MD -MP -MF "tinyxml/$(DEPDIR)/libtinyxml_la-tinystr.Tpo" -c -o tinyxml/libtinyxml_la-tinystr.lo `test -f 'tinyxml/tinystr.cpp' || echo '$(srcdir)/'`tinyxml/tinystr.cpp; \
+	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libtinyxml_la_CXXFLAGS) $(CXXFLAGS) -MT tinyxml/libtinyxml_la-tinystr.lo -MD -MP -MF "tinyxml/$(DEPDIR)/libtinyxml_la-tinystr.Tpo" -c -o tinyxml/libtinyxml_la-tinystr.lo `test -f 'tinyxml/tinystr.cpp' || echo '$(srcdir)/'`tinyxml/tinystr.cpp; \
 	then mv -f "tinyxml/$(DEPDIR)/libtinyxml_la-tinystr.Tpo" "tinyxml/$(DEPDIR)/libtinyxml_la-tinystr.Plo"; else rm -f "tinyxml/$(DEPDIR)/libtinyxml_la-tinystr.Tpo"; exit 1; fi
 #	source='tinyxml/tinystr.cpp' object='tinyxml/libtinyxml_la-tinystr.lo' libtool=yes \
 #	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) \
