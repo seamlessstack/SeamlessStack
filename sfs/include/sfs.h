@@ -134,7 +134,7 @@ extern uint32_t sstack_checksum(log_ctx_t *, const char *);
 extern db_t *db;
 extern sstack_client_handle_t sfs_handle;
 extern sstack_thread_pool_t *sfs_thread_pool;
-extern void init_cli_thread(void *);
+extern void cli_thread(void *);
 
 /*
  * A simple structure that holds infomation on how to contact sfsd
@@ -166,13 +166,14 @@ typedef struct sfs_metadata {
  * Returns 0 on success. Returns -1 on error.
  */
 
-static inline int
-get_local_ip(char *interface, char **intf_addr, int type, log_ctx_t *ctx)
+static inline char *
+get_local_ip(char *interface, int type, log_ctx_t *ctx)
 {
 	int fd;
 	struct ifreq ifr;
 	int family = -1;
 	int len = 0;
+	char *intf_addr = NULL;
 
 	// Parameter validation
 	if (NULL == interface || type < 0 || type > IPv4) {
@@ -193,8 +194,8 @@ get_local_ip(char *interface, char **intf_addr, int type, log_ctx_t *ctx)
 		family = AF_INET;
 	}
 
-	*intf_addr = (char *) malloc(len);
-	if (NULL == *intf_addr) {
+	intf_addr = (char *) malloc(len);
+	if (NULL == intf_addr) {
 		sfs_log(ctx, SFS_ERR, "%s:%d Failed to allocate \n",
 						__FUNCTION__, __LINE__);
 		return -1;
@@ -215,16 +216,16 @@ get_local_ip(char *interface, char **intf_addr, int type, log_ctx_t *ctx)
 	close(fd);
 
 	if (type == IPv4) {
-		strncpy(*intf_addr,
+		strncpy(intf_addr,
 				inet_ntoa(((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr),
 				IPV4_ADDR_LEN);
 	} else {
 		inet_ntop(family,
 				(void *) &((struct sockaddr_in6 *) &ifr.ifr_addr)->sin6_addr,
-				*intf_addr, IPV6_ADDR_LEN);
+				intf_addr, IPV6_ADDR_LEN);
 	}
 
-	return 0;
+	return intf_addr;
 }
 
 #endif // __SFS_H_

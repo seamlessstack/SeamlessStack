@@ -845,9 +845,11 @@ sfs_init(struct fuse_conn_info *conn)
 	pthread_attr_t recv_attr;
 	pthread_t dispatcher_thread;
 	pthread_attr_t dispatcher_attr;
+	pthread_t cli_thread;
+	pthread_attr_t cli_attr;
+	char *intf_addr;
 	int ret = -1;
 	int chunk_index = 0;
-	char **intf_addr;
 	int i = 0;
 
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s: Started \n", __FUNCTION__);
@@ -873,19 +875,20 @@ sfs_init(struct fuse_conn_info *conn)
 	}
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
 
-	// Other init()s go here
 	// Initialize TCP transport
 	transport.transport_type = TCPIP;
 	// get local ip address
 	// eth0 is the assumed interface
-	ret = get_local_ip("eth0", intf_addr,  IPv4, sfs_ctx);
-	if (ret == -1) {
+	intf_addr = get_local_ip("eth0", IPv4, sfs_ctx);
+	if (NULL == intf_addr) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Please enable eth0 interface "
 						"and retry.\n", __FUNCTION__);
 		return NULL;
 	}
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: interface addr = %s \n",
+					__FUNCTION__, intf_addr);
 	transport.transport_hdr.tcp.ipv4 = 1;
-	strcpy((char *) &transport.transport_hdr.tcp.ipv4_addr, *intf_addr);
+	strcpy((char *) &transport.transport_hdr.tcp.ipv4_addr, intf_addr);
 	transport.transport_hdr.tcp.port = SFS_SERVER_PORT;
 	transport.transport_ops.rx = tcp_rx;
 	transport.transport_ops.tx = tcp_tx;
@@ -902,7 +905,6 @@ sfs_init(struct fuse_conn_info *conn)
 					"Error = %d \n", __FUNCTION__, errno);
 		// cleanup
 		db->db_ops.db_close(sfs_ctx);
-		pthread_kill(recv_thread, SIGKILL);
 		sstack_transport_deregister(TCPIP, &transport);
 
 		return NULL;
@@ -1134,7 +1136,34 @@ sfs_init(struct fuse_conn_info *conn)
 		populate_db(sfs_chunks[chunk_index].chunk_path);
 
 	// Create thread to handle CLI requests
-	init_cli_thread(NULL);
+	// Create a cli thread
+	if (pthread_attr_init(&cli_attr) == 0) {
+		pthread_attr_setscope(&cli_attr, PTHREAD_SCOPE_SYSTEM);
+		pthread_attr_setstacksize(&cli_attr, 131072); // 128KiB
+		pthread_attr_setdetachstate(&cli_attr, PTHREAD_CREATE_DETACHED);
+		ret = pthread_create(&cli_thread, &cli_attr,
+						cli_thread, NULL);
+	}
+	if (ret != 0) {
+		sfs_log(sfs_ctx, SFS_CRIT, "%s: Unable to create cli handler "
+						"thread\n", __FUNCTION__);
+		db->db_ops.db_close(sfs_ctx);
+		pthread_kill(recv_thread, SIGKILL);
+		sstack_transport_deregister(TCPIP, &transport);
+		sstack_thread_pool_destroy(sfs_thread_pool);
+		(void) sfs_job_queue_destroy(&jobs);
+		(void) sfs_job_queue_destroy(&pending_jobs);
+		free(jobmap_tree);
+		free(jobid_tree);
+		free(filelock_tree);
+		free(sstack_job_id_bitmap);
+		free(storage_tree);
+		pthread_spin_destroy(&jobmap_lock);
+		pthread_spin_destroy(&jobid_lock);
+		pthread_spin_destroy(&filelock_lock);
+		return NULL;
+	}
+
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s: CLI thread initialized \n", __FUNCTION__);
 
 	sfs_log(sfs_ctx, SFS_INFO, "%s: SFS initialization completed\n",

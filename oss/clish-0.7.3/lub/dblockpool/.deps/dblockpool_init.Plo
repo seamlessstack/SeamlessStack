@@ -1,18 +1,13 @@
 lub/dblockpool/dblockpool_init.lo: lub/dblockpool/dblockpool_init.c \
- /usr/include/stdc-predef.h /usr/include/x86_64-linux-gnu/bits/predefs.h \
  lub/dblockpool/private.h lub/dblockpool.h \
- /usr/lib/gcc/x86_64-linux-gnu/4.8/include/stddef.h lub/c_decl.h \
+ /usr/lib/gcc/x86_64-linux-gnu/4.7/include/stddef.h lub/c_decl.h \
  lub/blockpool.h
-
-/usr/include/stdc-predef.h:
-
-/usr/include/x86_64-linux-gnu/bits/predefs.h:
 
 lub/dblockpool/private.h:
 
 lub/dblockpool.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/4.8/include/stddef.h:
+/usr/lib/gcc/x86_64-linux-gnu/4.7/include/stddef.h:
 
 lub/c_decl.h:
 

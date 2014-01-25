@@ -1,10 +1,11 @@
 clish/ptype/libclish_la-ptype_dump.lo: clish/ptype/ptype_dump.c \
- /usr/include/stdc-predef.h /usr/include/x86_64-linux-gnu/bits/predefs.h \
  clish/ptype/private.h clish/pargv.h clish/ptype.h lub/types.h \
- lub/bintree.h /usr/lib/gcc/x86_64-linux-gnu/4.8/include/stddef.h \
+ lub/bintree.h /usr/lib/gcc/x86_64-linux-gnu/4.7/include/stddef.h \
  clish/command.h clish/view.h clish/param.h lub/argv.h lub/c_decl.h \
  lub/types.h /usr/include/x86_64-linux-gnu/sys/types.h \
- /usr/include/features.h /usr/include/x86_64-linux-gnu/sys/cdefs.h \
+ /usr/include/features.h /usr/include/stdc-predef.h \
+ /usr/include/x86_64-linux-gnu/bits/predefs.h \
+ /usr/include/x86_64-linux-gnu/sys/cdefs.h \
  /usr/include/x86_64-linux-gnu/bits/wordsize.h \
  /usr/include/x86_64-linux-gnu/gnu/stubs.h \
  /usr/include/x86_64-linux-gnu/gnu/stubs-64.h \
@@ -21,11 +22,7 @@ clish/ptype/libclish_la-ptype_dump.lo: clish/ptype/ptype_dump.c \
  /usr/include/x86_64-linux-gnu/sys/sysmacros.h \
  /usr/include/x86_64-linux-gnu/bits/pthreadtypes.h /usr/include/regex.h \
  /usr/include/x86_64-linux-gnu/gnu/option-groups.h lub/dump.h \
- /usr/lib/gcc/x86_64-linux-gnu/4.8/include/stdarg.h
-
-/usr/include/stdc-predef.h:
-
-/usr/include/x86_64-linux-gnu/bits/predefs.h:
+ /usr/lib/gcc/x86_64-linux-gnu/4.7/include/stdarg.h
 
 clish/ptype/private.h:
 
@@ -37,7 +34,7 @@ lub/types.h:
 
 lub/bintree.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/4.8/include/stddef.h:
+/usr/lib/gcc/x86_64-linux-gnu/4.7/include/stddef.h:
 
 clish/command.h:
 
@@ -54,6 +51,10 @@ lub/types.h:
 /usr/include/x86_64-linux-gnu/sys/types.h:
 
 /usr/include/features.h:
+
+/usr/include/stdc-predef.h:
+
+/usr/include/x86_64-linux-gnu/bits/predefs.h:
 
 /usr/include/x86_64-linux-gnu/sys/cdefs.h:
 
@@ -97,4 +98,4 @@ lub/types.h:
 
 lub/dump.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/4.8/include/stdarg.h:
+/usr/lib/gcc/x86_64-linux-gnu/4.7/include/stdarg.h:

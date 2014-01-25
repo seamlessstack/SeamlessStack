@@ -108,7 +108,7 @@ display_storage_devices(storage_tree_t *tree, sfs_st_t *node, void *arg)
 }
 
 void *
-init_cli_thread(void *arg)
+cli_thread(void *arg)
 {
 	int32_t sockfd;
 	int32_t optval;

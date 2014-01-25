@@ -1,8 +1,7 @@
-lub/string/string_catn.lo: lub/string/string_catn.c \
+lub/string/string_catn.lo: lub/string/string_catn.c lub/string/private.h \
+ lub/string.h /usr/lib/gcc/x86_64-linux-gnu/4.7/include/stddef.h \
+ lub/c_decl.h /usr/include/string.h /usr/include/features.h \
  /usr/include/stdc-predef.h /usr/include/x86_64-linux-gnu/bits/predefs.h \
- lub/string/private.h lub/string.h \
- /usr/lib/gcc/x86_64-linux-gnu/4.8/include/stddef.h lub/c_decl.h \
- /usr/include/string.h /usr/include/features.h \
  /usr/include/x86_64-linux-gnu/sys/cdefs.h \
  /usr/include/x86_64-linux-gnu/bits/wordsize.h \
  /usr/include/x86_64-linux-gnu/gnu/stubs.h \
@@ -16,21 +15,21 @@ lub/string/string_catn.lo: lub/string/string_catn.c \
  /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
  /usr/include/x86_64-linux-gnu/bits/stdlib.h
 
-/usr/include/stdc-predef.h:
-
-/usr/include/x86_64-linux-gnu/bits/predefs.h:
-
 lub/string/private.h:
 
 lub/string.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/4.8/include/stddef.h:
+/usr/lib/gcc/x86_64-linux-gnu/4.7/include/stddef.h:
 
 lub/c_decl.h:
 
 /usr/include/string.h:
 
 /usr/include/features.h:
+
+/usr/include/stdc-predef.h:
+
+/usr/include/x86_64-linux-gnu/bits/predefs.h:
 
 /usr/include/x86_64-linux-gnu/sys/cdefs.h:
 

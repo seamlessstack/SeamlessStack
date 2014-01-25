@@ -1,9 +1,4 @@
 clish/libclish_la-tclish_script_callback.lo: \
- clish/tclish_script_callback.c /usr/include/stdc-predef.h \
- /usr/include/x86_64-linux-gnu/bits/predefs.h config.h
-
-/usr/include/stdc-predef.h:
-
-/usr/include/x86_64-linux-gnu/bits/predefs.h:
+ clish/tclish_script_callback.c config.h
 
 config.h:
