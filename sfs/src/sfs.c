@@ -749,14 +749,23 @@ sfs_handle_connection(void * arg)
 	sstack_payload_t *payload;
 	int num_retries = 0;
 
+	fprintf(stderr, "%s: ctx = 0x%x \n", __FUNCTION__, sfs_ctx);
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s: Started \n", __FUNCTION__);
 
 	while (1) {
+		sfs_log(sfs_ctx, SFS_DEBUG, "%s: Calling select \n", __FUNCTION__);
+		if (NULL == transport.transport_ops.select) {
+			sfs_log(sfs_ctx, SFS_ERR, "%s: select op not set \n",
+							__FUNCTION__);
+			return NULL;
+		}
+reselect:
 		ret = transport.transport_ops.select(sfs_handle, mask);
 		if (ret != READ_NO_BLOCK) {
 			sfs_log(sfs_ctx, SFS_INFO, "%s: Connection down. Waiting for "
 							"retry \n", __FUNCTION__);
 			sleep(1);
+			goto reselect;
 		}
 
 		// Receive a payload
@@ -838,31 +847,11 @@ sfs_init(struct fuse_conn_info *conn)
 	pthread_attr_t dispatcher_attr;
 	int ret = -1;
 	int chunk_index = 0;
-	sstack_transport_ops_t ops;
-	sstack_transport_type_t type;
 	char **intf_addr;
 	int i = 0;
 
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s: Started \n", __FUNCTION__);
 
-#if 0
-	// Create a thread to handle sfs<->sfsd communication
-	if(pthread_attr_init(&recv_attr) == 0) {
-		pthread_attr_setscope(&recv_attr, PTHREAD_SCOPE_SYSTEM);
-		pthread_attr_setstacksize(&recv_attr, 131072); // 128KiB
-		pthread_attr_setdetachstate(&recv_attr, PTHREAD_CREATE_DETACHED);
-		ret = pthread_create(&recv_thread, &recv_attr,
-						sfs_handle_connection, NULL);
-	}
-
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
-	if (ret != 0) {
-		sfs_log(sfs_ctx, SFS_CRIT, "%s: Unable to create thread to "
-						"handle sfs<->sfsd communication\n", __FUNCTION__);
-		return NULL;
-	}
-#endif
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
 
 	// Create db instance
 	db = malloc(sizeof(db_t));
@@ -886,29 +875,25 @@ sfs_init(struct fuse_conn_info *conn)
 
 	// Other init()s go here
 	// Initialize TCP transport
-	type = TCPIP;
-	ops.rx = tcp_rx;
-	ops.tx = tcp_tx;
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s: tcp_client_init = 0x%x \n", __FUNCTION__,
-					tcp_client_init);
-	ops.client_init = tcp_client_init;
-	ops.server_setup = tcp_server_setup;
-	transport.transport_hdr.tcp.ipv4 = 1; // IPv4 adress for now
-	transport.transport_ops = ops;
+	transport.transport_type = TCPIP;
 	// get local ip address
 	// eth0 is the assumed interface
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
-
 	ret = get_local_ip("eth0", intf_addr,  IPv4, sfs_ctx);
 	if (ret == -1) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Please enable eth0 interface "
 						"and retry.\n", __FUNCTION__);
 		return NULL;
 	}
-
+	transport.transport_hdr.tcp.ipv4 = 1;
 	strcpy((char *) &transport.transport_hdr.tcp.ipv4_addr, *intf_addr);
 	transport.transport_hdr.tcp.port = SFS_SERVER_PORT;
-	ret = sstack_transport_register(type, &transport, ops);
+	transport.transport_ops.rx = tcp_rx;
+	transport.transport_ops.tx = tcp_tx;
+	transport.transport_ops.client_init = tcp_client_init;
+	transport.transport_ops.server_setup = tcp_server_setup;
+	transport.transport_ops.select = tcp_select;
+	transport.ctx = sfs_ctx;
+	ret = sstack_transport_register(TCPIP, &transport, transport.transport_ops);
 	// Call server setup
 	sfs_handle = transport.transport_ops.server_setup(&transport);
 	if (sfs_handle == -1) {
@@ -918,11 +903,27 @@ sfs_init(struct fuse_conn_info *conn)
 		// cleanup
 		db->db_ops.db_close(sfs_ctx);
 		pthread_kill(recv_thread, SIGKILL);
-		sstack_transport_deregister(type, &transport);
+		sstack_transport_deregister(TCPIP, &transport);
 
 		return NULL;
 	}
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
+	// Create a thread to handle sfs<->sfsd communication
+	if(pthread_attr_init(&recv_attr) == 0) {
+		pthread_attr_setscope(&recv_attr, PTHREAD_SCOPE_SYSTEM);
+		pthread_attr_setstacksize(&recv_attr, 131072); // 128KiB
+		pthread_attr_setdetachstate(&recv_attr, PTHREAD_CREATE_DETACHED);
+		ret = pthread_create(&recv_thread, &recv_attr,
+						sfs_handle_connection, NULL);
+	}
+
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
+	if (ret != 0) {
+		sfs_log(sfs_ctx, SFS_CRIT, "%s: Unable to create thread to "
+						"handle sfs<->sfsd communication\n", __FUNCTION__);
+		return NULL;
+	}
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
 	ret = sfs_init_thread_pool();
 	if (ret != 0) {
@@ -932,7 +933,7 @@ sfs_init(struct fuse_conn_info *conn)
 						"Exiting ...\n", __FUNCTION__);
 		db->db_ops.db_close(sfs_ctx);
 		pthread_kill(recv_thread, SIGKILL);
-		sstack_transport_deregister(type, &transport);
+		sstack_transport_deregister(TCPIP, &transport);
 
 		return NULL;
 	}
@@ -945,7 +946,7 @@ sfs_init(struct fuse_conn_info *conn)
 		// No point in continuing
 		db->db_ops.db_close(sfs_ctx);
 		pthread_kill(recv_thread, SIGKILL);
-		sstack_transport_deregister(type, &transport);
+		sstack_transport_deregister(TCPIP, &transport);
 		sstack_thread_pool_destroy(sfs_thread_pool);
 
 		return NULL;
@@ -964,7 +965,7 @@ sfs_init(struct fuse_conn_info *conn)
 						"thread\n", __FUNCTION__);
 		db->db_ops.db_close(sfs_ctx);
 		pthread_kill(recv_thread, SIGKILL);
-		sstack_transport_deregister(type, &transport);
+		sstack_transport_deregister(TCPIP, &transport);
 		sstack_thread_pool_destroy(sfs_thread_pool);
 		(void) sfs_job_queue_destroy(&jobs);
 		return NULL;
@@ -976,7 +977,7 @@ sfs_init(struct fuse_conn_info *conn)
 		// No point in continuing
 		db->db_ops.db_close(sfs_ctx);
 		pthread_kill(recv_thread, SIGKILL);
-		sstack_transport_deregister(type, &transport);
+		sstack_transport_deregister(TCPIP, &transport);
 		sstack_thread_pool_destroy(sfs_thread_pool);
 		(void) sfs_job_queue_destroy(&jobs);
 		return NULL;
@@ -990,7 +991,7 @@ sfs_init(struct fuse_conn_info *conn)
 						__FUNCTION__);
 		db->db_ops.db_close(sfs_ctx);
 		pthread_kill(recv_thread, SIGKILL);
-		sstack_transport_deregister(type, &transport);
+		sstack_transport_deregister(TCPIP, &transport);
 		sstack_thread_pool_destroy(sfs_thread_pool);
 		(void) sfs_job_queue_destroy(&jobs);
 		(void) sfs_job_queue_destroy(&pending_jobs);
@@ -1004,7 +1005,7 @@ sfs_init(struct fuse_conn_info *conn)
 						__FUNCTION__);
 		db->db_ops.db_close(sfs_ctx);
 		pthread_kill(recv_thread, SIGKILL);
-		sstack_transport_deregister(type, &transport);
+		sstack_transport_deregister(TCPIP, &transport);
 		sstack_thread_pool_destroy(sfs_thread_pool);
 		(void) sfs_job_queue_destroy(&jobs);
 		(void) sfs_job_queue_destroy(&pending_jobs);
@@ -1019,7 +1020,7 @@ sfs_init(struct fuse_conn_info *conn)
 						__FUNCTION__);
 		db->db_ops.db_close(sfs_ctx);
 		pthread_kill(recv_thread, SIGKILL);
-		sstack_transport_deregister(type, &transport);
+		sstack_transport_deregister(TCPIP, &transport);
 		sstack_thread_pool_destroy(sfs_thread_pool);
 		(void) sfs_job_queue_destroy(&jobs);
 		(void) sfs_job_queue_destroy(&pending_jobs);
@@ -1034,7 +1035,7 @@ sfs_init(struct fuse_conn_info *conn)
 	if (NULL == sstack_job_id_bitmap) {
 		db->db_ops.db_close(sfs_ctx);
 		pthread_kill(recv_thread, SIGKILL);
-		sstack_transport_deregister(type, &transport);
+		sstack_transport_deregister(TCPIP, &transport);
 		sstack_thread_pool_destroy(sfs_thread_pool);
 		(void) sfs_job_queue_destroy(&jobs);
 		(void) sfs_job_queue_destroy(&pending_jobs);
@@ -1052,7 +1053,7 @@ sfs_init(struct fuse_conn_info *conn)
 						" RB-tree \n", __FUNCTION__);
 		db->db_ops.db_close(sfs_ctx);
 		pthread_kill(recv_thread, SIGKILL);
-		sstack_transport_deregister(type, &transport);
+		sstack_transport_deregister(TCPIP, &transport);
 		sstack_thread_pool_destroy(sfs_thread_pool);
 		(void) sfs_job_queue_destroy(&jobs);
 		(void) sfs_job_queue_destroy(&pending_jobs);
@@ -1081,7 +1082,7 @@ sfs_init(struct fuse_conn_info *conn)
 		// Exit
 		db->db_ops.db_close(sfs_ctx);
 		pthread_kill(recv_thread, SIGKILL);
-		sstack_transport_deregister(type, &transport);
+		sstack_transport_deregister(TCPIP, &transport);
 		sstack_thread_pool_destroy(sfs_thread_pool);
 		(void) sfs_job_queue_destroy(&jobs);
 		(void) sfs_job_queue_destroy(&pending_jobs);
@@ -1108,7 +1109,7 @@ sfs_init(struct fuse_conn_info *conn)
 							slabs[i].name);
 			db->db_ops.db_close(sfs_ctx);
 			pthread_kill(recv_thread, SIGKILL);
-			sstack_transport_deregister(type, &transport);
+			sstack_transport_deregister(TCPIP, &transport);
 			sstack_thread_pool_destroy(sfs_thread_pool);
 			(void) sfs_job_queue_destroy(&jobs);
 			(void) sfs_job_queue_destroy(&pending_jobs);
@@ -1131,6 +1132,10 @@ sfs_init(struct fuse_conn_info *conn)
 	// in chunks added so far
 	for (chunk_index = 0; chunk_index < nchunks; chunk_index++)
 		populate_db(sfs_chunks[chunk_index].chunk_path);
+
+	// Create thread to handle CLI requests
+	init_cli_thread(NULL);
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: CLI thread initialized \n", __FUNCTION__);
 
 	sfs_log(sfs_ctx, SFS_INFO, "%s: SFS initialization completed\n",
 		__FUNCTION__);
@@ -1170,7 +1175,6 @@ sfs_store_branch(char *branch)
 	char *res = NULL;
 	char **ptr = NULL;
 	char *temp = NULL;
-	int ret = -1;
 
 	temp = realloc(sfs_chunks,
 			(nchunks + 1) * sizeof(sfs_chunk_entry_t));

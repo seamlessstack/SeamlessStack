@@ -258,6 +258,8 @@ tcp_server_setup(sstack_transport_t *transport)
 				"error %d\n", __FUNCTION__, errno);
 		return -1;
 	}
+	sfs_log(transport->ctx, SFS_DEBUG, "%s: Socket fd = %d \n",
+					__FUNCTION__, sockfd);
 
 	if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes,
 			sizeof(int)) == -1) {
@@ -277,6 +279,8 @@ tcp_server_setup(sstack_transport_t *transport)
 		close(sockfd);
 		return -1;
 	}
+	sfs_log(transport->ctx, SFS_DEBUG, "%s: bind succeeded \n",
+					__FUNCTION__);
 
 	if (listen(sockfd, SSTACK_BACKLOG) == -1) {
 		sfs_log(transport->ctx, SFS_ERR, "%s: listen failed with"
@@ -285,6 +289,8 @@ tcp_server_setup(sstack_transport_t *transport)
 
 		return -1;
 	}
+	sfs_log(transport->ctx, SFS_DEBUG, "%s: listen succeeded \n",
+					__FUNCTION__);
 
 	sa.sa_handler = sigchld_handler;
 	sigemptyset(&sa.sa_mask);
@@ -296,6 +302,8 @@ tcp_server_setup(sstack_transport_t *transport)
 
 		return  -1;
 	}
+
+	sfs_log(transport->ctx, SFS_INFO, "%s: Succeeded \n", __FUNCTION__);
 
 	return  (sstack_handle_t) sockfd;
 }

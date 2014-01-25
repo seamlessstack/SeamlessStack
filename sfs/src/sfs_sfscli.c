@@ -107,7 +107,7 @@ display_storage_devices(storage_tree_t *tree, sfs_st_t *node, void *arg)
 	return (NULL);
 }
 
-static void *
+void *
 init_cli_thread(void *arg)
 {
 	int32_t sockfd;
@@ -517,8 +517,10 @@ handle_cli_requests(int32_t sockfd)
 	}
 }
 
+#if 0
 int
 main(void)
 {
 	init_cli_thread(NULL);
 }
+#endif

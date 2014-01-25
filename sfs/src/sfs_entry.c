@@ -78,7 +78,7 @@ create_payload(void)
 
 
 static char *
-prepend_mntpath(char *path)
+prepend_mntpath(const char *path)
 {
 	char *fullpath = NULL;
 
@@ -2047,7 +2047,8 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 			write_size = (extent->e_offset + extent->e_size) - offset;
 		payload->command_struct.write_cmd.count = write_size;
 		payload->command_struct.write_cmd.data.data_len = write_size;
-		payload->command_struct.write_cmd.data.data_buf = (buf + bytes_issued);
+		payload->command_struct.write_cmd.data.data_buf =
+				(char *) (buf + bytes_issued);
 		memcpy((void *) &payload->command_struct.read_cmd.pe, (void *)
 						policy, sizeof(struct policy_entry));
 		job->payload_len = sizeof(sstack_payload_t);

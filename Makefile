@@ -88,11 +88,9 @@ install:
 	$(LN) -s $(LIBDIR)/libbson.so $(LIBDIR)/libbson.so.0.7
 	$(LN) -s $(LIBDIR)/libmongoc.so $(LIBDIR)/libmongoc.so.0.7
 
-cscope:
+tags:
 	$(RM) -f cscope.out
 	$(CSCOPE) -bR
-
-ctags:
 	$(RM) -f tags
 	$(CTAGS) -R
 
