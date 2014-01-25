@@ -60,9 +60,9 @@ ssd_create_cachedev(char *path, int64_t size, log_ctx_t *ctx)
 		return NULL;
 
 	// NOTE:
-	// This command is tuned for cache file size of 16KiB (32 blocks)
+	// This command is tuned for cache file size of 64KiB (128 blocks)
 	// and journal size of 64 MiB
-	sprintf(command, "/sbin/mkfs.ext4 -i 32 -J size=64 %s %"PRId64"",
+	sprintf(command, "/sbin/mkfs.ext4 -i 128 -J size=64 %s %"PRId64"",
 					path, size);
 	// Create file system on the device
 
