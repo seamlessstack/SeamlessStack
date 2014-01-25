@@ -749,7 +749,6 @@ sfs_handle_connection(void * arg)
 	sstack_payload_t *payload;
 	int num_retries = 0;
 
-	fprintf(stderr, "%s: ctx = 0x%x \n", __FUNCTION__, sfs_ctx);
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s: Started \n", __FUNCTION__);
 
 	while (1) {
@@ -873,7 +872,7 @@ sfs_init(struct fuse_conn_info *conn)
 			__FUNCTION__, errno);
 		return NULL;
 	}
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: DB registered \n", __FUNCTION__);
 
 	// Initialize TCP transport
 	transport.transport_type = TCPIP;
@@ -897,6 +896,7 @@ sfs_init(struct fuse_conn_info *conn)
 	transport.transport_ops.select = tcp_select;
 	transport.ctx = sfs_ctx;
 	ret = sstack_transport_register(TCPIP, &transport, transport.transport_ops);
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: transport regietered \n", __FUNCTION__);
 	// Call server setup
 	sfs_handle = transport.transport_ops.server_setup(&transport);
 	if (sfs_handle == -1) {
@@ -910,7 +910,7 @@ sfs_init(struct fuse_conn_info *conn)
 		return NULL;
 	}
 
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: server setup complete \n", __FUNCTION__);
 	// Create a thread to handle sfs<->sfsd communication
 	if(pthread_attr_init(&recv_attr) == 0) {
 		pthread_attr_setscope(&recv_attr, PTHREAD_SCOPE_SYSTEM);
@@ -920,13 +920,13 @@ sfs_init(struct fuse_conn_info *conn)
 						sfs_handle_connection, NULL);
 	}
 
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
 	if (ret != 0) {
 		sfs_log(sfs_ctx, SFS_CRIT, "%s: Unable to create thread to "
 						"handle sfs<->sfsd communication\n", __FUNCTION__);
 		return NULL;
 	}
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: sfs<->sfsd communication thread "
+					"created \n", __FUNCTION__);
 	ret = sfs_init_thread_pool();
 	if (ret != 0) {
 		// Thread pool creation failed.
@@ -940,7 +940,7 @@ sfs_init(struct fuse_conn_info *conn)
 		return NULL;
 	}
 
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: thread pool created \n", __FUNCTION__);
 	// Initialize job queues
 	ret = sfs_job_list_init(&jobs);
 	if (ret == -1) {
@@ -953,7 +953,7 @@ sfs_init(struct fuse_conn_info *conn)
 
 		return NULL;
 	}
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: job list created \n", __FUNCTION__);
 	// Create a dispatcher thread
 	if (pthread_attr_init(&dispatcher_attr) == 0) {
 		pthread_attr_setscope(&dispatcher_attr, PTHREAD_SCOPE_SYSTEM);
@@ -972,6 +972,8 @@ sfs_init(struct fuse_conn_info *conn)
 		(void) sfs_job_queue_destroy(&jobs);
 		return NULL;
 	}
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: Job dispatcher thread created\n",
+					__FUNCTION__);
 	// Initialize pending job queues
 	ret = sfs_job_list_init(&pending_jobs);
 	if (ret == -1) {
@@ -984,7 +986,8 @@ sfs_init(struct fuse_conn_info *conn)
 		(void) sfs_job_queue_destroy(&jobs);
 		return NULL;
 	}
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: pending job list created \n",
+					__FUNCTION__);
 
 	// Create jobmap tree
 	jobmap_tree = jobmap_tree_init();
@@ -999,7 +1002,7 @@ sfs_init(struct fuse_conn_info *conn)
 		(void) sfs_job_queue_destroy(&pending_jobs);
 		return NULL;
 	}
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: job map tree created \n", __FUNCTION__);
 
 	storage_tree = storage_tree_init();
 	if (NULL == storage_tree) {
@@ -1014,6 +1017,7 @@ sfs_init(struct fuse_conn_info *conn)
 		free(jobmap_tree);
 		return NULL;
 	}
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: storage tree created \n", __FUNCTION__);
 
 	// Create jobid tree
 	jobid_tree = jobid_tree_init();
@@ -1030,8 +1034,7 @@ sfs_init(struct fuse_conn_info *conn)
 		free(storage_tree);
 		return NULL;
 	}
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d jobid_tree = 0x%x \n",
-					__FUNCTION__, __LINE__, jobid_tree);
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: jobid tree created \n", __FUNCTION__);
 	// Create job_id bitmap
 	sstack_job_id_bitmap  = sfs_init_bitmap(MAX_OUTSTANDING_JOBS, sfs_ctx);
 	if (NULL == sstack_job_id_bitmap) {
@@ -1046,7 +1049,7 @@ sfs_init(struct fuse_conn_info *conn)
 		free(storage_tree);
 	}
 
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: Job bitmap created \n", __FUNCTION__);
 
 	// Create filelock tree
 	filelock_tree = filelock_tree_init();
@@ -1065,19 +1068,14 @@ sfs_init(struct fuse_conn_info *conn)
 		free(sstack_job_id_bitmap);
 		return NULL;
 	}
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: File lock tree created \n", __FUNCTION__);
 
 	pthread_spin_init(&jobmap_lock, PTHREAD_PROCESS_PRIVATE);
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
 	pthread_spin_init(&jobid_lock, PTHREAD_PROCESS_PRIVATE);
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
 	pthread_spin_init(&filelock_lock, PTHREAD_PROCESS_PRIVATE);
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
 
 	// Initialize sfsd_pool
 	sfsd_pool = sstack_sfsd_pool_init();
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d sfsd_pool = 0x%x \n", __FUNCTION__,
-					__LINE__, sfsd_pool);
 	if (NULL == sfsd_pool) {
 		// sfsd_pool creation failed.
 		// Product is not scalable and useless.
@@ -1098,7 +1096,7 @@ sfs_init(struct fuse_conn_info *conn)
 		pthread_spin_destroy(&filelock_lock);
 		return NULL;
 	}
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: sfsd_pool created \n", __FUNCTION__);
 
 	// Create pool for payload structure
 	for (i = 0; i < MAX_CACHE_OFFSET; i++) {
@@ -1126,7 +1124,7 @@ sfs_init(struct fuse_conn_info *conn)
 			return NULL;
 		}
 	}
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: Caches created \n", __FUNCTION__);
 
 
 
@@ -1134,6 +1132,9 @@ sfs_init(struct fuse_conn_info *conn)
 	// in chunks added so far
 	for (chunk_index = 0; chunk_index < nchunks; chunk_index++)
 		populate_db(sfs_chunks[chunk_index].chunk_path);
+
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: Preexisting inodes populated into "
+					"db\n", __FUNCTION__);
 
 	// Create thread to handle CLI requests
 	// Create a cli thread

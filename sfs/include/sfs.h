@@ -182,7 +182,7 @@ get_local_ip(char *interface, int type, log_ctx_t *ctx)
 		sfs_log(ctx, SFS_ERR, "%s: Invalid parameters specified \n",
 						__FUNCTION__);
 
-		return -1;
+		return NULL;
 	}
 
 
@@ -198,7 +198,7 @@ get_local_ip(char *interface, int type, log_ctx_t *ctx)
 	if (NULL == intf_addr) {
 		sfs_log(ctx, SFS_ERR, "%s:%d Failed to allocate \n",
 						__FUNCTION__, __LINE__);
-		return -1;
+		return NULL;
 	}
 
 	fd = socket(family, SOCK_DGRAM, 0);
@@ -206,7 +206,7 @@ get_local_ip(char *interface, int type, log_ctx_t *ctx)
 		// Socket creation failed
 		sfs_log(ctx, SFS_ERR, "%s:%d socket creation failed\n",
 						__FUNCTION__, __LINE__);
-		return -1;
+		return NULL;
 	}
 	// IPv4 IP address
 	// For IPv6 address, use AF_INET6
