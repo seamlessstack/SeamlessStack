@@ -52,7 +52,8 @@ extern char sfs_mountpoint[];
 static inline int
 sfs_send_read_status(sstack_job_map_t *job_map, char *buf, size_t size);
 static inline int
-sfs_send_write_status(sstack_job_map_t *job_map, char *buf, size_t size);
+sfs_send_write_status(sstack_job_map_t *job_map, sstack_inode_t inode,
+							off_t offset, size_t size);
 
 /*
  * create_payload - Allocate payload structure from payload slab and zeroizes
@@ -2167,7 +2168,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 	// TODO
 	// Handle write status and erasure code
 
-	ret = sfs_send_write_status(job_map, buf, size);
+	ret = sfs_send_write_status(job_map, inode, offset, size);
 
 	sfs_job_context_remove(thread_id);
 	free(job_map->job_ids);
@@ -3414,6 +3415,54 @@ sfs_utimens(const char *path, const struct timespec tv[2])
 	return ret;
 }
 
+/* This is a low priority independent job. So no association with the
+   calling thread needed for this job
+ */  
+static inline void
+sfs_submit_esure_code_job(sstack_inode_t inode, off_t offset, size_t size)
+{
+	sfs_job_t *job = NULL;
+	sstack_payload_t *payload = NULL;
+	int		ret = 0;
+
+	job = sfs_job_init();
+    if (NULL == job) {
+	    sfs_log(sfs_ctx, SFS_ERR, "%s: Fail to allocate job memory.\n",
+                                  __FUNCTION__);
+        return;
+    }
+
+	job->id = get_next_job_id();
+	job->job_type = SFSD_IO;
+	job->num_clients = 1;
+	job->sfsds[0] = inode.i_primary_sfsd->sfsd;
+	job->job_status[0] = JOB_STARTED;
+	job->priority = QOS_LOW;
+    payload = create_payload();
+    payload->hdr.sequence = 0; // Reinitialized by transport
+    payload->hdr.payload_len = sizeof(sstack_payload_t);
+    payload->hdr.job_id = job->id;
+    payload->hdr.priority = job->priority;
+	payload->hdr.arg = (uint64_t) job;
+	payload->command = NFS_ESURE_CODE;
+	payload->command_struct.esure_code_cmd.inode_no = inode.i_num;
+	payload->command_struct.esure_code_cmd.num_blocks = 1;
+	payload->command_struct.esure_code_cmd.ext_blocks =
+							malloc(sizeof (sstack_extent_range_t));
+	if (payload->command_struct.esure_code_cmd.ext_blocks == NULL) {
+		free(job);
+		free(payload);
+		return;
+	}
+	// populate extent 
+	job->payload_len = sizeof(sstack_payload_t);
+    job->payload = payload;
+
+	ret = sfs_submit_job(job->priority, jobs, job);
+    if (ret == -1) {
+		// sfs_log here
+	}	
+}
 
 /* Send response function for various commands */
 static inline int
@@ -3456,7 +3505,8 @@ sfs_send_read_status(sstack_job_map_t *job_map, char *buf, size_t size)
 }
 
 static inline int
-sfs_send_write_status(sstack_job_map_t *job_map, char *buf, size_t size)
+sfs_send_write_status(sstack_job_map_t *job_map,  sstack_inode_t inode, 
+						off_t offset, size_t size)
 {
 	int                     i = 0;
     uint32_t                num_bytes = 0;
@@ -3487,7 +3537,13 @@ sfs_send_write_status(sstack_job_map_t *job_map, char *buf, size_t size)
 	}
 
 	if (job_map->err_no == SSTACK_SUCCESS) {
-	//	sfs_submit_esure_code_job(); TBD: Need to discuss
+		if (job_map->op_status[0] == JOB_FAILED) {
+			/* Primary sfsd job failed. Some recovery needed
+			 * before issuing erasure code job
+			 */
+		} else {
+			sfs_submit_esure_code_job(inode, offset, size); 
+		}	
 		return (num_bytes);
 	} else {
 		errno = job_map->err_no;
