@@ -290,6 +290,7 @@ struct sstack_nfs_readlink_resp {
 
 typedef struct sstack_nfs_response_struct {
 	int32_t command_ok;
+	sstack_client_handle_t handle; /* client handle */
 	union {
 		/* NFS v3 GETATTR response */
 		struct sstack_nfs_getattr_resp getattr_resp;

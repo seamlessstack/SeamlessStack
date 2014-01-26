@@ -51,6 +51,8 @@ extern char sfs_mountpoint[];
 
 static inline int
 sfs_send_read_status(sstack_job_map_t *job_map, char *buf, size_t size);
+static inline int
+sfs_send_write_status(sstack_job_map_t *job_map, char *buf, size_t size);
 
 /*
  * create_payload - Allocate payload structure from payload slab and zeroizes
@@ -1987,6 +1989,9 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		sfs_unlock(inode_num);
 		return -1;
 	}
+	
+	for (i = 0; i < inode.i_numclients; i++) 
+		job_map->op_status[i] = JOB_STARTED;
 
 	/*
 	 * Note: Don't free policy. It is just a pointer to original DS
@@ -2162,7 +2167,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 	// TODO
 	// Handle write status and erasure code
 
-//	ret = sfs_send_read_status(job_map, buf, size);
+	ret = sfs_send_write_status(job_map, buf, size);
 
 	sfs_job_context_remove(thread_id);
 	free(job_map->job_ids);
@@ -3448,6 +3453,46 @@ sfs_send_read_status(sstack_job_map_t *job_map, char *buf, size_t size)
 	}
 
 	return (num_bytes);
+}
+
+static inline int
+sfs_send_write_status(sstack_job_map_t *job_map, char *buf, size_t size)
+{
+	int                     i = 0;
+    uint32_t                num_bytes = 0;
+    sstack_job_id_t         job_id;
+    sstack_jt_t             *jt_node = NULL, jt_key;
+    sfs_job_t               *job = NULL;
+
+	for (i = 0; i < job_map->num_jobs; i++) {
+	    job_id = job_map->job_ids[i];
+
+		jt_key.magic = JTNODE_MAGIC;
+        jt_key.job_id = job_id;
+        jt_node = jobid_tree_search(jobid_tree, &jt_key);
+        job = jt_node->job;
+
+		if (job_map->err_no == SSTACK_SUCCESS) {
+			num_bytes += job->payload->response_struct.write_resp.file_wc;
+		} else {
+		/* Make the i_extent NULL. Once job_map->err_no shows an
+		 * error, we should invalidate all the i_extents that are part
+		 * of this job_map to follow all or none(either all extents
+		 * are properly written or none are written) approach.
+		 */
+		}	
+		sfs_job2thread_map_remove(job_id);
+		free(job->payload);
+		free(job);
+	}
+
+	if (job_map->err_no == SSTACK_SUCCESS) {
+	//	sfs_submit_esure_code_job(); TBD: Need to discuss
+		return (num_bytes);
+	} else {
+		errno = job_map->err_no;
+		return (-1);
+	}	
 }
 
 //==========================================================================//

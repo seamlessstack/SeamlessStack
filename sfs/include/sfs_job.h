@@ -338,6 +338,12 @@ typedef struct job_map {
 	pthread_spinlock_t lock;
 	sstack_job_id_t *job_ids;
 	sstack_job_status_t *job_status;
+	int	num_clients;
+	sstack_job_status_t op_status[MAX_SFSD_CLIENTS];
+									/* Use the same job status enum
+									 * but this specifies the entire
+									 * operation status per client 
+									 * basis */
 	pthread_mutex_t wait_lock;
 	pthread_cond_t condition;
 } sstack_job_map_t;
