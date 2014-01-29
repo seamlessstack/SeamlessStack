@@ -969,6 +969,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 		case SSTACK_UPDATE_STORAGE_RSP:
 		case SSTACK_ADD_STORAGE_RSP:
 			response.command_ok = payload->response_struct.command_ok;
+			response.handle = payload->response_struct.handle;
 			msg.response_struct = &response;
 			len = sstack_payload_t__get_packed_size(&msg);
 			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
@@ -1388,6 +1389,8 @@ sstack_recv_payload(sstack_client_handle_t handle,
 		case SSTACK_UPDATE_STORAGE_RSP: {
 			payload->response_struct.command_ok =
 				msg->response_struct->command_ok;
+			payload->response_struct.handle =
+				msg->response_struct->handle;
 			if (payload->response_struct.command_ok == 1) {
 				sfs_log(ctx, SFS_INFO, "%s: Command %s succeeded. "
 					"Client handle = %"PRId64" \n",
@@ -1625,6 +1628,10 @@ sstack_recv_payload(sstack_client_handle_t handle,
 			return payload;
 
 		case NFS_GETATTR_RSP:
+			payload->response_struct.command_ok =
+					msg->response_struct->command_ok;
+			payload->response_struct.handle =
+				msg->response_struct->handle;
 			memcpy((void *) &payload->response_struct.getattr_resp.stbuf,
 					(void *) msg->response_struct->getattr_resp->stbuf,
 					sizeof(struct stat));
@@ -1633,6 +1640,10 @@ sstack_recv_payload(sstack_client_handle_t handle,
 		case NFS_LOOKUP_RSP: {
 			ProtobufCBinaryData lookup_path;
 
+			payload->response_struct.command_ok =
+					msg->response_struct->command_ok;
+			payload->response_struct.handle =
+				msg->response_struct->handle;
 			payload->response_struct.lookup_resp.lookup_path_len =
 				msg->response_struct->lookup_resp->lookup_path_len;
 			lookup_path = msg->response_struct->lookup_resp->lookup_path;
@@ -1641,12 +1652,20 @@ sstack_recv_payload(sstack_client_handle_t handle,
 			return payload;
 		}
 		case NFS_ACCESS_RSP:
+			payload->response_struct.command_ok =
+					msg->response_struct->command_ok;
+			payload->response_struct.handle =
+				msg->response_struct->handle;
 			payload->response_struct.access_resp.access =
 				msg->response_struct->access_resp->access;
 			return payload;
 		case NFS_READLINK_RSP: {
 			ProtobufCBinaryData name;
 
+			payload->response_struct.command_ok =
+					msg->response_struct->command_ok;
+			payload->response_struct.handle =
+				msg->response_struct->handle;
 			payload->response_struct.readlink_resp.real_file.name_len =
 				msg->response_struct->readlink_resp->real_file->name_len;
 			name = msg->response_struct->readlink_resp->real_file->name;
@@ -1657,6 +1676,10 @@ sstack_recv_payload(sstack_client_handle_t handle,
 		case NFS_READ_RSP: {
 			ProtobufCBinaryData data_buf;
 
+			payload->response_struct.command_ok =
+					msg->response_struct->command_ok;
+			payload->response_struct.handle =
+				msg->response_struct->handle;
 			payload->response_struct.read_resp.count =
 				msg->response_struct->read_resp->count;
 			payload->response_struct.read_resp.eof =
@@ -1669,12 +1692,20 @@ sstack_recv_payload(sstack_client_handle_t handle,
 			return payload;
 		}
 		case NFS_WRITE_RSP:
+			payload->response_struct.command_ok =
+					msg->response_struct->command_ok;
+			payload->response_struct.handle =
+				msg->response_struct->handle;
 			payload->response_struct.write_resp.file_create_ok =
 				msg->response_struct->write_resp->file_create_ok;
 			payload->response_struct.write_resp.file_wc =
 				msg->response_struct->write_resp->file_wc;
 			return payload;
 		case NFS_CREATE_RSP:
+			payload->response_struct.command_ok =
+					msg->response_struct->command_ok;
+			payload->response_struct.handle =
+				msg->response_struct->handle;
 			payload->response_struct.create_resp.file_create_ok =
 				msg->response_struct->create_resp->file_create_ok;
 			payload->response_struct.create_resp.file_wc =

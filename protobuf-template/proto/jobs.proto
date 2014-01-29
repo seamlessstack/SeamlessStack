@@ -243,13 +243,14 @@ message sstack_nfs_readlink_resp
 message sstack_nfs_response_struct
 {
 	required uint32 command_ok = 1;
-	optional sstack_nfs_getattr_resp getattr_resp = 2;
-	optional sstack_nfs_lookup_resp lookup_resp = 3;
-	optional sstack_nfs_access_resp access_resp = 4;
-	optional sstack_nfs_readlink_resp readlink_resp = 5;
-	optional sstack_nfs_read_resp read_resp = 6;
-	optional sstack_nfs_write_resp write_resp = 7;
-	optional sstack_nfs_write_resp create_resp = 8;
+	required uint64	handle = 2;
+	optional sstack_nfs_getattr_resp getattr_resp = 3;
+	optional sstack_nfs_lookup_resp lookup_resp = 4;
+	optional sstack_nfs_access_resp access_resp = 5;
+	optional sstack_nfs_readlink_resp readlink_resp = 6;
+	optional sstack_nfs_read_resp read_resp = 7;
+	optional sstack_nfs_write_resp write_resp = 8;
+	optional sstack_nfs_write_resp create_resp = 9;
 }
 
 message sstack_payload_hdr_t
