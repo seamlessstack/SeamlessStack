@@ -22,6 +22,7 @@
 
 #include <policy.h>
 #include <sstack_types.h>
+#include <time.h>
 
 #define SFSCLI_MAGIC 0xdeadbeef
 #define SFSCLI_MAGIC_LEN sizeof(SFSCLI_MAGIC);
@@ -43,10 +44,14 @@
 							  read_bytes)								\
 	for (;;) {															\
 		fd_set readsockfds;												\
+		struct timeval tv	;											\
 		FD_SET(readsockfd, &readsockfds);								\
-		rc = select(readsockfd + 1, &readsockfds, NULL, NULL, NULL);	\
-		if (rc == -1)													\
+		tv.tv_sec = 1; tv.tv_usec = 0;									\
+		rc = select(readsockfd + 1, &readsockfds, NULL, NULL, &tv);		\
+		if (rc == -1) {													\
+			sleep(1);													\
 			break;														\
+		}																\
 		if (FD_ISSET(readsockfd, &readsockfds)) {						\
 			rnbytes = read(readsockfd, buffer, buf_size);				\
 			if (rnbytes > 0)											\
