@@ -108,7 +108,7 @@ display_storage_devices(storage_tree_t *tree, sfs_st_t *node, void *arg)
 }
 
 void *
-cli_thread(void *arg)
+cli_process_thread(void *arg)
 {
 	int32_t sockfd;
 	int32_t optval;
@@ -410,6 +410,9 @@ get_sfsd_command_response(uint8_t *buffer, size_t buf_len, uint8_t **resp_buf)
 	default:
 		printf ("Not implemented\n");
 	}
+
+	// FIXME:
+	return buf_len;
 
 }
 

@@ -1990,8 +1990,8 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		sfs_unlock(inode_num);
 		return -1;
 	}
-	
-	for (i = 0; i < inode.i_numclients; i++) 
+
+	for (i = 0; i < inode.i_numclients; i++)
 		job_map->op_status[i] = JOB_STARTED;
 
 	/*
@@ -2054,7 +2054,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		payload->command_struct.write_cmd.count = write_size;
 		payload->command_struct.write_cmd.data.data_len = write_size;
 		payload->command_struct.write_cmd.data.data_buf =
-				(char *) (buf + bytes_issued);
+				(unsigned char *) (buf + bytes_issued);
 		memcpy((void *) &payload->command_struct.read_cmd.pe, (void *)
 						policy, sizeof(struct policy_entry));
 		job->payload_len = sizeof(sstack_payload_t);
@@ -3417,7 +3417,7 @@ sfs_utimens(const char *path, const struct timespec tv[2])
 
 /* This is a low priority independent job. So no association with the
    calling thread needed for this job
- */  
+ */
 static inline void
 sfs_submit_esure_code_job(sstack_inode_t inode, off_t offset, size_t size)
 {
@@ -3454,14 +3454,14 @@ sfs_submit_esure_code_job(sstack_inode_t inode, off_t offset, size_t size)
 		free(payload);
 		return;
 	}
-	// populate extent 
+	// populate extent
 	job->payload_len = sizeof(sstack_payload_t);
     job->payload = payload;
 
 	ret = sfs_submit_job(job->priority, jobs, job);
     if (ret == -1) {
 		// sfs_log here
-	}	
+	}
 }
 
 /* Send response function for various commands */
@@ -3505,7 +3505,7 @@ sfs_send_read_status(sstack_job_map_t *job_map, char *buf, size_t size)
 }
 
 static inline int
-sfs_send_write_status(sstack_job_map_t *job_map,  sstack_inode_t inode, 
+sfs_send_write_status(sstack_job_map_t *job_map,  sstack_inode_t inode,
 						off_t offset, size_t size)
 {
 	int                     i = 0;
@@ -3530,7 +3530,7 @@ sfs_send_write_status(sstack_job_map_t *job_map,  sstack_inode_t inode,
 		 * of this job_map to follow all or none(either all extents
 		 * are properly written or none are written) approach.
 		 */
-		}	
+		}
 		sfs_job2thread_map_remove(job_id);
 		free(job->payload);
 		free(job);
@@ -3542,13 +3542,13 @@ sfs_send_write_status(sstack_job_map_t *job_map,  sstack_inode_t inode,
 			 * before issuing erasure code job
 			 */
 		} else {
-			sfs_submit_esure_code_job(inode, offset, size); 
-		}	
+			sfs_submit_esure_code_job(inode, offset, size);
+		}
 		return (num_bytes);
 	} else {
 		errno = job_map->err_no;
 		return (-1);
-	}	
+	}
 }
 
 //==========================================================================//

@@ -134,7 +134,7 @@ extern uint32_t sstack_checksum(log_ctx_t *, const char *);
 extern db_t *db;
 extern sstack_client_handle_t sfs_handle;
 extern sstack_thread_pool_t *sfs_thread_pool;
-extern void cli_thread(void *);
+extern void * cli_process_thread(void *);
 
 /*
  * A simple structure that holds infomation on how to contact sfsd

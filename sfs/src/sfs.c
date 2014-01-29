@@ -138,13 +138,13 @@ add_inodes(const char *path)
 	sstack_file_handle_t *ep = NULL;
 	char inode_str[MAX_INODE_LEN] = { '\0' };
 
-    sfs_log(sfs_ctx, SFS_DEBUG, "%s: path = %s\n", __FUNCTION__, path);
-    if (lstat(path, &status) == -1) {
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: path = %s\n", __FUNCTION__, path);
+	if (lstat(path, &status) == -1) {
 		sfs_log(sfs_ctx, SFS_ERR,
 			"%s: stat failed on %s with error %d\n",
 			__FUNCTION__, path, errno);
 		return -errno;
-    }
+	}
 
 
 	// Populate inode structure
@@ -276,7 +276,7 @@ populate_db(const char *dir_name)
 {
 	DIR *d = NULL;
 
-    /* Open the directory specified by "dir_name". */
+	/* Open the directory specified by "dir_name". */
 	sfs_log(sfs_ctx, SFS_ERR, "%s: dir_name = %s \n", __FUNCTION__,
 			dir_name);
 
@@ -477,8 +477,8 @@ sfs_process_read_response(sstack_payload_t *payload)
 
 	if (resp.command_ok == SSTACK_SUCCESS) {
 		pthread_spin_lock(&job_map->lock);
-        job_map->num_jobs_left --;
-        pthread_spin_unlock(&job_map->lock);
+		job_map->num_jobs_left --;
+		pthread_spin_unlock(&job_map->lock);
 
 		job->payload = payload;
 
@@ -532,8 +532,8 @@ sfs_process_read_response(sstack_payload_t *payload)
 	} else {
 		/* Read errors */
 		pthread_spin_lock(&job_map->lock);
-        job_map->err_no = resp.command_ok;
-        pthread_spin_unlock(&job_map->lock);
+		job_map->err_no = resp.command_ok;
+		pthread_spin_unlock(&job_map->lock);
 		pthread_cond_signal(&job_map->condition);
 	}
 }
@@ -542,47 +542,47 @@ static void
 sfs_process_write_response(sstack_payload_t *payload)
 {
 	sstack_nfs_response_struct resp = payload->response_struct;
-	sstack_jm_t         *jm_node = NULL, jm_key;
-    sstack_jt_t         *jt_node = NULL, jt_key;
-    pthread_t           thread_id;
-    sstack_job_map_t    *job_map = NULL;
-    sfs_job_t           *job = NULL;
-    sstack_job_id_t     job_id;
-    int                 i = 0;
-	int					num_incmp_clients = 0, num_clients_fail = 0;
+	sstack_jm_t	*jm_node = NULL, jm_key;
+	sstack_jt_t	*jt_node = NULL, jt_key;
+	pthread_t thread_id;
+	sstack_job_map_t *job_map = NULL;
+	sfs_job_t *job = NULL;
+	sstack_job_id_t job_id;
+	int	i = 0;
+	int	num_incmp_clients = 0, num_clients_fail = 0;
 
 	job_id = payload->hdr.job_id;
 
 	jt_key.magic = JTNODE_MAGIC;
-    jt_key.job_id = job_id;
-    jt_node = jobid_tree_search(jobid_tree, &jt_key);
+	jt_key.job_id = job_id;
+	jt_node = jobid_tree_search(jobid_tree, &jt_key);
 
 	if (jt_node == NULL) {
 		/* TBD: something wrong happened.
-         * Should we assert or just return.
-         * For now just return
-         */
-        errno = SSTACK_CRIT_FAILURE;
-        return;
-    }
-    thread_id = jt_node->thread_id;
-    job = jt_node->job;
+		 * Should we assert or just return.
+		 * For now just return
+		 */
+		errno = SSTACK_CRIT_FAILURE;
+		return;
+	}
+	thread_id = jt_node->thread_id;
+	job = jt_node->job;
 
 	jm_key.magic = JMNODE_MAGIC;
-    jm_key.thread_id = thread_id;
-    jm_node = jobmap_tree_search(jobmap_tree, &jm_key);
+	jm_key.thread_id = thread_id;
+	jm_node = jobmap_tree_search(jobmap_tree, &jm_key);
 
-    if (jm_node == NULL) {
+	if (jm_node == NULL) {
 		/* TBD: something wrong happened. job_map should
-		 * be present until all jobs are processed  
-         * Should we assert or just return.
-         * For now just return
-         */
-        errno = SSTACK_CRIT_FAILURE;
-        return;
+		 * be present until all jobs are processed
+		 * Should we assert or just return.
+		 * For now just return
+		 */
+		errno = SSTACK_CRIT_FAILURE;
+		return;
 	}
-    job_map = jm_node->job_map;
-	
+	job_map = jm_node->job_map;
+
 	for (i = 0; i < job->num_clients; i++) {
 		if (job->sfsds[i]->handle == resp.handle) {
 			if (resp.command_ok == SSTACK_SUCCESS) {
@@ -594,37 +594,37 @@ sfs_process_write_response(sstack_payload_t *payload)
 				job_map->op_status[i] = JOB_FAILED;
 				pthread_spin_unlock(&job_map->lock);
 				job->job_status[i] = JOB_FAILED;
-			}	
+			}
 			break;
 		}
 	}
 
 	for (i = 0; i < job->num_clients; i++) {
-		if (job->job_status[i] == JOB_STARTED) 
+		if (job->job_status[i] == JOB_STARTED)
 			num_incmp_clients++;
 		if (job_map->op_status[i] == JOB_FAILED)
 			num_clients_fail++;
 	}
 
 	if (num_incmp_clients == 0) {
-        pthread_spin_lock(&job_map->lock);
-        job_map->num_jobs_left --;
-        pthread_spin_unlock(&job_map->lock);
+		pthread_spin_lock(&job_map->lock);
+		job_map->num_jobs_left --;
+		pthread_spin_unlock(&job_map->lock);
 	}
 
 	if (job_map->num_jobs_left == 0) {
 		if (num_clients_fail > (job->num_clients)/2) {
 			pthread_spin_lock(&job_map->lock);
-	        job_map->err_no = EIO;
-	        pthread_spin_unlock(&job_map->lock);
+			job_map->err_no = EIO;
+			pthread_spin_unlock(&job_map->lock);
 		} else {
 			pthread_spin_lock(&job_map->lock);
-	        job_map->err_no = resp.command_ok;
-	        pthread_spin_unlock(&job_map->lock);
+			job_map->err_no = resp.command_ok;
+			pthread_spin_unlock(&job_map->lock);
 
-		}	
+		}
 		pthread_cond_signal(&job_map->condition);
-	}	
+	}
 }
 
 /*
@@ -645,8 +645,8 @@ sfs_process_payload(void *arg)
 		case (NFS_READ_RSP):
 			sfs_process_read_response(payload);
 			break;
-		
-		case (NFS_WRITE_RSP): 
+
+		case (NFS_WRITE_RSP):
 			sfs_process_write_response(payload);
 			break;
 
@@ -658,26 +658,26 @@ sfs_process_payload(void *arg)
 		case (SSTACK_REMOVE_STORAGE_RSP):
 		case (SSTACK_UPDATE_STORAGE_RSP):
 		{
-			pthread_t           thread_id;
-			sstack_jm_t         *jm_node = NULL, jm_key;
-		    sstack_jt_t         *jt_node = NULL, jt_key;
-			sstack_job_id_t     job_id;
-			sstack_job_map_t    *job_map = NULL;
+			pthread_t thread_id;
+			sstack_jm_t	*jm_node = NULL, jm_key;
+			sstack_jt_t	*jt_node = NULL, jt_key;
+			sstack_job_id_t	job_id;
+			sstack_job_map_t *job_map = NULL;
 
 			job_id = payload->hdr.job_id;
 
 			jt_key.magic = JTNODE_MAGIC;
-		    jt_key.job_id = job_id;
-		    jt_node = jobid_tree_search(jobid_tree, &jt_key);
+			jt_key.job_id = job_id;
+			jt_node = jobid_tree_search(jobid_tree, &jt_key);
 			if (jt_node == NULL) {
 				errno = SSTACK_CRIT_FAILURE;
 				return NULL;
 			}
 			thread_id = jt_node->thread_id;
 			jm_key.magic = JMNODE_MAGIC;
-		    jm_key.thread_id = thread_id;
-		    jm_node = jobmap_tree_search(jobmap_tree, &jm_key);
-		    if (jm_node == NULL) {
+			jm_key.thread_id = thread_id;
+			jm_node = jobmap_tree_search(jobmap_tree, &jm_key);
+			if (jm_node == NULL) {
 				errno = SSTACK_CRIT_FAILURE;
 				return NULL;
 			}
@@ -1236,7 +1236,7 @@ sfs_init(struct fuse_conn_info *conn)
 		pthread_attr_setstacksize(&cli_attr, 131072); // 128KiB
 		pthread_attr_setdetachstate(&cli_attr, PTHREAD_CREATE_DETACHED);
 		ret = pthread_create(&cli_thread, &cli_attr,
-						cli_thread, NULL);
+						cli_process_thread, NULL);
 	}
 	if (ret != 0) {
 		sfs_log(sfs_ctx, SFS_CRIT, "%s: Unable to create cli handler "
