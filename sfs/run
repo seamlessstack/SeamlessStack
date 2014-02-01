@@ -1,2 +1,0 @@
-export LD_LIBRARY_PATH=../build/lib:../oss_install/lib:../db/mongo:../lib/memcache:../lib/serdes:../policy:../lib/validate:../cli:../common
-./sfs 127.0.0.1,/var/tmp,rw,10 /tmp/one
