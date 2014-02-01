@@ -55,7 +55,7 @@ sstack_payload_t* sstack_getattr(sstack_payload_t *payload, log_ctx_t *ctx)
 
 	/* Make the string null terminated */
 	p[file_handle->name_len - 1] = 0;
-	sfs_log(ctx, SFS_DEBUG, ":%s extent path:%s", __FUNCTION__, p);
+	sfs_log(ctx, SFS_DEBUG, ":%s extent path:%s\n", __FUNCTION__, p);
 
 	//i= find_rorw_branch(path); - Might need later
 	response = bds_cache_alloc(sfsd_global_cache_arr[PAYLOAD_CACHE_OFFSET]);
@@ -66,7 +66,7 @@ sstack_payload_t* sstack_getattr(sstack_payload_t *payload, log_ctx_t *ctx)
 
 	getattr_resp = &response->response_struct.getattr_resp;
 	command_stat = lstat(p, &getattr_resp->stbuf);
-	sfs_log(ctx, SFS_DEBUG, "%s(): command status: %d", __FUNCTION__,
+	sfs_log(ctx, SFS_DEBUG, "%s(): command status: %d\n", __FUNCTION__,
 			command_stat);
 	if (command_stat != 0) {
 		goto error;
@@ -101,14 +101,14 @@ error:
 sstack_payload_t *sstack_setattr(sstack_payload_t *payload, log_ctx_t *ctx)
 {
 	/* Not implemented */
-	sfs_log(ctx, SFS_INFO, "%s(): function not implemented", __FUNCTION__);
+	sfs_log(ctx, SFS_INFO, "%s(): function not implemented\n", __FUNCTION__);
 	return NULL;
 }
 
 sstack_payload_t *sstack_lookup(sstack_payload_t *payload, log_ctx_t *ctx)
 {
 	/* Not implemented */
-	sfs_log(ctx, SFS_INFO, "%s(): function not implemented", __FUNCTION__);
+	sfs_log(ctx, SFS_INFO, "%s(): function not implemented\n", __FUNCTION__);
 	return NULL;
 }
 
@@ -122,11 +122,11 @@ sstack_payload_t *sstack_access(sstack_payload_t *payload, log_ctx_t *ctx)
 	struct sstack_nfs_access_resp *access_resp;
 	char *p = file_handle->name;
 	p[file_handle->name_len - 1] = '\0';
-	sfs_log(ctx, SFS_DEBUG, "%s(): path", __FUNCTION__, p);
+	sfs_log(ctx, SFS_DEBUG, "%s(): path\n", __FUNCTION__, p);
 
 	response = bds_cache_alloc(sfsd_global_cache_arr[PAYLOAD_CACHE_OFFSET]);
 	if (!response) {
-		sfs_log(ctx, SFS_ERR, "%s(): Memory allocation failed",
+		sfs_log(ctx, SFS_ERR, "%s(): Memory allocation failed\n",
 				__FUNCTION__);
 		command_stat = -ENOMEM;
 		goto error;
@@ -138,7 +138,7 @@ sstack_payload_t *sstack_access(sstack_payload_t *payload, log_ctx_t *ctx)
 	} else {
 		goto error;
 	}
-	sfs_log(ctx, SFS_DEBUG, "%s(): command status: %d", __FUNCTION__,
+	sfs_log(ctx, SFS_DEBUG, "%s(): command status: %d\n", __FUNCTION__,
 			command_stat);
 	/* Command is successful */
 	response->hdr.sequence = payload->hdr.sequence;
@@ -166,7 +166,7 @@ sstack_payload_t *sstack_readlink(sstack_payload_t *payload, log_ctx_t *ctx)
 
 	response = bds_cache_alloc(sfsd_global_cache_arr[PAYLOAD_CACHE_OFFSET]);
 	if (!response) {
-		sfs_log(ctx, SFS_ERR, "%s(): Memory allocation failed",
+		sfs_log(ctx, SFS_ERR, "%s(): Memory allocation failed\n",
 				__FUNCTION__);
 		command_stat = -ENOMEM;
 		goto error;
@@ -178,7 +178,7 @@ sstack_payload_t *sstack_readlink(sstack_payload_t *payload, log_ctx_t *ctx)
 	} else {
 		goto error;
 	}
-	sfs_log(ctx, SFS_DEBUG, "%s(): command status: %d", __FUNCTION__,
+	sfs_log(ctx, SFS_DEBUG, "%s(): command status: %d\n", __FUNCTION__,
 			command_stat);
 	/* Command is successful */
 	response->hdr.sequence = payload->hdr.sequence;
@@ -239,7 +239,7 @@ static size_t get_extent(sstack_extent_t *extents, size_t num_extents,
 	sstack_extent_t *extent = NULL;
 
 	if (index > num_extents) {
-		sfs_log(ctx, SFS_ERR, "%s() - passed index greater than size of array",
+		sfs_log(ctx, SFS_ERR, "%s()-passed index greater than size of array\n",
 				__FUNCTION__);
 		goto ret;
 	}
@@ -296,11 +296,11 @@ static int32_t read_check_extent(char *mounted_path, size_t read_size,
 	ssize_t nbytes;
 	/* Parameter Validation */
 	if (mounted_path == NULL || buffer == NULL) {
-		sfs_log(ctx, SFS_ERR, "%s() - Invalid Parameters", __FUNCTION__);
+		sfs_log(ctx, SFS_ERR, "%s() - Invalid Parameters\n", __FUNCTION__);
 		goto ret;
 	}
 	if ((fd = open(mounted_path, O_RDONLY|O_DIRECT)) < 0) {
-		sfs_log(ctx, SFS_ERR, "%s(): extent '%s' open failed",
+		sfs_log(ctx, SFS_ERR, "%s(): extent '%s' open failed\n",
 				__FUNCTION__, mounted_path);
 		ret = errno;
 		goto ret;
@@ -335,11 +335,11 @@ static int32_t write_update_extent(char *mounted_path, size_t write_size,
 	/* Parameter Validation */
 	if (mounted_path == NULL || buffer == NULL
 		||(calculate_cksum && (cksum == NULL))) {
-		sfs_log(ctx, SFS_ERR, "%s() - Invalid Parameters", __FUNCTION__);
+		sfs_log(ctx, SFS_ERR, "%s() - Invalid Parameters\n", __FUNCTION__);
 		goto ret;
 	}
 	if ((fd = open(mounted_path, O_WRONLY|O_DIRECT)) < 0) {
-		sfs_log(ctx, SFS_ERR, "%s(): extent '%s' open failed",
+		sfs_log(ctx, SFS_ERR, "%s(): extent '%s' open failed\n",
 				__FUNCTION__, mounted_path);
 		ret = errno;
 		goto ret;
@@ -374,7 +374,7 @@ static ssize_t read_erasure_code(void *d_stripes[], void *c_stripes[],
 
 	path = bds_cache_alloc(sfsd_global_cache_arr[DATA4K_CACHE_OFFSET]);
 	if (path == NULL) {
-		sfs_log(ctx, SFS_ERR, "%s() - No memory for path",
+		sfs_log(ctx, SFS_ERR, "%s() - No memory for path\n",
 				__FUNCTION__);
 		ret = -ENOMEM;
 		goto ret;
@@ -539,7 +539,7 @@ sstack_payload_t *sstack_read(sstack_payload_t *payload,
 
 	if (get_inode(cmd->inode_no, inode, sfsd->db) != 0) {
 		command_stat = -EINVAL;
-		sfs_log(ctx, SFS_ERR, "%s(): Inode not available",
+		sfs_log(ctx, SFS_ERR, "%s(): Inode not available\n",
 			__FUNCTION__);
 		goto error;
 	}
@@ -550,7 +550,7 @@ sstack_payload_t *sstack_read(sstack_payload_t *payload,
 							  &payload->command_struct.extent_handle,
 							  sfsd, mount_path, ctx);
 	if (extent_index < 0) {
-		sfs_log(ctx, SFS_ERR, "%s() - Invalid extent to read", __FUNCTION__);
+		sfs_log(ctx, SFS_ERR, "%s() - Invalid extent to read\n", __FUNCTION__);
 		command_stat = -EINVAL;
 		goto error;
 	}
@@ -562,7 +562,8 @@ sstack_payload_t *sstack_read(sstack_payload_t *payload,
 		index = read_erasure_code(d_stripes, c_stripes, err_strps,
 								  extent_index, inode, sfsd, ctx);
 		if (index < 0) {
-			sfs_log(ctx, SFS_ERR, "%s() - Erasure code gone bad", __FUNCTION__);
+			sfs_log(ctx, SFS_ERR, "%s() - Erasure code gone bad\n",
+							__FUNCTION__);
 			command_stat = index;
 			goto error;
 		} else {
@@ -586,7 +587,7 @@ sstack_payload_t *sstack_read(sstack_payload_t *payload,
 										 inode->i_extent[extent_index].e_cksum,
 										 buffer, ctx);
 		if (command_stat < 0) {
-			sfs_log(ctx, SFS_ERR, "%s(): Error reading extent",
+			sfs_log(ctx, SFS_ERR, "%s(): Error reading extent\n",
 					__FUNCTION__);
 			command_stat = -ENODATA;
 			goto error;
@@ -641,13 +642,13 @@ sstack_payload_t *sstack_write(sstack_payload_t *payload,
 	if (inode == NULL) {
 		command_stat = -ENOMEM;
 		sfs_log(ctx, SFS_ERR, "%s(): %s\n",
-			__FUNCTION__, "Inode cache mem not available");
+			__FUNCTION__, "Inode cache mem not available\n");
 		goto error;
 	}
 
 	if (get_inode(cmd->inode_no, inode, sfsd->db) != 0) {
 		command_stat = -EINVAL;
-		sfs_log(ctx, SFS_ERR, "%s(): Inode not available",
+		sfs_log(ctx, SFS_ERR, "%s(): Inode not available\n",
 			__FUNCTION__);
 		goto error;
 	}
@@ -661,7 +662,7 @@ sstack_payload_t *sstack_write(sstack_payload_t *payload,
 		sprintf(extent_name, "%s/%u-XXXXXX", mount_path, time(NULL));
 		fd = mkostemp(mount_path, O_DIRECT|O_WRONLY);
 		if (fd < 0) {
-			sfs_log(ctx, SFS_ERR, "%s() - Unable to create a new extent",
+			sfs_log(ctx, SFS_ERR, "%s() - Unable to create a new extent\n",
 					__FUNCTION__);
 			command_stat = errno;
 			goto error;
@@ -674,7 +675,7 @@ sstack_payload_t *sstack_write(sstack_payload_t *payload,
 								  INVALID_INDEX,
 								  extent_name, sfsd, mount_path, ctx);
 		if (extent_index < 0) {
-			sfs_log(ctx, SFS_ERR, "%s() -  Invalid extent to write",
+			sfs_log(ctx, SFS_ERR, "%s() -  Invalid extent to write\n",
 					__FUNCTION__);
 			command_stat = -EINVAL;
 			goto error;
@@ -775,7 +776,7 @@ sstack_payload_t *sstack_write(sstack_payload_t *payload,
 #endif
 
 error:
-	sfs_log(ctx, SFS_INFO, "%s(): function not implemented", __FUNCTION__);
+	sfs_log(ctx, SFS_INFO, "%s(): function not implemented\n", __FUNCTION__);
 	return NULL;
 }
 
@@ -798,13 +799,13 @@ sstack_payload_t *sstack_mkdir(sstack_payload_t *payload, log_ctx_t *ctx)
 
 	response = bds_cache_alloc(sfsd_global_cache_arr[PAYLOAD_CACHE_OFFSET]);
 	if (!response) {
-		sfs_log(ctx, SFS_ERR, "%s(): Memory allocation failed",
+		sfs_log(ctx, SFS_ERR, "%s(): Memory allocation failed\n",
 				__FUNCTION__);
 		command_stat = -ENOMEM;
 		goto error;
 	}
 	command_stat = mkdir(p, mkdir_cmd->mode);
-	sfs_log(ctx, SFS_DEBUG, "%s(): command status: %d", __FUNCTION__,
+	sfs_log(ctx, SFS_DEBUG, "%s(): command status: %d\n", __FUNCTION__,
 			command_stat);
 	if (command_stat != 0)
 		goto error;
@@ -840,13 +841,13 @@ sstack_payload_t *sstack_esure_code(sstack_payload_t *payload,
 	if (inode == NULL) {
 		command_stat = -ENOMEM;
 		sfs_log(ctx, SFS_ERR, "%s(): %s\n",
-				__FUNCTION__, "Inode cache mem not available");
+				__FUNCTION__, "Inode cache mem not available\n");
 		goto done;
 	}
 
 	if (get_inode(cmd->inode_no, inode, sfsd->db) != 0) {
 		command_stat = -EINVAL;
-		sfs_log(ctx, SFS_ERR, "%s(): Inode not available",
+		sfs_log(ctx, SFS_ERR, "%s(): Inode not available\n",
 				__FUNCTION__);
 		goto done;
 	}
@@ -965,7 +966,7 @@ sstack_payload_t *sstack_symlink(sstack_payload_t *payload, log_ctx_t *ctx)
 	q[new_path->name_len - 1] = '\0';
 
 	command_stat = symlink(p, q);
-	sfs_log(ctx, SFS_DEBUG, "%s(): command status: %d", __FUNCTION__,
+	sfs_log(ctx, SFS_DEBUG, "%s(): command status: %d\n", __FUNCTION__,
 			command_stat);
 
 	if (command_stat != 0)
@@ -977,7 +978,7 @@ sstack_payload_t *sstack_symlink(sstack_payload_t *payload, log_ctx_t *ctx)
 sstack_payload_t *sstack_mknod(sstack_payload_t *payload, log_ctx_t *ctx)
 {
 	/* Not implemented */
-	sfs_log(ctx, SFS_INFO, "%s(): function not implemented", __FUNCTION__);
+	sfs_log(ctx, SFS_INFO, "%s(): function not implemented\n", __FUNCTION__);
 	return NULL;
 }
 
@@ -1009,7 +1010,7 @@ sstack_payload_t *sstack_rmdir(sstack_payload_t *payload, log_ctx_t *ctx)
 	p[file_handle->name_len - 1] = '\0';
 
 	command_stat = rmdir(p);
-	sfs_log(ctx, SFS_DEBUG, "%s(): command status: %d", __FUNCTION__,
+	sfs_log(ctx, SFS_DEBUG, "%s(): command status: %d\n", __FUNCTION__,
 			command_stat);
 
 	if (command_stat != 0)
@@ -1054,7 +1055,7 @@ sstack_payload_t *sstack_link(sstack_payload_t *payload, log_ctx_t *ctx)
 	q[new_path->name_len - 1] = '\0';
 
 	command_stat = link(p, q);
-	sfs_log(ctx, SFS_DEBUG, "%s(): command status: %d", __FUNCTION__,
+	sfs_log(ctx, SFS_DEBUG, "%s(): command status: %d\n", __FUNCTION__,
 			command_stat);
 
 	if (command_stat != 0)
@@ -1066,41 +1067,41 @@ sstack_payload_t *sstack_link(sstack_payload_t *payload, log_ctx_t *ctx)
 sstack_payload_t *sstack_readdir(sstack_payload_t *payload, log_ctx_t *ctx)
 {
 	/* Not implemented */
-	sfs_log(ctx, SFS_INFO, "%s(): function not implemented", __FUNCTION__);
+	sfs_log(ctx, SFS_INFO, "%s(): function not implemented\n", __FUNCTION__);
 	return NULL;
 }
 
 sstack_payload_t *sstack_readdirplus(sstack_payload_t *payload, log_ctx_t *ctx)
 {
 	/* Not implemented */
-	sfs_log(ctx, SFS_INFO, "%s(): function not implemented", __FUNCTION__);
+	sfs_log(ctx, SFS_INFO, "%s(): function not implemented\n", __FUNCTION__);
 	return NULL;
 }
 
 sstack_payload_t *sstack_fsstat(sstack_payload_t *payload, log_ctx_t *ctx)
 {
 	/* Not implemented */
-	sfs_log(ctx, SFS_INFO, "%s(): function not implemented", __FUNCTION__);
+	sfs_log(ctx, SFS_INFO, "%s(): function not implemented\n", __FUNCTION__);
 	return NULL;
 }
 
 sstack_payload_t *sstack_fsinfo(sstack_payload_t *payload, log_ctx_t *ctx)
 {
 	/* Not implemented */
-	sfs_log(ctx, SFS_INFO, "%s(): function not implemented", __FUNCTION__);
+	sfs_log(ctx, SFS_INFO, "%s(): function not implemented\n", __FUNCTION__);
 	return NULL;
 }
 
 sstack_payload_t *sstack_pathconf(sstack_payload_t *payload, log_ctx_t *ctx)
 {
 	/* Not implemented */
-	sfs_log(ctx, SFS_INFO, "%s(): function not implemented", __FUNCTION__);
+	sfs_log(ctx, SFS_INFO, "%s(): function not implemented\n", __FUNCTION__);
 	return NULL;
 }
 
 sstack_payload_t *sstack_commit(sstack_payload_t *payload, log_ctx_t *ctx)
 {
 	/* Not implemented */
-	sfs_log(ctx, SFS_INFO, "%s(): function not implemented", __FUNCTION__);
+	sfs_log(ctx, SFS_INFO, "%s(): function not implemented\n", __FUNCTION__);
 	return NULL;
 }

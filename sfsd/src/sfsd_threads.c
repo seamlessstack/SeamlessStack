@@ -62,10 +62,10 @@ static int32_t sfsd_create_receiver_thread(sfsd_t *sfsd)
 
 	ret = pthread_create(&sfsd->receiver_thread, &attr,
 			do_receive_thread, sfsd);
-	SFS_LOG_EXIT((ret == 0), "Receiver thread create failed", ret,
+	SFS_LOG_EXIT((ret == 0), "Receiver thread create failed\n", ret,
 			sfsd->log_ctx, SFS_ERR);
 
-	sfs_log(sfsd->log_ctx, SFS_INFO, "Receive thread creation successful");
+	sfs_log(sfsd->log_ctx, SFS_INFO, "Receive thread creation successful\n");
 	return 0;
 }
 
@@ -78,20 +78,20 @@ int32_t init_thread_pool(sfsd_t *sfsd)
 	pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
 
 	ret = sfsd_create_receiver_thread(sfsd);
-	SFS_LOG_EXIT((ret == 0), "Could not create receiver thread",
+	SFS_LOG_EXIT((ret == 0), "Could not create receiver thread\n",
 			ret, sfsd->log_ctx, SFS_ERR);
 
 	sfsd->thread_pool = sstack_thread_pool_create(1, 5, 30, &attr);
 	SFS_LOG_EXIT((sfsd->thread_pool != NULL),
-			"Could not create sfsd thread pool",
+			"Could not create sfsd thread pool\n",
 			ret, sfsd->log_ctx, SFS_ERR);
 
 	sfsd->chunk_thread_pool = sstack_thread_pool_create(1, 2, 0, &attr);
 	SFS_LOG_EXIT((sfsd->thread_pool != NULL),
-			"Could not create sfsd chunk thread pool",
+			"Could not create sfsd chunk thread pool\n",
 			ret, sfsd->log_ctx, SFS_ERR);
 
-	sfs_log(sfsd->log_ctx, SFS_INFO, "Thread pool initialized");
+	sfs_log(sfsd->log_ctx, SFS_INFO, "Thread pool initialized\n");
 	return 0;
 
 }
@@ -104,7 +104,7 @@ static sstack_payload_t* get_payload(sstack_transport_t *transport,
 	sstack_transport_ops_t *ops = &transport->transport_ops;
 
 	payload = malloc(sizeof(*payload));
-	SFS_LOG_EXIT((payload != NULL), "Allocate payload failed", NULL,
+	SFS_LOG_EXIT((payload != NULL), "Allocate payload failed\n", NULL,
 			transport->ctx, SFS_ERR);
 	/* Read of the payload */
 	nbytes = ops->rx(handle, sizeof(*payload), payload);
@@ -154,7 +154,7 @@ static void* do_process_payload(void *param)
 	/* Send of the response */
 	if (send_payload(h_param->sfsd->transport,
 				h_param->sfsd->handle, response)) {
-		sfs_log (h_param->log_ctx, SFS_ERR, "Error sending payload");
+		sfs_log (h_param->log_ctx, SFS_ERR, "Error sending payload\n");
 	}
 
 	/* Free off the response */
@@ -173,9 +173,9 @@ static void* do_receive_thread(void *param)
 	/* Check for the handle, if it doesn't exist
 	   simply exit */
 	SFS_LOG_EXIT((sfsd->handle != 0),
-			"Transport handle doesn't exist. Exiting..",
+			"Transport handle doesn't exist. Exiting..\n",
 			NULL, sfsd->log_ctx, SFS_ERR);
-	
+
 	param_cache = sfsd->caches[HANDLE_PARAM_OFFSET];
 
 	while (1) {
@@ -197,7 +197,7 @@ static void* do_receive_thread(void *param)
 			if (handle_params == NULL) {
 				sfs_log(sfsd->log_ctx, SFS_ERR,
 						"Failed to allocate %s",
-						"handle_params");
+						"handle_params\n");
 				send_unsucessful_response(payload, sfsd);
 				continue;
 			}
@@ -211,7 +211,7 @@ static void* do_receive_thread(void *param)
 					do_process_payload, handle_params);
 			sfs_log(sfsd->log_ctx,
 				((ret == 0) ? SFS_DEBUG: SFS_ERR),
-				"Job queue status: %d", ret);
+				"Job queue status: %d\n", ret);
 		}
 	}
 }
@@ -241,7 +241,7 @@ void handle_command(sstack_payload_t *command, sstack_payload_t **response,
 			if (0 != (ret = sfsd_update_chunk(sfsd->chunk,
 							storage))) {
 				sfs_log(log_ctx, SFS_ERR, "Unable to update"
-						"chunk");
+						"chunk\n");
 			}
 			command->response_struct.command_ok = ret;
 			*response = command;
@@ -251,7 +251,7 @@ void handle_command(sstack_payload_t *command, sstack_payload_t **response,
 			if (0 != (ret = sfsd_remove_chunk(sfsd->chunk,
 							storage))) {
 				sfs_log(log_ctx, SFS_ERR, "Unable to remove"
-						"chunk");
+						"chunk\n");
 			}
 			command->response_struct.command_ok = ret;
 			*response = command;
@@ -333,5 +333,5 @@ void handle_command(sstack_payload_t *command, sstack_payload_t **response,
 						command->hdr.job_id, (sfs_job_t*)command->hdr.arg,
 						command->hdr.priority, log_ctx);
 	free_payload(sfsd_global_cache_arr,command);
-					
+
 }

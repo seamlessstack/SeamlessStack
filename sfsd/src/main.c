@@ -75,7 +75,7 @@ static int32_t sfsd_create_caches(sfsd_t *sfsd, struct cache_entry *centry)
 	return 0;
 
 error:
-	sfs_log(sfsd->log_ctx, SFS_ERR, "%s(): Bailing out..", __FUNCTION__);
+	sfs_log(sfsd->log_ctx, SFS_ERR, "%s(): Bailing out..\n", __FUNCTION__);
 	// bds_cache_destroy is not implemented yet
 #if 0
 	for (j = i; j >= 0; j--)
