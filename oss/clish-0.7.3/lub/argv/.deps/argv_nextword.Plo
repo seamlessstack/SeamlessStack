@@ -1,0 +1,19 @@
+lub/argv/argv_nextword.lo: lub/argv/argv_nextword.c lub/argv/private.h \
+ lub/argv.h /usr/lib/gcc/x86_64-linux-gnu/4.7/include/stddef.h \
+ lub/c_decl.h lub/types.h lub/types.h lub/ctype.h lub/c_decl.h
+
+lub/argv/private.h:
+
+lub/argv.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/4.7/include/stddef.h:
+
+lub/c_decl.h:
+
+lub/types.h:
+
+lub/types.h:
+
+lub/ctype.h:
+
+lub/c_decl.h:
