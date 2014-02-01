@@ -31,23 +31,23 @@ CLISH_DIR = clish-0.7.3
 RM = rm
 CC = gcc
 CP = cp
-MKDIR = mkdir
+MKDIR = mkdir -p
 CD = cd
 SED = sed
 MV = mv
 CP = cp
 
 all: $(CONFIGURE)
-	$(MAKE) -C $(JERASUREDIR)
-	$(MAKE) -C $(MEMCACHEDDIR)
-	$(MAKE) -C $(MEMCACHEDDIR) install
-	$(MAKE) -C $(MONGOCDIR)
-	$(CP) $(JERASUREDIR)/*.so $(OSS_LIBSDIR)
-	$(CP) $(MONGOCDIR)/*.so $(OSS_LIBSDIR)
-	$(MAKE) -C $(LZ4DIR) 
-	$(CP) $(LZ4DIR)/*.so $(OSS_LIBSDIR)
-	$(MAKE) -C $(OPENSSL_DIR)
-	$(CP) $(OPENSSL_DIR)/*.so $(OSS_LIBSDIR)
+#	$(MAKE) -C $(JERASUREDIR)
+#	$(MAKE) -C $(MEMCACHEDDIR)
+#	$(MAKE) -C $(MEMCACHEDDIR) install
+#	$(MAKE) -C $(MONGOCDIR)
+#	$(CP) $(JERASUREDIR)/*.so $(OSS_LIBSDIR)
+#	$(CP) $(MONGOCDIR)/*.so $(OSS_LIBSDIR)
+#	$(MAKE) -C $(LZ4DIR) 
+#	$(CP) $(LZ4DIR)/*.so $(OSS_LIBSDIR)
+#	$(MAKE) -C $(OPENSSL_DIR)
+#	$(CP) $(OPENSSL_DIR)/*.so $(OSS_LIBSDIR)
 	$(MKDIR) $(OSS_INCLUDEDIR)/openssl
 	$(CP)  $(OPENSSL_DIR)/include/openssl/* $(OSS_INCLUDEDIR)/openssl
 	$(MAKE) -C $(RBTREE_DIR)
