@@ -44,7 +44,7 @@ typedef enum {
 } sstack_transport_type_t;
 
 typedef struct sstack_transport sstack_transport_t; // Forward decl
-sstack_transport_t* get_tcp_transport(char *addr);
+sstack_transport_t* get_tcp_transport(char *addr, log_ctx_t *ctx);
 /*
  *  init() is supposed to establish a connection and retrun client handle
  *  Client handle is socket fd i case of TCPIP

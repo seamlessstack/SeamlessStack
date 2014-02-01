@@ -1,11 +1,11 @@
 /*************************************************************************
- * 
+ *
  * SEAMLESSSTACK CONFIDENTIAL
  * __________________________
- * 
+ *
  *  [2012] - [2013]  SeamlessStack Inc
  *  All Rights Reserved.
- * 
+ *
  * NOTICE:  All information contained herein is, and remains
  * the property of SeamlessStack Incorporated and its suppliers,
  * if any.  The intellectual and technical concepts contained
@@ -26,7 +26,7 @@ sstack_client_handle_t tcp_client_init(sstack_transport_t *transport);
 
 int32_t init_transport (sfsd_t *sfsd)
 {
-	sfsd->transport = get_tcp_transport(sfsd->sfs_addr);
+	sfsd->transport = get_tcp_transport(sfsd->sfs_addr, sfsd->log_ctx);
 	sfsd->transport->ctx = sfsd->log_ctx;
 	ASSERT((sfsd->transport != NULL), "Failed to fetch transport type TCP",
 			1, 0, 0);

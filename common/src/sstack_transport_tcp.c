@@ -316,7 +316,7 @@ tcp_server_setup(sstack_transport_t *transport)
  * Returns NULL upon failure and transport structure upon success.
  */
 
-sstack_transport_t *get_tcp_transport(char *addr)
+sstack_transport_t *get_tcp_transport(char *addr, log_ctx_t *ctx)
 {
 	sstack_transport_t *transport = NULL;
 
@@ -329,7 +329,7 @@ sstack_transport_t *get_tcp_transport(char *addr)
 	transport->transport_hdr.tcp.ipv4 = 1;
 	strcpy(transport->transport_hdr.tcp.ipv4_addr, addr);
 	transport->transport_hdr.tcp.port = htons(CONNECT_PORT);
-	transport->ctx = NULL;
+	transport->ctx = ctx;
 
 	transport->transport_ops.client_init = tcp_client_init;
 	transport->transport_ops.tx = tcp_tx;
