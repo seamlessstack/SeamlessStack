@@ -52,7 +52,7 @@ all: $(CONFIGURE)
 	$(CP)  $(OPENSSL_DIR)/include/openssl/* $(OSS_INCLUDEDIR)/openssl
 	$(MAKE) -C $(RBTREE_DIR)
 	$(CP) $(RBTREE_DIR)/*.so $(OSS_LIBSDIR)
-#	$(MAKE) -C $(CLISH_DIR)
+	$(MAKE) -C $(CLISH_DIR)
 
 $(CONFIGURE):
 	$(CD) $(MEMCACHEDDIR) && ./configure --prefix=$(OSS_INSTALL_DIR)
