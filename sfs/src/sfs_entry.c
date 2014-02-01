@@ -124,7 +124,6 @@ sfs_getattr(const char *path, struct stat *stbuf)
 	int ret = -1;
 	char *fullpath = NULL;
 
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s: path = %s \n", __FUNCTION__, path);
 	// Parameter validation
 	if (NULL == path || NULL == stbuf) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters passed. \n",
@@ -135,12 +134,18 @@ sfs_getattr(const char *path, struct stat *stbuf)
 	}
 
 	fullpath = prepend_mntpath(path);
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: path = %s \n", __FUNCTION__, fullpath);
 	ret = lstat(fullpath, stbuf);
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s: Returning with status %d\n", __FUNCTION__,
 					ret);
 	free(fullpath);
+	if (ret == -1) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s: lstat failed\n", __FUNCTION__);
 
-	return ret;
+		return -1;
+	}
+
+	return 0;
 }
 
 /*

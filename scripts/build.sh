@@ -1,2 +1,2 @@
 #!/bin/bash
-make clean all install
+make clean all install tags

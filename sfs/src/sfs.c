@@ -851,13 +851,12 @@ sfs_handle_connection(void * arg)
 							__FUNCTION__);
 			return NULL;
 		}
-reselect:
 		ret = transport.transport_ops.select(sfs_handle, mask);
 		if (ret != READ_NO_BLOCK) {
 			sfs_log(sfs_ctx, SFS_INFO, "%s: Connection down. Waiting for "
 							"retry \n", __FUNCTION__);
 			sleep(1);
-			goto reselect;
+			continue;
 		}
 
 		// Receive a payload
@@ -981,7 +980,7 @@ sfs_init(struct fuse_conn_info *conn)
 					__FUNCTION__, intf_addr);
 	transport.transport_hdr.tcp.ipv4 = 1;
 	strcpy((char *) &transport.transport_hdr.tcp.ipv4_addr, intf_addr);
-	transport.transport_hdr.tcp.port = htons(SFS_SERVER_PORT);
+	transport.transport_hdr.tcp.port = htons(atoi(SFS_SERVER_PORT));
 	transport.transport_ops.rx = tcp_rx;
 	transport.transport_ops.tx = tcp_tx;
 	transport.transport_ops.client_init = tcp_client_init;
