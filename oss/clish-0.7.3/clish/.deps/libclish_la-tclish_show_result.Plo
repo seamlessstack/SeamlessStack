@@ -1,4 +1,0 @@
-clish/libclish_la-tclish_show_result.lo: clish/tclish_show_result.c \
- config.h
-
-config.h:

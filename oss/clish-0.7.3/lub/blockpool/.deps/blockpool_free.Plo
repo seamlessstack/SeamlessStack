@@ -1,9 +1,0 @@
-lub/blockpool/blockpool_free.lo: lub/blockpool/blockpool_free.c \
- lub/blockpool/private.h lub/blockpool.h \
- /usr/lib/gcc/x86_64-linux-gnu/4.7/include/stddef.h
-
-lub/blockpool/private.h:
-
-lub/blockpool.h:
-
-/usr/lib/gcc/x86_64-linux-gnu/4.7/include/stddef.h:
