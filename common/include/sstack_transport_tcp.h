@@ -28,7 +28,7 @@ extern int tcp_rx(sstack_client_handle_t , size_t , void * );
 extern int tcp_tx(sstack_client_handle_t , size_t , void * );
 extern int tcp_select(sstack_client_handle_t , uint32_t );
 extern sstack_client_handle_t tcp_server_setup(sstack_transport_t *);
-extern sstack_transport_t *get_tcp_transport(char *);
+extern sstack_transport_t *get_tcp_transport(char *, log_ctx_t *);
 
 extern inline int sstack_transport_register(sstack_transport_type_t ,
 				sstack_transport_t *, sstack_transport_ops_t );
