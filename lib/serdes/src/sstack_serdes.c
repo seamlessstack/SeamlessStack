@@ -163,6 +163,9 @@ sstack_send_payload(sstack_client_handle_t handle,
 	size_t len = 0;
 	char *buffer = NULL;
 
+	sfs_log(ctx, SFS_DEBUG, "%s: handle = %d payload 0x%x transport 0x%x "
+			"job_id = %d \n", __FUNCTION__, handle, payload, transport, job_id);
+
 	// Parameter validation
 	if (handle == -1 || NULL == payload || NULL == transport ||
 					job_id < 0 || job_id >= MAX_OUTSTANDING_JOBS) {
@@ -177,6 +180,8 @@ sstack_send_payload(sstack_client_handle_t handle,
 	hdr.priority = priority;
 	hdr.arg = (uint64_t) job;
 	msg.hdr = &hdr;
+	sfs_log(ctx, SFS_DEBUG, "%s %d \n", __FUNCTION__, __LINE__);
+
 	switch (payload->command) {
 		case SSTACK_ADD_STORAGE:
 		case SSTACK_REMOVE_STORAGE:
@@ -1307,6 +1312,8 @@ sstack_send_payload(sstack_client_handle_t handle,
 		}
 	}
 
+	sfs_log(ctx, SFS_DEBUG, "%s %d \n", __FUNCTION__, __LINE__);
+
 	return 0;
 }
 
@@ -1329,6 +1336,7 @@ sstack_recv_payload(sstack_client_handle_t handle,
 		errno = EINVAL;
 		return NULL;
 	}
+	sfs_log(ctx, SFS_DEBUG, "%s %d \n", __FUNCTION__, __LINE__);
 
 	payload = (sstack_payload_t *) malloc(sizeof(sstack_payload_t));
 	if (NULL == payload) {

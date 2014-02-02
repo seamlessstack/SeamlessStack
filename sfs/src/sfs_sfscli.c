@@ -37,6 +37,7 @@
 #include <sfs_jobid_tree.h>
 #include <sfs_jobmap_tree.h>
 #include <sstack_nfs.h>
+#include <sstack_log.h>
 
 #define MAX_RESPONSE_LEN	1000
 char sfscli_response[MAX_RESPONSE_LEN];
@@ -57,7 +58,7 @@ display_storage_devices(storage_tree_t *tree, sfs_st_t *node, void *arg)
 	int	entry_len = 0;
 
 	if (node == NULL) {
-		printf("Critical error in tree\n");
+		sfs_log(sfs_ctx, SFS_ERR, "Critical error in tree\n");
 		return NULL;
 	}
 
@@ -96,7 +97,7 @@ display_storage_devices(storage_tree_t *tree, sfs_st_t *node, void *arg)
 	entry_len = strlen(sfscli_response);
 	temp = realloc(buf, entry_len + buf_len);
 	if (temp == NULL) {
-		printf("%s: Line %d: Critical error\n", __FUNCTION__, __LINE__);
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Line %d: Critical error\n", __FUNCTION__, __LINE__);
 		return NULL;
 	}
 //	strncpy(temp, buf, buf_len);
@@ -126,7 +127,7 @@ cli_process_thread(void *arg)
 		servaddr.sin_port = htons(atoi(SFSCLI_DEF_SFS_PORT));
 
 		if (bind(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr)) == 0) {
-			printf ("Bind done, waiting for incoming connections %s\n",
+			sfs_log(sfs_ctx, SFS_ERR, "Bind done, waiting for incoming connections %s\n",
 							SFSCLI_DEF_SFS_PORT);
 			listen(sockfd, 5);
 			handle_cli_requests(sockfd);
@@ -197,7 +198,12 @@ ssize_t get_policy_command_response(uint8_t *buffer, size_t buf_len,
 	return (resp_len);
 }
 
-ssize_t get_storage_command_response(uint8_t *buffer, size_t buf_len,
+// FIXME:
+// Remove this
+extern sfsd_t accept_sfsd;
+
+ssize_t
+get_storage_command_response(uint8_t *buffer, size_t buf_len,
 	                                        uint8_t **resp_buf)
 {
 	struct sfscli_cli_cmd *cmd;
@@ -208,11 +214,18 @@ ssize_t get_storage_command_response(uint8_t *buffer, size_t buf_len,
 	sstack_payload_t *payload = NULL;
 	int		ret = 0;
 
-	if (sfscli_deserialize_storage(buffer, buf_len, &cmd) != 0)
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s %d\n", __FUNCTION__, __LINE__);
+	if (sfscli_deserialize_storage(buffer, buf_len, &cmd) != 0) {
+		sfs_log(sfs_ctx, SFS_DEBUG, "%s %d\n", __FUNCTION__, __LINE__);
 		return (0);
+	}
+
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: command = %d\n", __FUNCTION__,
+			cmd->input.storage_cmd);
 
 	switch(cmd->input.storage_cmd) {
 		case STORAGE_SHOW_CMD:
+			sfs_log(sfs_ctx, SFS_DEBUG, "%s %d\n", __FUNCTION__, __LINE__);
 			sfs_storage_tree_iter(display_storage_devices);
 			strncpy((char *) *resp_buf, buf, buf_len);
 			resp_len = buf_len;
@@ -224,6 +237,7 @@ ssize_t get_storage_command_response(uint8_t *buffer, size_t buf_len,
 		case STORAGE_DEL_CMD:
 		case STORAGE_UPDATE_CMD:
 		{
+			sfs_log(sfs_ctx, SFS_DEBUG, "%s %d\n", __FUNCTION__, __LINE__);
 			thread_id = pthread_self();
 			job_map = create_job_map();
 			if (NULL == job_map) {
@@ -234,13 +248,21 @@ ssize_t get_storage_command_response(uint8_t *buffer, size_t buf_len,
 
 			job = sfs_job_init();
 	        if (NULL == job) {
-	            sfs_log(sfs_ctx, SFS_ERR, "%s: Fail to allocate job memory.\n",
-					                    __FUNCTION__);
+	            sfs_log(sfs_ctx, SFS_ERR,
+						"%s: Fail to allocate job memory.\n", __FUNCTION__);
 				goto err;
 			}
 			job->id = get_next_job_id();
+			sfs_log(sfs_ctx, SFS_DEBUG, "%s %d job id 0x%x\n",
+					__FUNCTION__, __LINE__, job->id);
 	        job->job_type = SFSD_IO;
 	        job->num_clients = 1;
+			// FIXME:
+			// Hardcoding sfsd pointer for now. This needs to go.
+
+			job->sfsds[0] = &accept_sfsd;
+			sfs_log(sfs_ctx, SFS_DEBUG, "%s: handle = %d \n",
+					__FUNCTION__, job->sfsds[0]->handle);
 //	        job->sfsds[0] = inode.i_primary_sfsd->sfsd;
 	        job->job_status[0] = JOB_STARTED;
 
@@ -253,6 +275,7 @@ ssize_t get_storage_command_response(uint8_t *buffer, size_t buf_len,
 	        payload->hdr.arg = (uint64_t) job;
 			if (cmd->input.storage_cmd == STORAGE_ADD_CMD) {
 				payload->command = SSTACK_ADD_STORAGE;
+#if 0
 				payload->command_struct.add_chunk_cmd.storage.address =
 						cmd->input.sti.address;
 				strcpy(payload->command_struct.add_chunk_cmd.storage.path,
@@ -263,20 +286,41 @@ ssize_t get_storage_command_response(uint8_t *buffer, size_t buf_len,
 						cmd->input.sti.size;
 				payload->command_struct.add_chunk_cmd.storage.weight =
 						cmd->input.sti.type; //need to map type to weight TBD
+#endif
+				payload->storage.address =
+						cmd->input.sti.address;
+				strcpy(payload->storage.path,
+						cmd->input.sti.rpath);
+				payload->storage.protocol =
+						cmd->input.sti.access_protocol;
+				payload->storage.nblocks =
+						cmd->input.sti.size;
+				payload->storage.weight =
+						cmd->input.sti.type; //need to map type to weight TBD
 			} else if (cmd->input.storage_cmd == STORAGE_DEL_CMD) {
 				payload->command = SSTACK_REMOVE_STORAGE;
+#if 0
 				payload->command_struct.delete_chunk_cmd.storage.address =
 					                        cmd->input.sti.address;
 				strcpy(payload->command_struct.delete_chunk_cmd.storage.path,
 					                        cmd->input.sti.rpath);
+#endif
+				payload->storage.address = cmd->input.sti.address;
+				strcpy(payload->storage.path, cmd->input.sti.rpath);
+
 			} else if (cmd->input.storage_cmd == STORAGE_UPDATE_CMD) {
 				payload->command = SSTACK_UPDATE_STORAGE;
+#if 0
 				payload->command_struct.update_chunk_cmd.storage.address =
 					                        cmd->input.sti.address;
 				strcpy(payload->command_struct.update_chunk_cmd.storage.path,
 						                        cmd->input.sti.rpath);
 				payload->command_struct.update_chunk_cmd.storage.nblocks =
 					                        cmd->input.sti.size;
+#endif
+				payload->storage.address = cmd->input.sti.address;
+				strcpy(payload->storage.path, cmd->input.sti.rpath);
+				payload->storage.nblocks = cmd->input.sti.size;
 			}
 
 			job->payload_len = sizeof(sstack_payload_t);
@@ -343,8 +387,12 @@ ssize_t get_storage_command_response(uint8_t *buffer, size_t buf_len,
 		}
 
 		default:
+			sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid command \n",
+						__FUNCTION__);
 			break;
 	}
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s %d resp_len = %d\n",
+			__FUNCTION__, __LINE__, resp_len);
 
 	return (resp_len);
 err:
@@ -408,7 +456,7 @@ get_sfsd_command_response(uint8_t *buffer, size_t buf_len, uint8_t **resp_buf)
 	case SFSD_ADD_CMD:
 		break;
 	default:
-		printf ("Not implemented\n");
+		sfs_log(sfs_ctx, SFS_ERR, "Not implemented\n");
 	}
 
 	// FIXME:
@@ -424,8 +472,9 @@ get_command_response(uint8_t *buffer, size_t buf_len, uint8_t **resp_buf)
 	uint8_t *p = buffer;
 	size_t resp_len;
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s %d\n", __FUNCTION__, __LINE__);
 	if (p == NULL) {
-		printf ("Invalid input buffer \n");
+		sfs_log(sfs_ctx, SFS_ERR, "Invalid input buffer \n");
 		return -ENOMEM;
 	}
 
@@ -433,14 +482,16 @@ get_command_response(uint8_t *buffer, size_t buf_len, uint8_t **resp_buf)
 	sfscli_deser_uint(magic, buffer, 4);
 
 	if (magic != SFSCLI_MAGIC) {
-		printf ("Magic not found\n");
+		sfs_log(sfs_ctx, SFS_ERR, "Magic not found\n");
 		return -EINVAL;
 	}
 	p+=4;
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s %d\n", __FUNCTION__, __LINE__);
 
 	/* Peek into the command structure to
 	 * see what command is it */
 	sfscli_deser_nfield(cmd, p);
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s %d\n", __FUNCTION__, __LINE__);
 
 	switch (cmd) {
 	case SFSCLI_SFSD_CMD:
@@ -452,6 +503,7 @@ get_command_response(uint8_t *buffer, size_t buf_len, uint8_t **resp_buf)
 		break;
 
 	case SFSCLI_STORAGE_CMD:
+		sfs_log(sfs_ctx, SFS_DEBUG, "%s %d\n", __FUNCTION__, __LINE__);
 		resp_len = get_storage_command_response(buffer, buf_len, resp_buf);
 		break;
 
@@ -460,10 +512,11 @@ get_command_response(uint8_t *buffer, size_t buf_len, uint8_t **resp_buf)
 		break;
 
 	default:
-		printf ("Not implemented\n");
+		sfs_log(sfs_ctx, SFS_ERR, "Not implemented\n");
 		resp_len = 0;
 	}
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s %d\n", __FUNCTION__, __LINE__);
 	return resp_len;
 }
 
@@ -488,19 +541,19 @@ handle_cli_requests(int32_t sockfd)
 	while(not_terminating) {
 		rnbytes = wnbytes = 0;
 		memset(cmd_buffer, 0, SFSCLI_MAX_BUFFER_SIZE);
-		printf ("Waiting for an incoming connection\n");
+		sfs_log(sfs_ctx, SFS_ERR, "Waiting for an incoming connection\n");
 		/* Accept connections and process */
-		if (connection_dropped == 1) {
+		//if (connection_dropped == 1) {
 			conn_sockfd = accept(sockfd,
 								 (struct sockaddr *)&client_addr,
 								 &client_addr_len);
 			if (conn_sockfd < 0) {
-				printf ("coulnot accept the incoming connection\n");
+				sfs_log(sfs_ctx, SFS_ERR, "coulnot accept the incoming connection\n");
 				continue;
 			}
 			connection_dropped = 0;
-			printf ("Connection received from clid\n");
-		}
+			sfs_log(sfs_ctx, SFS_ERR, "Connection received from clid\n");
+		//}
 
 		rc = -1;
 		select_read_to_buffer(conn_sockfd, rc, cmd_buffer,
@@ -510,13 +563,14 @@ handle_cli_requests(int32_t sockfd)
 			if (resp_buffer && (resp_size > 0)) {
 				wnbytes = write(conn_sockfd, resp_buffer, resp_size);
 				if (wnbytes < resp_size)
-					printf ("Less no of response sent\n");
+					sfs_log(sfs_ctx, SFS_ERR, "Less no of response sent\n");
 				else
-					printf ("Wrote %ld bytes to clid\n", wnbytes);
+					sfs_log(sfs_ctx, SFS_ERR, "Wrote %ld bytes to clid\n", wnbytes);
 			}
 		} else {
-			printf ("Error reading command\n");
+			sfs_log(sfs_ctx, SFS_ERR, "Error reading command\n");
 		}
+
 	}
 }
 

@@ -54,6 +54,9 @@ sfs_submit_job(int priority, sfs_job_queue_t *job_list, sfs_job_t *job)
 		return -1;
 	}
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s:%d priority = %d \n", __FUNCTION__,
+			__LINE__, priority);
+
 	// Add the job to job queue
 	ret = sfs_enqueue_job(priority, job_list, job);
 	if (ret != 0) {
@@ -61,6 +64,8 @@ sfs_submit_job(int priority, sfs_job_queue_t *job_list, sfs_job_t *job)
 						__FUNCTION__);
 		return -1;
 	}
+
+	sfs_log(sfs_ctx, SFS_ERR, "%s: success \n", __FUNCTION__);
 
 	return 0;
 }

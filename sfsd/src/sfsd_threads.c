@@ -176,6 +176,7 @@ static void* do_receive_thread(void *param)
 			"Transport handle doesn't exist. Exiting..\n",
 			NULL, sfsd->log_ctx, SFS_ERR);
 
+	sfs_log(sfsd->log_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
 	param_cache = sfsd->caches[HANDLE_PARAM_OFFSET];
 
 	while (1) {
@@ -186,9 +187,12 @@ static void* do_receive_thread(void *param)
 			/* Connection is down, wait for retry */
 			sleep (1);
 		}
+		sfs_log(sfsd->log_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
 		payload = get_payload(sfsd->transport, sfsd->handle);
 		/* After getting the payload, assign a thread pool from the
 		   thread pool to do the job */
+		sfs_log(sfsd->log_ctx, SFS_DEBUG, "%s: %d payload 0x%x\n",
+				__FUNCTION__, __LINE__, payload);
 		if (payload != NULL) {
 			/* Command could be
 			   1) Chunk domain command
