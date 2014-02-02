@@ -230,7 +230,7 @@ void handle_command(sstack_payload_t *command, sstack_payload_t **response,
 	{
 		/* sstack storage commands here */
 		case SSTACK_ADD_STORAGE:
-			storage = &command->command_struct.add_chunk_cmd.storage;
+			storage = &command->storage;
 			path = sfsd_add_chunk(sfsd->chunk, storage);
 			if (path) {
 				free(path);
@@ -241,7 +241,7 @@ void handle_command(sstack_payload_t *command, sstack_payload_t **response,
 			*response = command;
 			break;
 		case SSTACK_UPDATE_STORAGE:
-			storage = &command->command_struct.update_chunk_cmd.storage;
+			storage = &command->storage;
 			if (0 != (ret = sfsd_update_chunk(sfsd->chunk,
 							storage))) {
 				sfs_log(log_ctx, SFS_ERR, "Unable to update"
@@ -251,7 +251,7 @@ void handle_command(sstack_payload_t *command, sstack_payload_t **response,
 			*response = command;
 			break;
 		case SSTACK_REMOVE_STORAGE:
-			storage = &command->command_struct.delete_chunk_cmd.storage;
+			storage = &command->storage;
 			if (0 != (ret = sfsd_remove_chunk(sfsd->chunk,
 							storage))) {
 				sfs_log(log_ctx, SFS_ERR, "Unable to remove"
