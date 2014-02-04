@@ -193,7 +193,7 @@ static void* do_receive_thread(void *param)
 			continue;
 		}
 		sfs_log(sfsd->log_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
-		payload = get_payload(sfsd->transport, sfsd->handle);
+		payload = sstack_recv_payload(sfsd->handle,sfsd->transport, sfsd->log_ctx);
 		/* After getting the payload, assign a thread pool from the
 		   thread pool to do the job */
 		sfs_log(sfsd->log_ctx, SFS_DEBUG, "%s: %d payload 0x%x\n",
