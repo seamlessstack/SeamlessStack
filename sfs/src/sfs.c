@@ -933,6 +933,10 @@ sfs_handle_connection(void * arg)
 		//	sfs_log(sfs_ctx, SFS_INFO, "%s: Connection down. Waiting for "
 		//					"retry \n", __FUNCTION__);
 			sleep(2);
+			/* Its a non-blocking select call. So, it could come out of
+			 * select even though there is nothing to read. So just go back
+			 * to select 
+			 */
 			continue;
 		}
 
