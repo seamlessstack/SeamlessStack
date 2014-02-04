@@ -102,7 +102,7 @@ static sstack_payload_t* get_payload(sstack_transport_t *transport,
 	sstack_payload_t *payload = NULL;
 	ssize_t nbytes = 0;
 	sstack_transport_ops_t *ops = &transport->transport_ops;
-
+	
 	payload = malloc(sizeof(*payload));
 	SFS_LOG_EXIT((payload != NULL), "Allocate payload failed\n", NULL,
 			transport->ctx, SFS_ERR);
@@ -177,6 +177,7 @@ static void* do_receive_thread(void *param)
 			NULL, sfsd->log_ctx, SFS_ERR);
 
 	sfs_log(sfsd->log_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
+		
 	param_cache = sfsd->caches[HANDLE_PARAM_OFFSET];
 
 	while (1) {
@@ -185,7 +186,11 @@ static void* do_receive_thread(void *param)
 		ret = sfsd->transport->transport_ops.select(sfsd->handle, mask);
 		if (ret != READ_NO_BLOCK) {
 			/* Connection is down, wait for retry */
-			sleep (1);
+			//sleep (1);
+			/* Select in this case is non-blocking. We could come out 
+			 * even when there is nothing to read. So, go back to select
+			 */
+			continue;
 		}
 		sfs_log(sfsd->log_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
 		payload = get_payload(sfsd->transport, sfsd->handle);

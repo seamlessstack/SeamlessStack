@@ -96,11 +96,13 @@ _sendrecv_payload(sstack_transport_t *transport,
 			size_t len,
 			int tx)
 {
-
+	sfs_log(transport->ctx, SFS_DEBUG, "%s: %d %d\n", __FUNCTION__, __LINE__,
+				(int) handle);
 	if (transport && transport->transport_ops.tx &&
 			transport->transport_ops.rx  && (handle > 0)) {
 		int ret = -1;
-
+		sfs_log(transport->ctx, SFS_DEBUG, "%s: %d %d\n", __FUNCTION__, 
+				__LINE__, (int) handle);
 		if (tx == 1)
 			ret = transport->transport_ops.tx(handle, len, (void *) buffer);
 		else if (tx == 0)
@@ -211,8 +213,10 @@ sstack_send_payload(sstack_client_handle_t handle,
 				msg.command =
 				 SSTACK_PAYLOAD_T__SSTACK_NFS_COMMAND_T__SSTACK_UPDATE_STORAGE;
 			storage.path.len = strlen(payload->storage.path);
+			storage.path.data = malloc(storage.path.len);
 			strcpy((char *) storage.path.data, payload->storage.path);
 			storage.mount_point.len = strlen(payload->storage.mount_point);
+			storage.mount_point.data = malloc(storage.mount_point.len);
 			strcpy((char *)storage.mount_point.data,
 							payload->storage.mount_point);
 			storage.weight = payload->storage.weight;
@@ -223,6 +227,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 				addr.protocol = IPV4;
 				addr.has_ipv4_address = true;
 				addr.ipv4_address.len = IPV4_ADDR_MAX;
+				addr.ipv4_address.data = malloc(addr.ipv4_address.len);
 				strcpy((char *) addr.ipv4_address.data,
 					payload->storage.address.ipv4_address);
 				storage.address = &addr;
@@ -230,13 +235,17 @@ sstack_send_payload(sstack_client_handle_t handle,
 				addr.protocol = IPV6;
 				addr.has_ipv6_address = true;
 				addr.ipv6_address.len = IPV6_ADDR_MAX;
+				addr.ipv6_address.data = malloc(addr.ipv6_address.len);
 				strcpy((char *) addr.ipv6_address.data,
 					payload->storage.address.ipv6_address);
 				storage.address = &addr;
 			}
 			msg.storage = &storage;
 			len = sstack_payload_t__get_packed_size(&msg);
-			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
+			sfs_log(ctx, SFS_DEBUG, "%s %d %d\n", __FUNCTION__, __LINE__, len);
+			hdr.payload_len = len - sizeof(sstack_payload_hdr_t); 
+			sfs_log(ctx, SFS_DEBUG, "%s %d %d %d\n", __FUNCTION__, __LINE__,
+						hdr.payload_len, sizeof(sstack_payload_hdr_t));
 			msg.hdr = &hdr; // Parannoid
 			buffer = malloc(len);
 			if (NULL == buffer) {
