@@ -348,6 +348,8 @@ get_storage_command_response(uint8_t *buffer, size_t buf_len,
 			}
 			ret = sfs_submit_job(job->priority, jobs, job);
 	        if (ret == -1) {
+				sfs_log(sfs_ctx, SFS_ERR, "%s: sfs_submit_job failed \n",
+						__FUNCTION__);
 	            sfs_job_context_remove(thread_id);
 	            sfs_job2thread_map_remove(thread_id);
 				goto err;

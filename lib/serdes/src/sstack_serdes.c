@@ -101,7 +101,7 @@ _sendrecv_payload(sstack_transport_t *transport,
 	if (transport && transport->transport_ops.tx &&
 			transport->transport_ops.rx  && (handle > 0)) {
 		int ret = -1;
-		sfs_log(transport->ctx, SFS_DEBUG, "%s: %d %d\n", __FUNCTION__, 
+		sfs_log(transport->ctx, SFS_DEBUG, "%s: %d %d\n", __FUNCTION__,
 				__LINE__, (int) handle);
 		if (tx == 1)
 			ret = transport->transport_ops.tx(handle, len, (void *) buffer);
@@ -212,7 +212,9 @@ sstack_send_payload(sstack_client_handle_t handle,
 			else
 				msg.command =
 				 SSTACK_PAYLOAD_T__SSTACK_NFS_COMMAND_T__SSTACK_UPDATE_STORAGE;
+			sfs_log(ctx, SFS_DEBUG, "%s: %d\n", __FUNCTION__, __LINE__);
 			storage.path.len = strlen(payload->storage.path);
+			sfs_log(ctx, SFS_DEBUG, "%s: %d\n", __FUNCTION__, __LINE__);
 			storage.path.data = malloc(storage.path.len);
 			strcpy((char *) storage.path.data, payload->storage.path);
 			storage.mount_point.len = strlen(payload->storage.mount_point);
@@ -224,12 +226,14 @@ sstack_send_payload(sstack_client_handle_t handle,
 			storage.protocol = payload->storage.protocol;
 			storage.num_chunks_written = payload->storage.num_chunks_written;
 			if (transport->transport_hdr.tcp.ipv4) {
+				sfs_log(ctx, SFS_DEBUG, "%s: %d\n", __FUNCTION__, __LINE__);
 				addr.protocol = IPV4;
 				addr.has_ipv4_address = true;
 				addr.ipv4_address.len = IPV4_ADDR_MAX;
 				addr.ipv4_address.data = malloc(addr.ipv4_address.len);
 				strcpy((char *) addr.ipv4_address.data,
 					payload->storage.address.ipv4_address);
+				sfs_log(ctx, SFS_DEBUG, "%s: %d\n", __FUNCTION__, __LINE__);
 				storage.address = &addr;
 			} else {
 				addr.protocol = IPV6;
@@ -243,7 +247,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 			msg.storage = &storage;
 			len = sstack_payload_t__get_packed_size(&msg);
 			sfs_log(ctx, SFS_DEBUG, "%s %d %d\n", __FUNCTION__, __LINE__, len);
-			hdr.payload_len = len - sizeof(sstack_payload_hdr_t); 
+			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
 			sfs_log(ctx, SFS_DEBUG, "%s %d %d %d\n", __FUNCTION__, __LINE__,
 						hdr.payload_len, sizeof(sstack_payload_hdr_t));
 			msg.hdr = &hdr; // Parannoid

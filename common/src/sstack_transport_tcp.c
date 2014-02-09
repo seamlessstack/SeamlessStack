@@ -145,6 +145,15 @@ tcp_rx(sstack_client_handle_t handle, size_t payload_len, void *payload)
 		return -EINVAL;
 	}
 
+	ret = recv((int) handle, (void *) payload, sizeof(sstack_payload_t),
+			0);
+	if (ret == -1) {
+		return -errno;
+	}
+
+	return ret;
+
+#ifdef TRANSPORT_OPTIMIZATION
 	ret = recv((int) handle, (void *) &hdr,
 			sizeof(sstack_payload_hdr_t), 0);
 	if (ret == -1) {
@@ -187,7 +196,10 @@ tcp_rx(sstack_client_handle_t handle, size_t payload_len, void *payload)
 			}
 		}
 	}
+
 	return count;
+#endif
+
 }
 
 /*

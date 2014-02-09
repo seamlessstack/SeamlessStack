@@ -7,6 +7,8 @@ then
 fi
 
 kill -9 `pidof sfs`
+kill -9 `pidof sfsclid`
+kill -9 `pidof sfsd`
 rm -f /tmp/sfs/*
 umount /tmp/one
 dmesg -c

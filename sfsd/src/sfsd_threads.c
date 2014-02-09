@@ -102,7 +102,7 @@ static sstack_payload_t* get_payload(sstack_transport_t *transport,
 	sstack_payload_t *payload = NULL;
 	ssize_t nbytes = 0;
 	sstack_transport_ops_t *ops = &transport->transport_ops;
-	
+
 	payload = malloc(sizeof(*payload));
 	SFS_LOG_EXIT((payload != NULL), "Allocate payload failed\n", NULL,
 			transport->ctx, SFS_ERR);
@@ -177,7 +177,7 @@ static void* do_receive_thread(void *param)
 			NULL, sfsd->log_ctx, SFS_ERR);
 
 	sfs_log(sfsd->log_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
-		
+
 	param_cache = sfsd->caches[HANDLE_PARAM_OFFSET];
 
 	while (1) {
@@ -187,7 +187,7 @@ static void* do_receive_thread(void *param)
 		if (ret != READ_NO_BLOCK) {
 			/* Connection is down, wait for retry */
 			//sleep (1);
-			/* Select in this case is non-blocking. We could come out 
+			/* Select in this case is non-blocking. We could come out
 			 * even when there is nothing to read. So, go back to select
 			 */
 			continue;
@@ -198,6 +198,7 @@ static void* do_receive_thread(void *param)
 		   thread pool to do the job */
 		sfs_log(sfsd->log_ctx, SFS_DEBUG, "%s: %d payload 0x%x\n",
 				__FUNCTION__, __LINE__, payload);
+#if 0
 		if (payload != NULL) {
 			/* Command could be
 			   1) Chunk domain command
@@ -222,6 +223,7 @@ static void* do_receive_thread(void *param)
 				((ret == 0) ? SFS_DEBUG: SFS_ERR),
 				"Job queue status: %d\n", ret);
 		}
+#endif
 	}
 }
 

@@ -732,16 +732,18 @@ sfs_dispatcher(void * arg)
 		// The following can be converted to a macro
 
 		// Process hi priority queue
-		temp = &job_list->list;
-		if (list_empty(temp))
-			continue;
+		temp = &job_list[0].list;
+		sfs_log(sfs_ctx, SFS_DEBUG, "%s: temp = 0x%x temp->next 0x%x "
+				"temp->prev 0x%x\n", __FUNCTION__, temp, temp->next,
+				temp->prev);
 
-		list_for_each_entry(job, temp, wait_list) {
+		while (!list_empty(temp)) {
+			// Detach the job
+			job = list_entry(temp->next, sfs_job_t, wait_list);
+			bds_list_del((bds_list_head_t) temp->next);
 			if (i == MAX_HIGH_PRIO)
 				break;
 			sfs_log(sfs_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
-			// Detach the job
-			bds_list_del((bds_list_head_t) &job->wait_list);
 			// process the job
 			for (j = 0; j < job->num_clients; j++) {
 				sfsd = (sfsd_t *) job->sfsds[j];
@@ -764,16 +766,19 @@ sfs_dispatcher(void * arg)
 				// Handle failure
 				// This can happen only if there is memory corruption
 			}
+			sfs_log(sfs_ctx, SFS_DEBUG, "%s: Enqueued job 0x%x to "
+					"pending jobs list \n", __FUNCTION__, job);
 		}
-
+#if 0
 		// Process medium priority queue
 		i = 0;
-		temp ++;
-		list_for_each_entry(job, temp, wait_list) {
+		temp = &job_list[1].list;
+		while (!list_empty(temp)) {
+			// Detach the job
+			job = list_entry(temp->next, sfs_job_t, wait_list);
+			bds_list_del((bds_list_head_t) &temp->next);
 			if (i == MAX_MEDIUM_PRIO)
 				break;
-			// Detach the job
-			bds_list_del((bds_list_head_t) &job->wait_list);
 			// process the job
 			for (j = 0; j < job->num_clients; j++) {
 				sfsd = (sfsd_t *) &job->sfsds[j];
@@ -793,15 +798,17 @@ sfs_dispatcher(void * arg)
 				// Handle failure
 				// This can happen only if there is memory corruption
 			}
+			sfs_log(sfs_ctx, SFS_DEBUG, "%s: Enqueued job 0x%x to "
+					"pending jobs list \n", __FUNCTION__, job);
 		}
 		// Process low priority queue
 		i = 0;
-		temp ++;
-		list_for_each_entry(job, temp, wait_list) {
-			if (i == MAX_LOW_PRIO)
-				break;
+		temp = &job_list[2].list;
+		while (!list_empty(temp)) {
 			// Detach the job
 			bds_list_del((bds_list_head_t) &job->wait_list);
+			if (i == MAX_LOW_PRIO)
+				break;
 			// process the job
 			for (j = 0; j < job->num_clients; j++) {
 				sfsd = (sfsd_t *) &job->sfsds[j];
@@ -821,7 +828,10 @@ sfs_dispatcher(void * arg)
 				// Handle failure
 				// This can happen only if there is memory corruption
 			}
+			sfs_log(sfs_ctx, SFS_DEBUG, "%s: Enqueued job 0x%x to "
+					"pending jobs list \n", __FUNCTION__, job);
 		}
+#endif
 
 		sleep(SFS_JOB_SLEEP); // Yield
 	}
@@ -935,7 +945,7 @@ sfs_handle_connection(void * arg)
 			sleep(2);
 			/* Its a non-blocking select call. So, it could come out of
 			 * select even though there is nothing to read. So just go back
-			 * to select 
+			 * to select
 			 */
 			continue;
 		}
@@ -1100,7 +1110,7 @@ sfs_init(struct fuse_conn_info *conn)
 	}
 
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s: thread pool created \n", __FUNCTION__);
-	// Initialize job queues
+
 	ret = sfs_job_list_init(&jobs);
 	if (ret == -1) {
 		// Job list creation failed
@@ -1560,6 +1570,8 @@ main(int argc, char *argv[])
 	int ret = -1;
 	int i = 0;
 
+	// Not able to attache gdb if sfs is not started as root.
+#ifdef RUN_NORMAL
 	// Check if root is mounting the file system.
 	// If so, return error
 	if (uid == 0 && gid == 0) {
@@ -1567,6 +1579,7 @@ main(int argc, char *argv[])
 			" Please try mounting as a normal user\n");
 		return -1;
 	}
+#endif
 	// Option parsing
 	ret = fuse_opt_parse(&args, NULL, sfs_opts, sfs_opt_proc);
 	ASSERT((ret != -1), "Parsing arguments failed. Exiting ...", 0, 1, -1);

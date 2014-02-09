@@ -236,6 +236,8 @@ sfs_enqueue_job(int priority, sfs_job_queue_t *job_list, sfs_job_t *job)
 
 		return -1;
 	}
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: priority = %d\n",
+			__FUNCTION__, priority);
 	job_list += priority; // Move to the specified priority list
 	// Add to tail to maintain FIFO semantics
 	pthread_spin_lock(&job_list->lock);
