@@ -9,6 +9,7 @@ fi
 kill -9 `pidof sfs`
 kill -9 `pidof sfsclid`
 kill -9 `pidof sfsd`
-rm -f /tmp/sfs/*
+rm -rf /tmp/sfs /tmp/sfsd
 umount /tmp/one
+rm -rf /tmp/one
 dmesg -c

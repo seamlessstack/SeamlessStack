@@ -10,5 +10,3 @@ sleep 1
 build/bin/sfsclid &
 sleep 1
 build/bin/sfscli storage -a -A 127.0.0.1 -R /tmp/junky -P nfs -t hdd -s 1
-
-
