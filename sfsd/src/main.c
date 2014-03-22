@@ -130,6 +130,8 @@ int main(int argc, char **argv)
 
 	ASSERT((0 == sfsd_create_caches(&sfsd, caches)),
 			"Cache creation failed", 1, 1, 0);
+
+	sfsd.caches = sfsd_global_cache_arr;
 	/* Initialize transport */
 	init_transport(&sfsd);
 
