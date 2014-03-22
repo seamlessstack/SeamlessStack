@@ -135,6 +135,7 @@ extern db_t *db;
 extern sstack_client_handle_t sfs_handle;
 extern sstack_thread_pool_t *sfs_thread_pool;
 extern void * cli_process_thread(void *);
+char * get_local_ip(char *, int , log_ctx_t *);
 
 /*
  * A simple structure that holds infomation on how to contact sfsd
@@ -155,77 +156,5 @@ typedef struct sfs_metadata {
 	// TBD
 } sfs_metadata_t;
 
-
-/*
- * get_local_ip - Return IP address of the interface specified.
- *
- * interface - string representing the interface. Should be non-NULL
- * intf_addr - Ouput parameter. Will be allocated here
- * type -  1 for IPv4 and 0 for IPv6
- *
- * Returns 0 on success. Returns -1 on error.
- */
-
-static inline char *
-get_local_ip(char *interface, int type, log_ctx_t *ctx)
-{
-	int fd;
-	struct ifreq ifr;
-	int family = -1;
-	int len = 0;
-	char *intf_addr = NULL;
-
-	// Parameter validation
-	if (NULL == interface || type < 0 || type > IPv4) {
-		// Invalid parameters
-		errno = EINVAL;
-		sfs_log(ctx, SFS_ERR, "%s: Invalid parameters specified \n",
-						__FUNCTION__);
-
-		return NULL;
-	}
-
-
-	if (type == IPv6) {
-		len = IPV6_ADDR_LEN;
-		family = AF_INET6;
-	} else {
-		len = IPV4_ADDR_LEN;
-		family = AF_INET;
-	}
-
-	intf_addr = (char *) malloc(len);
-	if (NULL == intf_addr) {
-		sfs_log(ctx, SFS_ERR, "%s:%d Failed to allocate \n",
-						__FUNCTION__, __LINE__);
-		return NULL;
-	}
-
-	fd = socket(family, SOCK_DGRAM, 0);
-	if (fd == -1) {
-		// Socket creation failed
-		sfs_log(ctx, SFS_ERR, "%s:%d socket creation failed\n",
-						__FUNCTION__, __LINE__);
-		return NULL;
-	}
-	// IPv4 IP address
-	// For IPv6 address, use AF_INET6
-	ifr.ifr_addr.sa_family = family;
-	strncpy(ifr.ifr_name, interface, IFNAMSIZ - 1);
-	ioctl(fd, SIOCGIFADDR, &ifr);
-	close(fd);
-
-	if (type == IPv4) {
-		strncpy(intf_addr,
-				inet_ntoa(((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr),
-				IPV4_ADDR_LEN);
-	} else {
-		inet_ntop(family,
-				(void *) &((struct sockaddr_in6 *) &ifr.ifr_addr)->sin6_addr,
-				intf_addr, IPV6_ADDR_LEN);
-	}
-
-	return intf_addr;
-}
 
 #endif // __SFS_H_
