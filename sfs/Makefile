@@ -42,7 +42,8 @@ LIB += -L$(TOPDIR)/cli -lsfscli
 C99 = c99
 
 SFS_OBJS = src/sfs.o src/sfs_entry.o src/sfs_job.o src/sfs_idp.o
-SFS_OBJS += src/sfs_traceroute.o src/sfs_sfscli.o
+SFS_OBJS += src/sfs_traceroute.o src/sfs_sfscli.o src/sfs_helper.o
+
 
 
 all:: sfs
