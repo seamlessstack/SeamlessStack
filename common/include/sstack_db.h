@@ -81,42 +81,12 @@ typedef struct db {
 extern db_t *db;
 
 // DB functions
-static inline db_t *
-create_db(void)
-{
-	return malloc(sizeof(db_t));
-}
 
-static inline void
-destroy_db(db_t * db)
-{
-	if (db)
-		free(db);
-}
-
-// DB registration function
-static inline void
-db_register(db_t *db, db_init_t db_init, db_open_t db_open,
-	db_close_t db_close, db_insert_t db_insert, db_remove_t db_remove,
-	db_iterate_t db_iterate, db_get_t db_get, db_seekread_t db_seekread,
-	db_update_t db_update, db_delete_t db_delete, db_cleanup_t db_cleanup,
-	log_ctx_t *ctx)
-{
-	sfs_log(ctx, SFS_DEBUG, "%s: db = 0x%x \n", __FUNCTION__, db);
-	if (db) {
-		db->db_ops.db_init = db_init;
-		db->db_ops.db_open = db_open;
-		db->db_ops.db_close = db_close;
-		db->db_ops.db_insert = db_insert;
-		db->db_ops.db_remove = db_remove;
-		db->db_ops.db_iterate = db_iterate;
-		db->db_ops.db_get = db_get;
-		db->db_ops.db_seekread = db_seekread;
-		db->db_ops.db_update = db_update;
-		db->db_ops.db_delete = db_delete;
-		db->db_ops.db_cleanup = db_cleanup;
-		db->ctx = ctx;
-	}
-}
+extern db_t * create_db(void);
+extern void destroy_db(db_t *);
+extern void db_register(db_t *, db_init_t , db_open_t ,
+	db_close_t , db_insert_t , db_remove_t ,
+	db_iterate_t , db_get_t , db_seekread_t ,
+	db_update_t , db_delete_t , db_cleanup_t , log_ctx_t *);
 
 #endif // __SSTACK_DB_H__

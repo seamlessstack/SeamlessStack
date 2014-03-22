@@ -81,22 +81,8 @@ struct sstack_transport {
 	log_ctx_t *ctx;
 };
 
-static inline sstack_transport_t *
-alloc_transport(void)
-{
-	sstack_transport_t *transport;
 
-	transport = malloc(sizeof(sstack_transport_t));
-
-	return transport;
-}
-
-static inline void
-free_transport(sstack_transport_t *transport)
-{
-	if (transport)
-		free(transport);
-}
-
+inline sstack_transport_t * alloc_transport(void);
+inline void free_transport(sstack_transport_t *);
 
 #endif // __SSTACK_TRANSPORT_H_

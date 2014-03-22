@@ -34,7 +34,9 @@ RM = rm
 
 COMMON_OBJS = src/sstack_thread_pool.o src/sstack_transport_tcp.o \
 			  src/sstack_checksum.o src/bds_slab/bds_slab.o \
-			  src/bds_slab/bds_sys.o src/sstack_transport.o
+			  src/bds_slab/bds_sys.o src/sstack_transport.o \
+			  src/sstack_helper.o
+
 COMMON_OBJS += src/crc_pcl.o
 
 all: $(COMMON_OBJS)

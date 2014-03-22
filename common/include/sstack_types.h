@@ -20,6 +20,8 @@
 #ifndef __SSTACK_TYPES_H_
 #define __SSTACK_TYPES_H_
 
+#include <inttypes.h>
+
 // All sstack specific types should be in this file
 #define IPV4_ADDR_MAX 16
 #define IPV6_ADDR_MAX 40
