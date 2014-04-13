@@ -118,44 +118,27 @@ sfsd_chunk_domain_destroy(sfs_chunk_domain_t *chunk)
 char *
 sfsd_add_chunk(sfs_chunk_domain_t *chunk, sfsd_storage_t *storage)
 {
-	char *path = NULL;
 	char command[MAX_COMMAND] = { '\0' };
-	int fd = -1;
 	int ret = -1;
+	char *path = NULL;
 
 	if (NULL == chunk || NULL == storage)
 		return NULL;
-
-	path = calloc(1, MAX_MOUNT_POINT_LEN);
-	if (NULL == path) {
-		sfs_log(chunk->ctx, SFS_ERR, "%s: Failed to add chunk 0x%llx to "
-			"chunk domain 0x%llx of sfsd 0x%llx. Out of memory !!! \n",
-			__FUNCTION__, storage, chunk, chunk->sfsd);
-		return NULL;
-	}
 
 	// Try to mount the storage on a local path
 	// Handling only TCP/IP for now
 	if (storage->protocol == NFS) {
 		char *updated_storage = NULL;
+		char template[] = "/tmp/dirXXXXXX";
 
-		strcpy(path, "/tmp/tempXXXXXX");
-		fd = mkstemp(path);
-		if (fd == -1) {
+		path = mkdtemp(template);
+		if (NULL == path) {
 			sfs_log(chunk->ctx, SFS_ERR, "%s: Failed to add chunk 0x%llx to "
 				"chunk domain 0x%llx of sfsd 0x%llx. Creating mount point "
 				"failed\n", __FUNCTION__, storage, chunk, chunk->sfsd);
-			free(path);
 			return NULL;
 		}
-		close(fd);
-		if (mkdir(path, 0777) != 0) {
-			sfs_log(chunk->ctx, SFS_ERR, "%s: Failed to add chunk 0x%llx to "
-				"chunk domain 0x%llx of sfsd 0x%llx. mkdir failed with "
-				"error %d\n", __FUNCTION__, storage, chunk, chunk->sfsd, errno);
-			free(path);
-			return NULL;
-		}
+
 		// Construct the NFS mount command
 		// ipv6_addr size takes care of both IPv4 and IPv6 addresses
 
