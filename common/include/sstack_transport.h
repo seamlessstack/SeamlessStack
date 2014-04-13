@@ -52,8 +52,8 @@ sstack_transport_t* get_tcp_transport(char *addr, log_ctx_t *ctx);
 typedef struct sstack_transport_ops {
 	// First three are for client
 	sstack_client_handle_t (*client_init) (sstack_transport_t *);
-	int (*tx) (sstack_client_handle_t , size_t  , void *);
-	int (*rx) (sstack_client_handle_t , size_t , void *);
+	int (*tx) (sstack_client_handle_t , size_t  , void *, log_ctx_t *);
+	int (*rx) (sstack_client_handle_t , size_t , void *, log_ctx_t *);
 	int (*select)(sstack_client_handle_t, uint32_t block_flags);
 	// This one is for server side
 	// Called only by sfs.

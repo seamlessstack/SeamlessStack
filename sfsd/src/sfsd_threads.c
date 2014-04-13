@@ -107,7 +107,7 @@ static sstack_payload_t* get_payload(sstack_transport_t *transport,
 	SFS_LOG_EXIT((payload != NULL), "Allocate payload failed\n", NULL,
 			transport->ctx, SFS_ERR);
 	/* Read of the payload */
-	nbytes = ops->rx(handle, sizeof(*payload), payload);
+	nbytes = ops->rx(handle, sizeof(*payload), payload, transport->ctx);
 	sfs_log (transport->ctx, ((nbytes == 0) ? SFS_ERR : SFS_DEBUG),
 			"Payload size: %d\n", nbytes);
 
@@ -197,8 +197,8 @@ static void* do_receive_thread(void *param)
 				sfsd->log_ctx);
 		/* After getting the payload, assign a thread pool from the
 		   thread pool to do the job */
-		sfs_log(sfsd->log_ctx, SFS_DEBUG, "%s: %d payload 0x%x\n",
-				__FUNCTION__, __LINE__, payload);
+		sfs_log(sfsd->log_ctx, SFS_DEBUG, "%s: %d payload 0x%x path %s\n",
+				__FUNCTION__, __LINE__, payload, payload->storage.path);
 #if 1
 		if (payload != NULL) {
 			/* Command could be
@@ -239,6 +239,8 @@ void handle_command(sstack_payload_t *command, sstack_payload_t **response,
 		/* sstack storage commands here */
 		case SSTACK_ADD_STORAGE:
 			storage = &command->storage;
+			sfs_log(log_ctx, SFS_DEBUG, "%s: path = %s ipv6addr = %s\n",
+					__FUNCTION__, storage->path, storage->address.ipv6_address);
 			path = sfsd_add_chunk(sfsd->chunk, storage);
 			if (path) {
 				free(path);

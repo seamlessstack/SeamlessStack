@@ -103,10 +103,12 @@ _sendrecv_payload(sstack_transport_t *transport,
 		int ret = -1;
 		sfs_log(transport->ctx, SFS_DEBUG, "%s: %d %d\n", __FUNCTION__,
 				__LINE__, (int) handle);
-		if (tx == 1)
-			ret = transport->transport_ops.tx(handle, len, (void *) buffer);
-		else if (tx == 0)
-			ret = transport->transport_ops.rx(handle, len, (void *) buffer);
+		if (tx == 1 && transport->transport_ops.tx)
+			ret = transport->transport_ops.tx(handle, len, (void *) buffer,
+					transport->ctx);
+		else if (tx == 0 && transport->transport_ops.rx)
+			ret = transport->transport_ops.rx(handle, len, (void *) buffer,
+					transport->ctx);
 		if (ret == -1) {
 			// Request failed
 			return -errno;
@@ -1361,6 +1363,10 @@ sstack_recv_payload(sstack_client_handle_t handle,
 	}
 
 	memset((void *)payload, '\0', sizeof(sstack_payload_t));
+
+	sfs_log(ctx, SFS_DEBUG, "%s: handle = %d ipv4_addr = %s \n",
+			__FUNCTION__, handle, transport->transport_hdr.tcp.ipv4_addr);
+
 	// Call the transport function to receive the buffer
 	payload_len = _sendrecv_payload(transport, handle, temp_payload,
 			 (size_t) sizeof(sstack_payload_t), 0);
@@ -1397,10 +1403,14 @@ sstack_recv_payload(sstack_client_handle_t handle,
 				data = msg->storage->address->ipv4_address;
 				strcpy(payload->storage.address.ipv4_address,
 								(char *) &data.data);
+				sfs_log(ctx, SFS_DEBUG, "%s: ipv4_addr = %s\n",
+						__FUNCTION__, payload->storage.address.ipv4_address);
 			} else {
 				data = msg->storage->address->ipv6_address;
 				strcpy(payload->storage.address.ipv6_address,
 								(char *) &data.data);
+				sfs_log(ctx, SFS_DEBUG, "%s: ipv6_addr = %s\n",
+						__FUNCTION__, payload->storage.address.ipv6_address);
 			}
 
 			return payload;

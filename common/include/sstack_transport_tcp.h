@@ -22,10 +22,11 @@
 #include <stdint.h>
 #include <sstack_transport.h>
 #include <sstack_types.h>
+#include <sstack_log.h>
 
 extern sstack_client_handle_t tcp_client_init(sstack_transport_t *);
-extern int tcp_rx(sstack_client_handle_t , size_t , void * );
-extern int tcp_tx(sstack_client_handle_t , size_t , void * );
+extern int tcp_rx(sstack_client_handle_t , size_t , void * , log_ctx_t *);
+extern int tcp_tx(sstack_client_handle_t , size_t , void * , log_ctx_t *);
 extern int tcp_select(sstack_client_handle_t , uint32_t );
 extern sstack_client_handle_t tcp_server_setup(sstack_transport_t *);
 extern sstack_transport_t *get_tcp_transport(char *, log_ctx_t *);

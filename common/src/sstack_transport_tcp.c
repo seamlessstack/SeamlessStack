@@ -111,8 +111,11 @@ tcp_client_init(sstack_transport_t *transport)
  */
 
 int
-tcp_tx(sstack_client_handle_t handle, size_t payload_len, void *payload)
+tcp_tx(sstack_client_handle_t handle, size_t payload_len, void *payload,
+		log_ctx_t *ctx)
 {
+	sfs_log(ctx, SFS_DEBUG, "%s: handle %d payload_len %d payload 0x%x \n",
+		__FUNCTION__, handle, payload_len, payload);
 	return send((int) handle, payload, payload_len, 0);
 }
 
@@ -132,13 +135,17 @@ tcp_tx(sstack_client_handle_t handle, size_t payload_len, void *payload)
  */
 
 int
-tcp_rx(sstack_client_handle_t handle, size_t payload_len, void *payload)
+tcp_rx(sstack_client_handle_t handle, size_t payload_len, void *payload,
+		log_ctx_t * ctx)
 {
 	sstack_payload_hdr_t hdr;
 	int ret = -1;
 	int count = 0;
 	int bytes_read = 0;
 	int bytes_remaining = 0;
+
+	sfs_log(ctx, SFS_DEBUG, "%s: handle %d payload_len %d payload 0x%x \n",
+			__FUNCTION__, handle, payload_len, payload);
 
 	if (handle < 0 || payload_len <= 0 || NULL == payload) {
 		// Invalid parameters
@@ -148,8 +155,12 @@ tcp_rx(sstack_client_handle_t handle, size_t payload_len, void *payload)
 	ret = recv((int) handle, (void *) payload, sizeof(sstack_payload_t),
 			0);
 	if (ret == -1) {
+		sfs_log(ctx, SFS_ERR, "%s: recv returned error %d\n", __FUNCTION__,
+				errno);
 		return -errno;
 	}
+
+	sfs_log(ctx, SFS_DEBUG, "%s: Returning %d\n", __FUNCTION__, ret);
 
 	return ret;
 

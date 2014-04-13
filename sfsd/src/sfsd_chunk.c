@@ -125,6 +125,7 @@ sfsd_add_chunk(sfs_chunk_domain_t *chunk, sfsd_storage_t *storage)
 	if (NULL == chunk || NULL == storage)
 		return NULL;
 
+
 	// Try to mount the storage on a local path
 	// Handling only TCP/IP for now
 	if (storage->protocol == NFS) {
@@ -141,9 +142,14 @@ sfsd_add_chunk(sfs_chunk_domain_t *chunk, sfsd_storage_t *storage)
 
 		// Construct the NFS mount command
 		// ipv6_addr size takes care of both IPv4 and IPv6 addresses
+		sfs_log(chunk->ctx, SFS_DEBUG, "%s: protocol %d ipaddr %s path %s\n",
+			__FUNCTION__, storage->protocol, storage->address.ipv6_address,
+			path);
 
 		snprintf((char *) command, MAX_COMMAND, "mount -t nfs %s:%s %s",
 			storage->address.ipv6_address, storage->path, path);
+		sfs_log(chunk->ctx, SFS_DEBUG, "%s:%d Command = %s\n",
+				__FUNCTION__, __LINE__, command);
 		ret = system(command);
 		if (ret == -1) {
 			sfs_log(chunk->ctx, SFS_ERR, "%s: Failed to add chunk 0x%llx to "
