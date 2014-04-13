@@ -144,7 +144,7 @@ sfsd_add_chunk(sfs_chunk_domain_t *chunk, sfsd_storage_t *storage)
 		// ipv6_addr size takes care of both IPv4 and IPv6 addresses
 		sfs_log(chunk->ctx, SFS_DEBUG, "%s: protocol %d ipaddr %s path %s\n",
 			__FUNCTION__, storage->protocol, storage->address.ipv6_address,
-			path);
+			storage->path);
 
 		snprintf((char *) command, MAX_COMMAND, "mount -t nfs %s:%s %s",
 			storage->address.ipv6_address, storage->path, path);

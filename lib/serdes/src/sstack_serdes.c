@@ -217,12 +217,14 @@ sstack_send_payload(sstack_client_handle_t handle,
 			sfs_log(ctx, SFS_DEBUG, "%s: %d\n", __FUNCTION__, __LINE__);
 			storage.path.len = strlen(payload->storage.path);
 			sfs_log(ctx, SFS_DEBUG, "%s: %d\n", __FUNCTION__, __LINE__);
-			storage.path.data = malloc(storage.path.len);
-			strcpy((char *) storage.path.data, payload->storage.path);
+			storage.path.data = malloc(storage.path.len + 1);
+			strncpy((char *) storage.path.data, payload->storage.path,
+					storage.path.len);
 			storage.mount_point.len = strlen(payload->storage.mount_point);
 			storage.mount_point.data = malloc(storage.mount_point.len);
-			strcpy((char *)storage.mount_point.data,
-							payload->storage.mount_point);
+			strncpy((char *)storage.mount_point.data,
+							payload->storage.mount_point,
+							storage.mount_point.len);
 			storage.weight = payload->storage.weight;
 			storage.nblocks = payload->storage.nblocks;
 			storage.protocol = payload->storage.protocol;
@@ -1377,6 +1379,9 @@ sstack_recv_payload(sstack_client_handle_t handle,
 
 		return NULL;
 	}
+
+	sfs_log(ctx, SFS_DEBUG, "%s: Payload len received is %d\n",
+			__FUNCTION__, payload_len);
 	// Parse temp_payload and populate payload
 	msg = sstack_payload_t__unpack(NULL, payload_len, temp_payload);
 	// Populate the payload structure with required fields
@@ -1387,28 +1392,37 @@ sstack_recv_payload(sstack_client_handle_t handle,
 	payload->hdr.arg = msg->hdr->arg;
 	payload->command = msg->command;
 
+	sfs_log(ctx, SFS_DEBUG, "%s: payload_len %d job_id %d priority %d "
+			"command %d \n", __FUNCTION__, payload->hdr.payload_len,
+			payload->hdr.job_id, payload->hdr.priority, payload->command);
+
 	switch(msg->command) {
 		case SSTACK_ADD_STORAGE:
 		case SSTACK_REMOVE_STORAGE:
 		case SSTACK_UPDATE_STORAGE: {
 			ProtobufCBinaryData data = msg->storage->path;
+			ProtobufCBinaryData mnt_pnt = msg->storage->mount_point;
 
-			strcpy(payload->storage.path, (char *) &data.data);
-			data = msg->storage->mount_point;
-			strcpy(payload->storage.mount_point, (char *) &data.data);
+			strncpy(payload->storage.path, (char *) data.data, data.len);
+			sfs_log(ctx, SFS_DEBUG, "%s: storage.path = %s\n",
+					__FUNCTION__, payload->storage.path);
+			strncpy(payload->storage.mount_point, (char *) mnt_pnt.data,
+					mnt_pnt.len);
 			payload->storage.weight = msg->storage->weight;
 			payload->storage.nblocks = msg->storage->nblocks;
 			payload->storage.protocol = msg->storage->protocol;
 			if (transport->transport_hdr.tcp.ipv4) {
-				data = msg->storage->address->ipv4_address;
+				ProtobufCBinaryData addr =
+					msg->storage->address->ipv4_address;
 				strcpy(payload->storage.address.ipv4_address,
-								(char *) &data.data);
+								(char *) addr.data);
 				sfs_log(ctx, SFS_DEBUG, "%s: ipv4_addr = %s\n",
 						__FUNCTION__, payload->storage.address.ipv4_address);
 			} else {
-				data = msg->storage->address->ipv6_address;
+				ProtobufCBinaryData addr =
+					msg->storage->address->ipv6_address;
 				strcpy(payload->storage.address.ipv6_address,
-								(char *) &data.data);
+								(char *) addr.data);
 				sfs_log(ctx, SFS_DEBUG, "%s: ipv6_addr = %s\n",
 						__FUNCTION__, payload->storage.address.ipv6_address);
 			}
@@ -1447,10 +1461,10 @@ sstack_recv_payload(sstack_client_handle_t handle,
 					msg->command_struct->lookup_cmd->where->name_len;
 			data = msg->command_struct->lookup_cmd->where->name;
 			strcpy(payload->command_struct.lookup_cmd.where.name, (char *)
-							&data.data);
+							data.data);
 			data = msg->command_struct->lookup_cmd->what->name;
 			strcpy(payload->command_struct.lookup_cmd.what.name, (char *)
-							&data.data);
+							data.data);
 			return payload;
 		}
 		case NFS_ACCESS:
@@ -1523,7 +1537,7 @@ sstack_recv_payload(sstack_client_handle_t handle,
 			payload->command_struct.write_cmd.data.data_len = data->data_len;
 			data1 = msg->command_struct->write_cmd->data->data_buf;
 			strcpy((char *) &payload->command_struct.write_cmd.data.data_buf,
-							(char *) &data1.data);
+							(char *) data1.data);
 
 			entry = msg->command_struct->write_cmd->pe;
 			attr = entry->pe_attr;
@@ -1574,7 +1588,7 @@ sstack_recv_payload(sstack_client_handle_t handle,
 			payload->command_struct.create_cmd.data.data_len = data->data_len;
 			data1 = msg->command_struct->create_cmd->data->data_buf;
 			strcpy((char *) &payload->command_struct.create_cmd.data.data_buf,
-							(char *) &data1.data);
+							(char *) data1.data);
 
 			entry = msg->command_struct->create_cmd->pe;
 			attr = entry->pe_attr;
@@ -1623,7 +1637,7 @@ sstack_recv_payload(sstack_client_handle_t handle,
 					msg->command_struct->symlink_cmd->new_path->name_len;
 			data = msg->command_struct->symlink_cmd->new_path->name;
 			strcpy(payload->command_struct.symlink_cmd.new_path.name, (char *)
-							&data.data);
+							data.data);
 			return payload;
 		}
 		case NFS_RENAME: {
@@ -1634,7 +1648,7 @@ sstack_recv_payload(sstack_client_handle_t handle,
 					msg->command_struct->rename_cmd->new_path->name_len;
 			data = msg->command_struct->rename_cmd->new_path->name;
 			strcpy(payload->command_struct.rename_cmd.new_path.name, (char *)
-							&data.data);
+							data.data);
 			return payload;
 		}
 
@@ -1645,7 +1659,7 @@ sstack_recv_payload(sstack_client_handle_t handle,
 					msg->command_struct->remove_cmd->path_len;
 			path = msg->command_struct->remove_cmd->path;
 			strcpy((char *) &payload->command_struct.remove_cmd.path,
-							(char *) &path.data);
+							(char *) path.data);
 
 			return payload;
 		}
