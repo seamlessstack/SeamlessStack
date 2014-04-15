@@ -31,6 +31,10 @@ int32_t validate_plugin(const char *plugin_path, struct plugin_entry_points
 	char local_plugin_name[PATH_MAX];
 	char plugin_prefix[32];
 	char *start, *end;
+
+	if (NULL == out_name)
+		return -EFAULT;
+
 	/* Verify if the plugin conforms to the criterion
 	   provided by us */
 	handle = dlopen(plugin_path, RTLD_LAZY);
