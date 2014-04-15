@@ -131,6 +131,7 @@ sfsd_add_chunk(sfs_chunk_domain_t *chunk, sfsd_storage_t *storage)
 	if (storage->protocol == NFS) {
 		char *updated_storage = NULL;
 		char template[] = "/tmp/dirXXXXXX";
+		char *path1 = NULL;
 
 		path = mkdtemp(template);
 		if (NULL == path) {
@@ -146,7 +147,7 @@ sfsd_add_chunk(sfs_chunk_domain_t *chunk, sfsd_storage_t *storage)
 			__FUNCTION__, storage->protocol, storage->address.ipv6_address,
 			storage->path);
 
-		snprintf((char *) command, MAX_COMMAND, "mount -t nfs %s:%s %s",
+		snprintf((char *) command, MAX_COMMAND, "mount.nfs4 %s:%s %s",
 			storage->address.ipv6_address, storage->path, path);
 		sfs_log(chunk->ctx, SFS_DEBUG, "%s:%d Command = %s\n",
 				__FUNCTION__, __LINE__, command);
@@ -195,7 +196,9 @@ sfsd_add_chunk(sfs_chunk_domain_t *chunk, sfsd_storage_t *storage)
 			sizeof(sfsd_storage_t));
 		chunk->num_chunks ++;
 
-		return path;
+		path1 = strdup(path);
+
+		return path1;
 	} else {
 		//TBD
 		return NULL;

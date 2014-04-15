@@ -140,6 +140,9 @@ job_cleanup(sstack_thread_pool_t *pool)
     active_t *activep;
     active_t **activepp;
 
+	if (NULL == pool)
+		abort();
+
     (void) pthread_mutex_lock(&pool->pool_mutex);
     for (activepp = &pool->pool_active;
         (activep = *activepp) != NULL;
@@ -214,7 +217,7 @@ worker_thread(void *arg)
             pool->pool_active = &active;
             (void) pthread_mutex_unlock(&pool->pool_mutex);
             pthread_cleanup_push(job_cleanup, (void *)pool);
-            free(job);
+            // free(job);
             /*
              * Call the specified job function.
              */

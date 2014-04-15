@@ -1,5 +1,7 @@
 mkdir /tmp/sfs /tmp/one /tmp/sfsd
 export LD_LIBRARY_PATH=build/lib:oss_install/lib
+ulimit -c unlimited
+ulimit -s 32768
 # Start sfs
 build/bin/sfs 127.0.0.1,/var/tmp,rw,10 /tmp/one
 sleep 2
