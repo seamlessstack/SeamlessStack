@@ -32,8 +32,11 @@ int32_t validate_plugin(const char *plugin_path, struct plugin_entry_points
 	char plugin_prefix[32];
 	char *start, *end;
 
-	if (NULL == out_name)
+	if (NULL == out_name || NULL == plugin_path || NULL == entry) {
+		sfs_log(ctx, SFS_ERR, "%s: Invalid parameters specified\n",
+				__FUNCTION__);
 		return -EFAULT;
+	}
 
 	/* Verify if the plugin conforms to the criterion
 	   provided by us */
@@ -72,6 +75,7 @@ int32_t validate_plugin(const char *plugin_path, struct plugin_entry_points
 			return -EINVAL;
 		}
 		strncpy(out_name, plugin_prefix, (end - start)/sizeof(char));
+		sfs_log(ctx, SFS_INFO, "%s: Success\n", __FUNCTION__);
 	}
 	return 0;
 }
