@@ -1023,12 +1023,15 @@ sstack_send_payload(sstack_client_handle_t handle,
 		case NFS_FSINFO_RSP:
 		case NFS_PATHCONF_RSP:
 		case NFS_COMMIT_RSP:
-		case NFS_SETATTR_RSP:
+		case NFS_SETATTR_RSP: {
 			response.command_ok = payload->response_struct.command_ok;
 			response.handle = payload->response_struct.handle;
 			msg.response_struct = &response;
 			len = sstack_payload_t__get_packed_size(&msg);
-			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
+			// hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
+			hdr.payload_len = len;
+			sfs_log(ctx, SFS_DEBUG, "%s: Payload len sent is %d\n",
+					__FUNCTION__,  len);
 			msg.hdr = &hdr; // Parannoid
 			buffer = malloc(len);
 			if (NULL == buffer) {
@@ -1059,6 +1062,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 
 				return 0;
 			}
+		}
 		case NFS_GETATTR_RSP: {
 			SstackNfsGetattrResp getattr_resp = SSTACK_NFS_GETATTR_RESP__INIT;
 			Stat stat = STAT__INIT;
@@ -1484,6 +1488,10 @@ sstack_recv_payload(sstack_client_handle_t handle,
 		case NFS_PATHCONF_RSP:
 		case NFS_COMMIT_RSP:
 		case NFS_SETATTR_RSP: {
+			sfs_log(ctx, SFS_INFO, "%s: command = %s\n",
+					__FUNCTION__, sstack_command_stringify(msg->command));
+			syncfs(ctx->log_fd);
+			sleep(1);
 			payload->response_struct.command_ok =
 				msg->response_struct->command_ok;
 			payload->response_struct.handle =

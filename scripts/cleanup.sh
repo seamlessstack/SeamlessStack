@@ -13,4 +13,5 @@ rm -rf /tmp/sfs /tmp/sfsd /tmp/dir*
 
 umount /tmp/one
 rm -rf /tmp/one
+rm -rf /tmp/junky
 dmesg -c

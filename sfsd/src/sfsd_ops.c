@@ -102,14 +102,14 @@ sstack_payload_t *sstack_setattr(sstack_payload_t *payload, log_ctx_t *ctx)
 {
 	/* Not implemented */
 	sfs_log(ctx, SFS_INFO, "%s(): function not implemented\n", __FUNCTION__);
-	return NULL;
+	return payload;
 }
 
 sstack_payload_t *sstack_lookup(sstack_payload_t *payload, log_ctx_t *ctx)
 {
 	/* Not implemented */
 	sfs_log(ctx, SFS_INFO, "%s(): function not implemented\n", __FUNCTION__);
-	return NULL;
+	return payload;
 }
 
 sstack_payload_t *sstack_access(sstack_payload_t *payload, log_ctx_t *ctx)
@@ -979,7 +979,7 @@ sstack_payload_t *sstack_mknod(sstack_payload_t *payload, log_ctx_t *ctx)
 {
 	/* Not implemented */
 	sfs_log(ctx, SFS_INFO, "%s(): function not implemented\n", __FUNCTION__);
-	return NULL;
+	return payload;
 }
 
 sstack_payload_t *sstack_remove( sstack_payload_t *payload, log_ctx_t *ctx)
@@ -1068,40 +1068,40 @@ sstack_payload_t *sstack_readdir(sstack_payload_t *payload, log_ctx_t *ctx)
 {
 	/* Not implemented */
 	sfs_log(ctx, SFS_INFO, "%s(): function not implemented\n", __FUNCTION__);
-	return NULL;
+	return payload;
 }
 
 sstack_payload_t *sstack_readdirplus(sstack_payload_t *payload, log_ctx_t *ctx)
 {
 	/* Not implemented */
 	sfs_log(ctx, SFS_INFO, "%s(): function not implemented\n", __FUNCTION__);
-	return NULL;
+	return payload;
 }
 
 sstack_payload_t *sstack_fsstat(sstack_payload_t *payload, log_ctx_t *ctx)
 {
 	/* Not implemented */
 	sfs_log(ctx, SFS_INFO, "%s(): function not implemented\n", __FUNCTION__);
-	return NULL;
+	return payload;
 }
 
 sstack_payload_t *sstack_fsinfo(sstack_payload_t *payload, log_ctx_t *ctx)
 {
 	/* Not implemented */
 	sfs_log(ctx, SFS_INFO, "%s(): function not implemented\n", __FUNCTION__);
-	return NULL;
+	return payload;
 }
 
 sstack_payload_t *sstack_pathconf(sstack_payload_t *payload, log_ctx_t *ctx)
 {
 	/* Not implemented */
 	sfs_log(ctx, SFS_INFO, "%s(): function not implemented\n", __FUNCTION__);
-	return NULL;
+	return payload;
 }
 
 sstack_payload_t *sstack_commit(sstack_payload_t *payload, log_ctx_t *ctx)
 {
 	/* Not implemented */
 	sfs_log(ctx, SFS_INFO, "%s(): function not implemented\n", __FUNCTION__);
-	return NULL;
+	return payload;
 }
