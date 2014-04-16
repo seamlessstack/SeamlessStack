@@ -158,7 +158,12 @@ static void* do_process_payload(void *param)
 	}
 
 	/* Free off the response */
-	bds_cache_free(h_param->cache_arr[PAYLOAD_CACHE_OFFSET], response);
+	// TODO
+	// response structure is allocated from malloc
+	// sstack_send_payload and sstack_recv_payload still use malloc/free
+	// bds_cache_free(h_param->cache_arr[PAYLOAD_CACHE_OFFSET], response);
+	free(response);
+
 	return NULL;
 }
 
@@ -234,6 +239,7 @@ void handle_command(sstack_payload_t *command, sstack_payload_t **response,
 	sfsd_storage_t *storage;
 	char *path;
 	int32_t ret = 0;
+
 	switch(command->command)
 	{
 		/* sstack storage commands here */
@@ -247,6 +253,7 @@ void handle_command(sstack_payload_t *command, sstack_payload_t **response,
 			} else {
 				ret = -EINVAL;
 			}
+			command->command = SSTACK_ADD_STORAGE_RSP;
 			command->response_struct.command_ok = ret;
 			*response = command;
 			break;
@@ -257,6 +264,7 @@ void handle_command(sstack_payload_t *command, sstack_payload_t **response,
 				sfs_log(log_ctx, SFS_ERR, "Unable to update"
 						"chunk\n");
 			}
+			command->command = SSTACK_UPDATE_STORAGE_RSP;
 			command->response_struct.command_ok = ret;
 			*response = command;
 			break;
@@ -267,75 +275,98 @@ void handle_command(sstack_payload_t *command, sstack_payload_t **response,
 				sfs_log(log_ctx, SFS_ERR, "Unable to remove"
 						"chunk\n");
 			}
+			command->command = SSTACK_REMOVE_STORAGE_RSP;
 			command->response_struct.command_ok = ret;
 			*response = command;
 			break;
 		/* sstack nfs commands here */
 		case NFS_GETATTR:
 			*response = sstack_getattr(command, log_ctx);
+			(*response)->command = NFS_GETATTR_RSP;
 			break;
 		case NFS_SETATTR:
 			*response = sstack_setattr(command, log_ctx);
+			(*response)->command = NFS_SETATTR_RSP;
 			break;
 		case NFS_LOOKUP:
 			*response = sstack_lookup(command, log_ctx);
+			(*response)->command = NFS_LOOKUP_RSP;
 			break;
 		case NFS_ACCESS:
 			*response = sstack_access(command, log_ctx);
+			(*response)->command = NFS_ACCESS_RSP;
 			break;
 		case NFS_READLINK:
 			*response = sstack_readlink(command, log_ctx);
+			(*response)->command = NFS_READLINK_RSP;
 			break;
 		case NFS_READ:
 			*response = sstack_read(command, sfsd,log_ctx);
+			(*response)->command = NFS_READ_RSP;
 			break;
 		case NFS_WRITE:
 			*response = sstack_write(command, sfsd, log_ctx);
+			(*response)->command = NFS_WRITE_RSP;
 			break;
 		case NFS_CREATE:
 			*response = sstack_create(command, sfsd, log_ctx);
+			(*response)->command = NFS_CREATE_RSP;
 			break;
 		case NFS_MKDIR:
 			*response = sstack_mkdir(command, log_ctx);
+			(*response)->command = NFS_MKDIR_RSP;
 			break;
 		case NFS_SYMLINK:
 			*response = sstack_symlink(command, log_ctx);
+			(*response)->command = NFS_SYMLINK_RSP;
 			break;
 		case NFS_MKNOD:
 			*response = sstack_mknod(command, log_ctx);
+			(*response)->command = NFS_MKNOD_RSP;
 			break;
 		case NFS_REMOVE:
 			*response = sstack_remove(command, log_ctx);
+			(*response)->command = NFS_REMOVE_RSP;
 			break;
 		case NFS_RMDIR:
 			*response = sstack_rmdir(command, log_ctx);
+			(*response)->command = NFS_RMDIR_RSP;
 			break;
 		case NFS_RENAME:
 			*response = sstack_rename(command, log_ctx);
+			(*response)->command = NFS_RENAME_RSP;
 			break;
 		case NFS_LINK:
 			*response = sstack_link(command, log_ctx);
+			(*response)->command = NFS_LINK_RSP;
 			break;
 		case NFS_READDIR:
 			*response = sstack_readdir(command, log_ctx);
+			(*response)->command = NFS_READDIR_RSP;
 			break;
 		case NFS_READDIRPLUS:
 			*response = sstack_readdirplus(command, log_ctx);
+			(*response)->command = NFS_READDIRPLUS_RSP;
 			break;
 		case NFS_FSSTAT:
 			*response = sstack_fsstat(command, log_ctx);
+			(*response)->command = NFS_FSSTAT_RSP;
 			break;
 		case NFS_FSINFO:
 			*response = sstack_fsinfo(command, log_ctx);
+			(*response)->command = NFS_FSINFO_RSP;
 			break;
 		case NFS_PATHCONF:
 			*response = sstack_pathconf(command, log_ctx);
+			(*response)->command = NFS_PATHCONF_RSP;
 			break;
 		case NFS_COMMIT:
 			*response = sstack_commit(command, log_ctx);
+			(*response)->command = NFS_COMMIT_RSP;
 			break;
 		case NFS_ESURE_CODE:
 			*response = sstack_esure_code(command, sfsd, log_ctx);
+			(*response)->command = NFS_ESURE_CODE_RSP;
 			break;
 		default:
 			break;
@@ -346,6 +377,6 @@ void handle_command(sstack_payload_t *command, sstack_payload_t **response,
 	sstack_send_payload(sfsd->handle, command, sfsd->transport,
 						command->hdr.job_id, (sfs_job_t*)command->hdr.arg,
 						command->hdr.priority, log_ctx);
-	free_payload(sfsd_global_cache_arr,command);
+	free_payload_protobuf(sfsd_global_cache_arr,command);
 
 }

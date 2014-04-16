@@ -1,4 +1,4 @@
-mkdir /tmp/sfs /tmp/one /tmp/sfsd
+mkdir /tmp/sfs /tmp/one /tmp/sfsd /tmp/junky
 export LD_LIBRARY_PATH=build/lib:oss_install/lib
 ulimit -c unlimited
 ulimit -s 32768

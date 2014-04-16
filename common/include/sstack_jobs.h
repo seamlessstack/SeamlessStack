@@ -182,4 +182,32 @@ free_payload(bds_cache_desc_t *caches, sstack_payload_t *payload)
 	bds_cache_free(caches[PAYLOAD_CACHE_OFFSET], (void *) payload);
 }
 
+/*
+ * free_payload_protobuf - Free the payload structure back to slab
+ *
+ * payload - Valid payload pointer. Should be non-NULL
+ * TODO
+ * Cleanup required once protobuf moves to bds_cache instead of malloc/free
+ */
+
+static inline void
+free_payload_protobuf(bds_cache_desc_t *caches, sstack_payload_t *payload)
+{
+	// Parameter validation
+	if (NULL == payload) {
+		return;
+	}
+	if (payload->command == NFS_READ_RSP &&
+			payload->response_struct.read_resp.data.data_buf != NULL) {
+		bds_cache_free(caches[DATA64K_CACHE_OFFSET],
+			payload->response_struct.read_resp.data.data_buf);
+	} else if (payload->command == NFS_WRITE &&
+			payload->command_struct.write_cmd.data.data_buf != NULL) {
+		bds_cache_free(caches[DATA64K_CACHE_OFFSET],
+			payload->command_struct.write_cmd.data.data_buf);
+	}
+
+//	free(payload);
+}
+
 #endif // __SSTACK_JOBS_H_

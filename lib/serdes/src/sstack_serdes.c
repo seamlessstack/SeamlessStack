@@ -72,6 +72,22 @@ sstack_command_stringify(sstack_command_t command)
 		case NFS_READ_RSP: return "NFS_READ_RSP";
 		case NFS_WRITE_RSP: return "NFS_WRITE_RSP";
 		case NFS_CREATE_RSP: return "NFS_CREATE_RSP";
+		case NFS_ESURE_CODE: return "NFS_ESURE_CODE";
+		case NFS_ESURE_CODE_RSP: return "NFS_ESURE_CODE_RSP";
+		case NFS_MKDIR_RSP: return "NFS_MKDIR_RSP";
+		case NFS_SYMLINK_RSP: return "NFS_SYMLINK_RSP";
+		case NFS_MKNOD_RSP: return "NFS_MKNOD_RSP";
+		case NFS_REMOVE_RSP: return "NFS_REMOVE_RSP";
+		case NFS_RMDIR_RSP: return "NFS_RMDIR_RSP";
+		case NFS_RENAME_RSP: return "NFS_RENAME_RSP";
+		case NFS_LINK_RSP: return "NFS_LINK_RSP";
+		case NFS_READDIR_RSP: return "NFS_READDIR_RSP";
+		case NFS_READDIRPLUS_RSP: return "NFS_READDIRPLUS_RSP";
+		case NFS_FSSTAT_RSP: return "NFS_FSSTAT_RSP";
+		case NFS_FSINFO_RSP: return "NFS_FSINFO_RSP";
+		case NFS_PATHCONF_RSP: return "NFS_PATHCONF_RSP";
+		case NFS_COMMIT_RSP: return "NFS_COMMIT_RSP";
+		case NFS_SETATTR_RSP: return "NFS_SETATTR_RSP";
 	}
 }
 
@@ -987,9 +1003,27 @@ sstack_send_payload(sstack_client_handle_t handle,
 				return 0;
 			}
 		}
+		// TODO
+		// All these commands only return command_ok
+		// Check if any of them require modifications
 		case SSTACK_REMOVE_STORAGE_RSP:
 		case SSTACK_UPDATE_STORAGE_RSP:
 		case SSTACK_ADD_STORAGE_RSP:
+		case NFS_ESURE_CODE_RSP:
+		case NFS_MKDIR_RSP:
+		case NFS_SYMLINK_RSP:
+		case NFS_MKNOD_RSP:
+		case NFS_REMOVE_RSP:
+		case NFS_RMDIR_RSP:
+		case NFS_RENAME_RSP:
+		case NFS_LINK_RSP:
+		case NFS_READDIR_RSP:
+		case NFS_READDIRPLUS_RSP:
+		case NFS_FSSTAT_RSP:
+		case NFS_FSINFO_RSP:
+		case NFS_PATHCONF_RSP:
+		case NFS_COMMIT_RSP:
+		case NFS_SETATTR_RSP:
 			response.command_ok = payload->response_struct.command_ok;
 			response.handle = payload->response_struct.handle;
 			msg.response_struct = &response;
@@ -1429,9 +1463,27 @@ sstack_recv_payload(sstack_client_handle_t handle,
 
 			return payload;
 		}
+		// TODO
+		// Check some of the responses for correctness
+		// All of these only return command_ok
 		case SSTACK_ADD_STORAGE_RSP:
 		case SSTACK_REMOVE_STORAGE_RSP:
-		case SSTACK_UPDATE_STORAGE_RSP: {
+		case SSTACK_UPDATE_STORAGE_RSP:
+		case NFS_ESURE_CODE_RSP:
+		case NFS_MKDIR_RSP:
+		case NFS_SYMLINK_RSP:
+		case NFS_MKNOD_RSP:
+		case NFS_REMOVE_RSP:
+		case NFS_RMDIR_RSP:
+		case NFS_RENAME_RSP:
+		case NFS_LINK_RSP:
+		case NFS_READDIR_RSP:
+		case NFS_READDIRPLUS_RSP:
+		case NFS_FSSTAT_RSP:
+		case NFS_FSINFO_RSP:
+		case NFS_PATHCONF_RSP:
+		case NFS_COMMIT_RSP:
+		case NFS_SETATTR_RSP: {
 			payload->response_struct.command_ok =
 				msg->response_struct->command_ok;
 			payload->response_struct.handle =

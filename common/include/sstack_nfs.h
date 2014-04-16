@@ -69,9 +69,24 @@ typedef enum sstack_command {
 	NFS_WRITE_RSP = 34,
 	NFS_CREATE_RSP = 35,
 	NFS_ESURE_CODE_RSP = 36,
-	SSTACK_SFS_SYNC_CMD = 37,// Synchronous request originating from sfsd to sfs
-	SSTACK_SFS_ASYNC_CMD = 38,
-	NFS_VALID_MAX = 38,
+	NFS_MKDIR_RSP = 37,
+	NFS_SYMLINK_RSP = 38,
+	NFS_MKNOD_RSP = 39,
+	NFS_REMOVE_RSP = 40,
+	NFS_RMDIR_RSP = 41,
+	NFS_RENAME_RSP = 42,
+	NFS_LINK_RSP = 43,
+	NFS_READDIR_RSP = 44,
+	NFS_READDIRPLUS_RSP = 45,
+	NFS_FSSTAT_RSP = 46,
+	NFS_FSINFO_RSP = 47,
+	NFS_PATHCONF_RSP = 48,
+	NFS_COMMIT_RSP = 49,
+	SSTACK_SFS_SYNC_CMD = 50,// Synchronous request originating from
+							// sfsd to sfs
+	SSTACK_SFS_ASYNC_CMD = 51,
+	NFS_SETATTR_RSP = 52,
+	NFS_VALID_MAX = 52,
 } sstack_command_t;
 
 typedef enum  sstack_subcommand {
