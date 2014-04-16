@@ -265,12 +265,12 @@ sstack_send_payload(sstack_client_handle_t handle,
 				storage.address = &addr;
 			}
 			msg.storage = &storage;
-			len = sstack_payload_t__get_packed_size(&msg);
 			sfs_log(ctx, SFS_DEBUG, "%s %d %d\n", __FUNCTION__, __LINE__, len);
-			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
+			hdr.payload_len = sizeof(sstack_payload_hdr_t);
 			sfs_log(ctx, SFS_DEBUG, "%s %d %d %d\n", __FUNCTION__, __LINE__,
 						hdr.payload_len, sizeof(sstack_payload_hdr_t));
 			msg.hdr = &hdr; // Parannoid
+			len = sstack_payload_t__get_packed_size(&msg);
 			buffer = malloc(len);
 			if (NULL == buffer) {
 				sfs_log(ctx, SFS_ERR, "%s: Failed to allocate memory for "
@@ -322,9 +322,9 @@ sstack_send_payload(sstack_client_handle_t handle,
 			setattrcmd.attribute = &fileattr;
 			cmd.setattr_cmd = &setattrcmd;
 			msg.command_struct = &cmd;
-			len = sstack_payload_t__get_packed_size(&msg);
-			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
+			hdr.payload_len = sizeof(sstack_payload_hdr_t);
 			msg.hdr = &hdr; // Parannoid
+			len = sstack_payload_t__get_packed_size(&msg);
 			buffer = malloc(len);
 			if (NULL == buffer) {
 				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
@@ -377,9 +377,9 @@ sstack_send_payload(sstack_client_handle_t handle,
 			lookupcmd.what = &what;
 			cmd.lookup_cmd = &lookupcmd;
 			msg.command_struct = &cmd;
-			len = sstack_payload_t__get_packed_size(&msg);
-			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
+			hdr.payload_len = sizeof(sstack_payload_hdr_t);
 			msg.hdr = &hdr; // Parannoid
+			len = sstack_payload_t__get_packed_size(&msg);
 			buffer = malloc(len);
 			if (NULL == buffer) {
 				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
@@ -420,9 +420,9 @@ sstack_send_payload(sstack_client_handle_t handle,
 			accesscmd.mode = payload->command_struct.access_cmd.mode;
 			cmd.access_cmd = &accesscmd;
 			msg.command_struct = &cmd;
-			len = sstack_payload_t__get_packed_size(&msg);
-			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
+			hdr.payload_len = sizeof(sstack_payload_hdr_t);
 			msg.hdr = &hdr; // Parannoid
+			len = sstack_payload_t__get_packed_size(&msg);
 			buffer = malloc(len);
 			if (NULL == buffer) {
 				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
@@ -523,9 +523,9 @@ sstack_send_payload(sstack_client_handle_t handle,
 			readcmd.pe = &entry;
 			cmd.read_cmd = &readcmd;
 			msg.command_struct = &cmd;
-			len = sstack_payload_t__get_packed_size(&msg);
-			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
+			hdr.payload_len = sizeof(sstack_payload_hdr_t);
 			msg.hdr = &hdr; // Parannoid
+			len = sstack_payload_t__get_packed_size(&msg);
 			buffer = malloc(len);
 			if (NULL == buffer) {
 				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
@@ -632,9 +632,9 @@ sstack_send_payload(sstack_client_handle_t handle,
 			writecmd.pe = &entry;
 			cmd.write_cmd = &writecmd;
 			msg.command_struct = &cmd;
-			len = sstack_payload_t__get_packed_size(&msg);
-			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
+			hdr.payload_len = sizeof(sstack_payload_hdr_t);
 			msg.hdr = &hdr; // Parannoid
+			len = sstack_payload_t__get_packed_size(&msg);
 			buffer = malloc(len);
 			if (NULL == buffer) {
 				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
@@ -740,9 +740,9 @@ sstack_send_payload(sstack_client_handle_t handle,
 			createcmd.pe = &entry;
 			cmd.create_cmd = &createcmd;
 			msg.command_struct = &cmd;
-			len = sstack_payload_t__get_packed_size(&msg);
-			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
+			hdr.payload_len = sizeof(sstack_payload_hdr_t);
 			msg.hdr = &hdr; // Parannoid
+			len = sstack_payload_t__get_packed_size(&msg);
 			buffer = malloc(len);
 			if (NULL == buffer) {
 				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
@@ -782,9 +782,9 @@ sstack_send_payload(sstack_client_handle_t handle,
 			mkdircmd.mode = payload->command_struct.mkdir_cmd.mode;
 			cmd.mkdir_cmd = &mkdircmd;
 			msg.command_struct = &cmd;
-			len = sstack_payload_t__get_packed_size(&msg);
-			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
+			hdr.payload_len = sizeof(sstack_payload_hdr_t);
 			msg.hdr = &hdr; // Parannoid
+			len = sstack_payload_t__get_packed_size(&msg);
 			buffer = malloc(len);
 			if (NULL == buffer) {
 				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
@@ -831,9 +831,9 @@ sstack_send_payload(sstack_client_handle_t handle,
 			symlinkcmd.new_path = &new_path;
 			cmd.symlink_cmd = &symlinkcmd;
 			msg.command_struct = &cmd;
-			len = sstack_payload_t__get_packed_size(&msg);
-			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
+			hdr.payload_len = sizeof(sstack_payload_hdr_t);
 			msg.hdr = &hdr; // Parannoid
+			len = sstack_payload_t__get_packed_size(&msg);
 			buffer = malloc(len);
 			if (NULL == buffer) {
 				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
@@ -880,9 +880,9 @@ sstack_send_payload(sstack_client_handle_t handle,
 			renamecmd.new_path = &new_path;
 			cmd.rename_cmd = &renamecmd;
 			msg.command_struct = &cmd;
-			len = sstack_payload_t__get_packed_size(&msg);
-			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
+			hdr.payload_len = sizeof(sstack_payload_hdr_t);
 			msg.hdr = &hdr; // Parannoid
+			len = sstack_payload_t__get_packed_size(&msg);
 			buffer = malloc(len);
 			if (NULL == buffer) {
 				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
@@ -927,9 +927,9 @@ sstack_send_payload(sstack_client_handle_t handle,
 				removecmd.path.len);
 			cmd.remove_cmd = &removecmd;
 			msg.command_struct = &cmd;
-			len = sstack_payload_t__get_packed_size(&msg);
-			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
+			hdr.payload_len = sizeof(sstack_payload_hdr_t);
 			msg.hdr = &hdr; // Parannoid
+			len = sstack_payload_t__get_packed_size(&msg);
 			buffer = malloc(len);
 			if (NULL == buffer) {
 				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
@@ -970,9 +970,9 @@ sstack_send_payload(sstack_client_handle_t handle,
 			commitcmd.count = payload->command_struct.commit_cmd.count;
 			cmd.commit_cmd = &commitcmd;
 			msg.command_struct = &cmd;
-			len = sstack_payload_t__get_packed_size(&msg);
-			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
+			hdr.payload_len = sizeof(sstack_payload_hdr_t);
 			msg.hdr = &hdr; // Parannoid
+			len = sstack_payload_t__get_packed_size(&msg);
 			buffer = malloc(len);
 			if (NULL == buffer) {
 				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
@@ -1027,12 +1027,12 @@ sstack_send_payload(sstack_client_handle_t handle,
 			response.command_ok = payload->response_struct.command_ok;
 			response.handle = payload->response_struct.handle;
 			msg.response_struct = &response;
-			len = sstack_payload_t__get_packed_size(&msg);
 			// hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
-			hdr.payload_len = len;
+			hdr.payload_len = sizeof(sstack_payload_t);
 			sfs_log(ctx, SFS_DEBUG, "%s: Payload len sent is %d\n",
 					__FUNCTION__,  len);
 			msg.hdr = &hdr; // Parannoid
+			len = sstack_payload_t__get_packed_size(&msg);
 			buffer = malloc(len);
 			if (NULL == buffer) {
 				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
@@ -1041,6 +1041,9 @@ sstack_send_payload(sstack_client_handle_t handle,
 
 				return -ENOMEM;
 			}
+			sfs_log(ctx, SFS_DEBUG, "%s: Allocated length is %d\n",
+					__FUNCTION__, len);
+
 			sstack_payload_t__pack(&msg, buffer);
 			ret = _sendrecv_payload(transport, handle, buffer, len, 1);
 			if (ret != 0) {
@@ -1073,9 +1076,9 @@ sstack_send_payload(sstack_client_handle_t handle,
 			getattr_resp.stbuf = &stat;
 			response.getattr_resp = &getattr_resp;
 			msg.response_struct = &response;
-			len = sstack_payload_t__get_packed_size(&msg);
-			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
+			hdr.payload_len = sizeof(sstack_payload_hdr_t);
 			msg.hdr = &hdr; // Parannoid
+			len = sstack_payload_t__get_packed_size(&msg);
 			buffer = malloc(len);
 			if (NULL == buffer) {
 				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
@@ -1117,9 +1120,9 @@ sstack_send_payload(sstack_client_handle_t handle,
 							payload->response_struct.lookup_resp.lookup_path);
 			response.lookup_resp = &lookup_resp;
 			msg.response_struct = &response;
-			len = sstack_payload_t__get_packed_size(&msg);
-			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
+			hdr.payload_len = sizeof(sstack_payload_hdr_t);
 			msg.hdr = &hdr; // Parannoid
+			len = sstack_payload_t__get_packed_size(&msg);
 			buffer = malloc(len);
 			if (NULL == buffer) {
 				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
@@ -1156,9 +1159,9 @@ sstack_send_payload(sstack_client_handle_t handle,
 			access_resp.access = payload->response_struct.access_resp.access;
 			response.access_resp = &access_resp;
 			msg.response_struct = &response;
-			len = sstack_payload_t__get_packed_size(&msg);
-			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
+			hdr.payload_len = sizeof(sstack_payload_hdr_t);
 			msg.hdr = &hdr; // Parannoid
+			len = sstack_payload_t__get_packed_size(&msg);
 			buffer = malloc(len);
 			if (NULL == buffer) {
 				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
@@ -1203,9 +1206,9 @@ sstack_send_payload(sstack_client_handle_t handle,
 			read_resp.data = &data;
 			response.read_resp = &read_resp;
 			msg.response_struct = &response;
-			len = sstack_payload_t__get_packed_size(&msg);
-			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
+			hdr.payload_len = sizeof(sstack_payload_hdr_t);
 			msg.hdr = &hdr; // Parannoid
+			len = sstack_payload_t__get_packed_size(&msg);
 			buffer = malloc(len);
 			if (NULL == buffer) {
 				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
@@ -1244,9 +1247,9 @@ sstack_send_payload(sstack_client_handle_t handle,
 			write_resp.file_wc = payload->response_struct.write_resp.file_wc;
 			response.write_resp = &write_resp;
 			msg.response_struct = &response;
-			len = sstack_payload_t__get_packed_size(&msg);
-			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
+			hdr.payload_len = sizeof(sstack_payload_hdr_t);
 			msg.hdr = &hdr; // Parannoid
+			len = sstack_payload_t__get_packed_size(&msg);
 			buffer = malloc(len);
 			if (NULL == buffer) {
 				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
@@ -1291,9 +1294,9 @@ sstack_send_payload(sstack_client_handle_t handle,
 			readlink_resp.real_file = &real_file;
 			response.readlink_resp = &readlink_resp;
 			msg.response_struct = &response;
-			len = sstack_payload_t__get_packed_size(&msg);
-			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
+			hdr.payload_len = sizeof(sstack_payload_hdr_t);
 			msg.hdr = &hdr; // Parannoid
+			len = sstack_payload_t__get_packed_size(&msg);
 			buffer = malloc(len);
 			if (NULL == buffer) {
 				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
@@ -1332,9 +1335,9 @@ sstack_send_payload(sstack_client_handle_t handle,
 			create_resp.file_wc = payload->response_struct.create_resp.file_wc;
 			response.create_resp = &create_resp;
 			msg.response_struct = &response;
-			len = sstack_payload_t__get_packed_size(&msg);
-			hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
+			hdr.payload_len = sizeof(sstack_payload_hdr_t);
 			msg.hdr = &hdr; // Parannoid
+			len = sstack_payload_t__get_packed_size(&msg);
 			buffer = malloc(len);
 			if (NULL == buffer) {
 				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
