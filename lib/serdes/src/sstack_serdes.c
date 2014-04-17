@@ -34,7 +34,7 @@ static uint32_t sequence = 1; // Sequence number for packets
  * Otherwise, a totally dummy function.
  */
 
-static inline char *
+char *
 sstack_command_stringify(sstack_command_t command)
 {
 	switch(command) {
@@ -1497,8 +1497,6 @@ sstack_recv_payload(sstack_client_handle_t handle,
 		case NFS_SETATTR_RSP: {
 			sfs_log(ctx, SFS_INFO, "%s: command = %s\n",
 					__FUNCTION__, sstack_command_stringify(msg->command));
-			syncfs(ctx->log_fd);
-			sleep(1);
 			payload->response_struct.command_ok =
 				msg->response_struct->command_ok;
 			payload->response_struct.handle =

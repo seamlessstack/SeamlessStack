@@ -636,7 +636,7 @@ sfs_process_write_response(sstack_payload_t *payload)
  * thread waiting on the job completion is woken up.
  */
 
-static void*
+void*
 sfs_process_payload(void *arg)
 {
 	sstack_payload_t *payload = (sstack_payload_t *) arg;
@@ -970,6 +970,10 @@ sfs_handle_connection(void * arg)
 				__FUNCTION__);
 
 retry:
+		sfs_log(sfs_ctx, SFS_DEBUG, "%s: sfs_process_payload = 0x%"PRIx64" "
+				"pool = %"PRIx64" \n",
+				__FUNCTION__, sfs_process_payload, sfs_thread_pool);
+
 		ret = sstack_thread_pool_queue(sfs_thread_pool, sfs_process_payload,
 						(void *)payload);
 		if (ret != 0) {
@@ -988,7 +992,7 @@ retry:
 				return NULL;
 			}
 		}
-		sfs_log(sfs_ctx, SFS_INFO, "%s: Job successfully queued \n",
+		sfs_log(sfs_ctx, SFS_INFO, "%s: Job successfully processed \n",
 				__FUNCTION__);
 	}
 

@@ -30,6 +30,8 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <errno.h>
+#include <stdio.h>
+#include <inttypes.h>
 
 /*
  * FIFO queued job
@@ -95,6 +97,9 @@ create_worker(sstack_thread_pool_t *pool)
     (void) pthread_sigmask(SIG_SETMASK, &fillset, &oset);
     error = pthread_create(&thread, &pool->pool_attr, worker_thread, pool);
     (void) pthread_sigmask(SIG_SETMASK, &oset, NULL);
+	fprintf(stderr, "%s: Created new worker thread. id = %"PRId64"\n",
+			__FUNCTION__, pthread_self());
+
     return (error);
 }
 
@@ -166,6 +171,8 @@ worker_thread(void *arg)
     active_t active;
     struct timespec ts;
 
+	fprintf(stderr, "%s: pool = %"PRIx64" \n",
+			__FUNCTION__, pool);
     /*
      * This is the worker's main loop.  It will only be left
      * if a timeout occurs or if the pool is being destroyed.
@@ -207,6 +214,8 @@ worker_thread(void *arg)
         if (pool->pool_flags & POOL_DESTROY)
             break;
         if ((job = pool->pool_head) != NULL) {
+			fprintf(stderr, "%s Inside thread %"PRId64" . Got a job \n",
+					__FUNCTION__, pthread_self());
             timedout = 0;
             func = job->job_func;
             arg = job->job_arg;
@@ -221,6 +230,8 @@ worker_thread(void *arg)
             /*
              * Call the specified job function.
              */
+			fprintf(stderr, "%s: Calling function 0x%"PRIx64"\n",
+					__FUNCTION__, func);
             (void) func(arg);
             /*
              * If the job function calls pthread_exit(), the thread
@@ -342,25 +353,34 @@ sstack_thread_pool_queue(sstack_thread_pool_t *pool,
 {
     job_t *job;
 
+	fprintf(stderr, "%s: func = %"PRIx64" pool = 0x%"PRIx64" "
+			"arg = 0x%"PRIx64"\n",
+			__FUNCTION__, func, pool, arg);
+
     if ((job = malloc(sizeof (*job))) == NULL) {
         errno = ENOMEM;
         return (-1);
     }
+
     job->job_next = NULL;
     job->job_func = func;
     job->job_arg = arg;
 
     (void) pthread_mutex_lock(&pool->pool_mutex);
 
-    if (pool->pool_head == NULL)
+    if (pool->pool_head == NULL) {
+		fprintf(stderr, "%s: thread pool head is NULL. Adding job\n",
+				__FUNCTION__);
         pool->pool_head = job;
-    else
+	} else
         pool->pool_tail->job_next = job;
     pool->pool_tail = job;
 
-    if (pool->pool_idle > 0)
+    if (pool->pool_idle > 0) {
+		fprintf(stderr, "%s: condition signalling worker \n",
+				__FUNCTION__);
         (void) pthread_cond_signal(&pool->pool_workcv);
-    else if (pool->pool_nthreads < pool->pool_maximum &&
+	} else if (pool->pool_nthreads < pool->pool_maximum &&
         create_worker(pool) == 0)
         pool->pool_nthreads++;
 
