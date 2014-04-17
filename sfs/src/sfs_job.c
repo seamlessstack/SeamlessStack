@@ -65,7 +65,7 @@ sfs_submit_job(int priority, sfs_job_queue_t *job_list, sfs_job_t *job)
 		return -1;
 	}
 
-	sfs_log(sfs_ctx, SFS_ERR, "%s: success \n", __FUNCTION__);
+	sfs_log(sfs_ctx, SFS_INFO, "%s: success \n", __FUNCTION__);
 
 	return 0;
 }

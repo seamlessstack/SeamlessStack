@@ -641,6 +641,9 @@ sfs_process_payload(void *arg)
 {
 	sstack_payload_t *payload = (sstack_payload_t *) arg;
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: command = %d \n",
+			__FUNCTION__, sstack_command_stringify(payload->command));
+
 	switch (payload->command) {
 		case (NFS_READ_RSP):
 			sfs_process_read_response(payload);
@@ -665,6 +668,8 @@ sfs_process_payload(void *arg)
 			sstack_job_map_t *job_map = NULL;
 
 			job_id = payload->hdr.job_id;
+			sfs_log(sfs_ctx, SFS_DEBUG, "%s: job_id = %d \n",
+					__FUNCTION__, job_id);
 
 			jt_key.magic = JTNODE_MAGIC;
 			jt_key.job_id = job_id;
@@ -673,6 +678,7 @@ sfs_process_payload(void *arg)
 				errno = SSTACK_CRIT_FAILURE;
 				return NULL;
 			}
+			sfs_log(sfs_ctx, SFS_DEBUG, "%s:%d\n", __FUNCTION__, __LINE__);
 			thread_id = jt_node->thread_id;
 			jm_key.magic = JMNODE_MAGIC;
 			jm_key.thread_id = thread_id;
@@ -681,8 +687,10 @@ sfs_process_payload(void *arg)
 				errno = SSTACK_CRIT_FAILURE;
 				return NULL;
 			}
+			sfs_log(sfs_ctx, SFS_DEBUG, "%s:%d\n", __FUNCTION__, __LINE__);
 			job_map = jm_node->job_map;
 			pthread_cond_signal(&job_map->condition);
+			sfs_log(sfs_ctx, SFS_DEBUG, "%s:%d\n", __FUNCTION__, __LINE__);
 			break;
 		}
 
@@ -942,7 +950,7 @@ sfs_handle_connection(void * arg)
 		if (ret != READ_NO_BLOCK) {
 		//	sfs_log(sfs_ctx, SFS_INFO, "%s: Connection down. Waiting for "
 		//					"retry \n", __FUNCTION__);
-			sleep(2);
+			sleep(1);
 			/* Its a non-blocking select call. So, it could come out of
 			 * select even though there is nothing to read. So just go back
 			 * to select
@@ -957,6 +965,9 @@ sfs_handle_connection(void * arg)
 							"Error = %d\n", __FUNCTION__, errno);
 			continue;
 		}
+
+		sfs_log(sfs_ctx, SFS_INFO, "%s: Response received from sfsd\n",
+				__FUNCTION__);
 
 retry:
 		ret = sstack_thread_pool_queue(sfs_thread_pool, sfs_process_payload,
@@ -977,6 +988,8 @@ retry:
 				return NULL;
 			}
 		}
+		sfs_log(sfs_ctx, SFS_INFO, "%s: Job successfully queued \n",
+				__FUNCTION__);
 	}
 
 	// Ideally control should never reach here

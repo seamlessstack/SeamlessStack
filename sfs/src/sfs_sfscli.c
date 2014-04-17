@@ -97,7 +97,8 @@ display_storage_devices(storage_tree_t *tree, sfs_st_t *node, void *arg)
 	entry_len = strlen(sfscli_response);
 	temp = realloc(buf, entry_len + buf_len);
 	if (temp == NULL) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: Line %d: Critical error\n", __FUNCTION__, __LINE__);
+		sfs_log(sfs_ctx, SFS_ERR, "%s: Line %d: Critical error\n",
+				__FUNCTION__, __LINE__);
 		return NULL;
 	}
 //	strncpy(temp, buf, buf_len);
@@ -126,9 +127,10 @@ cli_process_thread(void *arg)
 		servaddr.sin_addr.s_addr = INADDR_ANY;
 		servaddr.sin_port = htons(atoi(SFSCLI_DEF_SFS_PORT));
 
-		if (bind(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr)) == 0) {
-			sfs_log(sfs_ctx, SFS_ERR, "Bind done, waiting for incoming connections %s\n",
-							SFSCLI_DEF_SFS_PORT);
+		if (bind(sockfd, (struct sockaddr *)&servaddr,
+					sizeof(servaddr)) == 0) {
+			sfs_log(sfs_ctx, SFS_INFO, "Bind done, waiting for incoming "
+					"connections %s\n", SFSCLI_DEF_SFS_PORT);
 			listen(sockfd, 5);
 			handle_cli_requests(sockfd);
 		}
@@ -550,24 +552,27 @@ handle_cli_requests(int32_t sockfd)
 								 (struct sockaddr *)&client_addr,
 								 &client_addr_len);
 			if (conn_sockfd < 0) {
-				sfs_log(sfs_ctx, SFS_ERR, "coulnot accept the incoming connection\n");
+				sfs_log(sfs_ctx, SFS_ERR, "coulnot accept the incoming "
+						"connection\n");
 				continue;
 			}
 			connection_dropped = 0;
-			sfs_log(sfs_ctx, SFS_ERR, "Connection received from clid\n");
+			sfs_log(sfs_ctx, SFS_INFO, "Connection received from clid\n");
 		//}
 
 		rc = -1;
 		select_read_to_buffer(conn_sockfd, rc, cmd_buffer,
 							  SFSCLI_MAX_BUFFER_SIZE, rnbytes);
 		if (rnbytes > 0 && rc > 0) {
-			resp_size = get_command_response(cmd_buffer, rnbytes, &resp_buffer);
+			resp_size = get_command_response(cmd_buffer, rnbytes,
+					&resp_buffer);
 			if (resp_buffer && (resp_size > 0)) {
 				wnbytes = write(conn_sockfd, resp_buffer, resp_size);
 				if (wnbytes < resp_size)
 					sfs_log(sfs_ctx, SFS_ERR, "Less no of response sent\n");
 				else
-					sfs_log(sfs_ctx, SFS_ERR, "Wrote %ld bytes to clid\n", wnbytes);
+					sfs_log(sfs_ctx, SFS_ERR, "Wrote %ld bytes to clid\n",
+							wnbytes);
 			}
 		} else {
 			sfs_log(sfs_ctx, SFS_ERR, "Error reading command\n");

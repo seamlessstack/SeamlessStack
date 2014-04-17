@@ -25,6 +25,7 @@
 #include <sstack_transport.h>
 #include <sstack_types.h>
 
+extern char * sstack_command_stringify(sstack_command_t command);
 /*
  * sstack_send_payload - Function that serializes payload and sends
  *		it across to the reciver
