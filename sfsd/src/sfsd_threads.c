@@ -40,7 +40,8 @@ static inline void send_unsucessful_response(sstack_payload_t *payload,
 static sstack_payload_t* get_payload(sstack_transport_t *transport,
 		sstack_client_handle_t handle);
 static int32_t send_payload(sstack_transport_t *transport,
-		sstack_client_handle_t handle, sstack_payload_t *response);
+							sstack_client_handle_t handle, sstack_payload_t *response,
+							log_ctx_t *ctx);
 
 /* ====================+++++++++++++++++++++++++++++++++==================*/
 static inline void send_unsucessful_response(sstack_payload_t *payload,
@@ -48,7 +49,7 @@ static inline void send_unsucessful_response(sstack_payload_t *payload,
 {
 	if (payload) {
 		payload->response_struct.command_ok = -1;
-		send_payload(sfsd->transport, sfsd->handle, payload);
+		send_payload(sfsd->transport, sfsd->handle, payload, sfsd->log_ctx);
 	}
 }
 
@@ -115,7 +116,8 @@ static sstack_payload_t* get_payload(sstack_transport_t *transport,
 }
 
 int32_t send_payload(sstack_transport_t *transport,
-		sstack_client_handle_t handle, sstack_payload_t *payload)
+					 sstack_client_handle_t handle, sstack_payload_t *payload,
+					 log_ctx_t *ctx)
 {
 	int ret = -1;
 	sstack_job_id_t job_id = 0;
@@ -132,10 +134,8 @@ int32_t send_payload(sstack_transport_t *transport,
 	priority = payload->hdr.priority;
 	job = (sfs_job_t *) payload->hdr.arg;
 
-	// TODO
-	// Get log_ctx. Needed for paramter validaion
 	ret = sstack_send_payload(handle, payload, transport, job_id, job,
-					priority, NULL);
+					priority, ctx);
 	return ret;
 }
 
@@ -148,21 +148,25 @@ static void* do_process_payload(void *param)
 	bds_cache_desc_t param_cache = h_param->cache_p;
 	handle_command(command, &response, h_param->cache_arr,
 		       h_param->sfsd, h_param->log_ctx);
-	/* Free of the param cache */
-	bds_cache_free(param_cache, h_param);
+
+	sfs_log(h_param->log_ctx, SFS_DEBUG,"response code: %d, response status: %d\n",
+			response->response_struct.command_ok, response->command);
 
 	/* Send of the response */
 	if (send_payload(h_param->sfsd->transport,
-				h_param->sfsd->handle, response)) {
+					 h_param->sfsd->handle, response, h_param->log_ctx)) {
 		sfs_log (h_param->log_ctx, SFS_ERR, "Error sending payload\n");
 	}
+	free_payload_protobuf(sfsd_global_cache_arr, response);
+	/* Free of the param cache */
+	bds_cache_free(param_cache, h_param);
 
 	/* Free off the response */
 	// TODO
 	// response structure is allocated from malloc
 	// sstack_send_payload and sstack_recv_payload still use malloc/free
 	// bds_cache_free(h_param->cache_arr[PAYLOAD_CACHE_OFFSET], response);
-	free(response);
+	//free(response);
 
 	return NULL;
 }
@@ -204,7 +208,6 @@ static void* do_receive_thread(void *param)
 		   thread pool to do the job */
 		sfs_log(sfsd->log_ctx, SFS_DEBUG, "%s: %d payload 0x%x path %s\n",
 				__FUNCTION__, __LINE__, payload, payload->storage.path);
-#if 1
 		if (payload != NULL) {
 			/* Command could be
 			   1) Chunk domain command
@@ -229,7 +232,6 @@ static void* do_receive_thread(void *param)
 				((ret == 0) ? SFS_DEBUG: SFS_ERR),
 				"Job queue status: %d\n", ret);
 		}
-#endif
 	}
 }
 
@@ -245,8 +247,8 @@ void handle_command(sstack_payload_t *command, sstack_payload_t **response,
 		/* sstack storage commands here */
 		case SSTACK_ADD_STORAGE:
 			storage = &command->storage;
-			sfs_log(log_ctx, SFS_DEBUG, "%s: path = %s ipv6addr = %s\n",
-					__FUNCTION__, storage->path, storage->address.ipv6_address);
+			sfs_log(log_ctx, SFS_DEBUG, "%s: path = %s ipv4addr = %s\n",
+					__FUNCTION__, storage->path, storage->address.ipv4_address);
 			path = sfsd_add_chunk(sfsd->chunk, storage);
 			if (path) {
 				free(path);
@@ -374,9 +376,9 @@ void handle_command(sstack_payload_t *command, sstack_payload_t **response,
 
 	(*response)->hdr.sequence = command->hdr.sequence;
 	/* Send off response from here */
-	sstack_send_payload(sfsd->handle, command, sfsd->transport,
-						command->hdr.job_id, (sfs_job_t*)command->hdr.arg,
-						command->hdr.priority, log_ctx);
-	free_payload_protobuf(sfsd_global_cache_arr,command);
+	//sstack_send_payload(sfsd->handle, *response, sfsd->transport,
+	//					(*response)->hdr.job_id, (sfs_job_t*)(*response)->hdr.arg,
+	//					(*response)->hdr.priority, log_ctx);
+	//
 
 }
