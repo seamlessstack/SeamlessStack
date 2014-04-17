@@ -641,7 +641,7 @@ sfs_process_payload(void *arg)
 {
 	sstack_payload_t *payload = (sstack_payload_t *) arg;
 
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s: command = %d \n",
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: command = %s \n",
 			__FUNCTION__, sstack_command_stringify(payload->command));
 
 	switch (payload->command) {
@@ -676,6 +676,7 @@ sfs_process_payload(void *arg)
 			jt_node = jobid_tree_search(jobid_tree, &jt_key);
 			if (jt_node == NULL) {
 				errno = SSTACK_CRIT_FAILURE;
+				sfs_log(sfs_ctx, SFS_DEBUG, "%s:%d\n", __FUNCTION__, __LINE__);
 				return NULL;
 			}
 			sfs_log(sfs_ctx, SFS_DEBUG, "%s:%d\n", __FUNCTION__, __LINE__);
@@ -685,6 +686,7 @@ sfs_process_payload(void *arg)
 			jm_node = jobmap_tree_search(jobmap_tree, &jm_key);
 			if (jm_node == NULL) {
 				errno = SSTACK_CRIT_FAILURE;
+				sfs_log(sfs_ctx, SFS_DEBUG, "%s:%d\n", __FUNCTION__, __LINE__);
 				return NULL;
 			}
 			sfs_log(sfs_ctx, SFS_DEBUG, "%s:%d\n", __FUNCTION__, __LINE__);
@@ -1018,9 +1020,9 @@ sfs_init_thread_pool(void)
 	// Create thread pool to handle sfsd requests/responses
 	pthread_attr_init(&attr);
 	pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
-	pthread_attr_setstacksize(&attr, 65536);
+	// pthread_attr_setstacksize(&attr, 65536);
 	// Create SSTACK_BACKLOG threads at max
-	// Current value is 1024 which is quite big
+	// Current value is 128
 	sfs_thread_pool = sstack_thread_pool_create(4, SSTACK_BACKLOG, 30, &attr);
 	if (NULL == sfs_thread_pool) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to create sfs threadpool. "
