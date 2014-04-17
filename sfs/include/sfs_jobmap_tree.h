@@ -73,12 +73,6 @@ jobmap_tree_cmp(sstack_jm_t *node1, sstack_jm_t *node2)
 
 	ret = (node1->thread_id > node2->thread_id) - (node1->thread_id <
 					node2->thread_id);
-	if (ret == 0) {
-		// Duplicates are not allowed in the tree, so force an arbitrary
-		// ordering for non-identical items with equal keys.
-		ret = (((uintptr_t) node1) > ((uintptr_t) node2)) -
-				(((uintptr_t) node1) < ((uintptr_t) node2));
-	}
 
 	return ret;
 }

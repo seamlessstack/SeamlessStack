@@ -72,12 +72,6 @@ jobid_tree_cmp(sstack_jt_t *node1, sstack_jt_t *node2)
 	}
 
 	ret = (node1->job_id > node2->job_id) - (node1->job_id < node2->job_id);
-	if (ret == 0) {
-		// Duplicates are not allowed in the tree, so force an arbitrary
-		// ordering for non-identical items with equal keys.
-		ret = (((uintptr_t) node1) > ((uintptr_t) node2)) -
-				(((uintptr_t) node1) < ((uintptr_t) node2));
-	}
 
 	return ret;
 }
