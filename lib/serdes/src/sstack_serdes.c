@@ -1034,6 +1034,9 @@ sstack_send_payload(sstack_client_handle_t handle,
 					__FUNCTION__,  len);
 			msg.hdr = &hdr; // Parannoid
 			len = sstack_payload_t__get_packed_size(&msg);
+			sfs_log(ctx, SFS_DEBUG, "%s: Command = %s len = %d\n",
+					__FUNCTION__, sstack_command_stringify(payload->command),
+					len);
 			buffer = malloc(len);
 			if (NULL == buffer) {
 				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
