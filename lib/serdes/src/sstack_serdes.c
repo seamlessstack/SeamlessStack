@@ -1026,6 +1026,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 		case NFS_SETATTR_RSP: {
 			response.command_ok = payload->response_struct.command_ok;
 			response.handle = payload->response_struct.handle;
+			msg.command = payload->command;
 			msg.response_struct = &response;
 			// hdr.payload_len = len - sizeof(sstack_payload_hdr_t);
 			hdr.payload_len = sizeof(sstack_payload_t);
