@@ -689,6 +689,7 @@ sfs_process_payload(void *arg)
 				sfs_log(sfs_ctx, SFS_DEBUG, "%s:%d\n", __FUNCTION__, __LINE__);
 				return NULL;
 			}
+			jm_node->job_map->err_no = payload->response_struct.command_ok;
 			sfs_log(sfs_ctx, SFS_DEBUG, "%s:%d\n", __FUNCTION__, __LINE__);
 			job_map = jm_node->job_map;
 			pthread_cond_signal(&job_map->condition);
