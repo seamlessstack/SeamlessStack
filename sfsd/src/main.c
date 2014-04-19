@@ -48,38 +48,41 @@ struct cache_entry caches[] = {
 	{"inode-cache", sizeof(sstack_inode_t)},
 };
 
-static int32_t sfsd_create_caches(sfsd_t *sfsd, struct cache_entry *centry,
-								  int32_t num_centry)
+static int32_t sfsd_create_caches(sfsd_t *sfsd)
 {
 	int32_t i,j, ret;
 	/* Allocate memory for the caches array */
-	sfsd->caches = malloc(sizeof(bds_cache_desc_t) * num_centry);
+	sfsd->local_caches = malloc(sizeof(bds_cache_desc_t)
+								* (MAX_CACHE_OFFSET+1));
 
-	if (sfsd->caches == NULL) {
+	if (sfsd->local_caches == NULL) {
 		sfs_log(sfsd->log_ctx,
 			SFS_ERR, "Caches array allocation failed\n");
 		return -ENOMEM;
 	}
-	for(i = 0; i < num_centry; ++i) {
-		ret = bds_cache_create(centry[i].name, centry[i].size, 0, NULL,
-				       NULL, &sfsd->caches[i]);
-		if (ret != 0) {
-			sfs_log(sfsd->log_ctx, SFS_ERR,
-				"Could not create cache for %s\n",
-				centry[i].name);
-			goto error;
-		} else {
-			sfs_log(sfsd->log_ctx, SFS_DEBUG, "%s() -  %s created\n",
-					__FUNCTION__, centry[i].name);
-		}
+	ret = bds_cache_create("param-cache",
+						   sizeof(struct handle_payload_params),
+						   0, NULL, NULL,
+						   &sfsd->local_caches[HANDLE_PARAM_OFFSET]);
+	if (ret != 0) {
+		sfs_log(sfsd->log_ctx, SFS_CRIT, "param-cache create failed\n");
+		return -ENOMEM;
 	}
+	sfs_log(sfsd->log_ctx, SFS_DEBUG, "param-cache created\n");
+
+	ret = bds_cache_create("inode-cache",
+						   sizeof(sstack_inode_t),
+						   0, NULL, NULL,
+						   &sfsd->local_caches[INODE_CACHE_OFFSET]);
+	if (ret != 0) {
+		bds_cache_destroy(sfsd->local_caches[HANDLE_PARAM_OFFSET], 0);
+		sfs_log(sfsd->log_ctx, SFS_CRIT, "inode-cache create failed\n");
+	}
+	sfs_log(sfsd->log_ctx, SFS_DEBUG, "inode-cache created\n");
+	sfsd_global_cache_arr = sfsd->local_caches;
+	
 	return 0;
 
-error:
-	sfs_log(sfsd->log_ctx, SFS_ERR, "%s(): Bailing out..\n", __FUNCTION__);
-	for (j = i; j >= 0; j--)
-		bds_cache_destroy(sfsd->caches[j], 0);
-	return -ENOMEM;
 }
 
 int main(int argc, char **argv)
@@ -124,13 +127,13 @@ int main(int argc, char **argv)
 		mongo_db_cleanup, ctx);
 	sfsd.db = db;
 
-	if (sfsd_create_caches(&sfsd, caches, (MAX_CACHE_OFFSET + 1)) != 0) {
+	if (sfsd_create_caches(&sfsd)) {
 		sfs_log(sfsd.log_ctx, SFS_CRIT, "Caches creation failed");
 		return -ENOMEM;
 	}	
 		
 	/* Fill up the global variable to be used */
-	sfsd_global_cache_arr = sfsd.caches;
+	sfsd_global_cache_arr = sfsd.local_caches;
 	/* Initialize transport */
 	init_transport(&sfsd);
 

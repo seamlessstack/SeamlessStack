@@ -46,13 +46,9 @@
    new offset here and add an
    entry to the sstack_create_cache
    function */
-#define HANDLE_PARAM_OFFSET 1
-#define INODE_CACHE_OFFSET 2
-
-#define DATA64K_CACHE_OFFSET 4
-#define DATA4K_CACHE_OFFSET 3
-#define PAYLOAD_CACHE_OFFSET 0
-#define MAX_CACHE_OFFSET DATA64K_CACHE_OFFSET
+#define HANDLE_PARAM_OFFSET 0
+#define INODE_CACHE_OFFSET 1
+#define MAX_CACHE_OFFSET INODE_CACHE_OFFSET
 /* Forward declaration */
 struct sfs_chunk_domain;
 typedef struct sfs_chunk_domain sfs_chunk_domain_t;
@@ -129,7 +125,7 @@ typedef struct sfsd {
 	char sfs_addr[IPV4_ADDR_MAX];
 	sstack_thread_pool_t *thread_pool;
 	sstack_thread_pool_t *chunk_thread_pool;
-	bds_cache_desc_t *caches;
+	bds_cache_desc_t *local_caches;
 	bds_cache_desc_t *serdes_caches;
 	uint32_t sfs_pool_wgt;
 } sfsd_t;
@@ -167,6 +163,7 @@ typedef struct sfs_job_queue {
 static inline void
 free_payload(bds_cache_desc_t *caches, sstack_payload_t *payload)
 {
+#if 0
 	// Parameter validation
 	if (NULL == payload) {
 		return;
@@ -182,6 +179,7 @@ free_payload(bds_cache_desc_t *caches, sstack_payload_t *payload)
 	}
 
 	bds_cache_free(caches[PAYLOAD_CACHE_OFFSET], (void *) payload);
+#endif
 }
 
 /*
@@ -195,6 +193,7 @@ free_payload(bds_cache_desc_t *caches, sstack_payload_t *payload)
 static inline void
 free_payload_protobuf(bds_cache_desc_t *caches, sstack_payload_t *payload)
 {
+#if 0
 	// Parameter validation
 	if (NULL == payload) {
 		return;
@@ -208,6 +207,7 @@ free_payload_protobuf(bds_cache_desc_t *caches, sstack_payload_t *payload)
 		bds_cache_free(caches[DATA64K_CACHE_OFFSET],
 			payload->command_struct.write_cmd.data.data_buf);
 	}
+#endif
 
 //	free(payload);
 }

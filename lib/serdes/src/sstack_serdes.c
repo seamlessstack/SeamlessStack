@@ -37,8 +37,6 @@ log_ctx_t *serdes_ctx = NULL;
  * The sfs and sfsd modules would use these caches
  * in all their allocations and deallocations
  */
-
-//__attribute__((constructor))
 int32_t sstack_serdes_init(bds_cache_desc_t **cache_array)
 {
 	bds_status_t status;
@@ -96,7 +94,7 @@ int32_t sstack_serdes_init(bds_cache_desc_t **cache_array)
 	sfs_log(serdes_ctx, SFS_DEBUG, "%s(): %d %p- data64k-cache created\n",
 			__FUNCTION__, __LINE__, serdes_caches[SERDES_DATA_64K_CACHE_IDX]);
 
-	/* All OK. */
+	/* All OK. Pass the pointers to the callee*/
 	*cache_array = serdes_caches;
 	return 0;
 		
@@ -1463,7 +1461,8 @@ sstack_recv_payload(sstack_client_handle_t handle,
 	SstackPayloadT *msg = NULL;
 	ssize_t payload_len = 0;
 	sstack_payload_t *payload = NULL;
-	char temp_payload[sizeof(sstack_payload_t)]; // Max size of payload
+//	char temp_payload[sizeof(sstack_payload_t)]; // Max size of payload
+	char *temp_payload = NULL;
 
 	// Parameter validation
 	if (handle == -1 || NULL == transport) {
@@ -1473,9 +1472,11 @@ sstack_recv_payload(sstack_client_handle_t handle,
 		errno = EINVAL;
 		return NULL;
 	}
-	sfs_log(ctx, SFS_DEBUG, "%s %d \n", __FUNCTION__, __LINE__);
+	sfs_log(ctx, SFS_DEBUG, "%s(): %d <<<< \n", __FUNCTION__, __LINE__);
 
-	payload = (sstack_payload_t *) malloc(sizeof(sstack_payload_t));
+	//payload = (sstack_payload_t *) malloc(sizeof(sstack_payload_t));
+	payload = bds_cache_alloc(serdes_caches[SERDES_PAYLOAD_CACHE_IDX]);
+	temp_payload = bds_cache_alloc(serdes_caches[SERDES_PAYLOAD_CACHE_IDX]);
 	if (NULL == payload) {
 		sfs_log(ctx, SFS_ERR, "%s: Failed to allocate memory for receiving"
 			" payload. Client handle = %"PRId64" \n",
