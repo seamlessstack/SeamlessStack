@@ -93,7 +93,7 @@ pthread_spinlock_t jobmap_lock;
 pthread_spinlock_t jobid_lock;
 pthread_spinlock_t filelock_lock;
 extern sstack_bitmap_t *sstack_job_id_bitmap;
-
+bds_cache_desc_t serdes_caches[SERDES_NUM_CACHES];
 /*
  * jobs is the job list of unsubmitted (to sfsd) jobs
  * pending_jobs is the list of jobs waiting for completion
@@ -1616,7 +1616,13 @@ main(int argc, char *argv[])
 	}
 	mc = sstack_memcache_init("localhost", 1, sfs_ctx);
 
+	ret = sstack_serdes_init(&serdes_caches);
 
+	if (ret != 0) {
+		fprintf (stderr, "serdes init failed");
+		return -ENOMEM;
+	}
+		
 	strcpy(sfs_mountpoint, args.argv[args.argc - 1]);
 	fprintf(stderr, "%s: File system mount point = %s \n",
 					__FUNCTION__, sfs_mountpoint);
