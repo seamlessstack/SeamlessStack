@@ -6,12 +6,14 @@ then
 	exit -1;
 fi
 
-kill -9 `pidof sfs`
-kill -9 `pidof sfsclid`
-kill -9 `pidof sfsd`
+umount /tmp/one
+umount /tmp/dir*
+
+pkill -9 sfs
+pkill -9 sfsclid
+pkill -9 sfsd
 rm -rf /tmp/sfs /tmp/sfsd /tmp/dir*
 
-umount /tmp/one
 rm -rf /tmp/one
 rm -rf /tmp/junky
 dmesg -c

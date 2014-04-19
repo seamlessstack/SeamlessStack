@@ -252,7 +252,7 @@ void handle_command(sstack_payload_t *command, sstack_payload_t **response,
 			path = sfsd_add_chunk(sfsd->chunk, storage);
 			if (path) {
 				free(path);
-				ret = 1;
+				ret = SSTACK_SUCCESS;
 			} else {
 				ret = -EINVAL;
 			}

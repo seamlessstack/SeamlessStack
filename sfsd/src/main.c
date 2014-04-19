@@ -30,57 +30,55 @@
 #include <sstack_db.h>
 #include <sstack_md.h>
 #include <mongo_db.h>
+#include <sstack_serdes.h>
 
 /* sstack log directory */
 char sstack_log_directory[PATH_MAX];
 struct handle_payload_params;
 sfsd_t sfsd;
-bds_cache_desc_t sfsd_global_cache_arr[MAX_CACHE_OFFSET];
+bds_cache_desc_t *sfsd_global_cache_arr = NULL;
 
 struct cache_entry {
 	char name[32];
 	size_t size;
 };
 
-struct cache_entry caches[MAX_CACHE_OFFSET] = {
-	{"payload-cache", sizeof(sstack_payload_t)},
+struct cache_entry caches[] = {
 	{"param-cache", sizeof (struct handle_payload_params)},
 	{"inode-cache", sizeof(sstack_inode_t)},
-	{"data-4k-cache", 4096},
-	{"data-64k-cache", 65536},
 };
 
-static int32_t sfsd_create_caches(sfsd_t *sfsd, struct cache_entry *centry)
+static int32_t sfsd_create_caches(sfsd_t *sfsd, struct cache_entry *centry,
+								  int32_t num_centry)
 {
 	int32_t i,j, ret;
 	/* Allocate memory for the caches array */
-	sfsd->caches = malloc(sizeof(bds_cache_desc_t) * MAX_CACHE_OFFSET);
+	sfsd->caches = malloc(sizeof(bds_cache_desc_t) * num_centry);
 
 	if (sfsd->caches == NULL) {
 		sfs_log(sfsd->log_ctx,
 			SFS_ERR, "Caches array allocation failed\n");
 		return -ENOMEM;
 	}
-	for(i = 0; i < MAX_CACHE_OFFSET; ++i) {
+	for(i = 0; i < num_centry; ++i) {
 		ret = bds_cache_create(centry[i].name, centry[i].size, 0, NULL,
-				       NULL, &sfsd_global_cache_arr[i]);
+				       NULL, &sfsd->caches[i]);
 		if (ret != 0) {
 			sfs_log(sfsd->log_ctx, SFS_ERR,
 				"Could not create cache for %s\n",
 				centry[i].name);
 			goto error;
+		} else {
+			sfs_log(sfsd->log_ctx, SFS_DEBUG, "%s() -  %s created\n",
+					__FUNCTION__, centry[i].name);
 		}
 	}
-
 	return 0;
 
 error:
 	sfs_log(sfsd->log_ctx, SFS_ERR, "%s(): Bailing out..\n", __FUNCTION__);
-	// bds_cache_destroy is not implemented yet
-#if 0
 	for (j = i; j >= 0; j--)
-		bds_cache_destroy(sfsd_global_cache_arr[j]);
-#endif
+		bds_cache_destroy(sfsd->caches[j], 0);
 	return -ENOMEM;
 }
 
@@ -112,8 +110,10 @@ int main(int argc, char **argv)
 	sfsd.log_ctx = ctx;
 
 	/* Register signals */
-	ASSERT ((0 == register_signals(&sfsd)),
-			"Signal regisration failed", 1, 1, 0);
+	if (register_signals(&sfsd) != 0) {
+		sfs_log(sfsd.log_ctx, SFS_CRIT, "Signal regisration failed");
+		return -EINVAL;
+	}
 	/* Initialize and connect to the DB. DONOT initialize DB
 	 here, it would be done by SFS*/
 	db = create_db();
@@ -123,17 +123,22 @@ int main(int argc, char **argv)
 		mongo_db_seekread, mongo_db_update, mongo_db_delete,
 		mongo_db_cleanup, ctx);
 	sfsd.db = db;
-	if (sfsd.db->db_ops.db_init(sfsd.log_ctx) != 0) {
-	ASSERT ((0 == register_signals(&sfsd)),
-			"Signal regisration failed", 1, 1, 0);
-	}
 
-	ASSERT((0 == sfsd_create_caches(&sfsd, caches)),
-			"Cache creation failed", 1, 1, 0);
-
-	sfsd.caches = sfsd_global_cache_arr;
+	if (sfsd_create_caches(&sfsd, caches, (MAX_CACHE_OFFSET + 1)) != 0) {
+		sfs_log(sfsd.log_ctx, SFS_CRIT, "Caches creation failed");
+		return -ENOMEM;
+	}	
+		
+	/* Fill up the global variable to be used */
+	sfsd_global_cache_arr = sfsd.caches;
 	/* Initialize transport */
 	init_transport(&sfsd);
+
+	/* Initialize serdes library */
+	if (sstack_serdes_init(&sfsd.serdes_caches) != 0) {
+		sfs_log(sfsd.log_ctx, SFS_CRIT, "SERDES init failed");
+		return -ENOMEM;
+	};
 
 	/* Initialize thread pool */
 	init_thread_pool(&sfsd);

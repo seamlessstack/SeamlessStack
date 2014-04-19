@@ -24,8 +24,83 @@
 #include <sstack_serdes.h>
 #include <sstack_types.h>
 #include <jobs.pb-c.h>
+#include <bds_slab.h>
+#include <sstack_log.h>
 
 static uint32_t sequence = 1; // Sequence number for packets
+static bds_cache_desc_t serdes_caches[SERDES_NUM_CACHES] = {0};
+log_ctx_t *serdes_ctx = NULL;
+
+
+/* Initialize the payload and data caches -
+ * Allocations are required in sstack_recv_payload
+ * The sfs and sfsd modules would use these caches
+ * in all their allocations and deallocations
+ */
+
+//__attribute__((constructor))
+int32_t sstack_serdes_init(bds_cache_desc_t **cache_array)
+{
+	bds_status_t status;
+	int32_t log_ret = 0;
+
+	/* Create a log ctx for serdes library */
+	serdes_ctx = sfs_create_log_ctx();
+	ASSERT((NULL != serdes_ctx), "serdes log create failed", 1, 1, 0);
+	log_ret = sfs_log_init(serdes_ctx, SFS_DEBUG, "serdes");
+	ASSERT((0 == log_ret), "serdes log_init failed", 1, 1, 0);
+
+	 /*
+	  * Logging  is enabled now. sstack_log_directory should have
+	  * been populated by sfs or sfsd by now
+	  */
+	
+	/* Create the payload cache first */
+	status = bds_cache_create("payload-cache", sizeof(sstack_payload_t),
+							  0, NULL, NULL,
+							  &serdes_caches[SERDES_PAYLOAD_CACHE_IDX]);
+	if (status != 0) {
+		sfs_log(serdes_ctx, SFS_CRIT, "%s(): %dpayload-cache failed\n",
+				__FUNCTION__, __LINE__);
+		return -ENOMEM;
+	}
+	sfs_log(serdes_ctx, SFS_DEBUG, "%s(): %d %p- payload-cache created\n",
+			__FUNCTION__, __LINE__, serdes_caches[SERDES_PAYLOAD_CACHE_IDX]);
+
+	/* Create data cache of size 4K */
+	status = bds_cache_create("data4k-cache", 4096,
+							  0, NULL, NULL,
+							  &serdes_caches[SERDES_DATA_4K_CACHE_IDX]);
+
+	if (status != 0) {
+		bds_cache_destroy(serdes_caches[SERDES_PAYLOAD_CACHE_IDX], 0);
+		sfs_log(serdes_ctx, SFS_CRIT, "%s(): %d data4k-cache failed\n",
+				__FUNCTION__, __LINE__);
+		return -ENOMEM;
+	}
+	sfs_log(serdes_ctx, SFS_DEBUG, "%s(): %d %p- data4k-cache created\n",
+			__FUNCTION__, __LINE__, serdes_caches[SERDES_DATA_4K_CACHE_IDX]);
+
+	/* Create data cache of size 64K */
+	status = bds_cache_create("data64k-cache", 65536,
+							  0, NULL, NULL,
+							  &serdes_caches[SERDES_DATA_64K_CACHE_IDX]);
+
+	if (status != 0) {
+		bds_cache_destroy(serdes_caches[SERDES_DATA_4K_CACHE_IDX], 0);
+		bds_cache_destroy(serdes_caches[SERDES_PAYLOAD_CACHE_IDX], 0);
+		sfs_log(serdes_ctx, SFS_CRIT, "%s(): %d data64k-cache failed\n",
+				__FUNCTION__, __LINE__);
+		return -ENOMEM;
+	}
+	sfs_log(serdes_ctx, SFS_DEBUG, "%s(): %d %p- data64k-cache created\n",
+			__FUNCTION__, __LINE__, serdes_caches[SERDES_DATA_64K_CACHE_IDX]);
+
+	/* All OK. */
+	*cache_array = serdes_caches;
+	return 0;
+		
+}
 
 /*
  * sstack_command_stringify - blurt out the command in string
@@ -1501,7 +1576,9 @@ sstack_recv_payload(sstack_client_handle_t handle,
 				msg->response_struct->command_ok;
 			payload->response_struct.handle =
 				msg->response_struct->handle;
-			if (payload->response_struct.command_ok == 1) {
+			sfs_log(ctx, SFS_DEBUG, "response status: %d\n",
+					payload->response_struct.command_ok);
+			if (payload->response_struct.command_ok == SSTACK_SUCCESS) {
 				sfs_log(ctx, SFS_INFO, "%s: Command %s succeeded. "
 					"Client handle = %"PRId64" \n",
 					__FUNCTION__,

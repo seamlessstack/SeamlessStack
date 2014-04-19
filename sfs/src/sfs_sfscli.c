@@ -358,6 +358,8 @@ get_storage_command_response(uint8_t *buffer, size_t buf_len,
 			}
 
 			ret = sfs_wait_for_completion(job_map);
+			sfs_log(sfs_ctx, SFS_DEBUG, "%s () - Job complete, error: %d\n",
+					__FUNCTION__, job_map->err_no);
 			if (job_map->err_no != SSTACK_SUCCESS)
 				goto err;
 			if (cmd->input.storage_cmd == STORAGE_ADD_CMD) {
@@ -385,7 +387,7 @@ get_storage_command_response(uint8_t *buffer, size_t buf_len,
 		    free(job_map->job_ids);
 		    free_job_map(job_map);
 			free(job);
-			free_payload(sfs_global_cache, payload);
+			//free_payload(sfs_global_cache, payload);
 
 			break;
 		}
@@ -400,6 +402,7 @@ get_storage_command_response(uint8_t *buffer, size_t buf_len,
 
 	return (resp_len);
 err:
+	sfs_log(sfs_ctx, SFS_DEBUG, "CLI command error\n");
 	if (job_map) {
 		if (job_map->job_ids)
 			free(job_map->job_ids);

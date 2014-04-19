@@ -348,8 +348,9 @@ __setup_cache_desc (bds_cache_desc_t cache_p, bds_int flags, size_t size)
  *	ctor, dtor: The constructor and destructor functions
  */
 bds_status_t bds_cache_create (const char *name, size_t size,
-		bds_int flags, void(*ctor)(void *), void(*dtor)(void *),
-			       bds_cache_desc_t *cache_pp)
+							   bds_int flags, void(*ctor)(void *),
+							   void(*dtor)(void *),
+							   bds_cache_desc_t *cache_pp)
 {
 	bds_cache_desc_t cache_p;
 	bds_uint linger = 8;

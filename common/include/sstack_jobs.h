@@ -46,11 +46,12 @@
    new offset here and add an
    entry to the sstack_create_cache
    function */
-#define PAYLOAD_CACHE_OFFSET 1
-#define HANDLE_PARAM_OFFSET 2
-#define INODE_CACHE_OFFSET 3
-#define DATA4K_CACHE_OFFSET 4
-#define DATA64K_CACHE_OFFSET 5
+#define HANDLE_PARAM_OFFSET 1
+#define INODE_CACHE_OFFSET 2
+
+#define DATA64K_CACHE_OFFSET 4
+#define DATA4K_CACHE_OFFSET 3
+#define PAYLOAD_CACHE_OFFSET 0
 #define MAX_CACHE_OFFSET DATA64K_CACHE_OFFSET
 /* Forward declaration */
 struct sfs_chunk_domain;
@@ -129,6 +130,7 @@ typedef struct sfsd {
 	sstack_thread_pool_t *thread_pool;
 	sstack_thread_pool_t *chunk_thread_pool;
 	bds_cache_desc_t *caches;
+	bds_cache_desc_t *serdes_caches;
 	uint32_t sfs_pool_wgt;
 } sfsd_t;
 

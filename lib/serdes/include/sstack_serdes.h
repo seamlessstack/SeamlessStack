@@ -25,6 +25,12 @@
 #include <sstack_transport.h>
 #include <sstack_types.h>
 
+#define SERDES_PAYLOAD_CACHE_IDX 0
+#define SERDES_DATA_4K_CACHE_IDX 1
+#define SERDES_DATA_64K_CACHE_IDX 2
+#define SERDES_NUM_CACHES 3
+
+extern int32_t sstack_serdes_init(bds_cache_desc_t **cache_array);
 extern char * sstack_command_stringify(sstack_command_t command);
 /*
  * sstack_send_payload - Function that serializes payload and sends
