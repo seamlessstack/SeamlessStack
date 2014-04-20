@@ -618,6 +618,7 @@ void* bds_cache_alloc (bds_cache_desc_t cache_p)
 			cache_p->slab_list.slabs_partial.next,
 			struct _slab_desc, next);
 		/* Get the slab lock, we might allocate from it */
+		printf ("allocating from head of partial\n");
 		pthread_mutex_lock(&slab_p->slab_lock);
 	} else if (likely(!list_empty(&cache_p->slab_list.slabs_free))) {
 		/* Remove the head of free list to head of partial list */
@@ -634,6 +635,7 @@ void* bds_cache_alloc (bds_cache_desc_t cache_p)
 		slab_p = container_of(
 			cache_p->slab_list.slabs_partial.next,
 			struct _slab_desc, next);
+		printf ("moving %p from free to partial\n", slab_p);
 
 		/* Get the lock, we might allocate from it */
 		pthread_mutex_lock(&slab_p->slab_lock);
@@ -660,11 +662,13 @@ void* bds_cache_alloc (bds_cache_desc_t cache_p)
 		slab_p->free = bufctl[slab_p->free];
 		atomic_inc(&slab_p->refcount);
 		atomic_inc(&cache_p->refcount);
+		printf ("slab: %p has %d objects\n", slab_p, atomic_read(&slab_p->refcount));
 		if (atomic_read(&slab_p->refcount) == cache_p->num) {
 			/* The slab is full now, this needs to be
 			   moved to the full list. This can only happen
 			   when the slab is in partial list
 			*/
+			printf ("slab %p is full\n", slab_p);
 			if (pthread_mutex_lock(&cache_p->slab_list.partial_list_lock) == 0) {
 				bds_list_del(&slab_p->next);
 				pthread_mutex_unlock(&cache_p->slab_list.partial_list_lock);
@@ -673,13 +677,14 @@ void* bds_cache_alloc (bds_cache_desc_t cache_p)
 				bds_list_add(&slab_p->next, &cache_p->slab_list.slabs_full);
 				pthread_mutex_unlock(&cache_p->slab_list.full_list_lock);
 			}
+			printf ("Moved slab -> %p from partial to full\n", slab_p);
 		}
-		printf ("Moved slab -> %p from partial to full\n", slab_p);
 		pthread_mutex_unlock(&slab_p->slab_lock);
 	} else {
 		pthread_mutex_unlock(&slab_p->slab_lock);
 		obj = bds_cache_alloc(cache_p);
 	}
+	printf ("Allocated object: %p from %s\n", obj, cache_p->name);
 	return obj;
 }
 
@@ -688,9 +693,11 @@ void __free_one(bds_cache_desc_t cache_p, bds_slab_desc_t slab_p, void *obj)
 	bds_bufctl_t *bufctl;
 	size_t offset;
 	bds_uint value;
+	printf ("slab_p-> %p\n", slab_p);
 	/* Find the offset of the object */
 	offset = ((intptr_t)obj -
 		  (intptr_t)slab_p->s_mem)/cache_p->buffer_size;
+	printf ("offset: %d, slab_p->free: %d\n", offset, slab_p->free);
 	bufctl = (bds_bufctl_t*) BDS_BUFCTL(slab_p);
 	pthread_mutex_lock(&slab_p->slab_lock);
 	bufctl[offset] = slab_p->free;
@@ -771,13 +778,14 @@ int32_t bds_cache_free (bds_cache_desc_t cache_p, void *obj)
 		   For others is O(pagesize)
 		 */
 		for (iter = ((intptr_t)obj & mask);
-				*((bds_uint*)(iter)) != cache_p->slab_magic &&
-				iter > ((intptr_t)obj - page_size);
-				iter -= page_size);
+			 *((bds_uint*)(iter)) != cache_p->slab_magic;
+			 iter -= page_size);
 		slab_p = (bds_slab_desc_t)iter;
+		
 		found = 1;
 	}
 	if (found == 1) {
+		printf ("Found slab_p: %p free: %p\n", slab_p, obj);
 		__free_one(cache_p, slab_p, obj);
 	} else {
 		ret = -1;
