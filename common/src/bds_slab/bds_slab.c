@@ -622,6 +622,10 @@ void* bds_cache_alloc (bds_cache_desc_t cache_p)
 		pthread_mutex_lock(&slab_p->slab_lock);
 	} else if (likely(!list_empty(&cache_p->slab_list.slabs_free))) {
 		/* Remove the head of free list to head of partial list */
+		printf ("%s() - Allocating from free list\n", __FUNCTION__);
+		slab_p = container_of(
+			cache_p->slab_list.slabs_free.next,
+			struct _slab_desc, next);
 		if (pthread_mutex_lock(&cache_p->slab_list.free_list_lock) == 0) {
 			bds_list_del(&slab_p->next);
 			pthread_mutex_unlock(&cache_p->slab_list.free_list_lock);
