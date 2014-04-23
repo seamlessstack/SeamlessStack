@@ -94,6 +94,38 @@ int32_t sstack_serdes_init(bds_cache_desc_t **cache_array)
 	sfs_log(serdes_ctx, SFS_DEBUG, "%s(): %d %p- data64k-cache created\n",
 			__FUNCTION__, __LINE__, serdes_caches[SERDES_DATA_64K_CACHE_IDX]);
 
+#if 0
+	/* Some tests */
+	sstack_payload_t *temp[1024];
+	int i;
+	uint8_t verdata[sizeof(sstack_payload_t)];
+	memset(verdata, 0xdc, sizeof(sstack_payload_t));
+	int32_t limit = 2;
+
+	for(i = 0; i < limit; i++) {
+		temp[i] = bds_cache_alloc(serdes_caches[SERDES_PAYLOAD_CACHE_IDX]);
+		sfs_log(serdes_ctx, SFS_DEBUG, "Allocated: %p\n", temp[i]);
+	}
+	bds_cache_desc_dump(serdes_caches[SERDES_PAYLOAD_CACHE_IDX]);
+
+	for(i = 0; i < limit; ++i) {
+		memset(temp[i], 0xdc, sizeof(sstack_payload_t));
+		sfs_log(serdes_ctx, SFS_DEBUG, "Memsetting temp[%d] to 0xdc\n", i);
+	}
+
+	for (i = 0; i < limit; ++i) {
+		sfs_log(serdes_ctx, SFS_DEBUG, "Verification: \n");
+		if (memcmp(temp[i], verdata, sizeof(sstack_payload_t)) != 0) {
+			sfs_log(serdes_ctx, SFS_DEBUG, "Corruption at %d -  %p\n", i, temp[i]);
+		} else {
+			sfs_log(serdes_ctx, SFS_DEBUG, "verfication complete for %d\n", i);
+		}
+	}
+	for(i = 0; i < limit; ++i) {
+		sfs_log(serdes_ctx, SFS_DEBUG, "Freeing %p\n", temp[i]);
+	    bds_cache_free(serdes_caches[SERDES_PAYLOAD_CACHE_IDX], temp[i]);
+	}
+#endif
 	/* All OK. Pass the pointers to the callee*/
 	*cache_array = serdes_caches;
 	return 0;
@@ -1461,7 +1493,6 @@ sstack_recv_payload(sstack_client_handle_t handle,
 	SstackPayloadT *msg = NULL;
 	ssize_t payload_len = 0;
 	sstack_payload_t *payload = NULL;
-//	char temp_payload[sizeof(sstack_payload_t)]; // Max size of payload
 	char *temp_payload = NULL;
 
 	// Parameter validation
@@ -1472,11 +1503,16 @@ sstack_recv_payload(sstack_client_handle_t handle,
 		errno = EINVAL;
 		return NULL;
 	}
-	sfs_log(ctx, SFS_DEBUG, "%s(): %d <<<< \n", __FUNCTION__, __LINE__);
+	sfs_log(serdes_ctx, SFS_DEBUG, "%s(): %d %p<<<< \n",
+			__FUNCTION__, __LINE__, serdes_caches[SERDES_PAYLOAD_CACHE_IDX]);
 
-	//payload = (sstack_payload_t *) malloc(sizeof(sstack_payload_t));
+	/* Allocate both from the payload cache. temp_payload needs to be
+	 * free'd here. payload needs to be free'd by by the caller of this
+	 * function
+	 */
 	payload = bds_cache_alloc(serdes_caches[SERDES_PAYLOAD_CACHE_IDX]);
 	temp_payload = bds_cache_alloc(serdes_caches[SERDES_PAYLOAD_CACHE_IDX]);
+
 	if (NULL == payload) {
 		sfs_log(ctx, SFS_ERR, "%s: Failed to allocate memory for receiving"
 			" payload. Client handle = %"PRId64" \n",
@@ -1487,21 +1523,21 @@ sstack_recv_payload(sstack_client_handle_t handle,
 
 	memset((void *)payload, '\0', sizeof(sstack_payload_t));
 
-	sfs_log(ctx, SFS_DEBUG, "%s: handle = %d ipv4_addr = %s \n",
+	sfs_log(serdes_ctx, SFS_DEBUG, "%s: handle = %d ipv4_addr = %s \n",
 			__FUNCTION__, handle, transport->transport_hdr.tcp.ipv4_addr);
 
 	// Call the transport function to receive the buffer
 	payload_len = _sendrecv_payload(transport, handle, temp_payload,
 			 (size_t) sizeof(sstack_payload_t), 0);
 	if (payload_len == -1) {
-		sfs_log(ctx, SFS_ERR, "%s: Recv failed for payload. "
+		sfs_log(serdes_ctx, SFS_ERR, "%s: Recv failed for payload. "
 			"Client handle = %"PRId64" \n",
 			__FUNCTION__, handle);
 
 		return NULL;
 	}
 
-	sfs_log(ctx, SFS_DEBUG, "%s: Payload len received is %d\n",
+	sfs_log(serdes_ctx, SFS_DEBUG, "%s: Payload len received is %d\n",
 			__FUNCTION__, payload_len);
 	// Parse temp_payload and populate payload
 	msg = sstack_payload_t__unpack(NULL, payload_len, temp_payload);
@@ -1513,7 +1549,7 @@ sstack_recv_payload(sstack_client_handle_t handle,
 	payload->hdr.arg = msg->hdr->arg;
 	payload->command = msg->command;
 
-	sfs_log(ctx, SFS_DEBUG, "%s: payload_len %d job_id %d priority %d "
+	sfs_log(serdes_ctx, SFS_DEBUG, "%s: payload_len %d job_id %d priority %d "
 			"command %d \n", __FUNCTION__, payload->hdr.payload_len,
 			payload->hdr.job_id, payload->hdr.priority, payload->command);
 
@@ -1548,6 +1584,7 @@ sstack_recv_payload(sstack_client_handle_t handle,
 						__FUNCTION__, payload->storage.address.ipv6_address);
 			}
 
+			bds_cache_free(serdes_caches[SERDES_PAYLOAD_CACHE_IDX], temp_payload);
 			return payload;
 		}
 		// TODO
@@ -1586,6 +1623,7 @@ sstack_recv_payload(sstack_client_handle_t handle,
 					sstack_command_stringify(msg->command),
 					handle);
 			}
+			bds_cache_free(serdes_caches[SERDES_PAYLOAD_CACHE_IDX], temp_payload);
 			return payload;
 		}
 		case NFS_SETATTR: {
@@ -1594,6 +1632,7 @@ sstack_recv_payload(sstack_client_handle_t handle,
 
 			memcpy( (void *) &payload->command_struct.setattr_cmd.attribute,
 							(void *) &attr->mode, sizeof(struct attribute));
+			bds_cache_free(serdes_caches[SERDES_PAYLOAD_CACHE_IDX], temp_payload);
 			return payload;
 		}
 		case NFS_LOOKUP: {
@@ -1608,12 +1647,14 @@ sstack_recv_payload(sstack_client_handle_t handle,
 			data = msg->command_struct->lookup_cmd->what->name;
 			strcpy(payload->command_struct.lookup_cmd.what.name, (char *)
 							data.data);
+			bds_cache_free(serdes_caches[SERDES_PAYLOAD_CACHE_IDX], temp_payload);
 			return payload;
 		}
 		case NFS_ACCESS:
 			payload->command_struct.access_cmd.mode =
 					msg->command_struct->access_cmd->mode;
 
+			bds_cache_free(serdes_caches[SERDES_PAYLOAD_CACHE_IDX], temp_payload);
 			return payload;
 		case NFS_READ: {
 			PolicyEntry *entry = NULL;
@@ -1660,6 +1701,7 @@ sstack_recv_payload(sstack_client_handle_t handle,
 					plugins[i]->pp_lock;
 			}
 
+			bds_cache_free(serdes_caches[SERDES_PAYLOAD_CACHE_IDX], temp_payload);
 			return payload;
 		}
 		case NFS_WRITE: {
@@ -1713,6 +1755,7 @@ sstack_recv_payload(sstack_client_handle_t handle,
 					plugins[i]->pp_lock;
 			}
 
+			bds_cache_free(serdes_caches[SERDES_PAYLOAD_CACHE_IDX], temp_payload);
 			return payload;
 		}
 		case NFS_CREATE: {
@@ -1764,12 +1807,14 @@ sstack_recv_payload(sstack_client_handle_t handle,
 					plugins[i]->pp_lock;
 			}
 
+			bds_cache_free(serdes_caches[SERDES_PAYLOAD_CACHE_IDX], temp_payload);
 			return payload;
 		}
 		case NFS_MKDIR:
 			payload->command_struct.mkdir_cmd.mode =
 					msg->command_struct->mkdir_cmd->mode;
 
+			bds_cache_free(serdes_caches[SERDES_PAYLOAD_CACHE_IDX], temp_payload);
 			return payload;
 
 		case NFS_SYMLINK: {
@@ -1781,6 +1826,7 @@ sstack_recv_payload(sstack_client_handle_t handle,
 			data = msg->command_struct->symlink_cmd->new_path->name;
 			strcpy(payload->command_struct.symlink_cmd.new_path.name, (char *)
 							data.data);
+			bds_cache_free(serdes_caches[SERDES_PAYLOAD_CACHE_IDX], temp_payload);
 			return payload;
 		}
 		case NFS_RENAME: {
@@ -1792,6 +1838,7 @@ sstack_recv_payload(sstack_client_handle_t handle,
 			data = msg->command_struct->rename_cmd->new_path->name;
 			strcpy(payload->command_struct.rename_cmd.new_path.name, (char *)
 							data.data);
+			bds_cache_free(serdes_caches[SERDES_PAYLOAD_CACHE_IDX], temp_payload);
 			return payload;
 		}
 
@@ -1804,6 +1851,7 @@ sstack_recv_payload(sstack_client_handle_t handle,
 			strcpy((char *) &payload->command_struct.remove_cmd.path,
 							(char *) path.data);
 
+			bds_cache_free(serdes_caches[SERDES_PAYLOAD_CACHE_IDX], temp_payload);
 			return payload;
 		}
 
@@ -1813,6 +1861,7 @@ sstack_recv_payload(sstack_client_handle_t handle,
 			payload->command_struct.commit_cmd.count =
 					msg->command_struct->commit_cmd->count;
 
+			bds_cache_free(serdes_caches[SERDES_PAYLOAD_CACHE_IDX], temp_payload);
 			return payload;
 
 		case NFS_GETATTR_RSP:
@@ -1824,6 +1873,7 @@ sstack_recv_payload(sstack_client_handle_t handle,
 					(void *) msg->response_struct->getattr_resp->stbuf,
 					sizeof(struct stat));
 
+			bds_cache_free(serdes_caches[SERDES_PAYLOAD_CACHE_IDX], temp_payload);
 			return payload;
 		case NFS_LOOKUP_RSP: {
 			ProtobufCBinaryData lookup_path;
@@ -1837,6 +1887,7 @@ sstack_recv_payload(sstack_client_handle_t handle,
 			lookup_path = msg->response_struct->lookup_resp->lookup_path;
 			memcpy((void *) payload->response_struct.lookup_resp.lookup_path,
 				(void *) lookup_path.data, lookup_path.len);
+			bds_cache_free(serdes_caches[SERDES_PAYLOAD_CACHE_IDX], temp_payload);
 			return payload;
 		}
 		case NFS_ACCESS_RSP:
@@ -1846,6 +1897,7 @@ sstack_recv_payload(sstack_client_handle_t handle,
 				msg->response_struct->handle;
 			payload->response_struct.access_resp.access =
 				msg->response_struct->access_resp->access;
+			bds_cache_free(serdes_caches[SERDES_PAYLOAD_CACHE_IDX], temp_payload);
 			return payload;
 		case NFS_READLINK_RSP: {
 			ProtobufCBinaryData name;
@@ -1859,6 +1911,7 @@ sstack_recv_payload(sstack_client_handle_t handle,
 			name = msg->response_struct->readlink_resp->real_file->name;
 			memcpy((void *) payload->response_struct.readlink_resp.
 				real_file.name, (void *) name.data, name.len);
+			bds_cache_free(serdes_caches[SERDES_PAYLOAD_CACHE_IDX], temp_payload);
 			return payload;
 		}
 		case NFS_READ_RSP: {
@@ -1877,6 +1930,7 @@ sstack_recv_payload(sstack_client_handle_t handle,
 			data_buf = msg->response_struct->read_resp->data->data_buf;
 			memcpy((void *) payload->response_struct.read_resp.data.data_buf,
 				(void *) data_buf.data, data_buf.len);
+			bds_cache_free(serdes_caches[SERDES_PAYLOAD_CACHE_IDX], temp_payload);
 			return payload;
 		}
 		case NFS_WRITE_RSP:
@@ -1888,6 +1942,7 @@ sstack_recv_payload(sstack_client_handle_t handle,
 				msg->response_struct->write_resp->file_create_ok;
 			payload->response_struct.write_resp.file_wc =
 				msg->response_struct->write_resp->file_wc;
+			bds_cache_free(serdes_caches[SERDES_PAYLOAD_CACHE_IDX], temp_payload);
 			return payload;
 		case NFS_CREATE_RSP:
 			payload->response_struct.command_ok =
@@ -1898,6 +1953,7 @@ sstack_recv_payload(sstack_client_handle_t handle,
 				msg->response_struct->create_resp->file_create_ok;
 			payload->response_struct.create_resp.file_wc =
 				msg->response_struct->create_resp->file_wc;
+			bds_cache_free(serdes_caches[SERDES_PAYLOAD_CACHE_IDX], temp_payload);
 			return payload;
 
 	}
