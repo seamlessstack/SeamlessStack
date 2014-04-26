@@ -37,6 +37,11 @@
 #define ERASURE_STRIPE_SIZE (64*1024)
 #define INVALID_INDEX -1
 
+/* Compilation error fix */
+#define PAYLOAD_CACHE_OFFSET 0
+#define DATA64K_CACHE_OFFSET 1
+#define DATA4K_CACHE_OFFSET 2
+
 extern bds_cache_desc_t sfsd_global_cache_arr[];
 extern char *get_mount_path(sfs_chunk_domain_t * ,
 							sstack_file_handle_t * , char ** );
