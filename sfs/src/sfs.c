@@ -93,7 +93,7 @@ pthread_spinlock_t jobmap_lock;
 pthread_spinlock_t jobid_lock;
 pthread_spinlock_t filelock_lock;
 extern sstack_bitmap_t *sstack_job_id_bitmap;
-bds_cache_desc_t serdes_caches[SERDES_NUM_CACHES];
+bds_cache_desc_t *serdes_caches;
 /*
  * jobs is the job list of unsubmitted (to sfsd) jobs
  * pending_jobs is the list of jobs waiting for completion

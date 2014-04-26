@@ -37,6 +37,8 @@
 #include <sstack_cache_api.h>
 #include <sfs_entry.h>
 #include <policy.h>
+#include <bds_slab.h>
+#include <sstack_serdes.h>
 
 #define MAX_KEY_LEN 128
 
@@ -46,6 +48,7 @@ sstack_job_id_t curent_job_id = 0;
 pthread_mutex_t sfs_job_id_mutex;
 sstack_bitmap_t *sstack_job_id_bitmap = NULL;
 sstack_job_id_t current_job_id = 0;
+extern bds_slab_desc_t *serdes_caches;
 
 extern char sfs_mountpoint[];
 
@@ -67,7 +70,7 @@ create_payload(void)
 {
 	sstack_payload_t *payload = NULL;
 
-	payload = bds_cache_alloc(sfs_global_cache[PAYLOAD_CACHE_OFFSET]);
+	payload = bds_cache_alloc(serdes_caches[SERDES_PAYLOAD_CACHE_IDX]);
 	if (NULL == payload) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to allocate payload from "
 						"payload slab.\n", __FUNCTION__);
