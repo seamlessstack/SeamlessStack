@@ -76,7 +76,7 @@ struct sfs_cache_entry {
 	size_t size;
 };
 
-extern sstack_payload_t *  create_payload(void);
+extern sstack_payload_t *  create_payload(sstack_command_t cmd);
 
 
 extern unsigned long long  inode_number;

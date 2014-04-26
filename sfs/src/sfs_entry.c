@@ -58,31 +58,6 @@ static inline int
 sfs_send_write_status(sstack_job_map_t *job_map, sstack_inode_t inode,
 							off_t offset, size_t size);
 
-/*
- * create_payload - Allocate payload structure from payload slab and zeroizes
- *					the allocated memory.
- *
- * Retrurns valid pointer on success and NULL upon failure.
- */
-
-sstack_payload_t *
-create_payload(void)
-{
-	sstack_payload_t *payload = NULL;
-
-	payload = bds_cache_alloc(serdes_caches[SERDES_PAYLOAD_CACHE_IDX]);
-	if (NULL == payload) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to allocate payload from "
-						"payload slab.\n", __FUNCTION__);
-		return NULL;
-	}
-
-	memset((void *) payload, '\0', sizeof(sstack_payload_t));
-
-	return payload;
-}
-
-
 static char *
 prepend_mntpath(const char *path)
 {
@@ -488,7 +463,7 @@ sfs_unlink(const char *path)
 		job->job_status[j] =  JOB_STARTED;
 
 	// Create new payload
-	payload = create_payload();
+	payload = sstack_create_payload(NFS_REMOVE);
 	// Populate payload
 	payload->hdr.sequence = 0; // Reinitialized by transport
 	payload->hdr.payload_len = sizeof(sstack_payload_t);
@@ -499,7 +474,8 @@ sfs_unlink(const char *path)
 	// TODO
 	// Should we add delimiter to size??
 	payload->command_struct.remove_cmd.path_len = (strlen(path) + 1);
-	payload->command_struct.remove_cmd.path = calloc((strlen(path) + 1), 1);
+	strncpy(payload->command_struct.remove_cmd.path, path,
+			payload->command_struct.remove_cmd.path_len);
 	job->payload_len = sizeof(sstack_payload_t);
 	job->payload = payload;
 
@@ -734,7 +710,7 @@ sfs_rmdir(const char *path)
 		job->job_status[j] =  JOB_STARTED;
 
 	// Create new payload
-	payload = create_payload();
+	payload = sstack_create_payload(NFS_RMDIR);
 	// Populate payload
 	payload->hdr.sequence = 0; // Reinitialized by transport
 	payload->hdr.payload_len = sizeof(sstack_payload_t);
@@ -1687,7 +1663,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 
 		job->priority = policy->pe_attr.a_qoslevel;
 		// Create new payload
-		payload = create_payload();
+		payload = sstack_create_payload(NFS_READ);
 		// Populate payload
 		payload->hdr.sequence = 0; // Reinitialized by transport
 		payload->hdr.payload_len = sizeof(sstack_payload_t);
@@ -2047,7 +2023,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 
 		job->priority = policy->pe_attr.a_qoslevel;
 		// Create new payload
-		payload = create_payload();
+		payload = sstack_create_payload(NFS_READ);
 		// Populate payload
 		payload->hdr.sequence = 0; // Reinitialized by transport
 		payload->hdr.payload_len = sizeof(sstack_payload_t);
@@ -3446,7 +3422,7 @@ sfs_submit_esure_code_job(sstack_inode_t inode, off_t offset, size_t size)
 	job->sfsds[0] = inode.i_primary_sfsd->sfsd;
 	job->job_status[0] = JOB_STARTED;
 	job->priority = QOS_LOW;
-    payload = create_payload();
+    payload = sstack_create_payload(SSTACK_SFS_ASYNC_CMD);
     payload->hdr.sequence = 0; // Reinitialized by transport
     payload->hdr.payload_len = sizeof(sstack_payload_t);
     payload->hdr.job_id = job->id;

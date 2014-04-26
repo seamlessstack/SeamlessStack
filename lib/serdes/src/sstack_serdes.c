@@ -52,7 +52,7 @@ int32_t sstack_serdes_init(bds_cache_desc_t **cache_array)
 	  * Logging  is enabled now. sstack_log_directory should have
 	  * been populated by sfs or sfsd by now
 	  */
-	
+
 	/* Create the payload cache first */
 	status = bds_cache_create("payload-cache", sizeof(sstack_payload_t),
 							  0, NULL, NULL,
@@ -129,7 +129,134 @@ int32_t sstack_serdes_init(bds_cache_desc_t **cache_array)
 	/* All OK. Pass the pointers to the callee*/
 	*cache_array = serdes_caches;
 	return 0;
-		
+
+}
+
+/*
+ * sstack_create_payload - create a payload for
+ * use
+ */
+sstack_payload_t *sstack_create_payload(sstack_command_t cmd)
+{
+	sstack_payload_t *payload = NULL;
+
+	payload = bds_cache_alloc(serdes_caches[SERDES_PAYLOAD_CACHE_IDX]);
+	memset(payload, 0, sizeof(*payload));
+
+	if (!payload)
+		return NULL;
+
+	switch(cmd) {
+	case NFS_WRITE:
+	{
+		struct sstack_nfs_write_cmd *wrt = &payload->command_struct.write_cmd;
+		wrt->data.data_buf =
+			bds_cache_alloc(serdes_caches[SERDES_DATA_64K_CACHE_IDX]);
+		if (!wrt->data.data_buf)
+			goto err_no_alloc;
+	}
+	break;
+	case NFS_CREATE:
+	{
+		struct sstack_nfs_create_cmd *crt = &payload->command_struct.create_cmd;
+		crt->data.data_buf =
+			bds_cache_alloc(serdes_caches[SERDES_DATA_64K_CACHE_IDX]);
+		if (!crt->data.data_buf)
+			goto err_no_alloc;
+	}
+	break;
+	case NFS_REMOVE:
+	case NFS_RMDIR:
+	{
+		struct sstack_nfs_remove_cmd *rm = &payload->command_struct.remove_cmd;
+		rm->path = bds_cache_alloc(serdes_caches[SERDES_DATA_4K_CACHE_IDX]);
+		if (!rm->path)
+			goto err_no_alloc;
+	}
+	break;
+	case NFS_READ_RSP:
+	{
+		struct sstack_nfs_read_resp *rrsp = &payload->response_struct.read_resp;
+		rrsp->data.data_buf =
+			bds_cache_alloc(serdes_caches[SERDES_DATA_64K_CACHE_IDX]);
+		if (!rrsp->data.data_buf)
+			goto err_no_alloc;
+	}
+	break;
+	case NFS_LOOKUP_RSP:
+	{
+		struct sstack_nfs_lookup_resp *lkrs =
+			&payload->response_struct.lookup_resp;
+		lkrs->lookup_path =
+			bds_cache_alloc(serdes_caches[SERDES_DATA_4K_CACHE_IDX]);
+		if (!lkrs->lookup_path)
+			goto err_no_alloc;
+	}	
+	break;
+	default:
+		/* Do nothing */
+		break;
+	}
+	return payload;
+err_no_alloc:
+	bds_cache_free(serdes_caches[SERDES_PAYLOAD_CACHE_IDX], payload);
+	return NULL;
+}
+
+/*
+ * sstack_free_payload - free a payload when
+ * we are done using it
+ */
+void
+sstack_free_payload(sstack_payload_t *payload)
+{
+	switch(payload->command) {
+	case NFS_WRITE:
+	{
+		struct sstack_nfs_write_cmd *wrt = &payload->command_struct.write_cmd;
+		if (wrt->data.data_buf)
+			bds_cache_free(serdes_caches[SERDES_DATA_64K_CACHE_IDX],
+						   wrt->data.data_buf);
+		break;
+	}
+	case NFS_CREATE:
+	{
+		struct sstack_nfs_create_cmd *crt = &payload->command_struct.create_cmd;
+		if (crt->data.data_buf)
+			bds_cache_free(serdes_caches[SERDES_DATA_64K_CACHE_IDX],
+						   crt->data.data_buf);
+		break;
+	}
+	case NFS_REMOVE:
+	case NFS_RMDIR:
+	{
+		struct sstack_nfs_remove_cmd *rm = &payload->command_struct.remove_cmd;
+		if (rm->path)
+			bds_cache_free(serdes_caches[SERDES_DATA_4K_CACHE_IDX], rm->path);
+		break;
+	}
+	case NFS_LOOKUP_RSP:
+	{
+		struct sstack_nfs_lookup_resp *lkr =
+			&payload->response_struct.lookup_resp;
+		if (lkr->lookup_path)
+			bds_cache_free(serdes_caches[SERDES_DATA_4K_CACHE_IDX],
+										 lkr->lookup_path);
+		break;
+	}
+	case NFS_READ_RSP:
+	{
+		struct sstack_nfs_read_resp *rdr = &payload->response_struct.read_resp;
+		if (rdr->data.data_buf)
+			bds_cache_free(serdes_caches[SERDES_DATA_64K_CACHE_IDX],
+						   rdr->data.data_buf);
+		break;
+	}
+	default:
+		/* Do nothing */
+		break;
+	}
+	bds_cache_free(serdes_caches[SERDES_PAYLOAD_CACHE_IDX], payload);
 }
 
 /*

@@ -269,7 +269,7 @@ get_storage_command_response(uint8_t *buffer, size_t buf_len,
 	        job->job_status[0] = JOB_STARTED;
 
 			job->priority = QOS_HIGH;
-			payload = create_payload();
+			payload = sstack_create_payload(SSTACK_UPDATE_STORAGE);
 			payload->hdr.sequence = 0; // Reinitialized by transport
 	        payload->hdr.payload_len = sizeof(sstack_payload_t);
 	        payload->hdr.job_id = job->id;
