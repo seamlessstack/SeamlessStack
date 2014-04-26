@@ -187,7 +187,7 @@ static void* do_receive_thread(void *param)
 
 	sfs_log(sfsd->log_ctx, SFS_DEBUG, "%s: %d \n", __FUNCTION__, __LINE__);
 
-	param_cache = sfsd->caches[HANDLE_PARAM_OFFSET];
+	param_cache = sfsd->local_caches[HANDLE_PARAM_OFFSET];
 
 	while (1) {
 		/* Check whether there is some command from the
@@ -223,7 +223,7 @@ static void* do_receive_thread(void *param)
 			handle_params->payload = payload;
 			handle_params->log_ctx = sfsd->log_ctx;
 			handle_params->cache_arr =
-				sfsd->caches;
+				sfsd->local_caches;
 			handle_params->cache_p = param_cache;
 			handle_params->sfsd = sfsd;
 			ret = sstack_thread_pool_queue(sfsd->thread_pool,
