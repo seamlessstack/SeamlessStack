@@ -31,6 +31,7 @@
 #include <sstack_cache.h>
 #include <sstack_lrucache.h>
 #include <sstack_cache_api.h>
+#include <openssl/sha.h>
 
 #define SSD_CACHE_LIBNAME "/opt/sfs/lib/libssdcache.so"
 #define NUM_EVICT 8
@@ -47,7 +48,8 @@ compare_func(const void *val1, const void *val2)
 	// NOTE:
 	// Hashkeys are generated using SHA256. So it is unlikely that
 	// hashkeys will clash.
-	switch(strcmp((const char *) val1, (const char *) val2)) {
+	switch(memcmp((const char *) val1, (const char *) val2),
+			SHA256_DIGEST_LENGTH) {
 		case -1: return -1;
 		case 1: return 1;
 	}

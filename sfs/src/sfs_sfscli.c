@@ -238,8 +238,7 @@ get_storage_command_response(uint8_t *buffer, size_t buf_len,
 
 		case STORAGE_ADD_CMD:
 		case STORAGE_DEL_CMD:
-		case STORAGE_UPDATE_CMD:
-		{
+		case STORAGE_UPDATE_CMD: {
 			sfs_log(sfs_ctx, SFS_DEBUG, "%s %d\n", __FUNCTION__, __LINE__);
 			thread_id = pthread_self();
 			job_map = create_job_map();
@@ -271,8 +270,14 @@ get_storage_command_response(uint8_t *buffer, size_t buf_len,
 
 			job->priority = QOS_HIGH;
 			payload = sstack_create_payload(SSTACK_UPDATE_STORAGE);
-			sfs_log(sfs_ctx, SFS_DEBUG, "payload : %p\n", payload);
-			//payload = malloc(sizeof(*payload));
+			if (NULL == payload) {
+				sfs_log(sfs_ctx, SFS_ERR, "%s: sstack_create_payload returned"
+						" NULL \n", __FUNCTION__);
+				syncfs(sfs_ctx->log_fd);
+			} else
+				sfs_log(sfs_ctx, SFS_INFO, "%s: payload = %"PRIu64" \n",
+						__FUNCTION__, payload);
+
 			payload->hdr.sequence = 0; // Reinitialized by transport
 	        payload->hdr.payload_len = sizeof(sstack_payload_t);
 	        payload->hdr.job_id = job->id;
@@ -504,26 +509,26 @@ get_command_response(uint8_t *buffer, size_t buf_len, uint8_t **resp_buf)
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s %d\n", __FUNCTION__, __LINE__);
 
 	switch (cmd) {
-	case SFSCLI_SFSD_CMD:
-		resp_len = get_sfsd_command_response(buffer, buf_len, resp_buf);
-		break;
+		case SFSCLI_SFSD_CMD:
+			resp_len = get_sfsd_command_response(buffer, buf_len, resp_buf);
+			break;
 
-	case SFSCLI_POLICY_CMD:
-		resp_len = get_policy_command_response(buffer, buf_len, resp_buf);
-		break;
+		case SFSCLI_POLICY_CMD:
+			resp_len = get_policy_command_response(buffer, buf_len, resp_buf);
+			break;
 
-	case SFSCLI_STORAGE_CMD:
-		sfs_log(sfs_ctx, SFS_DEBUG, "%s %d\n", __FUNCTION__, __LINE__);
-		resp_len = get_storage_command_response(buffer, buf_len, resp_buf);
-		break;
+		case SFSCLI_STORAGE_CMD:
+			sfs_log(sfs_ctx, SFS_DEBUG, "%s %d\n", __FUNCTION__, __LINE__);
+			resp_len = get_storage_command_response(buffer, buf_len, resp_buf);
+			break;
 
-	case SFSCLI_LICENSE_CMD:
-		resp_len = get_license_command_response(buffer, buf_len, resp_buf);
-		break;
+		case SFSCLI_LICENSE_CMD:
+			resp_len = get_license_command_response(buffer, buf_len, resp_buf);
+			break;
 
-	default:
-		sfs_log(sfs_ctx, SFS_ERR, "Not implemented\n");
-		resp_len = 0;
+		default:
+			sfs_log(sfs_ctx, SFS_ERR, "Not implemented\n");
+			resp_len = 0;
 	}
 
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s %d\n", __FUNCTION__, __LINE__);

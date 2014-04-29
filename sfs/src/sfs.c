@@ -1056,6 +1056,14 @@ sfs_init(struct fuse_conn_info *conn)
 
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s: Started \n", __FUNCTION__);
 
+	// Create serdes cache
+	ret = sstack_serdes_init(&serdes_caches);
+
+	if (ret != 0) {
+		sfs_log(sfs_ctx, SFS_CRIT, "%s: SERDES cache create failed. \n",
+				__FUNCTION__);
+		return -ENOMEM;
+	}
 
 	// Create db instance
 	db = malloc(sizeof(db_t));
@@ -1616,13 +1624,7 @@ main(int argc, char *argv[])
 	}
 	mc = sstack_memcache_init("localhost", 1, sfs_ctx);
 
-	ret = sstack_serdes_init(&serdes_caches);
 
-	if (ret != 0) {
-		fprintf (stderr, "serdes init failed");
-		return -ENOMEM;
-	}
-		
 	strcpy(sfs_mountpoint, args.argv[args.argc - 1]);
 	fprintf(stderr, "%s: File system mount point = %s \n",
 					__FUNCTION__, sfs_mountpoint);
