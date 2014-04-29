@@ -2023,7 +2023,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 
 		job->priority = policy->pe_attr.a_qoslevel;
 		// Create new payload
-		payload = sstack_create_payload(NFS_READ);
+		payload = sstack_create_payload(NFS_WRITE);
 		// Populate payload
 		payload->hdr.sequence = 0; // Reinitialized by transport
 		payload->hdr.payload_len = sizeof(sstack_payload_t);

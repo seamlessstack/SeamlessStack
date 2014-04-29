@@ -197,6 +197,9 @@ sstack_payload_t *sstack_create_payload(sstack_command_t cmd)
 		/* Do nothing */
 		break;
 	}
+	sfs_log(serdes_ctx, SFS_DEBUG,
+			"%s() - Allocated payload: %p for command: %s\n",
+			__FUNCTION__, payload, sstack_command_stringify(cmd));
 	return payload;
 err_no_alloc:
 	bds_cache_free(serdes_caches[SERDES_PAYLOAD_CACHE_IDX], payload);
@@ -523,7 +526,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 						payload->storage.address.ipv4_address :
 						payload->storage.address.ipv6_address,
 					payload->storage.path, ret);
-
+				sstack_free_payload(payload);
 				free(buffer);
 
 				return -ret;
@@ -537,6 +540,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 						payload->storage.address.ipv6_address,
 					payload->storage.path);
 
+				sstack_free_payload(payload);
 				free(buffer);
 
 				return 0;
@@ -573,6 +577,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 					 __FUNCTION__,
 					sstack_command_stringify(payload->command), ret);
 
+				sstack_free_payload(payload);
 				free(buffer);
 
 				return -ret;
@@ -582,6 +587,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 					 __FUNCTION__,
 					sstack_command_stringify(payload->command));
 
+				sstack_free_payload(payload);
 				free(buffer);
 
 				return 0;
@@ -628,6 +634,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 					 __FUNCTION__,
 					sstack_command_stringify(payload->command), ret);
 
+				sstack_free_payload(payload);
 				free(buffer);
 
 				return -ret;
@@ -637,6 +644,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 					 __FUNCTION__,
 					sstack_command_stringify(payload->command));
 
+				sstack_free_payload(payload);
 				free(buffer);
 
 				return 0;
@@ -671,6 +679,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 					 __FUNCTION__,
 					sstack_command_stringify(payload->command), ret);
 
+				sstack_free_payload(payload);
 				free(buffer);
 
 				return -ret;
@@ -680,6 +689,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 					 __FUNCTION__,
 					sstack_command_stringify(payload->command));
 
+				sstack_free_payload(payload);
 				free(buffer);
 
 				return 0;
@@ -774,6 +784,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 					 __FUNCTION__,
 					sstack_command_stringify(payload->command), ret);
 
+				sstack_free_payload(payload);
 				free(buffer);
 
 				return -ret;
@@ -783,6 +794,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 					 __FUNCTION__,
 					sstack_command_stringify(payload->command));
 
+				sstack_free_payload(payload);
 				free(buffer);
 
 				return 0;
@@ -883,6 +895,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 					 __FUNCTION__,
 					sstack_command_stringify(payload->command), ret);
 
+				sstack_free_payload(payload);
 				free(buffer);
 
 				return -ret;
@@ -892,6 +905,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 					 __FUNCTION__,
 					sstack_command_stringify(payload->command));
 
+				sstack_free_payload(payload);
 				free(buffer);
 
 				return 0;
@@ -991,6 +1005,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 					 __FUNCTION__,
 					sstack_command_stringify(payload->command), ret);
 
+				sstack_free_payload(payload);
 				free(buffer);
 
 				return -ret;
@@ -1000,6 +1015,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 					 __FUNCTION__,
 					sstack_command_stringify(payload->command));
 
+				sstack_free_payload(payload);
 				free(buffer);
 
 				return 0;
@@ -1033,6 +1049,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 					 __FUNCTION__,
 					sstack_command_stringify(payload->command), ret);
 
+				sstack_free_payload(payload);
 				free(buffer);
 
 				return -ret;
@@ -1042,6 +1059,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 					 __FUNCTION__,
 					sstack_command_stringify(payload->command));
 
+				sstack_free_payload(payload);
 				free(buffer);
 
 				return 0;
@@ -1082,6 +1100,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 					 __FUNCTION__,
 					sstack_command_stringify(payload->command), ret);
 
+				sstack_free_payload(payload);
 				free(buffer);
 
 				return -ret;
@@ -1091,6 +1110,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 					 __FUNCTION__,
 					sstack_command_stringify(payload->command));
 
+				sstack_free_payload(payload);
 				free(buffer);
 
 				return 0;
@@ -1131,6 +1151,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 					 __FUNCTION__,
 					sstack_command_stringify(payload->command), ret);
 
+				sstack_free_payload(payload);
 				free(buffer);
 
 				return -ret;
@@ -1140,6 +1161,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 					 __FUNCTION__,
 					sstack_command_stringify(payload->command));
 
+				sstack_free_payload(payload);
 				free(buffer);
 
 				return 0;
@@ -1178,6 +1200,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 					 __FUNCTION__,
 					sstack_command_stringify(payload->command), ret);
 
+				sstack_free_payload(payload);
 				free(buffer);
 
 				return -ret;
@@ -1187,6 +1210,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 					 __FUNCTION__,
 					sstack_command_stringify(payload->command));
 
+				sstack_free_payload(payload);
 				free(buffer);
 
 				return 0;
@@ -1221,6 +1245,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 					 __FUNCTION__,
 					sstack_command_stringify(payload->command), ret);
 
+				sstack_free_payload(payload);
 				free(buffer);
 
 				return -ret;
@@ -1230,6 +1255,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 					 __FUNCTION__,
 					sstack_command_stringify(payload->command));
 
+				sstack_free_payload(payload);
 				free(buffer);
 
 				return 0;
@@ -1288,6 +1314,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 					 __FUNCTION__,
 					sstack_command_stringify(payload->command), ret);
 
+				sstack_free_payload(payload);
 				free(buffer);
 
 				return -ret;
@@ -1297,6 +1324,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 					 __FUNCTION__,
 					sstack_command_stringify(payload->command));
 
+				sstack_free_payload(payload);
 				free(buffer);
 
 				return 0;
@@ -1331,6 +1359,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 					 __FUNCTION__,
 					sstack_command_stringify(payload->command), ret);
 
+				sstack_free_payload(payload);
 				free(buffer);
 
 				return -ret;
@@ -1340,6 +1369,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 					 __FUNCTION__,
 					sstack_command_stringify(payload->command));
 
+				sstack_free_payload(payload);
 				free(buffer);
 
 				return 0;
@@ -1375,6 +1405,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 					 __FUNCTION__,
 					sstack_command_stringify(payload->command), ret);
 
+				sstack_free_payload(payload);
 				free(buffer);
 
 				return -ret;
@@ -1384,6 +1415,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 					 __FUNCTION__,
 					sstack_command_stringify(payload->command));
 
+				sstack_free_payload(payload);
 				free(buffer);
 
 				return 0;
@@ -1414,6 +1446,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 					 __FUNCTION__,
 					sstack_command_stringify(payload->command), ret);
 
+				sstack_free_payload(payload);
 				free(buffer);
 
 				return -ret;
@@ -1423,6 +1456,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 					 __FUNCTION__,
 					sstack_command_stringify(payload->command));
 
+				sstack_free_payload(payload);
 				free(buffer);
 
 				return 0;
@@ -1461,6 +1495,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 					 __FUNCTION__,
 					sstack_command_stringify(payload->command), ret);
 
+				sstack_free_payload(payload);
 				free(buffer);
 
 				return -ret;
@@ -1470,6 +1505,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 					 __FUNCTION__,
 					sstack_command_stringify(payload->command));
 
+				sstack_free_payload(payload);
 				free(buffer);
 
 				return 0;
@@ -1502,6 +1538,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 					 __FUNCTION__,
 					sstack_command_stringify(payload->command), ret);
 
+				sstack_free_payload(payload);
 				free(buffer);
 
 				return -ret;
@@ -1511,6 +1548,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 					 __FUNCTION__,
 					sstack_command_stringify(payload->command));
 
+				sstack_free_payload(payload);
 				free(buffer);
 
 				return 0;
@@ -1549,6 +1587,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 					 __FUNCTION__,
 					sstack_command_stringify(payload->command), ret);
 
+				sstack_free_payload(payload);
 				free(buffer);
 
 				return -ret;
@@ -1558,6 +1597,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 					 __FUNCTION__,
 					sstack_command_stringify(payload->command));
 
+				sstack_free_payload(payload);
 				free(buffer);
 
 				return 0;
@@ -1590,6 +1630,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 					 __FUNCTION__,
 					sstack_command_stringify(payload->command), ret);
 
+				sstack_free_payload(payload);
 				free(buffer);
 
 				return -ret;
@@ -1599,6 +1640,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 					 __FUNCTION__,
 					sstack_command_stringify(payload->command));
 
+				sstack_free_payload(payload);
 				free(buffer);
 
 				return 0;

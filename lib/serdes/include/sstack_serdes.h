@@ -50,4 +50,6 @@ extern int sstack_send_payload(sstack_client_handle_t handle,
 extern sstack_payload_t * sstack_recv_payload(sstack_client_handle_t handle,
 				sstack_transport_t *transport, log_ctx_t *ctx);
 
+sstack_payload_t *sstack_create_payload(sstack_command_t cmd);
+void sstack_free_payload(sstack_payload_t *payload);
 #endif // __SSTACK_SERDES_H_	

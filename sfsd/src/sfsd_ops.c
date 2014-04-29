@@ -63,7 +63,7 @@ sstack_payload_t* sstack_getattr(sstack_payload_t *payload, log_ctx_t *ctx)
 	sfs_log(ctx, SFS_DEBUG, ":%s extent path:%s\n", __FUNCTION__, p);
 
 	//i= find_rorw_branch(path); - Might need later
-	response = bds_cache_alloc(sfsd_global_cache_arr[PAYLOAD_CACHE_OFFSET]);
+	response = sstack_create_payload(NFS_GETATTR_RSP);
 	if (!response) {
 		command_stat = -ENOMEM;
 		goto error;
@@ -129,7 +129,7 @@ sstack_payload_t *sstack_access(sstack_payload_t *payload, log_ctx_t *ctx)
 	p[file_handle->name_len - 1] = '\0';
 	sfs_log(ctx, SFS_DEBUG, "%s(): path\n", __FUNCTION__, p);
 
-	response = bds_cache_alloc(sfsd_global_cache_arr[PAYLOAD_CACHE_OFFSET]);
+	response = sstack_create_payload(NFS_ACCESS_RSP);
 	if (!response) {
 		sfs_log(ctx, SFS_ERR, "%s(): Memory allocation failed\n",
 				__FUNCTION__);
@@ -169,7 +169,7 @@ sstack_payload_t *sstack_readlink(sstack_payload_t *payload, log_ctx_t *ctx)
 	char *p = link->name;
 	p[link->name_len - 1] = '\0';
 
-	response = bds_cache_alloc(sfsd_global_cache_arr[PAYLOAD_CACHE_OFFSET]);
+	response = sstack_create_payload(NFS_READLINK_RSP);
 	if (!response) {
 		sfs_log(ctx, SFS_ERR, "%s(): Memory allocation failed\n",
 				__FUNCTION__);
@@ -999,8 +999,7 @@ sstack_payload_t *sstack_remove( sstack_payload_t *payload, log_ctx_t *ctx)
 
 	command_stat = remove(p);
 
-	if (command_stat != 0)
-		response->response_struct.command_ok = errno;
+	response->response_struct.command_ok = command_stat;;
 
 	return response;
 }

@@ -38,6 +38,7 @@
 #include <sfs_jobmap_tree.h>
 #include <sstack_nfs.h>
 #include <sstack_log.h>
+#include <sstack_serdes.h>
 
 #define MAX_RESPONSE_LEN	1000
 char sfscli_response[MAX_RESPONSE_LEN];
@@ -270,6 +271,8 @@ get_storage_command_response(uint8_t *buffer, size_t buf_len,
 
 			job->priority = QOS_HIGH;
 			payload = sstack_create_payload(SSTACK_UPDATE_STORAGE);
+			sfs_log(sfs_ctx, SFS_DEBUG, "payload : %p\n", payload);
+			//payload = malloc(sizeof(*payload));
 			payload->hdr.sequence = 0; // Reinitialized by transport
 	        payload->hdr.payload_len = sizeof(sstack_payload_t);
 	        payload->hdr.job_id = job->id;
