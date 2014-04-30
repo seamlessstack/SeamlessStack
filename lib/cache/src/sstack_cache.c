@@ -48,8 +48,8 @@ compare_func(const void *val1, const void *val2)
 	// NOTE:
 	// Hashkeys are generated using SHA256. So it is unlikely that
 	// hashkeys will clash.
-	switch(memcmp((const char *) val1, (const char *) val2),
-			SHA256_DIGEST_LENGTH) {
+	switch(memcmp((const char *) val1, (const char *) val2,
+			SHA256_DIGEST_LENGTH)) {
 		case -1: return -1;
 		case 1: return 1;
 	}
