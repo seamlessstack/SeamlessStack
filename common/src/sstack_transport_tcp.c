@@ -233,7 +233,7 @@ tcp_select(sstack_client_handle_t handle, uint32_t block_flags)
 	FD_SET(handle, &readfds);
 	FD_SET(handle, &writefds);
 
-	timeout.tv_sec = 10;
+	timeout.tv_sec = 1;
 	timeout.tv_usec = 0;
 
 	/* Call the select now. */

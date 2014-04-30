@@ -80,7 +80,7 @@ static int32_t sfsd_create_caches(sfsd_t *sfsd)
 	}
 	sfs_log(sfsd->log_ctx, SFS_DEBUG, "inode-cache created\n");
 	sfsd_global_cache_arr = sfsd->local_caches;
-	
+
 	return 0;
 
 }
@@ -130,8 +130,8 @@ int main(int argc, char **argv)
 	if (sfsd_create_caches(&sfsd)) {
 		sfs_log(sfsd.log_ctx, SFS_CRIT, "Caches creation failed");
 		return -ENOMEM;
-	}	
-		
+	}
+
 	/* Fill up the global variable to be used */
 	sfsd_global_cache_arr = sfsd.local_caches;
 	/* Initialize transport */
@@ -153,9 +153,12 @@ int main(int argc, char **argv)
 			"Chunk domain initialization failed", 1, 1, 0);
 
 	/* Daemonize */
-	//daemon(0, 0);
+	// daemon(0, 0);
 
-	while(1);
+	while(1) {
+		sleep(100);
+	}
+
 
 	/* Control never returns */
 	return 0;

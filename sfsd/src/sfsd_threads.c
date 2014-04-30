@@ -232,6 +232,7 @@ static void* do_receive_thread(void *param)
 				((ret == 0) ? SFS_DEBUG: SFS_ERR),
 				"Job queue status: %d\n", ret);
 		}
+		usleep(100);
 	}
 }
 
