@@ -16,7 +16,8 @@
 #  from SeamlessStack Incorporated.
 #
 
-JERASUREDIR = jerasure_lib
+JERASUREDIR = jerasure2.0
+GF_COMPLETEDIR = gf-complete
 MEMCACHEDDIR = libmemcached-1.0.8
 MONGOCDIR = mongo-c-driver
 LZ4DIR = lz4
@@ -26,6 +27,7 @@ OSS_INSTALL_DIR = $(OSS_DIR)/oss_install
 OSS_LIBSDIR = $(OSS_INSTALL_DIR)/lib
 OSS_INCLUDEDIR = $(OSS_INSTALL_DIR)/include
 OPENSSL_DIR = openssl-1.0.1g
+GFP = $(shell pwd)/gf-complete
 RBTREE_DIR = rbtree
 CLISH_DIR = clish-0.7.3
 RM = rm
@@ -42,7 +44,7 @@ all: $(CONFIGURE)
 	$(MAKE) -C $(MEMCACHEDDIR)
 	$(MAKE) -C $(MEMCACHEDDIR) install
 	$(MAKE) -C $(MONGOCDIR)
-	$(CP) $(JERASUREDIR)/*.so $(OSS_LIBSDIR)
+	$(CP) $(JERASUREDIR)/src/.libs/*.so $(OSS_LIBSDIR)
 	$(CP) $(MONGOCDIR)/*.so $(OSS_LIBSDIR)
 	$(MAKE) -C $(LZ4DIR) 
 	$(CP) $(LZ4DIR)/*.so $(OSS_LIBSDIR)
@@ -54,9 +56,16 @@ all: $(CONFIGURE)
 	$(CP) $(RBTREE_DIR)/*.so $(OSS_LIBSDIR)
 	$(MAKE) -C $(CLISH_DIR)
 
-$(CONFIGURE):
+$(CONFIGURE): gf_comp jerasure_touch
 	$(CD) $(MEMCACHEDDIR) && ./configure --prefix=$(OSS_INSTALL_DIR)
 	$(CD) $(OPENSSL_DIR) && ./config shared
+	$(CD) $(JERASUREDIR) && ./configure LDFLAGS=-L$(GFP)/src/.libs CPPFLAGS=-I$(GFP)/include
+
+gf_comp:
+	$(MAKE) -C $(GF_COMPLETEDIR)
+
+jerasure_touch:
+	$(CD) $(JERASUREDIR) && touch configure.ac aclocal.m4 configure Makefile.am Makefile.in
 
 clean:
 	$(MAKE) -C $(JERASUREDIR) clean
@@ -66,3 +75,4 @@ clean:
 	$(MAKE) -C $(OPENSSL_DIR) clean
 	$(MAKE) -C $(RBTREE_DIR) clean
 	$(MAKE) -C $(CLISH_DIR) clean
+	$(MAKE) -C $(GF_COMPLETEDIR) clean
