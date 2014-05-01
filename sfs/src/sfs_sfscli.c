@@ -556,7 +556,9 @@ handle_cli_requests(int32_t sockfd)
 	while(not_terminating) {
 		rnbytes = wnbytes = 0;
 		memset(cmd_buffer, 0, SFSCLI_MAX_BUFFER_SIZE);
-		sfs_log(sfs_ctx, SFS_ERR, "Waiting for an incoming connection\n");
+#ifdef _DEBUG_
+		sfs_log(sfs_ctx, SFS_DEBUG, "Waiting for an incoming connection\n");
+#endif // _DEBUG_
 		/* Accept connections and process */
 		//if (connection_dropped == 1) {
 			conn_sockfd = accept(sockfd,
@@ -581,9 +583,12 @@ handle_cli_requests(int32_t sockfd)
 				wnbytes = write(conn_sockfd, resp_buffer, resp_size);
 				if (wnbytes < resp_size)
 					sfs_log(sfs_ctx, SFS_ERR, "Less no of response sent\n");
-				else
-					sfs_log(sfs_ctx, SFS_ERR, "Wrote %ld bytes to clid\n",
+				else {
+#ifdef _DEBUG_
+					sfs_log(sfs_ctx, SFS_INFO, "Wrote %ld bytes to clid\n",
 							wnbytes);
+#endif // _DEBUG_
+				}
 			}
 		} else {
 			sfs_log(sfs_ctx, SFS_ERR, "Error reading command\n");

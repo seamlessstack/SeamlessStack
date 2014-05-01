@@ -641,8 +641,10 @@ sfs_process_payload(void *arg)
 {
 	sstack_payload_t *payload = (sstack_payload_t *) arg;
 
+#ifdef _DEBUG_
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s: command = %s \n",
 			__FUNCTION__, sstack_command_stringify(payload->command));
+#endif // _DEBUG_
 
 	switch (payload->command) {
 		case (NFS_READ_RSP):
@@ -668,32 +670,29 @@ sfs_process_payload(void *arg)
 			sstack_job_map_t *job_map = NULL;
 
 			job_id = payload->hdr.job_id;
+#ifdef _DEBUG_
 			sfs_log(sfs_ctx, SFS_DEBUG, "%s: job_id = %d \n",
 					__FUNCTION__, job_id);
+#endif // _DEBUG_
 
 			jt_key.magic = JTNODE_MAGIC;
 			jt_key.job_id = job_id;
 			jt_node = jobid_tree_search(jobid_tree, &jt_key);
 			if (jt_node == NULL) {
 				errno = SSTACK_CRIT_FAILURE;
-				sfs_log(sfs_ctx, SFS_DEBUG, "%s:%d\n", __FUNCTION__, __LINE__);
 				return NULL;
 			}
-			sfs_log(sfs_ctx, SFS_DEBUG, "%s:%d\n", __FUNCTION__, __LINE__);
 			thread_id = jt_node->thread_id;
 			jm_key.magic = JMNODE_MAGIC;
 			jm_key.thread_id = thread_id;
 			jm_node = jobmap_tree_search(jobmap_tree, &jm_key);
 			if (jm_node == NULL) {
 				errno = SSTACK_CRIT_FAILURE;
-				sfs_log(sfs_ctx, SFS_DEBUG, "%s:%d\n", __FUNCTION__, __LINE__);
 				return NULL;
 			}
 			jm_node->job_map->err_no = payload->response_struct.command_ok;
-			sfs_log(sfs_ctx, SFS_DEBUG, "%s:%d\n", __FUNCTION__, __LINE__);
 			job_map = jm_node->job_map;
 			pthread_cond_signal(&job_map->condition);
-			sfs_log(sfs_ctx, SFS_DEBUG, "%s:%d\n", __FUNCTION__, __LINE__);
 			break;
 		}
 
@@ -744,9 +743,11 @@ sfs_dispatcher(void * arg)
 
 		// Process hi priority queue
 		temp = &job_list[0].list;
+#ifdef _DEBUG_
 		sfs_log(sfs_ctx, SFS_DEBUG, "%s: temp = 0x%x temp->next 0x%x "
 				"temp->prev 0x%x\n", __FUNCTION__, temp, temp->next,
 				temp->prev);
+#endif // _DEBUG_
 
 		while (!list_empty(temp)) {
 			// Detach the job
@@ -943,7 +944,7 @@ sfs_handle_connection(void * arg)
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s: Started \n", __FUNCTION__);
 
 	while (1) {
-		sfs_log(sfs_ctx, SFS_DEBUG, "%s: Calling select \n", __FUNCTION__);
+		// sfs_log(sfs_ctx, SFS_DEBUG, "%s: Calling select \n", __FUNCTION__);
 		if (NULL == transport.transport_ops.select) {
 			sfs_log(sfs_ctx, SFS_ERR, "%s: select op not set \n",
 							__FUNCTION__);

@@ -99,9 +99,11 @@ prepend_mntpath(const char *path)
 int
 sfs_getattr(const char *path, struct stat *stbuf)
 {
-	int ret = -1;
-	char *fullpath = NULL;
+//	int ret = -1;
+//	char *fullpath = NULL;
+	time_t now = 0;
 
+#if 0
 	// Parameter validation
 	if (NULL == path || NULL == stbuf) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters passed. \n",
@@ -122,6 +124,32 @@ sfs_getattr(const char *path, struct stat *stbuf)
 
 		return -1;
 	}
+#endif
+	if (strcmp(path, "/") == 0) {
+		memset(stbuf, '\0', sizeof(struct stat));
+		now = time(NULL);
+		stbuf->st_mode = S_IFDIR | 0666;
+		stbuf->st_nlink = 1;
+		stbuf->st_uid = getuid();
+		stbuf->st_gid = getgid();
+		stbuf->st_size = 1024;
+		stbuf->st_blksize = 4096;
+		stbuf->st_blocks = 1;
+		stbuf->st_atime = stbuf->st_ctime = stbuf->st_mtime = now;
+
+		return 0;
+	}
+	now = time(NULL);
+	stbuf->st_mode = S_IFREG | 0666;
+	stbuf->st_nlink = 1;
+	stbuf->st_uid = getuid();
+	stbuf->st_gid = getgid();
+	stbuf->st_size = 1024;
+	stbuf->st_blksize = 4096;
+	stbuf->st_blocks = stbuf->st_size / stbuf->st_blksize;
+	stbuf->st_atime = now;
+	stbuf->st_mtime = now;
+	stbuf->st_ctime = now;
 
 	return 0;
 }
@@ -239,6 +267,7 @@ sfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 {
 	DIR *dirpath = NULL;
 	struct dirent *de = NULL;
+	char *fullpath = NULL;
 
 	// Parameter validation
 	if (NULL == path || NULL == buf || NULL == fi) {
@@ -248,15 +277,27 @@ sfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 		return -1;
 	}
 
-	dirpath = opendir(path);
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: path = %s \n", __FUNCTION__, path);
+	syncfs(sfs_ctx->log_fd);
+
+	fullpath = prepend_mntpath(path);
+	//sfs_log(sfs_ctx, SFS_DEBUG, "%s: path = %s fullpath = %s\n",
+	//		__FUNCTION__, path, fullpath);
+	dirpath = opendir(fullpath);
 	if (NULL == dirpath) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to open directory %s. "
 						"Error = %d \n", __FUNCTION__, path, errno);
+		free(fullpath);
 		return -1;
 	}
+	free(fullpath);
 
 	while ((de = readdir(dirpath)) != NULL) {
 		struct stat st;
+
+		sfs_log(sfs_ctx, SFS_DEBUG, "%s: name = %s\n", __FUNCTION__,
+				de->d_name);
+		syncfs(sfs_ctx->log_fd);
 
 		memset(&st, '\0', sizeof(struct stat));
 		st.st_ino = de->d_ino;
@@ -1389,7 +1430,7 @@ sfs_open(const char *path, struct fuse_file_info *fi)
 	fd = open(path, fi->flags);
 	if (fd  == -1) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Open on %s failed with error %d \n",
-						__FUNCTION__, path);
+						__FUNCTION__, path, errno);
 		return -1;
 	}
 
@@ -3117,6 +3158,9 @@ sfs_access(const char *path, int mode)
 
 		return -1;
 	}
+
+	if (strcmp(path, "/") == 0)
+		return 0;
 
 	// Get the inode number for the file
 	inodestr = sstack_memcache_read_one(mc, path, strlen(path), &size, sfs_ctx);
