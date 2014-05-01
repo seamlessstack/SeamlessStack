@@ -13000,7 +13000,7 @@ $as_echo "$as_me: WARNING: Your processor supports avx instructions but not your
 
 
 
-ac_config_files="$ac_config_files Makefile src/Makefile tools/Makefile test/Makefile examples/Makefile"
+ac_config_files="$ac_config_files Makefile src/Makefile tools/Makefile test/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -14019,7 +14019,6 @@ do
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
     "tools/Makefile") CONFIG_FILES="$CONFIG_FILES tools/Makefile" ;;
     "test/Makefile") CONFIG_FILES="$CONFIG_FILES test/Makefile" ;;
-    "examples/Makefile") CONFIG_FILES="$CONFIG_FILES examples/Makefile" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac

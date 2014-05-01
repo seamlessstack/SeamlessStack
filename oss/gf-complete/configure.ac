@@ -24,5 +24,5 @@ AC_PROG_CC
 
 AX_EXT()
 
-AC_CONFIG_FILES([Makefile src/Makefile tools/Makefile test/Makefile examples/Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile tools/Makefile test/Makefile])
 AC_OUTPUT
