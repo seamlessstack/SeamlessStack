@@ -41,6 +41,7 @@
 #include <sstack_serdes.h>
 
 #define MAX_KEY_LEN 128
+#define SFS_DIR "/tmp/two"
 
 
 unsigned long long max_inode_number = 18446744073709551615ULL; // 2^64 -1
@@ -67,11 +68,11 @@ prepend_mntpath(const char *path)
 	if (NULL == path)
 		return NULL;
 
-	fullpath = malloc(strlen(path) + strlen(sfs_mountpoint) + 1);
+	fullpath = malloc(strlen(path) + strlen(SFS_DIR) + 1);
 	if (NULL == fullpath)
 		return NULL;
 
-	strcpy(fullpath, sfs_mountpoint);
+	strcpy(fullpath, SFS_DIR);
 	strcat(fullpath, path);
 
 	return fullpath;
@@ -99,11 +100,11 @@ prepend_mntpath(const char *path)
 int
 sfs_getattr(const char *path, struct stat *stbuf)
 {
-//	int ret = -1;
-//	char *fullpath = NULL;
+	int ret = -1;
+	char *fullpath = NULL;
 	time_t now = 0;
 
-#if 0
+#if 1
 	// Parameter validation
 	if (NULL == path || NULL == stbuf) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters passed. \n",
@@ -116,15 +117,17 @@ sfs_getattr(const char *path, struct stat *stbuf)
 	fullpath = prepend_mntpath(path);
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s: path = %s \n", __FUNCTION__, fullpath);
 	ret = lstat(fullpath, stbuf);
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s: Returning with status %d\n", __FUNCTION__,
-					ret);
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: Returning with status %d. Error %d\n",
+			__FUNCTION__, ret, errno);
 	free(fullpath);
 	if (ret == -1) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: lstat failed\n", __FUNCTION__);
 
-		return -1;
+		return -errno;
 	}
-#endif
+
+	return 0;
+#else
 	if (strcmp(path, "/") == 0) {
 		memset(stbuf, '\0', sizeof(struct stat));
 		now = time(NULL);
@@ -152,6 +155,7 @@ sfs_getattr(const char *path, struct stat *stbuf)
 	stbuf->st_ctime = now;
 
 	return 0;
+#endif
 }
 
 /*
@@ -1418,6 +1422,7 @@ sfs_open(const char *path, struct fuse_file_info *fi)
 	int fd = -1;
 	size_t size;
 	char inode_str[MAX_INODE_LEN] = { '\0' };
+	char *fullpath = NULL;
 
 	// Parameter validation
 	if (NULL == path || NULL == fi) {
@@ -1427,12 +1432,19 @@ sfs_open(const char *path, struct fuse_file_info *fi)
 		return -1;
 	}
 
-	fd = open(path, fi->flags);
+	fullpath = prepend_mntpath(path);
+
+	fd = open(fullpath, fi->flags);
 	if (fd  == -1) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Open on %s failed with error %d \n",
 						__FUNCTION__, path, errno);
+		free(fullpath);
+
 		return -1;
 	}
+
+	sfs_log(sfs_ctx, SFS_INFO, "%s: Open of %s succeeded \n", __FUNCTION__,
+			path);
 
 	// Check if the file alreday exists in reverse lookup
 	inodestr = sstack_memcache_read_one(mc, path, strlen(path), &size, sfs_ctx);
@@ -1440,9 +1452,11 @@ sfs_open(const char *path, struct fuse_file_info *fi)
 		// File already created. We don't need to do anything.
 		fi->fh = fd;
 
+		free(fullpath);
 		return 0;
 	}
 
+	free(fullpath);
 	// Update file handle to FUSE
 	fi->fh = fd;
 
@@ -1509,6 +1523,8 @@ sfs_open(const char *path, struct fuse_file_info *fi)
 				inode.i_name, errno);
 		return -1;
 	}
+
+	sfs_log(sfs_ctx, SFS_INFO, "%s: put_inode succeeded \n", __FUNCTION__);
 
 
 	// Populate memcached for reverse lookup
@@ -2747,6 +2763,12 @@ sfs_getxattr(const char *path, const char *name, char *value, size_t size)
 		return -1;
 	}
 
+	if (strcmp(path, ".") == 0 || strcmp(path, "..") == 0) {
+		name = NULL;
+		value = NULL;
+		return 0;
+	}
+
 	// Get the inode number for the file.
 	inodestr = sstack_memcache_read_one(mc, path, strlen(path), &size1, sfs_ctx);
 	if (NULL == inodestr) {
@@ -3231,6 +3253,7 @@ sfs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 	struct stat status;
 	int ret = -1;
 	char inode_str[MAX_INODE_LEN] = { '\0' };
+	char *fullpath = NULL;
 
     sfs_log(sfs_ctx, SFS_DEBUG, "%s: path = %s\n", __FUNCTION__, path);
 	// Parameter validation
@@ -3241,13 +3264,17 @@ sfs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 		return -1;
 	}
 
-	ret = creat(path, mode);
+	fullpath = prepend_mntpath(path);
+
+	ret = creat(fullpath, mode);
 	if (ret == -1) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Create failed with error %d \n",
 				__FUNCTION__, errno);
 		errno = EACCES;
+		free(fullpath);
 		return -1;
 	}
+	free(fullpath);
 
 	// Populate DB with new inode info
 	inode.i_num = get_free_inode();
