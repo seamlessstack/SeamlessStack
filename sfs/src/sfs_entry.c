@@ -104,7 +104,6 @@ sfs_getattr(const char *path, struct stat *stbuf)
 	char *fullpath = NULL;
 	time_t now = 0;
 
-#if 1
 	// Parameter validation
 	if (NULL == path || NULL == stbuf) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters passed. \n",
@@ -114,48 +113,22 @@ sfs_getattr(const char *path, struct stat *stbuf)
 		return -1;
 	}
 
+	if (strcmp(path, "/") != 0)
+		return -ENOENT;
+
+	memset(stbuf, 0, sizeof(struct stat));
 	fullpath = prepend_mntpath(path);
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s: path = %s \n", __FUNCTION__, fullpath);
-	ret = lstat(fullpath, stbuf);
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s: Returning with status %d. Error %d\n",
-			__FUNCTION__, ret, errno);
-	free(fullpath);
+	ret = fstat(fullpath, stbuf);
 	if (ret == -1) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: lstat failed\n", __FUNCTION__);
+		free(fullpath);
 
 		return -errno;
-	}
-
-	return 0;
-#else
-	if (strcmp(path, "/") == 0) {
-		memset(stbuf, '\0', sizeof(struct stat));
-		now = time(NULL);
-		stbuf->st_mode = S_IFDIR | 0666;
-		stbuf->st_nlink = 1;
-		stbuf->st_uid = getuid();
-		stbuf->st_gid = getgid();
-		stbuf->st_size = 1024;
-		stbuf->st_blksize = 4096;
-		stbuf->st_blocks = 1;
-		stbuf->st_atime = stbuf->st_ctime = stbuf->st_mtime = now;
-
+	} else {
+		free(fullpath);
 		return 0;
 	}
-	now = time(NULL);
-	stbuf->st_mode = S_IFREG | 0666;
-	stbuf->st_nlink = 1;
-	stbuf->st_uid = getuid();
-	stbuf->st_gid = getgid();
-	stbuf->st_size = 1024;
-	stbuf->st_blksize = 4096;
-	stbuf->st_blocks = stbuf->st_size / stbuf->st_blksize;
-	stbuf->st_atime = now;
-	stbuf->st_mtime = now;
-	stbuf->st_ctime = now;
-
-	return 0;
-#endif
 }
 
 /*
@@ -633,6 +606,8 @@ sfs_unlink(const char *path)
 		return -1;
 	}
 
+	sfs_log(sfs_ctx, SFS_INFO, "%s: Calling sstack_memcache_remove\n",
+			__FUNCTION__);
 	ret = sstack_memcache_remove(mc, path, sfs_ctx);
 	if (ret != 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to delete reverse lookup "
@@ -880,6 +855,9 @@ sfs_rmdir(const char *path)
 		return -1;
 	}
 
+	sfs_log(sfs_ctx, SFS_INFO, "%s: Calling sstack_memcache_remove \n",
+			__FUNCTION__);
+
 	ret = sstack_memcache_remove(mc, path, sfs_ctx);
 	if (ret != 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to delete reverse lookup "
@@ -1031,6 +1009,8 @@ sfs_rename(const char *from, const char *to)
 	// Free up dynamically allocated fields in inode structure
 	sstack_free_inode_res(&inode, sfs_ctx);
 
+	sfs_log(sfs_ctx, SFS_INFO, "%s: Calling sstack_memcache_remove \n",
+			__FUNCTION__);
 	/* Remove the old key and replace with new key in memcached
 	 * for reverse lookup */
 	ret = sstack_memcache_remove(mc, from, sfs_ctx);
@@ -2300,6 +2280,8 @@ sfs_release(const char *path, struct fuse_file_info *fi)
 
 		return -1;
 	}
+	sfs_log(sfs_ctx, SFS_INFO, "%s: Calling sstack_memcache_remove \n",
+			__FUNCTION__);
 	// Remove the reverse mapping for the path
 	res = sstack_memcache_remove(mc, path, sfs_ctx);
 	if (res != 0) {
@@ -3250,12 +3232,11 @@ int
 sfs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 {
 	sstack_inode_t inode;
-	struct stat status;
 	int ret = -1;
 	char inode_str[MAX_INODE_LEN] = { '\0' };
 	char *fullpath = NULL;
+	struct timespec ts;
 
-    sfs_log(sfs_ctx, SFS_DEBUG, "%s: path = %s\n", __FUNCTION__, path);
 	// Parameter validation
 	if (NULL == path) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters specified \n",
@@ -3265,6 +3246,7 @@ sfs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 	}
 
 	fullpath = prepend_mntpath(path);
+    sfs_log(sfs_ctx, SFS_DEBUG, "%s: path = %s\n", __FUNCTION__, fullpath);
 
 	ret = creat(fullpath, mode);
 	if (ret == -1) {
@@ -3279,10 +3261,11 @@ sfs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 	// Populate DB with new inode info
 	inode.i_num = get_free_inode();
 	strcpy(inode.i_name, path);
-	inode.i_uid = status.st_uid;
-	inode.i_gid = status.st_gid;
-	inode.i_mode = status.st_mode;
-	switch (status.st_mode & S_IFMT) {
+
+	inode.i_uid = getuid();
+	inode.i_gid = getgid();
+	inode.i_mode = mode;
+	switch (mode & S_IFMT) {
 		case S_IFDIR:
 			inode.i_type = DIRECTORY;
 			break;
@@ -3312,18 +3295,19 @@ sfs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 	// Make sure we are not looping
 	// TBD
 
-	memcpy(&inode.i_atime, &status.st_atime, sizeof(struct timespec));
-	memcpy(&inode.i_ctime, &status.st_ctime, sizeof(struct timespec));
-	memcpy(&inode.i_mtime, &status.st_mtime, sizeof(struct timespec));
-	inode.i_size = status.st_size;
-	inode.i_ondisksize = (status.st_blocks * 512);
+	clock_gettime(CLOCK_MONOTONIC, &ts);
+	memcpy(&inode.i_atime, &ts, sizeof(struct timespec));
+	memcpy(&inode.i_ctime, &ts, sizeof(struct timespec));
+	memcpy(&inode.i_mtime, &ts, sizeof(struct timespec));
+	inode.i_size = 0;
+	inode.i_ondisksize = 0;
 	inode.i_numreplicas = 1; // For now, single copy
 	// Since the file already exists, done't split it now. Split it when
 	// next write arrives
 	inode.i_numextents = 0;
 	inode.i_numerasure = 0; // No erasure code segments
 	inode.i_xattrlen = 0; // No extended attributes
-	inode.i_links = status.st_nlink;
+	inode.i_links = 1;
 	sfs_log(sfs_ctx, SFS_INFO,
 		"%s: nlinks for %s are %d\n", __FUNCTION__, path, inode.i_links);
 	// Populate the extent
