@@ -156,7 +156,6 @@ sfsd_add_chunk(sfs_chunk_domain_t *chunk, sfsd_storage_t *storage)
 			sfs_log(chunk->ctx, SFS_ERR, "%s: Failed to add chunk 0x%llx to "
 				"chunk domain 0x%llx of sfsd 0x%llx. system failed with "
 				"error %d\n", __FUNCTION__, storage, chunk, chunk->sfsd, errno);
-			free(path);
 			return NULL;
 		}
 		sfs_log(chunk->ctx, SFS_INFO, "%s: Mounting chunk path %s:%s to "
