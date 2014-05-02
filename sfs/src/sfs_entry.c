@@ -3308,14 +3308,18 @@ sfs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 	inode.i_numerasure = 0; // No erasure code segments
 	inode.i_xattrlen = 0; // No extended attributes
 	inode.i_links = 1;
+	inode.i_numclients = 0;
 	sfs_log(sfs_ctx, SFS_INFO,
 		"%s: nlinks for %s are %d\n", __FUNCTION__, path, inode.i_links);
 	// Populate the extent
 	inode.i_extent = NULL;
 	inode.i_erasure = NULL; // No erasure coding info for now
 	inode.i_xattr = NULL; // No extended attributes carried over
+	inode.i_sfsds = NULL; // No sfsds associated with it now
 
 	// Store inode
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - Before storing the inode db: %p\n",
+			__FUNCTION__, db);
 	ret = put_inode(&inode, db);
 	if (ret != 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to store inode #%lld for "
@@ -3324,17 +3328,21 @@ sfs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 		return -1;
 	}
 
-
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - Inode pushed to mongo db\n",
+			__FUNCTION__);
 	// Populate memcached for reverse lookup
 	sprintf(inode_str, "%lld", inode.i_num);
 	ret = sstack_memcache_store(mc, path, inode_str, (strlen(inode_str) + 1),
 					sfs_ctx);
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - memcached operations done\n",
+			__FUNCTION__);
 	if (ret != 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to store object into memcached."
 				" Key = %s value = %s \n", __FUNCTION__, path, inode_str);
 		return -1;
 	}
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - file created\n", __FUNCTION__);
 	return 0;
 }
 

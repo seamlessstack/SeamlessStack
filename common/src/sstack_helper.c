@@ -286,7 +286,6 @@ flatten_inode(sstack_inode_t *inode, size_t *len, log_ctx_t *ctx)
 		return NULL;
 	}
 	*len = 0; // Just in case
-
 	// Copy fixed fields of the inode
 	fixed_len = get_inode_fixed_fields_len();
 	data = malloc(fixed_len);
@@ -365,21 +364,22 @@ flatten_inode(sstack_inode_t *inode, size_t *len, log_ctx_t *ctx)
 		ex ++;
 	}
 
-	// 4. sfsd info
-	temp = realloc(data, ((*len) + (sizeof(sstack_sfsd_info_t *) *
-									(inode->i_numclients - 1))));
-	if (NULL == temp) {
-		sfs_log(ctx, SFS_ERR, "%s: Failed to allocate memory for "
-			"storing sfsd info  of inode %lld\n",  __FUNCTION__,
-			inode->i_num);
-		free(data); // Freeup old
-		return NULL;
+	if (inode->i_numclients) {
+		// 4. sfsd info	
+		temp = realloc(data, ((*len) + (sizeof(sstack_sfsd_info_t *) *
+						(inode->i_numclients - 1))));
+		if (NULL == temp) {
+			sfs_log(ctx, SFS_ERR, "%s: Failed to allocate memory for "
+					"storing sfsd info  of inode %lld\n",  __FUNCTION__,
+					inode->i_num);
+			free(data); // Freeup old
+			return NULL;
+		}
+		data = temp;
+		memcpy((void *) (data + (*len)), inode->i_sfsds,
+				(sizeof(sstack_sfsd_info_t *) * (inode->i_numclients - 1)));
+		*len += (sizeof(sstack_sfsd_info_t *) * inode->i_numclients);
 	}
-	data = temp;
-	memcpy((void *) (data + (*len)), inode->i_sfsds,
-					(sizeof(sstack_sfsd_info_t *) * (inode->i_numclients - 1)));
-	*len += (sizeof(sstack_sfsd_info_t *) * inode->i_numclients);
-
 	return data;
 }
 
@@ -417,7 +417,8 @@ put_inode(sstack_inode_t *inode, db_t *db)
 	}
 
 	sprintf(inode_str, "%lld", inode_num);
-
+	sfs_log(db->ctx, SFS_DEBUG, "%s() - Before flatten inode\n",
+			__FUNCTION__);
 	data = flatten_inode(inode, &len, db->ctx);
 	if (NULL == data) {
 		sfs_log(db->ctx, SFS_ERR, "%s: Unable to flatten inode %lld\n",
