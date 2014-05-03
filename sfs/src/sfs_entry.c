@@ -103,7 +103,8 @@ sfs_getattr(const char *path, struct stat *stbuf)
 	int ret = -1;
 	char *fullpath = NULL;
 	time_t now = 0;
-
+	
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<<\n", __FUNCTION__);
 	// Parameter validation
 	if (NULL == path || NULL == stbuf) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters passed. \n",
@@ -113,15 +114,13 @@ sfs_getattr(const char *path, struct stat *stbuf)
 		return -1;
 	}
 
-	if (strcmp(path, "/") != 0)
-		return -ENOENT;
-
 	memset(stbuf, 0, sizeof(struct stat));
 	fullpath = prepend_mntpath(path);
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s: path = %s \n", __FUNCTION__, fullpath);
-	ret = fstat(fullpath, stbuf);
+	ret = lstat(fullpath, stbuf);
 	if (ret == -1) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: lstat failed\n", __FUNCTION__);
+		sfs_log(sfs_ctx, SFS_ERR, "%s: lstat failed, errno: %d\n",
+				__FUNCTION__, errno);
 		free(fullpath);
 
 		return -errno;
@@ -2288,7 +2287,7 @@ sfs_release(const char *path, struct fuse_file_info *fi)
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Reverse lookup for path %s failed. "
 						"Return value = %d\n", __FUNCTION__, path, res);
 	}
-
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - Release done\n", __FUNCTION__);
 	return 0;
 }
 
@@ -3233,6 +3232,7 @@ sfs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 {
 	sstack_inode_t inode;
 	int ret = -1;
+	int fd = -1;
 	char inode_str[MAX_INODE_LEN] = { '\0' };
 	char *fullpath = NULL;
 	struct timespec ts;
@@ -3248,14 +3248,17 @@ sfs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 	fullpath = prepend_mntpath(path);
     sfs_log(sfs_ctx, SFS_DEBUG, "%s: path = %s\n", __FUNCTION__, fullpath);
 
-	ret = creat(fullpath, mode);
-	if (ret == -1) {
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - file handle : %d\n",
+			__FUNCTION__, fi->fh);
+	fd = creat(fullpath, mode);
+	if (fd == -1) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Create failed with error %d \n",
 				__FUNCTION__, errno);
 		errno = EACCES;
 		free(fullpath);
 		return -1;
 	}
+	fi->fh = fd;
 	free(fullpath);
 
 	// Populate DB with new inode info
@@ -3325,6 +3328,7 @@ sfs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to store inode #%lld for "
 				"path %s. Error %d\n", __FUNCTION__, inode.i_num,
 				inode.i_name, errno);
+		close(fd);
 		return -1;
 	}
 
@@ -3339,10 +3343,12 @@ sfs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 	if (ret != 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to store object into memcached."
 				" Key = %s value = %s \n", __FUNCTION__, path, inode_str);
+		close(fd);
 		return -1;
 	}
 
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - file created\n", __FUNCTION__);
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - file created, return: %d\n",
+			__FUNCTION__, fd);
 	return 0;
 }
 
