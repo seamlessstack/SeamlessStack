@@ -16,4 +16,5 @@ rm -rf /tmp/sfs /tmp/sfsd /tmp/dir*
 
 rm -rf /tmp/one
 rm -rf /tmp/junky
+rm -rf /var/sfs
 dmesg -c

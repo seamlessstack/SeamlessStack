@@ -41,7 +41,7 @@
 #include <sstack_serdes.h>
 
 #define MAX_KEY_LEN 128
-#define SFS_DIR "/tmp/two"
+#define SFS_DIR "/var/sfs"
 
 
 unsigned long long max_inode_number = 18446744073709551615ULL; // 2^64 -1
@@ -103,7 +103,7 @@ sfs_getattr(const char *path, struct stat *stbuf)
 	int ret = -1;
 	char *fullpath = NULL;
 	time_t now = 0;
-	
+
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<<\n", __FUNCTION__);
 	// Parameter validation
 	if (NULL == path || NULL == stbuf) {
@@ -1551,7 +1551,8 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 	}
 
 	// Get the inode number for the file.
-	inodestr = sstack_memcache_read_one(mc, path, strlen(path), &size1, sfs_ctx);
+	inodestr = sstack_memcache_read_one(mc, path, strlen(path), &size1,
+			sfs_ctx);
 	if (NULL == inodestr) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
 					"for path %s.\n", __FUNCTION__, path);
@@ -1866,7 +1867,8 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 	}
 
 	// Get the inode number for the file.
-	inodestr = sstack_memcache_read_one(mc, path, strlen(path), &size1, sfs_ctx);
+	inodestr = sstack_memcache_read_one(mc, path, strlen(path), &size1,
+			sfs_ctx);
 	if (NULL == inodestr) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
 					"for path %s.\n", __FUNCTION__, path);
@@ -3452,6 +3454,7 @@ int
 sfs_utimens(const char *path, const struct timespec tv[2])
 {
 	int ret = -1;
+	char *fullpath = NULL;
 
 	// Parameter validation
 	if (NULL == path) {
@@ -3462,8 +3465,10 @@ sfs_utimens(const char *path, const struct timespec tv[2])
 		return -1;
 	}
 
+	fullpath = prepend_mntpath(path);
+
 	// Call utimensat which is the closest to the intended functionality
-	ret = utimensat(0, path, tv, AT_SYMLINK_NOFOLLOW);
+	ret = utimensat(0, fullpath, tv, AT_SYMLINK_NOFOLLOW);
 
 	return ret;
 }
