@@ -205,8 +205,9 @@ fill_inode(sstack_inode_t *inode, char **data, log_ctx_t *ctx)
 	// i_numclients includes primary sfsd
 	// Copy i_numclients - 1 sfsd pointers as primary sfsd is already part
 	// of the fixed fields
-	memcpy((void *) inode->i_sfsds, (void *) cur, sizeof(sstack_sfsd_info_t *)
-					* (inode->i_numclients - 1));
+	if (inode->i_numclients > 1)
+		memcpy((void *) inode->i_sfsds, (void *) cur,
+				sizeof(sstack_sfsd_info_t *) * (inode->i_numclients - 1));
 
 	return 0;
 }
@@ -300,9 +301,12 @@ flatten_inode(sstack_inode_t *inode, size_t *len, log_ctx_t *ctx)
 	// Copy remaining fields
 
 	// 1. Extended attributes
-	memcpy((void *) (data + (*len)), (void *) inode->i_xattr,
+
+	if (inode->i_xattrlen > 0) {
+		memcpy((void *) (data + (*len)), (void *) inode->i_xattr,
 					inode->i_xattrlen);
-	*len += inode->i_xattrlen;
+		*len += inode->i_xattrlen;
+	}
 
 	er = inode->i_erasure;
 	// 2. Erausre
@@ -503,7 +507,7 @@ sstack_free_inode_res(sstack_inode_t *inode, log_ctx_t *ctx)
 	if (inode->i_extent)
 		free(inode->i_extent);
 
-	if (inode->i_numerasure > 0)
+	if (inode->i_numerasure > 0 && inode->i_erasure)
 		sstack_free_erasure(ctx, inode->i_erasure, inode->i_numerasure);
 }
 

@@ -1171,6 +1171,7 @@ sfs_chmod(const char *path, mode_t mode)
 		sfs_log(sfs_ctx, SFS_ERR, "%s: chmod for %s failed with error %d\n",
 						__FUNCTION__, fullpath, errno);
 		free(fullpath);
+
 		return -1;
 	}
 
