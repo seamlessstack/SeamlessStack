@@ -305,6 +305,7 @@ sfs_mkdir(const char *path, mode_t mode)
 	struct stat status;
 	int ret = -1;
 	char inode_str[MAX_INODE_LEN] = { '\0' };
+	char *fullpath = NULL;
 
     sfs_log(sfs_ctx, SFS_DEBUG, "%s: path = %s\n", __FUNCTION__, path);
 	// Parameter validation
@@ -315,12 +316,16 @@ sfs_mkdir(const char *path, mode_t mode)
 		return -1;
 	}
 
-	ret = mkdir(path, mode);
+	fullpath = prepend_mntpath(path);
+
+	ret = mkdir(fullpath, mode);
 	if (ret == -1) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: mkdir of %s  mode %d failed with "
 						"error %d \n", __FUNCTION__, path, (int) mode, errno);
+		free(fullpath);
 		return -1;
 	}
+	free(fullpath);
 
 	// Populate DB with new inode info
 	inode.i_num = get_free_inode();
@@ -3469,6 +3474,7 @@ sfs_utimens(const char *path, const struct timespec tv[2])
 
 	// Call utimensat which is the closest to the intended functionality
 	ret = utimensat(0, fullpath, tv, AT_SYMLINK_NOFOLLOW);
+	free(fullpath);
 
 	return ret;
 }
