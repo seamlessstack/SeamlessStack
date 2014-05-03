@@ -5,7 +5,7 @@ ulimit -c unlimited
 ulimit -s 8192
 
 #Restart Mongodb
-/etc/init.d/mongodb restart
+/etc/init.d/mongodb start
 
 # Start sfs
 build/bin/sfs 127.0.0.1,/var/tmp,rw,10 /tmp/one
