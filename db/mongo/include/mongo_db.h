@@ -44,7 +44,7 @@ extern int mongo_db_seekread(char * , char *, size_t , off_t ,
 extern int mongo_db_update(char * , char * , size_t , db_type_t , log_ctx_t *);
 extern void mongo_db_iterate(db_type_t , iterator_function_t , void *,
 				log_ctx_t *);
-extern int mongo_db_get(char * , char * , db_type_t , log_ctx_t *);
+extern int mongo_db_get(char * , char ** , db_type_t , log_ctx_t *);
 extern int mongo_db_delete(char * , log_ctx_t *);
 extern int mongo_db_cleanup(log_ctx_t *);
 

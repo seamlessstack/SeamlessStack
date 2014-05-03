@@ -49,7 +49,7 @@ typedef int (*db_insert_t)(char * , char * , size_t, db_type_t , log_ctx_t *);
 typedef int (*db_remove_t)(char * , db_type_t , log_ctx_t *);
 typedef void (*db_iterate_t)(db_type_t db_type, iterator_function_t iterator,
 			     void *params, log_ctx_t *);
-typedef int (*db_get_t)(char * , char * , db_type_t , log_ctx_t *);
+typedef int (*db_get_t)(char * , char ** , db_type_t , log_ctx_t *);
 typedef int (*db_seekread_t)(char * , char * , size_t , off_t ,
 		int , db_type_t, log_ctx_t *);
 typedef int (*db_update_t)(char * , char * , size_t , db_type_t , log_ctx_t *);

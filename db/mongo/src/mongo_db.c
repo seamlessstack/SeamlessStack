@@ -423,7 +423,7 @@ mongo_db_iterate(db_type_t type, iterator_function_t iterator_fn, void *params,
  *  represented by type
  *
  * key - Key for the record
- * data - O/P parameter that holds read record. Can pass NULL
+ * data - O/P parameter that holds read record.
  * type - Type of the collection
  *
  * Returns number of bytes read  on success and negative number
@@ -431,7 +431,7 @@ mongo_db_iterate(db_type_t type, iterator_function_t iterator_fn, void *params,
  */
 
 int
-mongo_db_get(char *key, char *data, db_type_t type, log_ctx_t *ctx)
+mongo_db_get(char *key, char **data, db_type_t type, log_ctx_t *ctx)
 {
 	int ret = -1;
 	bson query[1];
@@ -441,6 +441,9 @@ mongo_db_get(char *key, char *data, db_type_t type, log_ctx_t *ctx)
 	char record_name[REC_NAME_SIZE];
 	uint64_t record_len = 0;
 
+
+	sfs_log(ctx, SFS_DEBUG, "%s: key = %s type = %d \n",
+			__FUNCTION__, key, type);
 	if (key == NULL) {
 		sfs_log(ctx, SFS_ERR, "%s: Key passed is NULL. \n",
 				__FUNCTION__);
@@ -449,13 +452,6 @@ mongo_db_get(char *key, char *data, db_type_t type, log_ctx_t *ctx)
 
 	bson_init(query);
 	bson_append_string(query, "record_num", key);
-	if (ret != BSON_OK) {
-		sfs_log(ctx, SFS_ERR, "%s: Failed to append record_num to bson for "
-			"inode %a. Error = %d \n", __FUNCTION__, key, ret);
-		bson_destroy(query);
-		return -ret;
-	}
-
 	bson_finish(query);
 
 	// We expect only one document per collection for a given key
@@ -496,18 +492,22 @@ mongo_db_get(char *key, char *data, db_type_t type, log_ctx_t *ctx)
 	record_len = bson_iterator_long(iter);
 	(void)bson_find(iter, response, record_name);
 	// Allocate buffer
-	data = malloc(record_len);
-	if (NULL == data) {
+	sfs_log(ctx, SFS_DEBUG, "%s: Record length for key %s is %d\n",
+		   __FUNCTION__, key, record_len);
+	*data = malloc(record_len);
+	if (NULL == *data) {
 		sfs_log(ctx, SFS_ERR, "%s: Unable to allocate %d bytes for "
 				"reading inode record for inode %s. \n",
 				__FUNCTION__, record_len, key);
 
 		return -EINVAL;
 	}
-	memcpy(data, bson_iterator_bin_data(iter), record_len);
+	memcpy(*data, bson_iterator_bin_data(iter), record_len);
 
 	bson_destroy(query);
 	bson_destroy(response);
+
+	sfs_log(ctx, SFS_INFO, "%s: Retruning %d\n", __FUNCTION__, record_len);
 
 	return record_len;
 }
@@ -522,7 +522,7 @@ mongo_db_update(char *key, char *data, size_t len, db_type_t type,
 	char record_name[REC_NAME_SIZE];
 
 	bson_init(b);
-	ret = bson_append_string(b, "record_number", key);
+	ret = bson_append_string(b, "record_num", key);
 	if (ret != MONGO_OK) {
 		sfs_log(ctx, SFS_ERR, "%s: Failed to append record_num to bson for "
 			"inode %s. Error = %d \n", __FUNCTION__, key, ret);

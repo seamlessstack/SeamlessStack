@@ -38,6 +38,7 @@ CD = cd
 SED = sed
 MV = mv
 CP = cp
+LN = ln
 
 all: $(CONFIGURE)
 	$(MAKE) -C $(JERASUREDIR)
@@ -45,6 +46,7 @@ all: $(CONFIGURE)
 	$(MAKE) -C $(MEMCACHEDDIR) install
 	$(MAKE) -C $(MONGOCDIR)
 	$(CP) $(JERASUREDIR)/src/.libs/*.so $(OSS_LIBSDIR)
+	$(LN) -sf $(OSS_LIBSDIR)/libJerasure.so $(OSS_LIBSDIR)/libJerasure.so.2								
 	$(CP) $(MONGOCDIR)/*.so $(OSS_LIBSDIR)
 	$(MAKE) -C $(LZ4DIR) 
 	$(CP) $(LZ4DIR)/*.so $(OSS_LIBSDIR)

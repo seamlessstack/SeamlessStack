@@ -445,7 +445,8 @@ sfs_unlock(unsigned long long inode_num)
 	pthread_spin_lock(&file_lock->lock);
 	file_lock->state = UNLOCKED;
 	pthread_spin_unlock(&file_lock->lock);
-	filelock_tree_insert(filelock_tree, file_lock);
+//	filelock_tree_insert(filelock_tree, file_lock);
+	filelock_tree_remove(filelock_tree, file_lock);
 	sfs_log(sfs_ctx, SFS_INFO, "%s: Successfully unlocked inode %lld \n",
 			 __FUNCTION__, inode_num);
 	pthread_spin_unlock(&filelock_lock);
