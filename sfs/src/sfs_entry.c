@@ -150,6 +150,7 @@ sfs_readlink(const char *path, char *buf, size_t size)
 	sstack_extent_t *extent = NULL;
 	sstack_file_handle_t *p = NULL;
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<<\n", __FUNCTION__);
 	// Parameter validation
 	if (NULL == path || NULL == buf || size == 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters passed \n",
@@ -245,6 +246,7 @@ sfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 	struct dirent *de = NULL;
 	char *fullpath = NULL;
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<<\n", __FUNCTION__);
 	// Parameter validation
 	if (NULL == path || NULL == buf || NULL == fi) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters specified \n",
@@ -307,7 +309,7 @@ sfs_mkdir(const char *path, mode_t mode)
 	char inode_str[MAX_INODE_LEN] = { '\0' };
 	char *fullpath = NULL;
 
-    sfs_log(sfs_ctx, SFS_DEBUG, "%s: path = %s\n", __FUNCTION__, path);
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<<\n", __FUNCTION__);
 	// Parameter validation
 	if (NULL == path) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters specified \n",
@@ -321,11 +323,11 @@ sfs_mkdir(const char *path, mode_t mode)
 	ret = mkdir(fullpath, mode);
 	if (ret == -1) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: mkdir of %s  mode %d failed with "
-						"error %d \n", __FUNCTION__, path, (int) mode, errno);
+						"error %d \n", __FUNCTION__, fullpath, (int) mode,
+						errno);
 		free(fullpath);
 		return -1;
 	}
-	free(fullpath);
 
 	// Populate DB with new inode info
 	inode.i_num = get_free_inode();
@@ -338,14 +340,16 @@ sfs_mkdir(const char *path, mode_t mode)
 	memcpy(&inode.i_atime, &status.st_atime, sizeof(struct timespec));
 	memcpy(&inode.i_ctime, &status.st_ctime, sizeof(struct timespec));
 	memcpy(&inode.i_mtime, &status.st_mtime, sizeof(struct timespec));
-	ret = stat(path, &status);
+	ret = stat(fullpath, &status);
 	if (ret == -1) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: stat failed on %s . Error = %d \n",
-						__FUNCTION__, path, errno);
+						__FUNCTION__, fullpath, errno);
 		errno = EACCES;
 		rmdir(path);
+		free(fullpath);
 		return -1;
 	}
+	free(fullpath);
 	inode.i_size = status.st_size;
 	inode.i_ondisksize = status.st_size;
 	inode.i_links = status.st_nlink;
@@ -403,6 +407,7 @@ sfs_unlink(const char *path)
 	sfsd_t * temp = NULL;
 	sfs_job_t *job = NULL;
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<<\n", __FUNCTION__);
 	// Parameter validation
 	if (NULL == path) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameter specified \n",
@@ -422,7 +427,8 @@ sfs_unlink(const char *path)
 	// Let all the involved sfsds know about this file's demise
 
 	// Get the inode number for the file.
-	inodestr = sstack_memcache_read_one(mc, path, strlen(path), &size1, sfs_ctx);
+	inodestr = sstack_memcache_read_one(mc, path, strlen(path), &size1,
+			sfs_ctx);
 	if (NULL == inodestr) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
 					"for path %s.\n", __FUNCTION__, path);
@@ -654,6 +660,7 @@ sfs_rmdir(const char *path)
 	sfsd_t * temp = NULL;
 	sfs_job_t *job = NULL;
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<<\n", __FUNCTION__);
 	// Parameter validation
 	if (NULL == path) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameter specified \n",
@@ -673,7 +680,8 @@ sfs_rmdir(const char *path)
 	// Let all the involved sfsds know about this directory's demise
 
 	// Get the inode number for the file.
-	inodestr = sstack_memcache_read_one(mc, path, strlen(path), &size1, sfs_ctx);
+	inodestr = sstack_memcache_read_one(mc, path, strlen(path), &size1,
+			sfs_ctx);
 	if (NULL == inodestr) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
 					"for path %s.\n", __FUNCTION__, path);
@@ -892,6 +900,7 @@ sfs_symlink(const char *from, const char *to)
 	int ret = -1;
 	char inode_str[MAX_INODE_LEN] = { '\0' };
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<<\n", __FUNCTION__);
 	// Parameter validation
 	if (NULL == from || NULL == to) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters specified \n",
@@ -972,6 +981,7 @@ sfs_rename(const char *from, const char *to)
 	unsigned long long	inode_num = 0;
 	int					ret  = 0;
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<<\n", __FUNCTION__);
 	inode_str = sstack_memcache_read_one(mc, from, strlen(from), &sz, sfs_ctx);
 	if (NULL == inode_str) {
         sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
@@ -1055,6 +1065,7 @@ sfs_link(const char *from, const char *to)
 	int ret = -1;
 	char inode_str[MAX_INODE_LEN] = { '\0' };
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<<\n", __FUNCTION__);
 	// Parameter validation
 	if (NULL == from || NULL == to) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters specified \n",
@@ -1143,6 +1154,7 @@ sfs_chmod(const char *path, mode_t mode)
 	size_t size1 = 0;
 	int ret = -1;
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<<\n", __FUNCTION__);
 	// Parameter validation
 	if (NULL == path) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters specified \n",
@@ -1161,7 +1173,8 @@ sfs_chmod(const char *path, mode_t mode)
 
 	// Update inode with the new mode
 	// Get the inode number for the file.
-	inodestr = sstack_memcache_read_one(mc, path, strlen(path), &size1, sfs_ctx);
+	inodestr = sstack_memcache_read_one(mc, path, strlen(path), &size1,
+			sfs_ctx);
 	if (NULL == inodestr) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
 					"for path %s.\n", __FUNCTION__, path);
@@ -1231,6 +1244,7 @@ sfs_chown(const char *path, uid_t uid, gid_t gid)
 	size_t size1 = 0;
 	int ret = -1;
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<<\n", __FUNCTION__);
 	// Parameter validation
 	if (NULL == path) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters specified \n",
@@ -1249,7 +1263,8 @@ sfs_chown(const char *path, uid_t uid, gid_t gid)
 
 	// Update inode with the new mode
 	// Get the inode number for the file.
-	inodestr = sstack_memcache_read_one(mc, path, strlen(path), &size1, sfs_ctx);
+	inodestr = sstack_memcache_read_one(mc, path, strlen(path), &size1,
+			sfs_ctx);
 	if (NULL == inodestr) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
 					"for path %s.\n", __FUNCTION__, path);
@@ -1316,6 +1331,7 @@ sfs_truncate(const char *path, off_t size)
 	unsigned long long inode_num = 0;
 	size_t size1 = 0;
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<<\n", __FUNCTION__);
 	// Parameter validation
 	if (NULL == path)  {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameter specified \n",
@@ -1332,7 +1348,8 @@ sfs_truncate(const char *path, off_t size)
 	}
 
 	// Get the inode number for the file.
-	inodestr = sstack_memcache_read_one(mc, path, strlen(path), &size1, sfs_ctx);
+	inodestr = sstack_memcache_read_one(mc, path, strlen(path), &size1,
+			sfs_ctx);
 	if (NULL == inodestr) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
 					"for path %s.\n", __FUNCTION__, path);
@@ -1408,6 +1425,7 @@ sfs_open(const char *path, struct fuse_file_info *fi)
 	char inode_str[MAX_INODE_LEN] = { '\0' };
 	char *fullpath = NULL;
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<<\n", __FUNCTION__);
 	// Parameter validation
 	if (NULL == path || NULL == fi) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters specified \n",
@@ -1546,6 +1564,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 	policy_entry_t *policy = NULL;
 //	sfsd_list_t *sfsds = NULL;
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<<\n", __FUNCTION__);
 	// Paramater validation
 	if (NULL == path || NULL == buf || size < 0 || offset < 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters \n",
@@ -1861,7 +1880,9 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 	policy_entry_t *policy = NULL;
 	size_t bytes_issued = 0;
 	int i = 0;
+	char *fullpath = NULL;
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<<\n", __FUNCTION__);
 	// Paramater validation
 	if (NULL == path || NULL == buf || size < 0 || offset < 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters \n",
@@ -1902,15 +1923,18 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 	}
 
 	// Check for validity of metadata
-	ret = stat(path, &st);
+	fullpath = prepend_mntpath(path);
+	ret = stat(fullpath, &st);
 	if (ret == -1) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: stat failed for file %s. Error = %d \n",
-						__FUNCTION__, path, errno);
+						__FUNCTION__, fullpath, errno);
 
 		sfs_unlock(inode_num);
+		free(fullpath);
 
 		return -1;
 	}
+	free(fullpath);
 
 	if (st.st_size > 0 &&
 				(inode.i_numclients == 0 || NULL == inode.i_sfsds)) {
@@ -2216,6 +2240,7 @@ int
 sfs_statfs(const char *path, struct statvfs *buf)
 {
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<<\n", __FUNCTION__);
 	// Parameter validation
 	if (NULL == path || NULL == buf) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters specified\n",
@@ -2269,6 +2294,7 @@ sfs_release(const char *path, struct fuse_file_info *fi)
 {
 	int res = -1;
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<<\n", __FUNCTION__);
 	// Parameter validation
 	if (NULL == path || NULL == fi) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters specified.\n",
@@ -2302,6 +2328,7 @@ sfs_release(const char *path, struct fuse_file_info *fi)
 int
 sfs_fsync(const char *path, int isdatasync, struct fuse_file_info *fi)
 {
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<<\n", __FUNCTION__);
 
 	return 0;
 }
@@ -2581,6 +2608,7 @@ sfs_setxattr(const char *path, const char *name, const char *value,
 	sstack_inode_t inode;
 	size_t size;
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<<\n", __FUNCTION__);
 	// Parameter validation
 	if (NULL == path || NULL == name || NULL == value || size == 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters passed. \n",
@@ -2741,6 +2769,7 @@ sfs_getxattr(const char *path, const char *name, char *value, size_t size)
 	char *p = NULL;
 	char key[MAX_KEY_LEN] = { '\0' };
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<<\n", __FUNCTION__);
 	// Parameter validation
 	if (NULL == path || NULL == name || NULL == value ||
 					size == 0) {
@@ -2758,7 +2787,8 @@ sfs_getxattr(const char *path, const char *name, char *value, size_t size)
 	}
 
 	// Get the inode number for the file.
-	inodestr = sstack_memcache_read_one(mc, path, strlen(path), &size1, sfs_ctx);
+	inodestr = sstack_memcache_read_one(mc, path, strlen(path), &size1,
+			sfs_ctx);
 	if (NULL == inodestr) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
 					"for path %s.\n", __FUNCTION__, path);
@@ -2861,7 +2891,7 @@ sfs_listxattr(const char *path, char *list, size_t size)
 	char key[MAX_KEY_LEN] = { '\0' };
 	int bytes_copied = 0;
 
-
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<<\n", __FUNCTION__);
 	// Parameter validation
 	if (NULL == path || NULL == list || size == 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters specified \n",
@@ -2872,7 +2902,8 @@ sfs_listxattr(const char *path, char *list, size_t size)
 	}
 
 	// Get the inode number for the file.
-	inodestr = sstack_memcache_read_one(mc, path, strlen(path), &size1, sfs_ctx);
+	inodestr = sstack_memcache_read_one(mc, path, strlen(path), &size1,
+			sfs_ctx);
 	if (NULL == inodestr) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
 					"for path %s.\n", __FUNCTION__, path);
@@ -2968,6 +2999,7 @@ xattr_remove(sstack_inode_t *inode, const char *name)
 	char *p = NULL;
 	int found = 0;
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<<\n", __FUNCTION__);
 	// Parameter validation
 	if (NULL == inode || NULL == name) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters specified \n",
@@ -3069,6 +3101,7 @@ sfs_removexattr(const char *path, const char *name)
 	sstack_inode_t inode;
 	size_t size;
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<<\n", __FUNCTION__);
 	// Parameter validation
 	if (NULL == path || NULL == name) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters passed. \n",
@@ -3139,6 +3172,7 @@ void
 sfs_destroy(void *arg)
 {
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<<\n", __FUNCTION__);
 }
 
 /*
@@ -3160,6 +3194,7 @@ sfs_access(const char *path, int mode)
 	size_t size = 0;
 	int ret = -1;
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<<\n", __FUNCTION__);
 	// Parameter validation
 	if (NULL == path || mode == 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters specified \n",
@@ -3244,6 +3279,7 @@ sfs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 	char *fullpath = NULL;
 	struct timespec ts;
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<<\n", __FUNCTION__);
 	// Parameter validation
 	if (NULL == path) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters specified \n",
@@ -3377,6 +3413,7 @@ sfs_ftruncate(const char *path, off_t offset, struct fuse_file_info *fi)
 	unsigned long long inode_num = 0;
 	size_t size = 0;
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<<\n", __FUNCTION__);
 	// Parameter validation
 	if (NULL == path || NULL == fi) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters specified \n",
@@ -3461,6 +3498,7 @@ sfs_utimens(const char *path, const struct timespec tv[2])
 	int ret = -1;
 	char *fullpath = NULL;
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<<\n", __FUNCTION__);
 	// Parameter validation
 	if (NULL == path) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameter specified \n",
@@ -3489,6 +3527,7 @@ sfs_submit_esure_code_job(sstack_inode_t inode, off_t offset, size_t size)
 	sstack_payload_t *payload = NULL;
 	int		ret = 0;
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<<\n", __FUNCTION__);
 	job = sfs_job_init();
     if (NULL == job) {
 	    sfs_log(sfs_ctx, SFS_ERR, "%s: Fail to allocate job memory.\n",
@@ -3539,6 +3578,7 @@ sfs_send_read_status(sstack_job_map_t *job_map, char *buf, size_t size)
     sfs_job_t               *job = NULL;
     struct sstack_nfs_read_resp    read_resp;
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<<\n", __FUNCTION__);
 	/* Not all jobs processed and we got a pthread_cond_signal.
        Some job had a read specific error */
     if (job_map->num_jobs_left != 0) {
@@ -3578,6 +3618,7 @@ sfs_send_write_status(sstack_job_map_t *job_map,  sstack_inode_t inode,
     sstack_jt_t             *jt_node = NULL, jt_key;
     sfs_job_t               *job = NULL;
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<<\n", __FUNCTION__);
 	for (i = 0; i < job_map->num_jobs; i++) {
 	    job_id = job_map->job_ids[i];
 
@@ -3626,6 +3667,7 @@ sfs_send_write_status(sstack_job_map_t *job_map,  sstack_inode_t inode,
 int
 sfs_bmap(const char *path, size_t blocksize, uint64_t *idx)
 {
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<<\n", __FUNCTION__);
 	errno = ENOSYS;
 	return -1;
 }
@@ -3634,6 +3676,7 @@ int
 sfs_ioctl(const char *path, int cmd, void *arg, struct fuse_file_info *fi,
 				unsigned int flags, void *data)
 {
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<<\n", __FUNCTION__);
 	errno = ENOSYS;
 	return -1;
 }
@@ -3642,6 +3685,7 @@ int
 sfs_poll(const char *path, struct fuse_file_info *fi,
 				struct fuse_pollhandle *ph, unsigned *reventsp)
 {
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<<\n", __FUNCTION__);
 	errno = ENOSYS;
 	return -1;
 }
@@ -3650,7 +3694,7 @@ int
 sfs_write_buf(const char *path, struct fuse_bufvec *buf, off_t off,
 				struct fuse_file_info *fi)
 {
-
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<<\n", __FUNCTION__);
 	errno = ENOSYS;
 	return -1;
 }
@@ -3659,6 +3703,7 @@ int
 sfs_read_buf(const char *path, struct fuse_bufvec **bufp, size_t size,
 				off_t off, struct fuse_file_info *fi)
 {
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<<\n", __FUNCTION__);
 	errno = ENOSYS;
 	return -1;
 
@@ -3667,6 +3712,7 @@ sfs_read_buf(const char *path, struct fuse_bufvec **bufp, size_t size,
 int
 sfs_mknod(const char *path, mode_t mode, dev_t rdev)
 {
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<<\n", __FUNCTION__);
 	errno = ENOSYS;
 	return -1;
 }

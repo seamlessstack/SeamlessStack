@@ -441,6 +441,9 @@ mongo_db_get(char *key, char *data, db_type_t type, log_ctx_t *ctx)
 	char record_name[REC_NAME_SIZE];
 	uint64_t record_len = 0;
 
+
+	sfs_log(ctx, SFS_DEBUG, "%s: key = %s data = %s type = %d \n",
+			__FUNCTION__, key, data, type);
 	if (key == NULL) {
 		sfs_log(ctx, SFS_ERR, "%s: Key passed is NULL. \n",
 				__FUNCTION__);
@@ -451,7 +454,7 @@ mongo_db_get(char *key, char *data, db_type_t type, log_ctx_t *ctx)
 	bson_append_string(query, "record_num", key);
 	if (ret != BSON_OK) {
 		sfs_log(ctx, SFS_ERR, "%s: Failed to append record_num to bson for "
-			"inode %a. Error = %d \n", __FUNCTION__, key, ret);
+			"inode %s. Error = %d \n", __FUNCTION__, key, ret);
 		bson_destroy(query);
 		return -ret;
 	}
