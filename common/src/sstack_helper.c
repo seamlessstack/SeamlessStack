@@ -86,25 +86,25 @@ db_register(db_t *db, db_init_t db_init, db_open_t db_open,
  */
 
 static int
-fill_inode(sstack_inode_t *inode, char *data, log_ctx_t *ctx)
+fill_inode(sstack_inode_t *inode, char **data, log_ctx_t *ctx)
 {
 	char *erasure = NULL;
 	char *extents = NULL;
 	char *temp = NULL;
 	char *cur = NULL;
-	sstack_inode_t *in = (sstack_inode_t *) data;
+	sstack_inode_t *in = (sstack_inode_t *) *data;
 	int i = 0;
 	int path_len = 0;
 	int covered = 0;
 	sstack_extent_t *er = NULL;
 
-	if (NULL == inode || NULL == data) {
+	if (NULL == inode || NULL == *data) {
 		sfs_log(ctx, SFS_ERR, "%s: Invalid parameters passed.\n", __FUNCTION__);
 
 		return -EINVAL;
 	}
-	memcpy(inode, data, get_inode_fixed_fields_len());
-	cur = (data + get_inode_fixed_fields_len());
+	memcpy(inode, *data, get_inode_fixed_fields_len());
+	cur = (*data + get_inode_fixed_fields_len());
 
 	// Copy remaining fields
 	// 1. Copy extentded attributes
@@ -120,7 +120,7 @@ fill_inode(sstack_inode_t *inode, char *data, log_ctx_t *ctx)
 	// 2. Erasure code segment paths
 	// Copy remaining fields
 	// 1. Erasure code segment paths
-	er = (sstack_extent_t *) ((char *) (data +
+	er = (sstack_extent_t *) ((char *) (*data +
 				get_inode_fixed_fields_len() + covered));
 
 	for (i = 0; i < in->i_numerasure; i++) {
@@ -155,7 +155,7 @@ fill_inode(sstack_inode_t *inode, char *data, log_ctx_t *ctx)
 	inode->i_erasure = (sstack_extent_t *) erasure;
 
 	// 3. Extent paths
-	cur = (data + get_inode_fixed_fields_len() + covered);
+	cur = (*data + get_inode_fixed_fields_len() + covered);
 	covered = 0;
 
 	for (i = 0; i < in->i_numextents; i++) {
@@ -188,7 +188,7 @@ fill_inode(sstack_inode_t *inode, char *data, log_ctx_t *ctx)
 	inode->i_extent = (sstack_extent_t *) extents;
 
 	// 4. sfsd info
-	cur = (data + get_inode_fixed_fields_len() + covered);
+	cur = (*data + get_inode_fixed_fields_len() + covered);
 	covered = 0;
 
 	inode->i_sfsds = (sstack_sfsd_info_t *) malloc(sizeof(sstack_sfsd_info_t *)
@@ -230,7 +230,7 @@ int
 get_inode(unsigned long long inode_num, sstack_inode_t *inode, db_t *db)
 {
 	char inode_str[MAX_INODE_LEN] = { '\0' };
-	char *data = NULL;
+	char *data;
 
 	// Parameter validation
 	if (inode_num < INODE_NUM_START || NULL == inode || NULL == db) {
@@ -241,14 +241,14 @@ get_inode(unsigned long long inode_num, sstack_inode_t *inode, db_t *db)
 
 	sprintf(inode_str, "%lld", inode_num);
 
-	if (db->db_ops.db_get && (db->db_ops.db_get(inode_str, data,
+	if (db->db_ops.db_get && (db->db_ops.db_get(inode_str, &data,
 					INODE_TYPE, db->ctx))) {
 		int ret = -1;
 
 		sfs_log(db->ctx, SFS_INFO, "%s: Succeeded for inode %lld \n",
 				__FUNCTION__, inode_num);
 		// Workhorse
-		ret = fill_inode(inode, data, db->ctx);
+		ret = fill_inode(inode, &data, db->ctx);
 
 		return ret;
 	} else {
@@ -365,7 +365,7 @@ flatten_inode(sstack_inode_t *inode, size_t *len, log_ctx_t *ctx)
 	}
 
 	if (inode->i_numclients) {
-		// 4. sfsd info	
+		// 4. sfsd info
 		temp = realloc(data, ((*len) + (sizeof(sstack_sfsd_info_t *) *
 						(inode->i_numclients - 1))));
 		if (NULL == temp) {
@@ -503,7 +503,8 @@ sstack_free_inode_res(sstack_inode_t *inode, log_ctx_t *ctx)
 	if (inode->i_extent)
 		free(inode->i_extent);
 
-	sstack_free_erasure(ctx, inode->i_erasure, inode->i_numerasure);
+	if (inode->i_numerasure > 0)
+		sstack_free_erasure(ctx, inode->i_erasure, inode->i_numerasure);
 }
 
 /*

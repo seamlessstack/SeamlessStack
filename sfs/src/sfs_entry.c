@@ -1153,6 +1153,7 @@ sfs_chmod(const char *path, mode_t mode)
 	sstack_inode_t inode;
 	size_t size1 = 0;
 	int ret = -1;
+	char *fullpath = NULL;
 
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<<\n", __FUNCTION__);
 	// Parameter validation
@@ -1164,13 +1165,16 @@ sfs_chmod(const char *path, mode_t mode)
 		return -1;
 	}
 
-	ret = chmod(path, mode);
+	fullpath = prepend_mntpath(path);
+	ret = chmod(fullpath, mode);
 	if (ret == -1) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: chmod for %s failed with error %d\n",
-						__FUNCTION__, errno);
+						__FUNCTION__, fullpath, errno);
+		free(fullpath);
 		return -1;
 	}
 
+	free(fullpath);
 	// Update inode with the new mode
 	// Get the inode number for the file.
 	inodestr = sstack_memcache_read_one(mc, path, strlen(path), &size1,
