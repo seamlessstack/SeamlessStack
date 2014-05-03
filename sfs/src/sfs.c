@@ -1084,6 +1084,7 @@ sfs_init(struct fuse_conn_info *conn)
 			__FUNCTION__, errno);
 		return NULL;
 	}
+	db->ctx = sfs_ctx;
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s: DB registered \n", __FUNCTION__);
 
 	// Initialize TCP transport

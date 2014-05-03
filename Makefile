@@ -44,8 +44,8 @@ RM = rm
 CP = cp
 
 all:
-	$(MKDIR) -p $(OSS_INSTALL_DIR)
-	$(MAKE) -C $(OSS)
+#	$(MKDIR) -p $(OSS_INSTALL_DIR)
+#	$(MAKE) -C $(OSS)
 	# Following dirty hack is because --proto_path does not work !!
 	$(LN) $(PROTOBUF_DIR)/jobs.proto jobs.proto
 	$(PROTOC) --c_out=$(PROTOBUF_DIR) jobs.proto
@@ -89,9 +89,9 @@ install:
 	$(LN) -s $(LIBDIR)/libmongoc.so $(LIBDIR)/libmongoc.so.0.7
 
 tags:
-	$(RM) -f cscope.out
-	$(CSCOPE) -bR
-	$(RM) -f tags
+#$(RM) -f cscope.out
+#	$(CSCOPE) -bR
+#	$(RM) -f tags
 	$(CTAGS) -R
 
 clean:
