@@ -19,6 +19,6 @@ rm -rf /tmp/junky
 rm -rf /var/sfs
 
 #Cleanup mongodb
-rm -f /var/lib/mongodb/*
-rm -f /var/lib/mongodb/journal/*
+rm -fr /var/lib/mongodb/*
+rm -fr /var/lib/mongodb/journal/*
 dmesg -c
