@@ -19,6 +19,6 @@ rm -rf /tmp/junky
 rm -rf /var/sfs
 
 #Cleanup mongodb
-rm -rf /var/lib/mongodb
 /etc/init.d/mongodb stop
+#rm -rf /var/lib/mongodb
 dmesg -c

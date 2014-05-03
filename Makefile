@@ -89,9 +89,9 @@ install:
 	$(LN) -s $(LIBDIR)/libmongoc.so $(LIBDIR)/libmongoc.so.0.7
 
 tags:
-#$(RM) -f cscope.out
-#	$(CSCOPE) -bR
-#	$(RM) -f tags
+	$(RM) -f cscope.out
+	$(CSCOPE) -bR
+	$(RM) -f tags
 	$(CTAGS) -R
 
 clean:

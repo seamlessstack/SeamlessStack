@@ -3004,7 +3004,7 @@ xattr_remove(sstack_inode_t *inode, const char *name)
 	char *p = NULL;
 	int found = 0;
 
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<<\n", __FUNCTION__);
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<< name = %s\n", __FUNCTION__, name);
 	// Parameter validation
 	if (NULL == inode || NULL == name) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters specified \n",
@@ -3013,11 +3013,13 @@ xattr_remove(sstack_inode_t *inode, const char *name)
 		return -1;
 	}
 
-	if (NULL == inode->i_xattr || inode->i_xattrlen <= 0) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters specified \n",
-						__FUNCTION__);
-		errno = EINVAL;
-		return -1;
+	if (strcmp(name, "security.ima") != 0)  {
+		if (NULL == inode->i_xattr || inode->i_xattrlen <= 0) {
+			sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters specified \n",
+							__FUNCTION__);
+			errno = EINVAL;
+			return -1;
+		}
 	}
 
 
@@ -3147,13 +3149,15 @@ sfs_removexattr(const char *path, const char *name)
 
 
 	ret = xattr_remove(&inode, name);
-	if (ret == -1) {
+	if (ret == -1 && (strcmp(name, "security.ima") != 0)) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Removing xattr %s failed for file %s\n",
 						__FUNCTION__, name, path);
 		errno = ENOATTR;
 		sstack_free_inode_res(&inode, sfs_ctx);
 		sfs_unlock(inode_num);
 		return -1;
+	} else if (strcmp(name, "security.ima") == 0) {
+		return 0;
 	}
 
 	// Update inode
