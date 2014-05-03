@@ -14,6 +14,6 @@ pkill -9 sfsclid
 pkill -9 sfsd
 rm -rf /tmp/sfs /tmp/sfsd /tmp/dir*
 
-rm -rf /tmp/one
+rm -rf /tmp/one /tmp/two
 rm -rf /tmp/junky
 dmesg -c
