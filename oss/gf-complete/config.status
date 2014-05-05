@@ -437,7 +437,7 @@ Copyright (C) 2012 Free Software Foundation, Inc.
 This config.status script is free software; the Free Software Foundation
 gives unlimited permission to copy, distribute and modify it."
 
-ac_pwd='/home/shank/sstack/oss/gf-complete'
+ac_pwd='/home/shubhro/work/latest/sstack/oss/gf-complete'
 srcdir='.'
 INSTALL='/usr/bin/install -c'
 MKDIR_P='/bin/mkdir -p'
@@ -674,8 +674,8 @@ postuninstall_cmds=''
 finish_cmds='PATH="\$PATH:/sbin" ldconfig -n $libdir'
 finish_eval=''
 hardcode_into_libs='yes'
-sys_lib_search_path_spec='/usr/lib/gcc/x86_64-linux-gnu/4.8 /usr/lib/x86_64-linux-gnu /usr/lib /lib/x86_64-linux-gnu /lib '
-sys_lib_dlsearch_path_spec='/lib /usr/lib /lib/i386-linux-gnu /usr/lib/i386-linux-gnu /lib/i686-linux-gnu /usr/lib/i686-linux-gnu /usr/local/lib /lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu/mesa-egl /usr/lib/x86_64-linux-gnu/mesa '
+sys_lib_search_path_spec='/usr/lib/gcc/x86_64-linux-gnu/4.7 /usr/lib/x86_64-linux-gnu /usr/lib /lib/x86_64-linux-gnu /lib '
+sys_lib_dlsearch_path_spec='/lib /usr/lib /usr/local/lib /lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu/mesa-egl /usr/lib/x86_64-linux-gnu/mesa '
 hardcode_action='immediate'
 enable_dlopen='unknown'
 enable_dlopen_self='unknown'
@@ -820,7 +820,7 @@ S["am__EXEEXT_FALSE"]=""
 S["am__EXEEXT_TRUE"]="#"
 S["LTLIBOBJS"]=""
 S["LIBOBJS"]=""
-S["SIMD_FLAGS"]=" -mmmx -msse -DINTEL_SSE -msse2 -DINTEL_SSE2 -msse3 -DINTEL_SSE3 -mssse3 -DINTEL_SSSE3"
+S["SIMD_FLAGS"]=" -mmmx -msse -DINTEL_SSE -msse2 -DINTEL_SSE2 -msse3 -DINTEL_SSE3"
 S["MAINT"]="#"
 S["MAINTAINER_MODE_FALSE"]=""
 S["MAINTAINER_MODE_TRUE"]="#"
@@ -885,12 +885,12 @@ S["mkdir_p"]="$(MKDIR_P)"
 S["MKDIR_P"]="/bin/mkdir -p"
 S["INSTALL_STRIP_PROGRAM"]="$(install_sh) -c -s"
 S["STRIP"]="strip"
-S["install_sh"]="${SHELL} /home/shank/sstack/oss/gf-complete/install-sh"
-S["MAKEINFO"]="${SHELL} /home/shank/sstack/oss/gf-complete/missing makeinfo"
-S["AUTOHEADER"]="${SHELL} /home/shank/sstack/oss/gf-complete/missing autoheader"
-S["AUTOMAKE"]="${SHELL} /home/shank/sstack/oss/gf-complete/missing automake-1.14"
-S["AUTOCONF"]="${SHELL} /home/shank/sstack/oss/gf-complete/missing autoconf"
-S["ACLOCAL"]="${SHELL} /home/shank/sstack/oss/gf-complete/missing aclocal-1.14"
+S["install_sh"]="${SHELL} /home/shubhro/work/latest/sstack/oss/gf-complete/install-sh"
+S["MAKEINFO"]="${SHELL} /home/shubhro/work/latest/sstack/oss/gf-complete/missing makeinfo"
+S["AUTOHEADER"]="${SHELL} /home/shubhro/work/latest/sstack/oss/gf-complete/missing autoheader"
+S["AUTOMAKE"]="${SHELL} /home/shubhro/work/latest/sstack/oss/gf-complete/missing automake-1.14"
+S["AUTOCONF"]="${SHELL} /home/shubhro/work/latest/sstack/oss/gf-complete/missing autoconf"
+S["ACLOCAL"]="${SHELL} /home/shubhro/work/latest/sstack/oss/gf-complete/missing aclocal-1.14"
 S["VERSION"]="foreign"
 S["PACKAGE"]="no-dependencies"
 S["CYGPATH_W"]="echo"
@@ -1001,7 +1001,6 @@ D["HAVE_MMX"]=" /**/"
 D["HAVE_SSE"]=" /**/"
 D["HAVE_SSE2"]=" /**/"
 D["HAVE_SSE3"]=" /**/"
-D["HAVE_SSSE3"]=" /**/"
   for (key in D) D_is_set[key] = 1
   FS = ""
 }

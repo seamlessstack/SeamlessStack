@@ -40,8 +40,6 @@ gf_unit.o: gf_unit.c /usr/include/stdio.h /usr/include/features.h \
  /usr/include/x86_64-linux-gnu/bits/sigstack.h \
  /usr/include/x86_64-linux-gnu/sys/ucontext.h \
  /usr/include/x86_64-linux-gnu/bits/sigthread.h ../include/gf_complete.h \
- /usr/lib/gcc/x86_64-linux-gnu/4.7/include/tmmintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/4.7/include/pmmintrin.h \
  /usr/lib/gcc/x86_64-linux-gnu/4.7/include/emmintrin.h \
  /usr/lib/gcc/x86_64-linux-gnu/4.7/include/xmmintrin.h \
  /usr/lib/gcc/x86_64-linux-gnu/4.7/include/mmintrin.h \
@@ -160,10 +158,6 @@ gf_unit.o: gf_unit.c /usr/include/stdio.h /usr/include/features.h \
 /usr/include/x86_64-linux-gnu/bits/sigthread.h:
 
 ../include/gf_complete.h:
-
-/usr/lib/gcc/x86_64-linux-gnu/4.7/include/tmmintrin.h:
-
-/usr/lib/gcc/x86_64-linux-gnu/4.7/include/pmmintrin.h:
 
 /usr/lib/gcc/x86_64-linux-gnu/4.7/include/emmintrin.h:
 

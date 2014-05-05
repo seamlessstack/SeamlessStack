@@ -33,8 +33,6 @@ gf_div.o: gf_div.c /usr/include/stdio.h /usr/include/features.h \
  /usr/include/x86_64-linux-gnu/bits/pthreadtypes.h /usr/include/alloca.h \
  /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
  /usr/include/x86_64-linux-gnu/bits/stdlib.h ../include/gf_complete.h \
- /usr/lib/gcc/x86_64-linux-gnu/4.7/include/tmmintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/4.7/include/pmmintrin.h \
  /usr/lib/gcc/x86_64-linux-gnu/4.7/include/emmintrin.h \
  /usr/lib/gcc/x86_64-linux-gnu/4.7/include/xmmintrin.h \
  /usr/lib/gcc/x86_64-linux-gnu/4.7/include/mmintrin.h \
@@ -136,10 +134,6 @@ gf_div.o: gf_div.c /usr/include/stdio.h /usr/include/features.h \
 /usr/include/x86_64-linux-gnu/bits/stdlib.h:
 
 ../include/gf_complete.h:
-
-/usr/lib/gcc/x86_64-linux-gnu/4.7/include/tmmintrin.h:
-
-/usr/lib/gcc/x86_64-linux-gnu/4.7/include/pmmintrin.h:
 
 /usr/lib/gcc/x86_64-linux-gnu/4.7/include/emmintrin.h:
 

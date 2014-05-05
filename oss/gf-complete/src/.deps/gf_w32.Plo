@@ -7,8 +7,6 @@ gf_w32.lo: gf_w32.c ../include/gf_int.h ../include/gf_complete.h \
  /usr/include/x86_64-linux-gnu/gnu/stubs.h \
  /usr/include/x86_64-linux-gnu/gnu/stubs-64.h \
  /usr/include/x86_64-linux-gnu/bits/wchar.h \
- /usr/lib/gcc/x86_64-linux-gnu/4.7/include/tmmintrin.h \
- /usr/lib/gcc/x86_64-linux-gnu/4.7/include/pmmintrin.h \
  /usr/lib/gcc/x86_64-linux-gnu/4.7/include/emmintrin.h \
  /usr/lib/gcc/x86_64-linux-gnu/4.7/include/xmmintrin.h \
  /usr/lib/gcc/x86_64-linux-gnu/4.7/include/mmintrin.h \
@@ -64,10 +62,6 @@ gf_w32.lo: gf_w32.c ../include/gf_int.h ../include/gf_complete.h \
 /usr/include/x86_64-linux-gnu/gnu/stubs-64.h:
 
 /usr/include/x86_64-linux-gnu/bits/wchar.h:
-
-/usr/lib/gcc/x86_64-linux-gnu/4.7/include/tmmintrin.h:
-
-/usr/lib/gcc/x86_64-linux-gnu/4.7/include/pmmintrin.h:
 
 /usr/lib/gcc/x86_64-linux-gnu/4.7/include/emmintrin.h:
 

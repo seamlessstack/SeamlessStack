@@ -2142,9 +2142,13 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 		//TODO: Extent is unallocated here. Take care for the fisrt 
 		//extent
-		if ((offset + size) > (extent->e_offset + extent->e_size))
-			write_size = (extent->e_offset + extent->e_size) - offset;
-		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
+
+		/* Could be first extent. take care here */
+		if (extent) {
+			if ((offset + size) > (extent->e_offset + extent->e_size))
+				write_size = (extent->e_offset + extent->e_size) - offset;
+			sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
+		}
 		payload->command_struct.write_cmd.count = write_size;
 		payload->command_struct.write_cmd.data.data_len = write_size;
 		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
@@ -2156,7 +2160,8 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		job->payload = payload;
 		// Add this job to job_map
 		job_map->num_jobs ++;
-		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
+		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d num jobs: %d\n",
+				__FUNCTION__, __LINE__, job_map->num_jobs);
 		temp = realloc(job_map->job_ids, job_map->num_jobs *
 						sizeof(sstack_job_id_t));
 		if (NULL == temp) {
@@ -2197,6 +2202,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 
 			return -1;
 		}
+		job_map->job_status = (sstack_job_status_t *)temp;
 		pthread_spin_lock(&job_map->lock);
 		job_map->job_status[job_map->num_jobs - 1] = JOB_STARTED;
 		pthread_spin_unlock(&job_map->lock);
@@ -2234,18 +2240,20 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 			return -1;
 		}
 		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
-
+		
 		bytes_issued += write_size;
-		// Check whether we are done with original request
-		if ((offset + size) > (extent->e_offset + extent->e_size)) {
-			// Request spans multiple extents
-			extent ++;
-			// TODO
-			// Check for sparse file condition
-			relative_offset = extent->e_offset;
-			bytes_to_write = size - bytes_issued;
-		} else {
-			bytes_to_write = size - bytes_issued;
+		if (extent) {
+			// Check whether we are done with original request
+			if ((offset + size) > (extent->e_offset + extent->e_size)) {
+				// Request spans multiple extents
+				extent ++;
+				// TODO
+				// Check for sparse file condition
+				relative_offset = extent->e_offset;
+				bytes_to_write = size - bytes_issued;
+			} else {
+				bytes_to_write = size - bytes_issued;
+			}
 		}
 	}
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);

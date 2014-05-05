@@ -44,7 +44,7 @@ RM = rm
 CP = cp
 
 all:
-#	$(MKDIR) -p $(OSS_INSTALL_DIR)
+#$(MKDIR) -p $(OSS_INSTALL_DIR)
 #	$(MAKE) -C $(OSS)
 	# Following dirty hack is because --proto_path does not work !!
 	$(LN) $(PROTOBUF_DIR)/jobs.proto jobs.proto
