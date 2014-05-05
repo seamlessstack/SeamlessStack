@@ -286,6 +286,7 @@ flatten_inode(sstack_inode_t *inode, size_t *len, log_ctx_t *ctx)
 
 		return NULL;
 	}
+	sfs_log(ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__,__LINE__);
 	*len = 0; // Just in case
 	// Copy fixed fields of the inode
 	fixed_len = get_inode_fixed_fields_len();
@@ -296,6 +297,7 @@ flatten_inode(sstack_inode_t *inode, size_t *len, log_ctx_t *ctx)
 			inode->i_num);
 		return NULL;
 	}
+	sfs_log(ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__,__LINE__);
 	memcpy(data, inode, fixed_len);
 	*len += fixed_len;
 	// Copy remaining fields
@@ -309,6 +311,7 @@ flatten_inode(sstack_inode_t *inode, size_t *len, log_ctx_t *ctx)
 	}
 
 	er = inode->i_erasure;
+	sfs_log(ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__,__LINE__);
 	// 2. Erausre
 	for (i = 0; i < inode->i_numerasure; i++) {
 		// First field is e_path
@@ -332,6 +335,7 @@ flatten_inode(sstack_inode_t *inode, size_t *len, log_ctx_t *ctx)
 		er ++;
 	}
 
+	sfs_log(ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__,__LINE__);
 	// 3. Extents
 	ex = inode->i_extent;
 
@@ -368,6 +372,7 @@ flatten_inode(sstack_inode_t *inode, size_t *len, log_ctx_t *ctx)
 		ex ++;
 	}
 
+	sfs_log(ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__,__LINE__);
 	if (inode->i_numclients) {
 		// 4. sfsd info
 		temp = realloc(data, ((*len) + (sizeof(sstack_sfsd_info_t *) *
@@ -384,6 +389,7 @@ flatten_inode(sstack_inode_t *inode, size_t *len, log_ctx_t *ctx)
 				(sizeof(sstack_sfsd_info_t *) * (inode->i_numclients - 1)));
 		*len += (sizeof(sstack_sfsd_info_t *) * inode->i_numclients);
 	}
+	sfs_log(ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__,__LINE__);
 	return data;
 }
 

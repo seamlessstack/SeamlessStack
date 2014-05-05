@@ -1521,6 +1521,7 @@ sfs_open(const char *path, struct fuse_file_info *fi)
 	inode.i_extent = NULL;
 	inode.i_erasure = NULL; // No erasure coding info for now
 	inode.i_xattr = NULL; // No extended attributes carried over
+	inode.i_numclients = 0;
 
 	// Store inode
 	ret = put_inode(&inode, db);
@@ -1866,6 +1867,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 	return (ret);
 }
 
+extern sfsd_t accept_sfsd;
 int
 sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 	struct fuse_file_info *fi)
@@ -1907,6 +1909,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 
 		return -1;
 	}
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 	inode_num = atoll((const char *)inodestr);
 	ret = sfs_wrlock(inode_num);
 	if (ret == -1) {
@@ -1917,6 +1920,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		return -1;
 	}
 	// Get inode from DB
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 	ret = get_inode(inode_num, &inode, db);
 	if (ret != 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to get inode %lld. Path = %s "
@@ -1927,6 +1931,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		return -1;
 	}
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 	// Check for validity of metadata
 	fullpath = prepend_mntpath(path);
 	ret = stat(fullpath, &st);
@@ -1940,6 +1945,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		return -1;
 	}
 	free(fullpath);
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 
 	if (st.st_size > 0 &&
 				(inode.i_numclients == 0 || NULL == inode.i_sfsds)) {
@@ -1954,13 +1960,16 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		return -1;
 	}
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 	// If first write for the file, get the sfsd list for the file.
+#if 0
 	if (st.st_size == 0) {
 		sfsd_list_t *sfsds = NULL;
 		sstack_sfsd_info_t *temp = NULL;
 		int i = 0;
 
 
+		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 		sfsds = sfs_idp_get_sfsd_list(&inode, sfsd_pool, sfs_ctx);
 		if (NULL == sfsds) {
 			sfs_log(sfs_ctx, SFS_ERR, "%s: sfs_idp_get_sfsd_list failed \n",
@@ -1972,6 +1981,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 
 			return -1;
 		}
+		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 		// Populate inode with new information
 		inode.i_numclients = sfsds->num_sfsds;
 		temp = (sstack_sfsd_info_t *) malloc(sizeof(sstack_sfsd_info_t));
@@ -1986,6 +1996,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 
 			return -1;
 		}
+		sstack_sfsd_info_t temp;
 		memcpy((void *) &temp->transport, (void *)sfsds[0].sfsds->transport,
 						sizeof(sstack_transport_t));
 		inode.i_primary_sfsd = temp;
@@ -2011,7 +2022,17 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		// TODO
 		// Store the inode in DB to avoid losing this information
 	}
+#endif
 
+	//FIXME: Hardcoding sfsds for now
+	inode.i_numclients = 1;
+	inode.i_sfsds = malloc(sizeof(sstack_sfsd_info_t));
+	inode.i_sfsds[0].sfsd = &accept_sfsd;
+	memcpy(&inode.i_sfsds[0].transport, &accept_sfsd.transport,
+			sizeof(sstack_transport_t));
+	inode.i_primary_sfsd = &inode.i_sfsds[0];
+
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 	relative_offset = offset;
 	thread_id = pthread_self();
 
@@ -2026,6 +2047,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		extent ++;
 	}
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 	bytes_to_write = size;
 
 	// Create job_map for this job.
@@ -2046,6 +2068,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		sfs_unlock(inode_num);
 		return -1;
 	}
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 
 	for (i = 0; i < inode.i_numclients; i++)
 		job_map->op_status[i] = JOB_STARTED;
@@ -2055,6 +2078,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 	 * and no copies are made by get_policy.
 	 */
 	policy = get_policy(path);
+#if 0
 	if (NULL == policy) {
 		sfs_log(sfs_ctx, SFS_INFO, "%s: No policies specified for the file"
 				". Default policy applied \n", __FUNCTION__);
@@ -2065,6 +2089,9 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 				"hidden %d \n", __FUNCTION__, path, policy->pe_attr.ver,
 				policy->pe_attr.a_qoslevel, policy->pe_attr.a_ishidden);
 	}
+#endif
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d size: %d\n",
+			__FUNCTION__, __LINE__, bytes_to_write);
 
 	while (bytes_to_write) {
 		sfs_job_t *job = NULL;
@@ -2083,19 +2110,26 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 			sfs_unlock(inode_num);
 			return -1;
 		}
+		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 
 		job->id = get_next_job_id();
 		job->job_type = SFSD_IO;
+		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 		job->num_clients = inode.i_numclients;
-		job->sfsds[0] = inode.i_primary_sfsd->sfsd;
-		for (j = 0; j < (inode.i_numclients - 1); j++)
-			job->sfsds[j + 1] = inode.i_sfsds[j].sfsd;
-		for (j = 0; j < inode.i_numclients; j++)
-			job->job_status[j] =  JOB_STARTED;
-
-		job->priority = policy->pe_attr.a_qoslevel;
+		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
+		//FIXME:
+		//job->sfsds[0] = inode.i_primary_sfsd->sfsd;
+		//for (j = 0; j < (inode.i_numclients - 1); j++)
+		//	job->sfsds[j + 1] = inode.i_sfsds[j].sfsd;
+		//for (j = 0; j < inode.i_numclients; j++)
+		//	job->job_status[j] =  JOB_STARTED;
+		job->sfsds[0] = &accept_sfsd;
+		job->job_status[0] =  JOB_STARTED;
+		job->priority = QOS_HIGH;
+		//job->priority = policy->pe_attr.a_qoslevel;
 		// Create new payload
 		payload = sstack_create_payload(NFS_WRITE);
+		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 		// Populate payload
 		payload->hdr.sequence = 0; // Reinitialized by transport
 		payload->hdr.payload_len = sizeof(sstack_payload_t);
@@ -2105,18 +2139,24 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		payload->command = NFS_WRITE;
 		payload->command_struct.write_cmd.inode_no = inode.i_num;
 		payload->command_struct.write_cmd.offset = offset;
+		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
+		//TODO: Extent is unallocated here. Take care for the fisrt 
+		//extent
 		if ((offset + size) > (extent->e_offset + extent->e_size))
 			write_size = (extent->e_offset + extent->e_size) - offset;
+		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 		payload->command_struct.write_cmd.count = write_size;
 		payload->command_struct.write_cmd.data.data_len = write_size;
+		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 		payload->command_struct.write_cmd.data.data_buf =
 				(unsigned char *) (buf + bytes_issued);
-		memcpy((void *) &payload->command_struct.read_cmd.pe, (void *)
-						policy, sizeof(struct policy_entry));
+		//memcpy((void *) &payload->command_struct.read_cmd.pe, (void *)
+		//				policy, sizeof(struct policy_entry));
 		job->payload_len = sizeof(sstack_payload_t);
 		job->payload = payload;
 		// Add this job to job_map
 		job_map->num_jobs ++;
+		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 		temp = realloc(job_map->job_ids, job_map->num_jobs *
 						sizeof(sstack_job_id_t));
 		if (NULL == temp) {
@@ -2132,6 +2172,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 
 			return -1;
 		}
+		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 		job_map->job_ids = (sstack_job_id_t *) temp;
 
 		pthread_spin_lock(&job_map->lock);
@@ -2139,6 +2180,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		job_map->num_jobs_left ++;
 		pthread_spin_unlock(&job_map->lock);
 
+		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 		temp = realloc(job_map->job_status, job_map->num_jobs *
 						sizeof(sstack_job_status_t));
 		if (NULL == temp) {
@@ -2159,6 +2201,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		job_map->job_status[job_map->num_jobs - 1] = JOB_STARTED;
 		pthread_spin_unlock(&job_map->lock);
 
+		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 		ret = sfs_job2thread_map_insert(thread_id, job->id);
 		if (ret == -1) {
 			sfs_log(sfs_ctx, SFS_ERR, "%s: Failed insert the job context "
@@ -2174,6 +2217,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 
 			return -1;
 		}
+		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 		// Add this job to job queue
 		ret = sfs_submit_job(job->priority, jobs, job);
 		if (ret == -1) {
@@ -2189,6 +2233,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 
 			return -1;
 		}
+		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 
 		bytes_issued += write_size;
 		// Check whether we are done with original request
@@ -2203,6 +2248,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 			bytes_to_write = size - bytes_issued;
 		}
 	}
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 	// Add job_map to the jobmap RB-tree
 	ret = sfs_job_context_insert(thread_id, job_map);
 	if (ret == -1) {
@@ -2219,6 +2265,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		return -1;
 	}
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 	ret = sfs_wait_for_completion(job_map);
 
 	// TODO
@@ -2234,6 +2281,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 	sstack_free_inode_res(&inode, sfs_ctx);
 	sfs_unlock(inode_num);
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 	return (ret);
 }
 
@@ -2773,11 +2821,18 @@ sfs_getxattr(const char *path, const char *name, char *value, size_t size)
 	int i = 0;
 	char *p = NULL;
 	char key[MAX_KEY_LEN] = { '\0' };
+	
+	sfs_log(sfs_ctx, SFS_DEBUG, "%p %p %p %d\n", path, name, value, size);
+	if (path)
+		sfs_log(sfs_ctx, SFS_DEBUG, "path = %s\n", path);
+	if (name)
+		sfs_log(sfs_ctx, SFS_DEBUG, "name = %s\n", name);
+	if (value)
+		sfs_log(sfs_ctx, SFS_DEBUG, "value = %s\n", value);
 
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<<\n", __FUNCTION__);
 	// Parameter validation
-	if (NULL == path || NULL == name || NULL == value ||
-					size == 0) {
+	if (NULL == path || NULL == name  || NULL == value || size == 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters passed. \n",
 					__FUNCTION__);
 		errno = EINVAL;
@@ -2822,6 +2877,8 @@ sfs_getxattr(const char *path, const char *name, char *value, size_t size)
 	}
 
 	p = inode.i_xattr;
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - i_xattrlen: %d\n",
+			__FUNCTION__, inode.i_xattrlen);
 	// Walk through the xattrs
 	while ( i < inode.i_xattrlen) {
 		int j;
@@ -2866,7 +2923,7 @@ sfs_getxattr(const char *path, const char *name, char *value, size_t size)
 	// If we did not get a match, error out.
 	sfs_log(sfs_ctx, SFS_ERR, "%s: Attribute %s not found for path %s\n",
 					__FUNCTION__, name, path);
-	errno = ENOATTR;
+	errno = EINVAL;
 	sstack_free_inode_res(&inode, sfs_ctx);
 	sfs_unlock(inode_num);
 

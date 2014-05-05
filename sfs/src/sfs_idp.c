@@ -171,6 +171,7 @@ sfs_idp_get_sfsd_list(sstack_inode_t *inode, sstack_sfsd_pool_t *pools,
 	struct idp_list *s;
 	sfsd_t			*sfsd;
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 	// Parameter validation
 	if (NULL == inode || NULL == pools) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters specified \n",
@@ -178,6 +179,7 @@ sfs_idp_get_sfsd_list(sstack_inode_t *inode, sstack_sfsd_pool_t *pools,
 		errno = EINVAL;
 		return NULL;
 	}
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 
 	sfsd_index = 0;
 	pe = get_policy(inode->i_name);
@@ -188,6 +190,7 @@ sfs_idp_get_sfsd_list(sstack_inode_t *inode, sstack_sfsd_pool_t *pools,
 		num_replicas++;
 	}
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 	sfsd_list = (sfsd_list_t *) calloc(sizeof(sfsd_list_t), 1);
 	if (NULL == sfsd_list) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to allocate memory for "
@@ -195,6 +198,7 @@ sfs_idp_get_sfsd_list(sstack_inode_t *inode, sstack_sfsd_pool_t *pools,
 		return NULL;
 	}
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 	// Allocate memory for sfsds pointers
 	// One extra to account for DR
 	sfsd_list->sfsds = (sfsd_t *) calloc((sizeof(uintptr_t) *

@@ -1587,8 +1587,8 @@ static struct fuse_operations sfs_oper = {
 	.bmap			=	sfs_bmap,	// Required?? Similar to FIBMAP
 	.ioctl			=	sfs_ioctl,
 	.poll			=	sfs_poll,
-	.write_buf		=	sfs_write_buf, 	// Similar to write
-	.read_buf		=	sfs_read_buf,	// Similar to read
+	.write_buf		=	NULL,//sfs_write_buf, 	// Similar to write
+	.read_buf		=	NULL, //sfs_read_buf,	// Similar to read
 };
 
 int
