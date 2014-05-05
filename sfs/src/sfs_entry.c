@@ -2148,6 +2148,8 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 			if ((offset + size) > (extent->e_offset + extent->e_size))
 				write_size = (extent->e_offset + extent->e_size) - offset;
 			sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
+		} else {
+			write_size = size;
 		}
 		payload->command_struct.write_cmd.count = write_size;
 		payload->command_struct.write_cmd.data.data_len = write_size;
@@ -2239,9 +2241,13 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 
 			return -1;
 		}
-		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
+		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d bytes issued: %d\n",
+				__FUNCTION__, __LINE__, bytes_issued);
 		
 		bytes_issued += write_size;
+
+		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d bytes issued: %d\n",
+				__FUNCTION__, __LINE__, bytes_issued);
 		if (extent) {
 			// Check whether we are done with original request
 			if ((offset + size) > (extent->e_offset + extent->e_size)) {
@@ -2255,8 +2261,10 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 				bytes_to_write = size - bytes_issued;
 			}
 		}
+		bytes_to_write = size - bytes_issued;
+		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d bytes to write: %d\n",
+				__FUNCTION__, __LINE__, bytes_to_write);
 	}
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 	// Add job_map to the jobmap RB-tree
 	ret = sfs_job_context_insert(thread_id, job_map);
 	if (ret == -1) {

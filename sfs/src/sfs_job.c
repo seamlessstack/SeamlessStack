@@ -83,6 +83,8 @@ int
 sfs_wait_for_completion(sstack_job_map_t *job_map)
 {
 	// Wait on condition variable
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - Waiting for thread: %d\n",
+			__FUNCTION__, job_map->thread_id);
 	pthread_mutex_lock(&job_map->wait_lock);
 	pthread_cond_wait(&job_map->condition, &job_map->wait_lock);
 	// Calling thread is waiting indefinitely for the completion status
@@ -91,6 +93,8 @@ sfs_wait_for_completion(sstack_job_map_t *job_map)
 	// signals on jobs->wait_cond.
 	// job->wait_mutex is still locked.
 	pthread_mutex_unlock(&job_map->wait_lock);
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - Wait done: %d\n",
+			__FUNCTION__, job_map->thread_id);
 #if 0
 	// This code should be moved to worker thread
 	ret = sfs_dequeue_job(priority, job_list, job);
