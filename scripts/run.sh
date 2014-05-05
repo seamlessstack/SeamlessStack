@@ -2,9 +2,11 @@ mkdir /tmp/sfs /tmp/one /tmp/sfsd /tmp/junky /tmp/two
 mkdir -p /var/sfs
 export LD_LIBRARY_PATH=build/lib:oss_install/lib
 ulimit -c unlimited
-ulimit -s 8192
+ulimit -s 16384
 
 #Restart Mongodb
+mkdir -p /var/lib/mongodb
+chmod 777 /var/lib/mongodb
 /etc/init.d/mongodb restart
 
 # Start sfs
