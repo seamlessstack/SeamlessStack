@@ -146,7 +146,7 @@ sstack_payload_t *sstack_create_payload(sstack_command_t cmd)
 	if (!payload)
 		return NULL;
 
-	sfs_log(serdes_ctx, SFS_ERR, "%s: payload = %"PRIu64" \n",
+	sfs_log(serdes_ctx, SFS_DEBUG, "%s: payload = %"PRIu64" \n",
 			__FUNCTION__, payload);
 
 	// TODO
@@ -741,41 +741,44 @@ sstack_send_payload(sstack_client_handle_t handle,
 				payload->command_struct.read_cmd.pe.pe_lock;
 			entry.pst_index =
 				payload->command_struct.read_cmd.pe.pst_index;
-			plugins = (PolicyPlugin **) malloc(entry.pe_num_plugins *
-					sizeof(PolicyPlugin));
-			if (NULL == plugins) {
-				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
-					"%s. Command aborted \n", __FUNCTION__,
-					sstack_command_stringify(payload->command));
+			if (entry.pe_num_plugins) {
+				*plugins = (PolicyPlugin *) malloc(entry.pe_num_plugins *
+						sizeof(PolicyPlugin));
+				if (NULL == *plugins) {
+					sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
+							"%s. Command aborted \n", __FUNCTION__,
+							sstack_command_stringify(payload->command));
 
-				return -ENOMEM;
-			}
-			for ( i = 0; i < entry.pe_num_plugins; i++ ) {
-				plugins[i]->ver =
-					payload->command_struct.read_cmd.pe.pe_policy[i]->ver;
-				plugins[i]->pp_refcount =
-					payload->command_struct.read_cmd.pe.pe_policy[i]
+					return -ENOMEM;
+				}
+				for ( i = 0; i < entry.pe_num_plugins; i++ ) {
+					plugins[i]->ver =
+						payload->command_struct.read_cmd.pe.pe_policy[i]->ver;
+					plugins[i]->pp_refcount =
+						payload->command_struct.read_cmd.pe.pe_policy[i]
 						->pp_refcount;
-				plugins[i]->pp_policy_name.len =
-					strlen(payload->command_struct.read_cmd.pe.pe_policy[i]
-						->pp_policy_name);
-				strcpy((char *)&plugins[i]->pp_policy_name.data,
-					payload->command_struct.read_cmd.pe.pe_policy[i]
-						->pp_policy_name);
-				plugins[i]->pp_sha_sum.len =
-					strlen(payload->command_struct.read_cmd.pe.pe_policy[i]
-						->pp_sha_sum);
-				strcpy((char *) &plugins[i]->pp_sha_sum.data,
-					payload->command_struct.read_cmd.pe.pe_policy[i]
-						->pp_sha_sum);
-				plugins[i]->is_activated =
-					payload->command_struct.read_cmd.pe.pe_policy[i]
+					plugins[i]->pp_policy_name.len =
+						strlen(payload->command_struct.read_cmd.pe.pe_policy[i]
+								->pp_policy_name);
+					strcpy((char *)&plugins[i]->pp_policy_name.data,
+							payload->command_struct.read_cmd.pe.pe_policy[i]
+							->pp_policy_name);
+					plugins[i]->pp_sha_sum.len =
+						strlen(payload->command_struct.read_cmd.pe.pe_policy[i]
+								->pp_sha_sum);
+					strcpy((char *) &plugins[i]->pp_sha_sum.data,
+							payload->command_struct.read_cmd.pe.pe_policy[i]
+							->pp_sha_sum);
+					plugins[i]->is_activated =
+						payload->command_struct.read_cmd.pe.pe_policy[i]
 						->is_activated;
-				plugins[i]->pp_lock =
-					payload->command_struct.read_cmd.pe.pe_policy[i]
+					plugins[i]->pp_lock =
+						payload->command_struct.read_cmd.pe.pe_policy[i]
 						->pp_lock;
-			}
-			entry.pe_policy = plugins;
+				}
+				entry.pe_policy = plugins;
+			} else
+				entry.pe_policy = plugins;
 			readcmd.pe = &entry;
 			cmd.read_cmd = &readcmd;
 			msg.command_struct = &cmd;
@@ -819,7 +822,6 @@ sstack_send_payload(sstack_client_handle_t handle,
 			SstackNfsData data = SSTACK_NFS_DATA__INIT;
 			PolicyEntry entry = POLICY_ENTRY__INIT;
 			Attribute attr = ATTRIBUTE__INIT;
-			PolicyPlugin **plugins = NULL;
 			int i = 0;
 
 			sfs_log(ctx, SFS_INFO, "%s: %s called \n", __FUNCTION__,
@@ -852,46 +854,51 @@ sstack_send_payload(sstack_client_handle_t handle,
 				payload->command_struct.write_cmd.pe.pe_lock;
 			entry.pst_index =
 				payload->command_struct.write_cmd.pe.pst_index;
-			plugins = (PolicyPlugin **) malloc(entry.pe_num_plugins *
-					sizeof(PolicyPlugin));
-			if (NULL == plugins) {
-				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
-					"%s. Command aborted \n", __FUNCTION__,
-					sstack_command_stringify(payload->command));
+			if (entry.pe_num_plugins) {
+				PolicyPlugin **plugins = NULL;
+				*plugins = (PolicyPlugin *) malloc(entry.pe_num_plugins *
+						sizeof(PolicyPlugin));
+				if (NULL == *plugins) {
+					sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
+							"%s. Command aborted \n", __FUNCTION__,
+							sstack_command_stringify(payload->command));
 
-				return -ENOMEM;
-			}
-			for ( i = 0; i < entry.pe_num_plugins; i++ ) {
-				plugins[i]->ver =
-					payload->command_struct.write_cmd.pe.pe_policy[i]->ver;
-				plugins[i]->pp_refcount =
-					payload->command_struct.write_cmd.pe.pe_policy[i]
+					return -ENOMEM;
+				}
+				for ( i = 0; i < entry.pe_num_plugins; i++ ) {
+					plugins[i]->ver =
+						payload->command_struct.write_cmd.pe.pe_policy[i]->ver;
+					plugins[i]->pp_refcount =
+						payload->command_struct.write_cmd.pe.pe_policy[i]
 						->pp_refcount;
-				plugins[i]->pp_policy_name.len =
-					strlen(payload->command_struct.write_cmd.pe.pe_policy[i]
-						->pp_policy_name);
-				strcpy((char *)&plugins[i]->pp_policy_name.data,
-					payload->command_struct.write_cmd.pe.pe_policy[i]
-						->pp_policy_name);
-				plugins[i]->pp_sha_sum.len =
-					strlen(payload->command_struct.write_cmd.pe.pe_policy[i]
-						->pp_sha_sum);
-				strcpy((char *) &plugins[i]->pp_sha_sum.data,
-					payload->command_struct.write_cmd.pe.pe_policy[i]
-						->pp_sha_sum);
-				plugins[i]->is_activated =
-					payload->command_struct.write_cmd.pe.pe_policy[i]
+					plugins[i]->pp_policy_name.len =
+						strlen(payload->command_struct.write_cmd.pe.pe_policy[i]
+								->pp_policy_name);
+					strcpy((char *)&plugins[i]->pp_policy_name.data,
+							payload->command_struct.write_cmd.pe.pe_policy[i]
+							->pp_policy_name);
+					plugins[i]->pp_sha_sum.len =
+						strlen(payload->command_struct.write_cmd.pe.pe_policy[i]
+								->pp_sha_sum);
+					strcpy((char *) &plugins[i]->pp_sha_sum.data,
+							payload->command_struct.write_cmd.pe.pe_policy[i]
+							->pp_sha_sum);
+					plugins[i]->is_activated =
+						payload->command_struct.write_cmd.pe.pe_policy[i]
 						->is_activated;
-				plugins[i]->pp_lock =
-					payload->command_struct.write_cmd.pe.pe_policy[i]
+					plugins[i]->pp_lock =
+						payload->command_struct.write_cmd.pe.pe_policy[i]
 						->pp_lock;
-			}
-			entry.pe_policy = plugins;
+				}
+				entry.pe_policy = (PolicyPlugin **) plugins;
+			} else
+				entry.pe_policy = NULL;
 			writecmd.pe = &entry;
 			cmd.write_cmd = &writecmd;
 			msg.command_struct = &cmd;
-			hdr.payload_len = sizeof(sstack_payload_hdr_t);
+			hdr.payload_len = sizeof(sstack_payload_t);
 			msg.hdr = &hdr; // Parannoid
+			msg.sub_command = 0;
 			len = sstack_payload_t__get_packed_size(&msg);
 			buffer = malloc(len);
 			if (NULL == buffer) {
@@ -962,41 +969,44 @@ sstack_send_payload(sstack_client_handle_t handle,
 				payload->command_struct.create_cmd.pe.pe_lock;
 			entry.pst_index =
 				payload->command_struct.create_cmd.pe.pst_index;
-			plugins = (PolicyPlugin **) malloc(entry.pe_num_plugins *
-					sizeof(PolicyPlugin));
-			if (NULL == plugins) {
-				sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
-					"%s. Command aborted \n", __FUNCTION__,
-					sstack_command_stringify(payload->command));
+			if (entry.pe_num_plugins) {
+				*plugins = (PolicyPlugin *) malloc(entry.pe_num_plugins *
+						sizeof(PolicyPlugin));
+				if (NULL == *plugins) {
+					sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory for "
+							"%s. Command aborted \n", __FUNCTION__,
+							sstack_command_stringify(payload->command));
 
-				return -ENOMEM;
-			}
-			for ( i = 0; i < entry.pe_num_plugins; i++ ) {
-				plugins[i]->ver =
-					payload->command_struct.create_cmd.pe.pe_policy[i]->ver;
-				plugins[i]->pp_refcount =
-					payload->command_struct.create_cmd.pe.pe_policy[i]
+					return -ENOMEM;
+				}
+				for ( i = 0; i < entry.pe_num_plugins; i++ ) {
+					plugins[i]->ver =
+						payload->command_struct.create_cmd.pe.pe_policy[i]->ver;
+					plugins[i]->pp_refcount =
+						payload->command_struct.create_cmd.pe.pe_policy[i]
 						->pp_refcount;
-				plugins[i]->pp_policy_name.len =
-					strlen(payload->command_struct.create_cmd.pe.pe_policy[i]
-						->pp_policy_name);
-				strcpy((char *)&plugins[i]->pp_policy_name.data,
-					payload->command_struct.create_cmd.pe.pe_policy[i]
-						->pp_policy_name);
-				plugins[i]->pp_sha_sum.len =
-					strlen(payload->command_struct.create_cmd.pe.pe_policy[i]
-						->pp_sha_sum);
-				strcpy((char *) &plugins[i]->pp_sha_sum.data,
-					payload->command_struct.create_cmd.pe.pe_policy[i]
-						->pp_sha_sum);
-				plugins[i]->is_activated =
-					payload->command_struct.create_cmd.pe.pe_policy[i]
+					plugins[i]->pp_policy_name.len =
+						strlen(payload->command_struct.create_cmd.pe.
+								pe_policy[i] ->pp_policy_name);
+					strcpy((char *)&plugins[i]->pp_policy_name.data,
+							payload->command_struct.create_cmd.pe.pe_policy[i]
+							->pp_policy_name);
+					plugins[i]->pp_sha_sum.len =
+						strlen(payload->command_struct.create_cmd.pe.
+								pe_policy[i] ->pp_sha_sum);
+					strcpy((char *) &plugins[i]->pp_sha_sum.data,
+							payload->command_struct.create_cmd.pe.pe_policy[i]
+							->pp_sha_sum);
+					plugins[i]->is_activated =
+						payload->command_struct.create_cmd.pe.pe_policy[i]
 						->is_activated;
-				plugins[i]->pp_lock =
-					payload->command_struct.create_cmd.pe.pe_policy[i]
+					plugins[i]->pp_lock =
+						payload->command_struct.create_cmd.pe.pe_policy[i]
 						->pp_lock;
-			}
-			entry.pe_policy = plugins;
+				}
+				entry.pe_policy = plugins;
+			} else
+				entry.pe_policy = NULL;
 			createcmd.pe = &entry;
 			cmd.create_cmd = &createcmd;
 			msg.command_struct = &cmd;
