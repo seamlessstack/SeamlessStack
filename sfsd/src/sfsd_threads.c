@@ -206,8 +206,6 @@ static void* do_receive_thread(void *param)
 				sfsd->log_ctx);
 		/* After getting the payload, assign a thread pool from the
 		   thread pool to do the job */
-		sfs_log(sfsd->log_ctx, SFS_DEBUG, "%s: %d payload 0x%x path %s\n",
-				__FUNCTION__, __LINE__, payload, payload->storage.path);
 		if (payload != NULL) {
 			/* Command could be
 			   1) Chunk domain command
@@ -309,6 +307,7 @@ void handle_command(sstack_payload_t *command, sstack_payload_t **response,
 			(*response)->command = NFS_READ_RSP;
 			break;
 		case NFS_WRITE:
+			sfs_log(log_ctx, SFS_DEBUG, "write command\n");
 			*response = sstack_write(command, sfsd, log_ctx);
 			(*response)->command = NFS_WRITE_RSP;
 			break;

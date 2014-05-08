@@ -1913,7 +1913,8 @@ sstack_recv_payload(sstack_client_handle_t handle,
 			SstackNfsData *data = NULL;
 			ProtobufCBinaryData data1;
 			int i = 0;
-
+			sfs_log(serdes_ctx, SFS_DEBUG, "%s() - %d\n",
+					__FUNCTION__, __LINE__);
 			payload->command_struct.write_cmd.inode_no =
 					msg->command_struct->write_cmd->inode_no;
 			payload->command_struct.write_cmd.offset =
@@ -1922,14 +1923,22 @@ sstack_recv_payload(sstack_client_handle_t handle,
 					msg->command_struct->write_cmd->count;
 			data = msg->command_struct->write_cmd->data;
 			payload->command_struct.write_cmd.data.data_len = data->data_len;
+			sfs_log(serdes_ctx, SFS_DEBUG, "%s() - %d\n",
+					__FUNCTION__, __LINE__);
 			data1 = msg->command_struct->write_cmd->data->data_buf;
 			strcpy((char *) &payload->command_struct.write_cmd.data.data_buf,
 							(char *) data1.data);
+			sfs_log(serdes_ctx, SFS_DEBUG, "%s() - %d\n",
+					__FUNCTION__, __LINE__);
 
 			entry = msg->command_struct->write_cmd->pe;
 			attr = entry->pe_attr;
+			sfs_log(serdes_ctx, SFS_DEBUG, "%s() - %d\n",
+					__FUNCTION__, __LINE__);
 			memcpy( (void *) &payload->command_struct.write_cmd.pe.pe_attr,
 							(void *) &attr->ver, sizeof(struct attribute));
+			sfs_log(serdes_ctx, SFS_DEBUG, "%s() - %d\n",
+					__FUNCTION__, __LINE__);
 			payload->command_struct.write_cmd.pe.pe_num_plugins =
 					entry->pe_num_plugins;
 			payload->command_struct.write_cmd.pe.pe_refcount =
@@ -1939,6 +1948,8 @@ sstack_recv_payload(sstack_client_handle_t handle,
 			payload->command_struct.write_cmd.pe.pst_index =
 					entry->pst_index;
 			plugins = msg->command_struct->write_cmd->pe->pe_policy;
+			sfs_log(serdes_ctx, SFS_DEBUG, "%s() - %d\n",
+					__FUNCTION__, __LINE__);
 			for ( i = 0; i < entry->pe_num_plugins; i++ ) {
 				payload->command_struct.write_cmd.pe.pe_policy[i]->ver =
 						plugins[i]->ver;
@@ -1956,6 +1967,8 @@ sstack_recv_payload(sstack_client_handle_t handle,
 				payload->command_struct.write_cmd.pe.pe_policy[i]->pp_lock =
 					plugins[i]->pp_lock;
 			}
+			sfs_log(serdes_ctx, SFS_DEBUG, "%s() - %d\n",
+					__FUNCTION__, __LINE__);
 
 			bds_cache_free(serdes_caches[SERDES_PAYLOAD_CACHE_IDX], temp_payload);
 			return payload;

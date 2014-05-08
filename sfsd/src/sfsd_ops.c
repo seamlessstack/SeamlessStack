@@ -643,13 +643,19 @@ sstack_payload_t *sstack_write(sstack_payload_t *payload,
 	char *policy_inbuf, *policy_outbuf;
 	uint32_t cksum = 0;
 
+	sfs_log(ctx, SFS_DEBUG, "%s() - %d\n",
+			__FUNCTION__, __LINE__);
 	inode = bds_cache_alloc(sfsd_global_cache_arr[INODE_CACHE_OFFSET]);
+	sfs_log(ctx, SFS_DEBUG, "%s() - %d %p\n", __FUNCTION__, __LINE__, inode);
+
 	if (inode == NULL) {
 		command_stat = -ENOMEM;
 		sfs_log(ctx, SFS_ERR, "%s(): %s\n",
 			__FUNCTION__, "Inode cache mem not available\n");
 		goto error;
 	}
+	sfs_log(ctx, SFS_DEBUG, "%s() - %d\n",
+			__FUNCTION__, __LINE__);
 
 	if (get_inode(cmd->inode_no, inode, sfsd->db) != 0) {
 		command_stat = -EINVAL;
@@ -657,6 +663,8 @@ sstack_payload_t *sstack_write(sstack_payload_t *payload,
 			__FUNCTION__);
 		goto error;
 	}
+	sfs_log(ctx, SFS_DEBUG, "%s() - %d\n",
+			__FUNCTION__, __LINE__);
 
 	/* if the payload handle is NULL, it means this is a request for
 	 * a new extent.
@@ -686,6 +694,8 @@ sstack_payload_t *sstack_write(sstack_payload_t *payload,
 			goto error;
 		}
 	}
+	sfs_log(ctx, SFS_DEBUG, "%s() - %d\n",
+			__FUNCTION__, __LINE__);
 
 	if (cmd->offset == 0) {
 		/* Go ahead -
