@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
 	printf ("Open fd = %d\n", fd);
 
 	if (fd > 0) {
-		nbytes = write(fd, "123", 4);
+		nbytes = write(fd, "12345", 6);
 		printf ("Wrote %d bytes\n", nbytes);
 		perror("write status");
 	}

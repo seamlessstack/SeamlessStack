@@ -833,14 +833,10 @@ sstack_send_payload(sstack_client_handle_t handle,
 			data.data_buf.len = data.data_len;
 			data.data_buf.data =
 				&payload->command_struct.write_cmd.data.data_buf;
-			/*memcpy(&data.data_buf.data,
-				   &payload->command_struct.write_cmd.data.data_buf,
-				   data.data_len);*/
 			writecmd.inode_no = payload->command_struct.write_cmd.inode_no;
 			writecmd.offset = payload->command_struct.write_cmd.offset;
 			writecmd.count = payload->command_struct.write_cmd.count;
 			writecmd.data = &data;
-#if 0
 			attr.ver = payload->command_struct.write_cmd.pe.pe_attr.ver;
 			attr.a_qoslevel =
 				payload->command_struct.write_cmd.pe.pe_attr.a_qoslevel;
@@ -898,8 +894,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 				entry.pe_policy = (PolicyPlugin **) plugins;
 			} else
 				entry.pe_policy = NULL;
-#endif
-			writecmd.pe = NULL;//&entry;
+			writecmd.pe = &entry;
 			cmd.write_cmd = &writecmd;
 			msg.command_struct = &cmd;
 			hdr.payload_len = sizeof(sstack_payload_t);
