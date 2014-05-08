@@ -828,14 +828,19 @@ sstack_send_payload(sstack_client_handle_t handle,
 					sstack_command_stringify(payload->command));
 			msg.command = SSTACK_PAYLOAD_T__SSTACK_NFS_COMMAND_T__NFS_WRITE;
 			data.data_len = payload->command_struct.write_cmd.data.data_len;
+			sfs_log(serdes_ctx, SFS_DEBUG, "%s() - %d - Data to write: %d\n",
+					__FUNCTION__, __LINE__, data.data_len);
 			data.data_buf.len = data.data_len;
-			strncpy((char *) &data.data_buf.data,
-				(char *) &payload->command_struct.write_cmd.data.data_buf,
-				data.data_len);
+			data.data_buf.data =
+				&payload->command_struct.write_cmd.data.data_buf;
+			/*memcpy(&data.data_buf.data,
+				   &payload->command_struct.write_cmd.data.data_buf,
+				   data.data_len);*/
 			writecmd.inode_no = payload->command_struct.write_cmd.inode_no;
 			writecmd.offset = payload->command_struct.write_cmd.offset;
 			writecmd.count = payload->command_struct.write_cmd.count;
 			writecmd.data = &data;
+#if 0
 			attr.ver = payload->command_struct.write_cmd.pe.pe_attr.ver;
 			attr.a_qoslevel =
 				payload->command_struct.write_cmd.pe.pe_attr.a_qoslevel;
@@ -893,7 +898,8 @@ sstack_send_payload(sstack_client_handle_t handle,
 				entry.pe_policy = (PolicyPlugin **) plugins;
 			} else
 				entry.pe_policy = NULL;
-			writecmd.pe = &entry;
+#endif
+			writecmd.pe = NULL;//&entry;
 			cmd.write_cmd = &writecmd;
 			msg.command_struct = &cmd;
 			hdr.payload_len = sizeof(sstack_payload_t);
@@ -908,7 +914,11 @@ sstack_send_payload(sstack_client_handle_t handle,
 
 				return -ENOMEM;
 			}
+			sfs_log(serdes_ctx, SFS_DEBUG, "%s() - %d, Before pack\n",
+					__FUNCTION__, __LINE__);
 			sstack_payload_t__pack(&msg, buffer);
+			sfs_log(serdes_ctx, SFS_DEBUG, "%s() - %d, After pack\n",
+					__FUNCTION__, __LINE__);
 			ret = _sendrecv_payload(transport, handle, buffer, len, 1);
 			if (ret != 0) {
 				sfs_log(ctx, SFS_ERR, "%s: Failed to xmit payload "
@@ -1021,7 +1031,11 @@ sstack_send_payload(sstack_client_handle_t handle,
 
 				return -ENOMEM;
 			}
+			sfs_log(serdes_ctx, SFS_DEBUG, "%s() - %d Before pack\n",
+					__FUNCTION__, __LINE__);
 			sstack_payload_t__pack(&msg, buffer);
+			sfs_log(serdes_ctx, SFS_DEBUG, "%s() - %d After pack\n",
+					__FUNCTION__, __LINE__);
 			ret = _sendrecv_payload(transport, handle, buffer, len, 1);
 			if (ret != 0) {
 				sfs_log(ctx, SFS_ERR, "%s: Failed to xmit payload "
