@@ -149,11 +149,6 @@ sstack_payload_t *sstack_create_payload(sstack_command_t cmd)
 	sfs_log(serdes_ctx, SFS_DEBUG, "%s: payload = %"PRIu64" \n",
 			__FUNCTION__, payload);
 
-	// TODO
-	// Shortcircuiting for debugging
-	if (cmd == SSTACK_UPDATE_STORAGE)
-		return payload;
-
 	switch(cmd) {
 		case NFS_WRITE: {
 				struct sstack_nfs_write_cmd *wrt =
@@ -163,6 +158,8 @@ sstack_payload_t *sstack_create_payload(sstack_command_t cmd)
 					bds_cache_alloc(serdes_caches[SERDES_DATA_64K_CACHE_IDX]);
 				if (!wrt->data.data_buf)
 					goto err_no_alloc;
+				sfs_log(serdes_ctx, SFS_DEBUG, "Allocated: %p for data\n",
+						wrt->data.data_buf);
 			}
 			break;
 		case NFS_CREATE: {
@@ -828,11 +825,11 @@ sstack_send_payload(sstack_client_handle_t handle,
 					sstack_command_stringify(payload->command));
 			msg.command = SSTACK_PAYLOAD_T__SSTACK_NFS_COMMAND_T__NFS_WRITE;
 			data.data_len = payload->command_struct.write_cmd.data.data_len;
-			sfs_log(serdes_ctx, SFS_DEBUG, "%s() - %d - Data to write: %d\n",
-					__FUNCTION__, __LINE__, data.data_len);
 			data.data_buf.len = data.data_len;
 			data.data_buf.data =
-				&payload->command_struct.write_cmd.data.data_buf;
+				payload->command_struct.write_cmd.data.data_buf;
+			sfs_log(serdes_ctx, SFS_DEBUG, "%s() - %d - Data to write: %d %s\n",
+					__FUNCTION__, __LINE__, data.data_len, data.data_buf.data);
 			writecmd.inode_no = payload->command_struct.write_cmd.inode_no;
 			writecmd.offset = payload->command_struct.write_cmd.offset;
 			writecmd.count = payload->command_struct.write_cmd.count;
@@ -1712,10 +1709,10 @@ sstack_recv_payload(sstack_client_handle_t handle,
 	 * free'd here. payload needs to be free'd by by the caller of this
 	 * function
 	 */
-	payload = bds_cache_alloc(serdes_caches[SERDES_PAYLOAD_CACHE_IDX]);
+	//payload = bds_cache_alloc(serdes_caches[SERDES_PAYLOAD_CACHE_IDX]);
 	temp_payload = bds_cache_alloc(serdes_caches[SERDES_PAYLOAD_CACHE_IDX]);
 
-	if (NULL == payload) {
+	if (NULL == temp_payload) {
 		sfs_log(ctx, SFS_ERR, "%s: Failed to allocate memory for receiving"
 			" payload. Client handle = %"PRId64" \n",
 			__FUNCTION__, handle);
@@ -1723,7 +1720,6 @@ sstack_recv_payload(sstack_client_handle_t handle,
 		return NULL;
 	}
 
-	memset((void *)payload, '\0', sizeof(sstack_payload_t));
 
 	sfs_log(serdes_ctx, SFS_DEBUG, "%s: handle = %d ipv4_addr = %s \n",
 			__FUNCTION__, handle, transport->transport_hdr.tcp.ipv4_addr);
@@ -1744,6 +1740,14 @@ sstack_recv_payload(sstack_client_handle_t handle,
 	// Parse temp_payload and populate payload
 	msg = sstack_payload_t__unpack(NULL, payload_len, temp_payload);
 	// Populate the payload structure with required fields
+	payload = sstack_create_payload(msg->command);
+	if (NULL == payload) {
+		sfs_log(ctx, SFS_ERR, "%s: Failed to allocate memory for receiving"
+			" payload. Client handle = %"PRId64" \n",
+			__FUNCTION__, handle);
+		bds_cache_free(serdes_caches[SERDES_PAYLOAD_CACHE_IDX], temp_payload);
+		return NULL;
+	}
 	payload->hdr.sequence = msg->hdr->sequence;
 	payload->hdr.payload_len = msg->hdr->payload_len;
 	payload->hdr.job_id = msg->hdr->job_id;
@@ -1911,7 +1915,6 @@ sstack_recv_payload(sstack_client_handle_t handle,
 			PolicyPlugin **plugins = NULL;
 			Attribute *attr = NULL;
 			SstackNfsData *data = NULL;
-			ProtobufCBinaryData data1;
 			int i = 0;
 			sfs_log(serdes_ctx, SFS_DEBUG, "%s() - %d\n",
 					__FUNCTION__, __LINE__);
@@ -1921,15 +1924,13 @@ sstack_recv_payload(sstack_client_handle_t handle,
 					msg->command_struct->write_cmd->offset;
 			payload->command_struct.write_cmd.count =
 					msg->command_struct->write_cmd->count;
+
 			data = msg->command_struct->write_cmd->data;
 			payload->command_struct.write_cmd.data.data_len = data->data_len;
-			sfs_log(serdes_ctx, SFS_DEBUG, "%s() - %d\n",
-					__FUNCTION__, __LINE__);
-			data1 = msg->command_struct->write_cmd->data->data_buf;
-			strcpy((char *) &payload->command_struct.write_cmd.data.data_buf,
-							(char *) data1.data);
-			sfs_log(serdes_ctx, SFS_DEBUG, "%s() - %d\n",
-					__FUNCTION__, __LINE__);
+			
+			sfs_log(serdes_ctx, SFS_DEBUG, "data: %s\n", data->data_buf.data);
+			memcpy(payload->command_struct.write_cmd.data.data_buf,
+							data->data_buf.data, data->data_len);
 
 			entry = msg->command_struct->write_cmd->pe;
 			attr = entry->pe_attr;

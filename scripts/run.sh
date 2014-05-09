@@ -1,4 +1,5 @@
 mkdir /tmp/sfs /tmp/one /tmp/sfsd /tmp/junky /tmp/two
+chmod -R 777 /tmp/junky
 mkdir -p /var/sfs
 export LD_LIBRARY_PATH=build/lib:oss_install/lib
 ulimit -c unlimited

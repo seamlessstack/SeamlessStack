@@ -338,12 +338,15 @@ static int32_t write_update_extent(char *mounted_path, size_t write_size,
 	int32_t fd = -1;
 	ssize_t nbytes;
 	/* Parameter Validation */
+	sfs_log(ctx, SFS_DEBUG, "mounted path: %s, write_size: %d, buffer: %p"
+			"cksum: %p, calculate_cksum: %d\n", mounted_path, write_size,
+			buffer, calculate_cksum, cksum);
 	if (mounted_path == NULL || buffer == NULL
 		||(calculate_cksum && (cksum == NULL))) {
 		sfs_log(ctx, SFS_ERR, "%s() - Invalid Parameters\n", __FUNCTION__);
 		goto ret;
 	}
-	if ((fd = open(mounted_path, O_WRONLY|O_DIRECT)) < 0) {
+	if ((fd = open(mounted_path, O_WRONLY)) < 0) {
 		sfs_log(ctx, SFS_ERR, "%s(): extent '%s' open failed\n",
 				__FUNCTION__, mounted_path);
 		ret = errno;
@@ -351,10 +354,13 @@ static int32_t write_update_extent(char *mounted_path, size_t write_size,
 	}
 	nbytes = write(fd, buffer, write_size);
 	if (nbytes < 0) {
-		sfs_log(ctx, SFS_ERR, "%s(): write failure\n",
-			__FUNCTION__);
+		sfs_log(ctx, SFS_ERR, "%s(): write failure error: %d\n",
+			__FUNCTION__, errno);
 		ret = errno;
 		goto ret;
+	} else {
+		sfs_log(ctx, SFS_DEBUG, "Wrote %d bytes for extent %s\n",
+				nbytes, mounted_path);
 	}
 	ret = nbytes;
 	if (calculate_cksum) {
@@ -500,7 +506,6 @@ static ssize_t apply_policies(struct policy_entry *pe, void *in_buf,
 	void *policy_buf = NULL;
 	size_t out_size = 0;
 	int i = 0;
-
 	for(i = 0; i < pe->pe_num_plugins; i++) {
 		struct plugin_entry_points *entry =
 			get_plugin_entry_points(pe->pe_policy[i]->pp_policy_name);
@@ -645,7 +650,7 @@ sstack_payload_t *sstack_write(sstack_payload_t *payload,
 
 	sfs_log(ctx, SFS_DEBUG, "%s() - %d\n",
 			__FUNCTION__, __LINE__);
-	inode = bds_cache_alloc(sfsd_global_cache_arr[INODE_CACHE_OFFSET]);
+	inode = bds_cache_alloc(sfsd->local_caches[INODE_CACHE_OFFSET]);
 	sfs_log(ctx, SFS_DEBUG, "%s() - %d %p\n", __FUNCTION__, __LINE__, inode);
 
 	if (inode == NULL) {
@@ -670,18 +675,26 @@ sstack_payload_t *sstack_write(sstack_payload_t *payload,
 	 * a new extent.
 	 */
 	if (payload->command_struct.extent_handle.name_len == 0) {
+		sfs_log(ctx, SFS_DEBUG, "%s() - Came in to create new extent\n",
+				__FUNCTION__);
 		chunk_index = sfsd->chunk->schedule(sfsd->chunk);
-		mount_path = sfsd->chunk->storage[chunk_index].mount_point;
-		sprintf(extent_name, "%s/%u-XXXXXX", mount_path, time(NULL));
-		fd = mkostemp(mount_path, O_DIRECT|O_WRONLY);
-		if (fd < 0) {
-			sfs_log(ctx, SFS_ERR, "%s() - Unable to create a new extent\n",
-					__FUNCTION__);
-			command_stat = errno;
-			goto error;
+		if (chunk_index >= 0) {
+			mount_path = sfsd->chunk->storage[chunk_index].mount_point;
+			sprintf(extent_name, "%s/%u-XXXXXX", mount_path, time(NULL));
+			sfs_log(ctx, SFS_DEBUG, "extent name: %s data len %d\n",
+					extent_name, cmd->data.data_len);
+			fd = open(extent_name, O_CREAT|O_WRONLY,
+					S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
+			sfs_log(ctx, SFS_DEBUG, "fd: %d, error: %d\n", fd, errno);
+			if (fd < 0) {
+				sfs_log(ctx, SFS_ERR, "%s() - Unable to create a new extent\n",
+						__FUNCTION__);
+				command_stat = errno;
+				goto error;
+			}
+			/* A new extent is created */
+			close(fd);
 		}
-		/* A new extent is created */
-		close(fd);
 	} else {
 		/* Get the extent to write to */
 		extent_index = get_extent(inode->i_extent, inode->i_numextents,
@@ -702,7 +715,13 @@ sstack_payload_t *sstack_write(sstack_payload_t *payload,
 		   1) Apply policy
 		   2) out_size would have the no. of bytes to write to disk.
 		*/
-		out_size = apply_policies(pe, buffer, cmd->count, &policy_buf);
+		sfs_log(ctx, SFS_DEBUG, "pe_num_plugins: %d\n", pe->pe_num_plugins);
+		if (pe->pe_num_plugins) {
+			out_size = apply_policies(pe, buffer, cmd->count, &policy_outbuf);
+		} else {
+			out_size = cmd->data.data_len;
+			policy_outbuf = cmd->data.data_buf;
+		}
 	} else {
 		out_size = read_check_extent(mount_path, MAX_EXTENT_SIZE, TRUE,
 										 inode->i_extent[extent_index].e_cksum,
@@ -713,11 +732,17 @@ sstack_payload_t *sstack_write(sstack_payload_t *payload,
 		}
 		out_size = deapply_policies(pe, buffer, out_size, &policy_inbuf);
 		memcpy(policy_inbuf[cmd->offset], cmd->data.data_buf, cmd->count);
-		out_size = apply_policies(pe, policy_inbuf, out_size, &policy_outbuf);
+		if (pe->pe_num_plugins) {
+			out_size = apply_policies(pe, policy_inbuf,
+					out_size, &policy_outbuf);
+		} else {
+			out_size = cmd->data.data_len;
+			policy_outbuf = cmd->data.data_buf;
+		}
 	}
 
-	command_stat = write_update_extent(mount_path, out_size, TRUE, &cksum,
-									   policy_outbuf, ctx);
+	command_stat = write_update_extent(extent_name, out_size, TRUE, &cksum,
+									   cmd->data.data_buf, ctx);
 	if (command_stat < 0)
 		goto error;
 //	command_stat = write_erasure_code();
@@ -789,7 +814,8 @@ sstack_payload_t *sstack_write(sstack_payload_t *payload,
 	}
 
 #endif
-
+	payload->response_struct.command_ok = SSTACK_SUCCESS;
+	return payload;
 error:
 	sfs_log(ctx, SFS_INFO, "%s(): function not implemented\n", __FUNCTION__);
 	return NULL;

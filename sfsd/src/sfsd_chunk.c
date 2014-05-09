@@ -27,6 +27,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sstack_types.h>
+#include <sys/mount.h>
 
 #define MAX_COMMAND ((PATH_MAX) + (MAX_MOUNT_POINT_LEN) + 64)
 
@@ -118,7 +119,7 @@ sfsd_chunk_domain_destroy(sfs_chunk_domain_t *chunk)
 char *
 sfsd_add_chunk(sfs_chunk_domain_t *chunk, sfsd_storage_t *storage)
 {
-	char command[MAX_COMMAND] = { '\0' };
+	//char command[MAX_COMMAND] = { '\0' };
 	int ret = -1;
 	char *path = NULL;
 
@@ -132,6 +133,8 @@ sfsd_add_chunk(sfs_chunk_domain_t *chunk, sfsd_storage_t *storage)
 		char *updated_storage = NULL;
 		char template[] = "/tmp/dirXXXXXX";
 		char *path1 = NULL;
+		char source[PATH_MAX + 20];
+		char arguments[256];
 
 		path = mkdtemp(template);
 		if (NULL == path) {
@@ -141,17 +144,17 @@ sfsd_add_chunk(sfs_chunk_domain_t *chunk, sfsd_storage_t *storage)
 			return NULL;
 		}
 
-		// Construct the NFS mount command
 		// ipv6_addr size takes care of both IPv4 and IPv6 addresses
 		sfs_log(chunk->ctx, SFS_DEBUG, "%s: protocol %d ipaddr %s path %s\n",
 			__FUNCTION__, storage->protocol, storage->address.ipv6_address,
 			storage->path);
 
-		snprintf((char *) command, MAX_COMMAND, "mount.nfs4 %s:%s %s",
-			storage->address.ipv6_address, storage->path, path);
-		sfs_log(chunk->ctx, SFS_DEBUG, "%s:%d Command = %s\n",
-				__FUNCTION__, __LINE__, command);
-		ret = system(command);
+		/* Construct the arguments here */
+		sprintf(source, "%s:%s", storage->address.ipv6_address, storage->path);
+		sprintf(arguments, "addr=%s", storage->address.ipv6_address);
+		sfs_log(chunk->ctx, SFS_DEBUG, "calling mount with %s %s %s\n",
+				source, path, arguments);
+		ret = mount(source, path, "nfs4", 0, arguments);
 		if (ret == -1) {
 			sfs_log(chunk->ctx, SFS_ERR, "%s: Failed to add chunk 0x%llx to "
 				"chunk domain 0x%llx of sfsd 0x%llx. system failed with "
@@ -194,7 +197,6 @@ sfsd_add_chunk(sfs_chunk_domain_t *chunk, sfsd_storage_t *storage)
 		memcpy(chunk->storage + chunk->num_chunks, storage,
 			sizeof(sfsd_storage_t));
 		chunk->num_chunks ++;
-
 		path1 = strdup(path);
 
 		return path1;

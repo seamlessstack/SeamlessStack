@@ -1898,6 +1898,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 
 		return -1;
 	}
+	sfs_log(sfs_ctx, SFS_DEBUG, "Data: %s\n", buf);
 
 	// Get the inode number for the file.
 	inodestr = sstack_memcache_read_one(mc, path, strlen(path), &size1,
@@ -2156,6 +2157,8 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 		payload->command_struct.write_cmd.data.data_buf =
 				(unsigned char *) (buf + bytes_issued);
+		sfs_log(sfs_ctx, SFS_DEBUG, "Data1: %s\n",
+				payload->command_struct.write_cmd.data.data_buf);
 		//memcpy((void *) &payload->command_struct.read_cmd.pe, (void *)
 		//				policy, sizeof(struct policy_entry));
 		job->payload_len = sizeof(sstack_payload_t);

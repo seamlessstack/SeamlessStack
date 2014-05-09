@@ -126,6 +126,11 @@ int main(int argc, char **argv)
 		mongo_db_seekread, mongo_db_update, mongo_db_delete,
 		mongo_db_cleanup, ctx);
 	sfsd.db = db;
+	
+	if (sfsd.db->db_ops.db_open(sfsd.log_ctx) != 0) {
+		sfs_log(sfsd.log_ctx, SFS_CRIT, "%s() - db open failed\n");
+		return -EIO;
+	}
 
 	if (sfsd_create_caches(&sfsd)) {
 		sfs_log(sfsd.log_ctx, SFS_CRIT, "Caches creation failed");
