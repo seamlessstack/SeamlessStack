@@ -1544,6 +1544,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 		case NFS_WRITE_RSP: {
 			SstackNfsWriteResp write_resp = SSTACK_NFS_WRITE_RESP__INIT;
 
+			msg.command = SSTACK_PAYLOAD_T__SSTACK_NFS_COMMAND_T__NFS_WRITE_RSP;
 			write_resp.file_create_ok =
 					payload->response_struct.write_resp.file_create_ok;
 			write_resp.file_wc = payload->response_struct.write_resp.file_wc;
