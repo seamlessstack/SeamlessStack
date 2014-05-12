@@ -137,7 +137,8 @@ create_jttree_node(void)
  */
 
 static inline int
-sfs_job2thread_map_insert(pthread_t thread_id, sstack_job_id_t job_id)
+sfs_job2thread_map_insert(pthread_t thread_id, sstack_job_id_t job_id,
+						  sfs_job_t *job)
 {
 	sstack_jt_t *node = NULL;
 
@@ -157,6 +158,7 @@ sfs_job2thread_map_insert(pthread_t thread_id, sstack_job_id_t job_id)
 	node->magic = JTNODE_MAGIC;
 	node->thread_id = thread_id;
 	node->job_id = job_id;
+	node->job = job;
 	pthread_spin_lock(&jobid_lock);
 	jobid_tree_insert(jobid_tree, node);
 	pthread_spin_unlock(&jobid_lock);

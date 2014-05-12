@@ -22,3 +22,7 @@ rm -rf /var/sfs
 rm -fr /var/lib/mongodb/*
 rm -fr /var/lib/mongodb/journal/*
 dmesg -c
+
+#Cleanup core files
+rm -r ../core
+rm /core

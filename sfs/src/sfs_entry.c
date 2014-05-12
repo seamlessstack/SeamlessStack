@@ -548,7 +548,7 @@ sfs_unlink(const char *path)
 	job_map->job_status[job_map->num_jobs - 1] = JOB_STARTED;
 	pthread_spin_unlock(&job_map->lock);
 
-	ret = sfs_job2thread_map_insert(thread_id, job->id);
+	ret = sfs_job2thread_map_insert(thread_id, job->id, job);
 	if (ret == -1) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed insert the job context "
 							"into RB tree \n", __FUNCTION__);
@@ -800,7 +800,7 @@ sfs_rmdir(const char *path)
 	job_map->job_status[job_map->num_jobs - 1] = JOB_STARTED;
 	pthread_spin_unlock(&job_map->lock);
 
-	ret = sfs_job2thread_map_insert(thread_id, job->id);
+	ret = sfs_job2thread_map_insert(thread_id, job->id, job);
 	if (ret == -1) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed insert the job context "
 							"into RB tree \n", __FUNCTION__);
@@ -1792,7 +1792,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 		job_map->job_status[job_map->num_jobs - 1] = JOB_STARTED;
 		pthread_spin_unlock(&job_map->lock);
 
-		ret = sfs_job2thread_map_insert(thread_id, job->id);
+		ret = sfs_job2thread_map_insert(thread_id, job->id, job);
 		if (ret == -1) {
 			sfs_log(sfs_ctx, SFS_ERR, "%s: Failed insert the job context "
 							"into RB tree \n", __FUNCTION__);
@@ -2213,7 +2213,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		pthread_spin_unlock(&job_map->lock);
 
 		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
-		ret = sfs_job2thread_map_insert(thread_id, job->id);
+		ret = sfs_job2thread_map_insert(thread_id, job->id, job);
 		if (ret == -1) {
 			sfs_log(sfs_ctx, SFS_ERR, "%s: Failed insert the job context "
 							"into RB tree \n", __FUNCTION__);
@@ -2300,7 +2300,8 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 	sstack_free_inode_res(&inode, sfs_ctx);
 	sfs_unlock(inode_num);
 
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d ret %d\n",
+			__FUNCTION__, __LINE__, ret);
 	return (ret);
 }
 
@@ -3712,8 +3713,17 @@ sfs_send_write_status(sstack_job_map_t *job_map,  sstack_inode_t inode,
         jt_node = jobid_tree_search(jobid_tree, &jt_key);
         job = jt_node->job;
 
-		if (job_map->err_no == SSTACK_SUCCESS) {
+		sfs_log(sfs_ctx, SFS_DEBUG, "%s() error: %d\n", __FUNCTION__,
+				job_map->err_no);
+		sfs_log(sfs_ctx, SFS_DEBUG, "%s() status: %d\n", __FUNCTION__,
+				job->payload->response_struct.command_ok);
+		//if (job_map->err_no == SSTACK_SUCCESS) {
+		if (job->payload->response_struct.command_ok == SSTACK_SUCCESS) {
 			num_bytes += job->payload->response_struct.write_resp.file_wc;
+			sfs_log(sfs_ctx, SFS_DEBUG, "%s() num_bytes: %d\n", __FUNCTION__,
+				num_bytes);
+			sfs_log(sfs_ctx, SFS_DEBUG, "%s() num_bytes: %d\n", __FUNCTION__,
+				num_bytes);
 		} else {
 		/* Make the i_extent NULL. Once job_map->err_no shows an
 		 * error, we should invalidate all the i_extents that are part
@@ -3722,10 +3732,14 @@ sfs_send_write_status(sstack_job_map_t *job_map,  sstack_inode_t inode,
 		 */
 		}
 		sfs_job2thread_map_remove(job_id);
-		free(job->payload);
+		sstack_free_payload(job->payload);
 		free(job);
 	}
-
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - Returning %d bytes\n",
+			__FUNCTION__, num_bytes);
+	return num_bytes;
+	//Short circuiting for debugging
+#if 0
 	if (job_map->err_no == SSTACK_SUCCESS) {
 		if (job_map->op_status[0] == JOB_FAILED) {
 			/* Primary sfsd job failed. Some recovery needed
@@ -3739,6 +3753,7 @@ sfs_send_write_status(sstack_job_map_t *job_map,  sstack_inode_t inode,
 		errno = job_map->err_no;
 		return (-1);
 	}
+#endif
 }
 
 //==========================================================================//

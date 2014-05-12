@@ -363,11 +363,11 @@ static int32_t write_update_extent(char *mounted_path, size_t write_size,
 				nbytes, mounted_path);
 	}
 	ret = nbytes;
-#if 0
 	if (calculate_cksum) {
 		*cksum = crc_pcl((const char *)buffer, nbytes, 0);
+		sfs_log(ctx, SFS_DEBUG, "calulated checksum for extent %s : %d\n",
+				mounted_path, *cksum);
 	}
-#endif
 ret:
 	return ret;
 }
@@ -819,8 +819,9 @@ sstack_payload_t *sstack_write(sstack_payload_t *payload,
 #endif
 	payload->response_struct.command_ok = SSTACK_SUCCESS;
 	payload->command = NFS_WRITE_RSP;
-	sfs_log(ctx, SFS_DEBUG, "%s() - Returning payload %p\n",
-			payload);
+	payload->response_struct.write_resp.file_wc = command_stat;
+	sfs_log(ctx, SFS_DEBUG, "%s() - Returning payload %p command stat: %d\n",
+			payload, command_stat);
 	return payload;
 error:
 	sfs_log(ctx, SFS_INFO, "%s(): function not implemented\n", __FUNCTION__);

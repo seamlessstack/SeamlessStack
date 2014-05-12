@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
-	fd = open(argv[1], O_WRONLY);
+	fd = open(argv[1], O_CREAT|O_WRONLY, S_IRWXU);
 
 	printf ("Open fd = %d\n", fd);
 

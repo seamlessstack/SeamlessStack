@@ -1546,7 +1546,8 @@ sstack_send_payload(sstack_client_handle_t handle,
 
 			msg.command = SSTACK_PAYLOAD_T__SSTACK_NFS_COMMAND_T__NFS_WRITE_RSP;
 			write_resp.file_create_ok =
-					payload->response_struct.write_resp.file_create_ok;
+				payload->response_struct.command_ok;
+					//payload->response_struct.write_resp.file_create_ok;
 			write_resp.file_wc = payload->response_struct.write_resp.file_wc;
 			response.write_resp = &write_resp;
 			msg.response_struct = &response;
@@ -2152,7 +2153,9 @@ sstack_recv_payload(sstack_client_handle_t handle,
 		}
 		case NFS_WRITE_RSP:
 			payload->response_struct.command_ok =
-					msg->response_struct->command_ok;
+				msg->response_struct->write_resp->file_create_ok;
+		    sfs_log(serdes_ctx, SFS_DEBUG, "%s() - command status: %d\n",
+					__FUNCTION__, payload->response_struct.command_ok);
 			payload->response_struct.handle =
 				msg->response_struct->handle;
 			payload->response_struct.write_resp.file_create_ok =

@@ -550,7 +550,8 @@ sfs_process_write_response(sstack_payload_t *payload)
 	sstack_job_id_t job_id;
 	int	i = 0;
 	int	num_incmp_clients = 0, num_clients_fail = 0;
-
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - response status: %d\n",
+			__FUNCTION__, payload->response_struct.command_ok);
 	job_id = payload->hdr.job_id;
 
 	jt_key.magic = JTNODE_MAGIC;
@@ -581,13 +582,21 @@ sfs_process_write_response(sstack_payload_t *payload)
 		errno = SSTACK_CRIT_FAILURE;
 		return;
 	}
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d num clients: %d\n",
+			__FUNCTION__, __LINE__, job->num_clients);
 	job_map = jm_node->job_map;
-
 	for (i = 0; i < job->num_clients; i++) {
-		if (job->sfsds[i]->handle == resp.handle) {
+		sfs_log(sfs_ctx, SFS_DEBUG,
+				"job->sfsds[i]->handle = %d resp.handle = %d %d\n",
+				job->sfsds[i]->handle, resp.handle, resp.command_ok);
+		//if (job->sfsds[i]->handle == resp.handle) {
 			if (resp.command_ok == SSTACK_SUCCESS) {
 				job->payload = payload;
+				sfs_log(sfs_ctx, SFS_DEBUG,
+						"%s() - Assiging payload for job: %d\n",
+						__FUNCTION__, job->id);
 				job->job_status[i] = JOB_COMPLETE;
+#if 0
 			} else {
 				/* Any other error is treated as IO error */
 				pthread_spin_lock(&job_map->lock);
@@ -595,10 +604,12 @@ sfs_process_write_response(sstack_payload_t *payload)
 				pthread_spin_unlock(&job_map->lock);
 				job->job_status[i] = JOB_FAILED;
 			}
+#endif
 			break;
 		}
 	}
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 	for (i = 0; i < job->num_clients; i++) {
 		if (job->job_status[i] == JOB_STARTED)
 			num_incmp_clients++;
@@ -606,12 +617,14 @@ sfs_process_write_response(sstack_payload_t *payload)
 			num_clients_fail++;
 	}
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 	if (num_incmp_clients == 0) {
 		pthread_spin_lock(&job_map->lock);
 		job_map->num_jobs_left --;
 		pthread_spin_unlock(&job_map->lock);
 	}
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 	if (job_map->num_jobs_left == 0) {
 		if (num_clients_fail > (job->num_clients)/2) {
 			pthread_spin_lock(&job_map->lock);
@@ -625,6 +638,8 @@ sfs_process_write_response(sstack_payload_t *payload)
 		}
 		pthread_cond_signal(&job_map->condition);
 	}
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
+	pthread_cond_signal(&job_map->condition);
 }
 
 /*
@@ -692,6 +707,8 @@ sfs_process_payload(void *arg)
 			}
 			jm_node->job_map->err_no = payload->response_struct.command_ok;
 			job_map = jm_node->job_map;
+			sfs_log(sfs_ctx, SFS_DEBUG, "%s() - job: %p\n",
+					__FUNCTION__, jt_node->job);
 			pthread_cond_signal(&job_map->condition);
 			break;
 		}

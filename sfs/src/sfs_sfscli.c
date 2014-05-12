@@ -343,7 +343,7 @@ get_storage_command_response(uint8_t *buffer, size_t buf_len,
 				goto err;
 			}
 			job_map->job_ids[0] = job->id;
-			ret = sfs_job2thread_map_insert(thread_id, job->id);
+			ret = sfs_job2thread_map_insert(thread_id, job->id, job);
 			if (ret == -1) {
 	            sfs_log(sfs_ctx, SFS_ERR, "%s: Failed insert the job context "
 			                            "into RB tree \n", __FUNCTION__);
