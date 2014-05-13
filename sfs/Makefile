@@ -28,6 +28,7 @@ CFLAGS += -I$(TOPDIR)/oss
 CFLAGS += -I $(TOPDIR)/oss/mongo-c-driver/src
 CFLAGS += -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DFUSE_USE_VERSION=26
 CFLAGS += -DMONGO_HAVE_STDINT
+#CFLAGS += -fsanitize=address -fno-omit-frame-pointer 
 OSS_LIBSDIR = $(TOPDIR)/oss_install/lib
 LIB = $(shell pkg-config --libs fuse) -lpthread
 LIB += -L$(TOPDIR)/db/mongo -lmongo_db
@@ -39,6 +40,7 @@ LIB += -L$(TOPDIR)/oss_install/lib -lmemcached
 LIB += -L$(TOPDIR)/lib/serdes -lserdes
 LIB += -L$(TOPDIR)/lib/validate -lvalidate
 LIB += -L$(TOPDIR)/cli -lsfscli
+#LIB += -lasan
 C99 = c99
 
 SFS_OBJS = src/sfs.o src/sfs_entry.o src/sfs_job.o src/sfs_idp.o

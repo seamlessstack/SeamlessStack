@@ -99,7 +99,8 @@ fill_inode(sstack_inode_t *inode, char **data, log_ctx_t *ctx)
 	sstack_extent_t *er = NULL;
 
 	if (NULL == inode || NULL == *data) {
-		sfs_log(ctx, SFS_ERR, "%s: Invalid parameters passed.\n", __FUNCTION__);
+		sfs_log(ctx, SFS_ERR, "%s: Invalid parameters passed.\n",
+				__FUNCTION__);
 
 		return -EINVAL;
 	}
@@ -108,14 +109,16 @@ fill_inode(sstack_inode_t *inode, char **data, log_ctx_t *ctx)
 
 	// Copy remaining fields
 	// 1. Copy extentded attributes
-	temp = (char *) malloc(in->i_xattrlen);
-	if (NULL == temp) {
-		sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory \n",
-						__FUNCTION__);
-		return -ENOMEM;
+	if (in->i_xattrlen > 0) {
+		temp = (char *) malloc(in->i_xattrlen);
+		if (NULL == temp) {
+			sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory \n",
+					__FUNCTION__);
+			return -ENOMEM;
+		}
+		memcpy((void *) temp, (void *) cur, in->i_xattrlen);
+		cur += in->i_xattrlen;
 	}
-	memcpy((void *) temp, (void *) cur, in->i_xattrlen);
-	cur += in->i_xattrlen;
 
 	// 2. Erasure code segment paths
 	// Copy remaining fields
@@ -191,8 +194,8 @@ fill_inode(sstack_inode_t *inode, char **data, log_ctx_t *ctx)
 	cur = (*data + get_inode_fixed_fields_len() + covered);
 	covered = 0;
 
-	inode->i_sfsds = (sstack_sfsd_info_t *) malloc(sizeof(sstack_sfsd_info_t *)
-					* inode->i_numclients);
+	inode->i_sfsds = (sstack_sfsd_info_t *)
+		malloc(sizeof(sstack_sfsd_info_t *) * inode->i_numclients);
 	if (NULL == inode->i_sfsds) {
 		sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory \n",
 						__FUNCTION__);
