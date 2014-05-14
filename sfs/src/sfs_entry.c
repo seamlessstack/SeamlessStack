@@ -2141,7 +2141,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		payload->command_struct.write_cmd.inode_no = inode.i_num;
 		payload->command_struct.write_cmd.offset = offset;
 		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
-		//TODO: Extent is unallocated here. Take care for the fisrt 
+		//TODO: Extent is unallocated here. Take care for the fisrt
 		//extent
 
 		/* Could be first extent. take care here */
@@ -2246,7 +2246,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		}
 		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d bytes issued: %d\n",
 				__FUNCTION__, __LINE__, bytes_issued);
-		
+
 		bytes_issued += write_size;
 
 		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d bytes issued: %d\n",
@@ -2841,7 +2841,12 @@ sfs_getxattr(const char *path, const char *name, char *value, size_t size)
 	int i = 0;
 	char *p = NULL;
 	char key[MAX_KEY_LEN] = { '\0' };
-	
+
+	// Hack Alert
+	// TODO
+	if (strcmp("security.ima", name) == 0)
+		return -1;
+
 	sfs_log(sfs_ctx, SFS_DEBUG, "%p %p %p %d\n", path, name, value, size);
 	if (path)
 		sfs_log(sfs_ctx, SFS_DEBUG, "path = %s\n", path);
@@ -3186,6 +3191,11 @@ sfs_removexattr(const char *path, const char *name)
 	size_t size;
 
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<<\n", __FUNCTION__);
+	// Hack Alert
+	// TODO
+	if (strcmp("security.ima", name) == 0)
+		return -1;
+
 	// Parameter validation
 	if (NULL == path || NULL == name) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters passed. \n",
@@ -3194,6 +3204,7 @@ sfs_removexattr(const char *path, const char *name)
 
 		return -1;
 	}
+
 
 	// Get the inode number for the file.
 	inodestr = sstack_memcache_read_one(mc, path, strlen(path), &size, sfs_ctx);

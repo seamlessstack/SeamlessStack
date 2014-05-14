@@ -12,6 +12,9 @@ chmod 777 /var/lib/mongodb
 
 # Start sfs
 build/bin/sfs 127.0.0.1,/var/tmp,rw,10 /tmp/one
+#ASAN_OPTIONS=handle_segv=1  build/bin/sfs 127.0.0.1,/var/tmp,rw,10 /tmp/one
+#valgrind --tool=memcheck --log-file=/tmp/valgrind_log.txt  build/bin/sfs 127.0.0.1,/var/tmp,rw,10 /tmp/one
+#valgrind --tool=exp-sgcheck --log-file=/tmp/valgrind_log.txt  build/bin/sfs 127.0.0.1,/var/tmp,rw,10 /tmp/one
 sleep 2
 # Start sfsd
 ipaddr=` ifconfig eth0 | awk -F':' '/inet addr/&&!/127.0.0.1/{split($2,_," ");print _[1]}'`
