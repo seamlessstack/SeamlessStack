@@ -517,24 +517,14 @@ sstack_free_inode_res(sstack_inode_t *inode, log_ctx_t *ctx)
 	if (NULL == inode)
 		return;
 
-	sfs_log(ctx, SFS_DEBUG,
-			"%s() - xattrlen: %d, numextents: %d, numerasure: %d\n",
-			__FUNCTION__,
-			inode->i_xattrlen, inode->i_numextents, inode->i_numerasure);
-	sfs_log(ctx, SFS_DEBUG, "came to free xattr: %d\n", inode->i_xattrlen);
-#if 0
-	if (0 != inode->i_xattrlen) {
-		sfs_log(ctx, SFS_DEBUG, "came to free xattr: %p\n", inode->i_xattr);
+	if (inode->i_xattrlen > 0) {
 		free(inode->i_xattr);
 	}
-#endif
-	if (0 != inode->i_numextents) {
-		sfs_log(ctx, SFS_DEBUG, "came to free extents: %p\n", inode->i_extent);
+	if (inode->i_numextents > 0) {
 		free(inode->i_extent);
 	}
 
 	if ((inode->i_numerasure > 0) && inode->i_erasure) {
-		sfs_log(ctx, SFS_DEBUG, "came to free erasure: %p\n", inode->i_erasure);
 		sstack_free_erasure(ctx, inode->i_erasure, inode->i_numerasure);
 	}
 }

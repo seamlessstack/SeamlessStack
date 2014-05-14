@@ -821,7 +821,7 @@ sstack_payload_t *sstack_write(sstack_payload_t *payload,
 	payload->command = NFS_WRITE_RSP;
 	payload->response_struct.write_resp.file_wc = command_stat;
 	sfs_log(ctx, SFS_DEBUG, "%s() - Returning payload %p command stat: %d\n",
-			payload, command_stat);
+			__FUNCTION__, payload, command_stat);
 	return payload;
 error:
 	sfs_log(ctx, SFS_INFO, "%s(): function not implemented\n", __FUNCTION__);

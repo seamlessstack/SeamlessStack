@@ -139,7 +139,7 @@ typedef struct inode {
 		unsigned int i_numerasure; // Number of erasure code extents
 		int	i_esure_valid; // Is erasure code valid?
 		int i_numextents; // Number of extents
-		size_t i_xattrlen; // Extended attibute len
+		int i_xattrlen; // Extended attibute len
 		sstack_sfsd_info_t *i_primary_sfsd; // sfsd having erasure coded stripes
 	};
 	char *i_xattr; // Extended attributes
