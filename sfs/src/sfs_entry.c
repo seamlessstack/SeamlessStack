@@ -1874,7 +1874,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 {
 	unsigned long long inode_num = 0;
 	char *inodestr = NULL;
-	sstack_inode_t inode;
+	sstack_inode_t *inode = NULL;
 	size_t size1 = 0;
 	sstack_extent_t *extent = NULL;
 	struct stat st = { 0x0 };
@@ -1922,7 +1922,13 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 	}
 	// Get inode from DB
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
-	ret = get_inode(inode_num, &inode, db);
+	if (!(inode = malloc(sizeof(*inode)))) {
+		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - Unable to allocate inode",
+				__FUNCTION__);
+		return -ENOMEM;
+	}
+	memset(inode, 0, sizeof(*inode));
+	ret = get_inode(inode_num, inode, db);
 	if (ret != 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to get inode %lld. Path = %s "
 						"error = %d\n", __FUNCTION__, inode_num, path, ret);
@@ -1949,7 +1955,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 
 	if (st.st_size > 0 &&
-				(inode.i_numclients == 0 || NULL == inode.i_sfsds)) {
+				(inode->i_numclients == 0 || NULL == inode->i_sfsds)) {
 		// It is not feasible that file has some contents but no sfsds are
 		// assigned to it.
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Metadata corrupt for file %s \n",
@@ -1971,12 +1977,12 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 
 
 		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
-		sfsds = sfs_idp_get_sfsd_list(&inode, sfsd_pool, sfs_ctx);
+		sfsds = sfs_idp_get_sfsd_list(inode, sfsd_pool, sfs_ctx);
 		if (NULL == sfsds) {
 			sfs_log(sfs_ctx, SFS_ERR, "%s: sfs_idp_get_sfsd_list failed \n",
 							__FUNCTION__);
 			// Free up dynamically allocated fields in inode structure
-			sstack_free_inode_res(&inode, sfs_ctx);
+			sstack_free_inode_res(inode, sfs_ctx);
 			sfs_unlock(inode_num);
 			errno = EIO;
 
@@ -1984,14 +1990,14 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		}
 		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 		// Populate inode with new information
-		inode.i_numclients = sfsds->num_sfsds;
+		inode->i_numclients = sfsds->num_sfsds;
 		temp = (sstack_sfsd_info_t *) malloc(sizeof(sstack_sfsd_info_t));
 		if (NULL == temp) {
 			sfs_log(sfs_ctx, SFS_ERR, "%s: Out of memory. File %s \n",
 							__FUNCTION__, path);
 
 			errno = EIO;
-			sstack_free_inode_res(&inode, sfs_ctx);
+			sstack_free_inode_res(inode, sfs_ctx);
 			sfs_unlock(inode_num);
 			free(sfsds);
 
@@ -2000,23 +2006,23 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		sstack_sfsd_info_t temp;
 		memcpy((void *) &temp->transport, (void *)sfsds[0].sfsds->transport,
 						sizeof(sstack_transport_t));
-		inode.i_primary_sfsd = temp;
+		inode->i_primary_sfsd = temp;
 		// Populate rest of the fields
-		inode.i_sfsds = (sstack_sfsd_info_t *)
-				malloc((inode.i_numclients -1) * sizeof(sstack_sfsd_info_t));
-		if (NULL == inode.i_sfsds) {
+		inode->i_sfsds = (sstack_sfsd_info_t *)
+				malloc((inode->i_numclients -1) * sizeof(sstack_sfsd_info_t));
+		if (NULL == inode->i_sfsds) {
 			sfs_log(sfs_ctx, SFS_ERR, "%s: Out of memory. File %s \n",
 							__FUNCTION__, path);
 			errno = EIO;
-			sstack_free_inode_res(&inode, sfs_ctx);
+			sstack_free_inode_res(inode, sfs_ctx);
 			sfs_unlock(inode_num);
 			free(sfsds);
 
 			return -1;
 		}
 
-		for (i = 1; i < inode.i_numclients; i++) {
-			memcpy((void *) &inode.i_sfsds[i].transport, (void *)
+		for (i = 1; i < inode->i_numclients; i++) {
+			memcpy((void *) &inode->i_sfsds[i].transport, (void *)
 					sfsds[i].sfsds->transport, sizeof(sstack_transport_t));
 		}
 		free(sfsds);
@@ -2026,20 +2032,20 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 #endif
 
 	//FIXME: Hardcoding sfsds for now
-	inode.i_numclients = 1;
-	inode.i_sfsds = malloc(sizeof(sstack_sfsd_info_t));
-	inode.i_sfsds[0].sfsd = &accept_sfsd;
-	memcpy(&inode.i_sfsds[0].transport, &accept_sfsd.transport,
+	inode->i_numclients = 1;
+	inode->i_sfsds = malloc(sizeof(sstack_sfsd_info_t));
+	inode->i_sfsds[0].sfsd = &accept_sfsd;
+	memcpy(&inode->i_sfsds[0].transport, &accept_sfsd.transport,
 			sizeof(sstack_transport_t));
-	inode.i_primary_sfsd = &inode.i_sfsds[0];
+	inode->i_primary_sfsd = &inode->i_sfsds[0];
 
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 	relative_offset = offset;
 	thread_id = pthread_self();
 
 	// Get the extent covering the request
-	for(i = 0; i < inode.i_numextents; i++) {
-		extent = inode.i_extent;
+	for(i = 0; i < inode->i_numextents; i++) {
+		extent = inode->i_extent;
 		if (extent->e_offset <= relative_offset &&
 				(extent->e_offset + extent->e_size >= relative_offset)) {
 			// Found the initial extent
@@ -2065,13 +2071,13 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed allocate memory for "
 						"job map \n", __FUNCTION__);
 		// Free up dynamically allocated fields in inode structure
-		sstack_free_inode_res(&inode, sfs_ctx);
+		sstack_free_inode_res(inode, sfs_ctx);
 		sfs_unlock(inode_num);
 		return -1;
 	}
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 
-	for (i = 0; i < inode.i_numclients; i++)
+	for (i = 0; i < inode->i_numclients; i++)
 		job_map->op_status[i] = JOB_STARTED;
 
 	/*
@@ -2107,7 +2113,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 					__FUNCTION__);
 			free_job_map(job_map);
 			// Free up dynamically allocated fields in inode structure
-			sstack_free_inode_res(&inode, sfs_ctx);
+			sstack_free_inode_res(inode, sfs_ctx);
 			sfs_unlock(inode_num);
 			return -1;
 		}
@@ -2116,7 +2122,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		job->id = get_next_job_id();
 		job->job_type = SFSD_IO;
 		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
-		job->num_clients = inode.i_numclients;
+		job->num_clients = inode->i_numclients;
 		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 		//FIXME:
 		//job->sfsds[0] = inode.i_primary_sfsd->sfsd;
@@ -2138,7 +2144,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		payload->hdr.priority = job->priority;
 		payload->hdr.arg = (uint64_t) job;
 		payload->command = NFS_WRITE;
-		payload->command_struct.write_cmd.inode_no = inode.i_num;
+		payload->command_struct.write_cmd.inode_no = inode->i_num;
 		payload->command_struct.write_cmd.offset = offset;
 		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 		//TODO: Extent is unallocated here. Take care for the fisrt
@@ -2177,7 +2183,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 			free_job_map(job_map);
 			free_payload(sfs_global_cache, payload);
 			// Free up dynamically allocated fields in inode structure
-			sstack_free_inode_res(&inode, sfs_ctx);
+			sstack_free_inode_res(inode, sfs_ctx);
 			sfs_unlock(inode_num);
 
 			return -1;
@@ -2202,7 +2208,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 			free_job_map(job_map);
 			free_payload(sfs_global_cache, payload);
 			// Free up dynamically allocated fields in inode structure
-			sstack_free_inode_res(&inode, sfs_ctx);
+			sstack_free_inode_res(inode, sfs_ctx);
 			sfs_unlock(inode_num);
 
 			return -1;
@@ -2223,7 +2229,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 			free_job_map(job_map);
 			free_payload(sfs_global_cache, payload);
 			// Free up dynamically allocated fields in inode structure
-			sstack_free_inode_res(&inode, sfs_ctx);
+			sstack_free_inode_res(inode, sfs_ctx);
 			sfs_unlock(inode_num);
 
 			return -1;
@@ -2239,7 +2245,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 			free_job_map(job_map);
 			free_payload(sfs_global_cache, payload);
 			// Free up dynamically allocated fields in inode structure
-			sstack_free_inode_res(&inode, sfs_ctx);
+			sstack_free_inode_res(inode, sfs_ctx);
 			sfs_unlock(inode_num);
 
 			return -1;
@@ -2278,7 +2284,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		free_job_map(job_map);
 		free_payload(sfs_global_cache, payload);
 		// Free up dynamically allocated fields in inode structure
-		sstack_free_inode_res(&inode, sfs_ctx);
+		sstack_free_inode_res(inode, sfs_ctx);
 		sfs_unlock(inode_num);
 
 		return -1;
@@ -2290,15 +2296,16 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 	// TODO
 	// Handle write status and erasure code
 
-	ret = sfs_send_write_status(job_map, inode, offset, size);
+	ret = sfs_send_write_status(job_map, *inode, offset, size);
 
 	sfs_job_context_remove(thread_id);
 	free(job_map->job_ids);
 	free(job_map->job_status);
 	free_job_map(job_map);
 	// Free up dynamically allocated fields in inode structure
-	sstack_free_inode_res(&inode, sfs_ctx);
+	sstack_free_inode_res(inode, sfs_ctx);
 	sfs_unlock(inode_num);
+	free(inode);
 
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d ret %d\n",
 			__FUNCTION__, __LINE__, ret);

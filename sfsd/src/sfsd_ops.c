@@ -649,6 +649,7 @@ sstack_payload_t *sstack_write(sstack_payload_t *payload,
 	int fd;
 	char *policy_inbuf, *policy_outbuf;
 	uint32_t cksum = 0;
+	sstack_extent_t *temp = NULL;
 
 	sfs_log(ctx, SFS_DEBUG, "%s() - %d\n",
 			__FUNCTION__, __LINE__);
@@ -754,7 +755,7 @@ sstack_payload_t *sstack_write(sstack_payload_t *payload,
 		goto error;
 #if 0
 	/* Metadata update code is here */
-		pthread_mutex_lock(inode->i_lock);
+		pthread_mutex_lock(&inode->i_lock);
 		temp = realloc(inode->i_extent, sizeof(*(inode->i_extent))
 					   * (inode->i_numextents + 1));
 		if (temp) {
@@ -790,6 +791,7 @@ sstack_payload_t *sstack_write(sstack_payload_t *payload,
 			inode->i_size += cmd->data.data_len;
 			inode->i_sizeondisk += out_size;
 			put_inode(inode,sfsd->db);
+		}
 			if (fd > 0) {
 				ret =  write(fd, policy_buf, out_size);
 				if (ret < out_size) {
