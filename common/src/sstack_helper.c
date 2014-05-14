@@ -103,11 +103,15 @@ fill_inode(sstack_inode_t *inode, char **data, log_ctx_t *ctx)
 
 		return -EINVAL;
 	}
+	sfs_log(ctx, SFS_DEBUG, "%s() - Fixed field len: %d\n", __FUNCTION__,
+			get_inode_fixed_fields_len());
 	memcpy(inode, *data, get_inode_fixed_fields_len());
 	cur = (*data + get_inode_fixed_fields_len());
 
 	// Copy remaining fields
 	// 1. Copy extentded attributes
+	sfs_log(ctx, SFS_DEBUG, "%s() - xattr_len: %d\n",__FUNCTION__,
+			in->i_xattrlen);
 	temp = (char *) malloc(in->i_xattrlen);
 	if (NULL == temp) {
 		sfs_log(ctx, SFS_ERR, "%s: Unable to allocate memory \n",
@@ -123,6 +127,8 @@ fill_inode(sstack_inode_t *inode, char **data, log_ctx_t *ctx)
 	er = (sstack_extent_t *) ((char *) (*data +
 				get_inode_fixed_fields_len() + covered));
 
+	sfs_log(ctx, SFS_DEBUG, "%s() - numerasure: %d\n", __FUNCTION__,
+			in->i_numerasure);
 	for (i = 0; i < in->i_numerasure; i++) {
 		temp = calloc(sizeof(sstack_file_handle_t), 1);
 		if (NULL == temp) {
@@ -158,6 +164,8 @@ fill_inode(sstack_inode_t *inode, char **data, log_ctx_t *ctx)
 	cur = (*data + get_inode_fixed_fields_len() + covered);
 	covered = 0;
 
+	sfs_log(ctx, SFS_DEBUG, "%s() - numextents: %d\n", __FUNCTION__,
+			in->i_numextents);
 	for (i = 0; i < in->i_numextents; i++) {
 		sstack_extent_t *ex = NULL;
 		char *path = NULL;
@@ -508,13 +516,26 @@ sstack_free_inode_res(sstack_inode_t *inode, log_ctx_t *ctx)
 	if (NULL == inode)
 		return;
 
-	if (inode->i_xattr)
+	sfs_log(ctx, SFS_DEBUG,
+			"%s() - xattrlen: %d, numextents: %d, numerasure: %d\n",
+			__FUNCTION__,
+			inode->i_xattrlen, inode->i_numextents, inode->i_numerasure);
+	sfs_log(ctx, SFS_DEBUG, "came to free xattr: %d\n", inode->i_xattrlen);
+#if 0
+	if (0 != inode->i_xattrlen) {
+		sfs_log(ctx, SFS_DEBUG, "came to free xattr: %p\n", inode->i_xattr);
 		free(inode->i_xattr);
-	if (inode->i_extent)
+	}
+#endif
+	if (0 != inode->i_numextents) {
+		sfs_log(ctx, SFS_DEBUG, "came to free extents: %p\n", inode->i_extent);
 		free(inode->i_extent);
+	}
 
-	if (inode->i_numerasure > 0 && inode->i_erasure)
+	if ((inode->i_numerasure > 0) && inode->i_erasure) {
+		sfs_log(ctx, SFS_DEBUG, "came to free erasure: %p\n", inode->i_erasure);
 		sstack_free_erasure(ctx, inode->i_erasure, inode->i_numerasure);
+	}
 }
 
 /*

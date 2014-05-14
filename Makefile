@@ -113,5 +113,5 @@ clean:
 	$(RM) -f $(PROTOBUF_DIR)/jobs.pb-c.h  $(PROTOBUF_DIR)/jobs.pb-c.c
 	$(RM) -f $(PROTOBUF_DIR)/cli.pb-c.h  $(PROTOBUF_DIR)/cli.pb-c.c
 	$(RM) -f cscope.out
-	$(RM) -f tags
+#	$(RM) -f tags
 	$(RM) -rf $(BUILDDIR)

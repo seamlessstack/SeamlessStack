@@ -163,7 +163,7 @@ get_inode_fixed_fields_len(void)
 			sizeof(type_t) + sizeof(int)  +
 			(3 * sizeof(struct timespec)) + sizeof(sstack_size_t) +
 			sizeof(sstack_size_t) + 4 + 4 + 8 + 4 + 4 + 4 + 4 +
-			sizeof(sstack_sfsd_info_t ));
+			sizeof(sstack_sfsd_info_t *));
 }
 
 extern int get_extents(unsigned long long  inode_num, sstack_extent_t *extent,
