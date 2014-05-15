@@ -44,8 +44,8 @@ RM = rm
 CP = cp
 
 all:
-#$(MKDIR) -p $(OSS_INSTALL_DIR)
-#	$(MAKE) -C $(OSS)
+	$(MKDIR) -p $(OSS_INSTALL_DIR)
+	$(MAKE) -C $(OSS)
 	# Following dirty hack is because --proto_path does not work !!
 	$(LN) $(PROTOBUF_DIR)/jobs.proto jobs.proto
 	$(PROTOC) --c_out=$(PROTOBUF_DIR) jobs.proto
@@ -95,7 +95,7 @@ tags:
 	$(CTAGS) -R
 
 clean:
-#$(MAKE) -C $(OSS) clean
+	$(MAKE) -C $(OSS) clean
 	$(MAKE) -C $(MONGODIR) clean
 	$(MAKE) -C $(MONGODRV) clean
 	$(MAKE) -C $(POLICYDIR) clean
@@ -109,9 +109,9 @@ clean:
 	$(MAKE) -C $(SFSDIR) clean
 	$(MAKE) -C $(COMMONDIR) clean
 	$(MAKE) -C $(VALIDATE_DIR) clean
-#	$(RM) -rf $(OSS_INSTALL_DIR)
+	$(RM) -rf $(OSS_INSTALL_DIR)
 	$(RM) -f $(PROTOBUF_DIR)/jobs.pb-c.h  $(PROTOBUF_DIR)/jobs.pb-c.c
 	$(RM) -f $(PROTOBUF_DIR)/cli.pb-c.h  $(PROTOBUF_DIR)/cli.pb-c.c
 	$(RM) -f cscope.out
-#	$(RM) -f tags
+	$(RM) -f tags
 	$(RM) -rf $(BUILDDIR)
