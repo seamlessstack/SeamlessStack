@@ -33,11 +33,13 @@
 #include <sstack_cache_api.h>
 #include <openssl/sha.h>
 
-#define SSD_CACHE_LIBNAME "/opt/sfs/lib/libssdcache.so"
+//#define sfs_log(a,b,c,...) printf(c, ##__VA_ARGS__)
+#define SSD_CACHE_LIBNAME "/opt/sfs/libssdcache.so"
 #define NUM_EVICT 8
 
 rb_red_blk_tree *cache_tree = NULL;
 pthread_spinlock_t cache_lock;
+ssd_cache_t *ssd_cache = NULL;
 
 /*
  * compare_func - RB-tree compare function
@@ -92,6 +94,13 @@ cache_init(log_ctx_t *ctx)
 		sfs_log(ctx, SFS_ERR, "%s: Failed to create RB-tree for LRU \n",
 						__FUNCTION__);
 		return -1;
+	}
+	
+	ssd_cache = ssd_cache_register(ctx);
+	if (ssd_cache == NULL) {
+		sfs_log(ctx, SFS_ERR, "%s: Failed to register ssd_cache\n",
+						__FUNCTION__);
+		return (-1);
 	}
 
 	return 0;
@@ -235,7 +244,7 @@ sstack_cache_store(void *data, size_t len, sstack_cache_t *entry,
 	if (ret == -1) {
 		sfs_log(ctx, SFS_ERR, "%s: Failed to insert node into LRU tree. "
 						"Hash = %s\n", __FUNCTION__, entry->hashkey);
-		sstack_cache_remove(entry->memcache.mc,
+		sstack_memcache_remove(entry->memcache.mc,
 						(const char *) entry->hashkey, ctx);
 		pthread_spin_lock(&cache_lock);
 		RBDelete(cache_tree, node);
@@ -303,7 +312,7 @@ sstack_cache_search(uint8_t *hashkey, log_ctx_t *ctx)
 char *
 sstack_cache_get(uint8_t *hashkey, size_t size, log_ctx_t *ctx)
 {
-	sstack_cache_t c;
+	sstack_cache_t *c;
 	// sstack_cache_t *ret = NULL;
 	rb_red_blk_node *node = NULL;
 	char *data = NULL;
@@ -317,10 +326,10 @@ sstack_cache_get(uint8_t *hashkey, size_t size, log_ctx_t *ctx)
 		return NULL;
 	}
 
-	memcpy((void *) &c.hashkey, (void *) hashkey, (SHA256_DIGEST_LENGTH + 1));
+	//memcpy((void *) &c.hashkey, (void *) hashkey, (SHA256_DIGEST_LENGTH + 1));
 
 	pthread_spin_lock(&cache_lock);
-	node = RBExactQuery(cache_tree, (void *) &c);
+	node = RBExactQuery(cache_tree, (void *) hashkey);
 	if (NULL == node) {
 		sfs_log(ctx, SFS_CRIT, "%s: hashkey %s not found in RB-tree \n",
 						__FUNCTION__, (char *) hashkey);
@@ -329,30 +338,31 @@ sstack_cache_get(uint8_t *hashkey, size_t size, log_ctx_t *ctx)
 
 		return NULL;
 	}
+	c = node->info;
 	pthread_spin_unlock(&cache_lock);
-
-	pthread_mutex_lock(&c.lock);
-	if (c.on_ssd == true) {
+	
+	pthread_mutex_lock(&(c->lock));
+	if (c->on_ssd == true) {
 		// Data is on SSD cache
 		// Retrieve it
-		if (c.ssdcache.len < size) {
+		if (c->ssdcache.len < size) {
 			sfs_log(ctx, SFS_ERR, "%s: Incomplete data present on SSD cache "
 							"for key %s \n", __FUNCTION__, hashkey);
 			errno = EIO;
-			pthread_mutex_unlock(&c.lock);
+			pthread_mutex_unlock(&(c->lock));
 
 			return NULL;
 		}
 		// Full data present on cache
 		// Return the size
 		if (ssd_cache && ssd_cache->ops.ssd_cache_retrieve) {
-			data = ssd_cache->ops.ssd_cache_retrieve(c.ssdcache.handle,
-							c.ssdcache.entry, size, ctx);
+			data = ssd_cache->ops.ssd_cache_retrieve(c->ssdcache.handle,
+							c->ssdcache.entry, size, ctx);
 			if (NULL == data) {
 				sfs_log(ctx, SFS_ERR, "%s: Unable to read complete data from "
 								"SSD for hash %s \n", __FUNCTION__, hashkey);
 				errno = EIO;
-				pthread_mutex_unlock(&c.lock);
+				pthread_mutex_unlock(&(c->lock));
 
 				return NULL;
 			}
@@ -367,20 +377,20 @@ sstack_cache_get(uint8_t *hashkey, size_t size, log_ctx_t *ctx)
 	} else {
 		size_t datalen;
 		// Data is on memcached
-		data = sstack_memcache_read_one(c.memcache.mc, (const char *) hashkey,
+		data = sstack_memcache_read_one(c->memcache.mc, (const char *) hashkey,
 						strlen(hashkey), &datalen, ctx);
-		if (NULL == data || datalen != size) {
+		if (NULL == data) {
 			sfs_log(ctx, SFS_ERR, "%s: Cache data is absent or incomplete on"
 							"memcached for hash %s\n", __FUNCTION__, hashkey);
 			errno = EIO;
-			pthread_mutex_unlock(&c.lock);
+			pthread_mutex_unlock(&(c->lock));
 
 			return NULL;
 		}
 	}
 
 	// SUCCESS
-	pthread_mutex_unlock(&c.lock);
+	pthread_mutex_unlock(&(c->lock));
 
 	return data;
 }
@@ -448,7 +458,7 @@ sstack_cache_purge(uint8_t *hashkey, log_ctx_t *ctx)
 			return -1;
 		}
 	} else {
-		ret = sstack_cache_remove(entry->memcache.mc,
+		ret = sstack_memcache_remove(entry->memcache.mc,
 					(const char *) entry->hashkey, ctx);
 		if (ret == -1) {
 			sfs_log(ctx, SFS_ERR, "%s: Removing cache entry from memcache "
@@ -479,7 +489,6 @@ ssd_cache_register(log_ctx_t *ctx)
 	if (NULL == cache) {
 		sfs_log(ctx, SFS_ERR, "%s: create_ssd_cache failed. Out of memory \n",
 						__FUNCTION__);
-
 		return NULL;
 	}
 
@@ -487,7 +496,6 @@ ssd_cache_register(log_ctx_t *ctx)
 	if (NULL == handle) {
 		sfs_log(ctx, SFS_ERR, "%s: dlopen failed on %s. Error = %d \n",
 						__FUNCTION__, errno);
-
 		free(cache);
 		return NULL;
 	}
@@ -581,7 +589,7 @@ ssd_cache_register(log_ctx_t *ctx)
 	}
 
 	cache->ops.ssd_cache_get_handle = (ssd_cache_get_handle_t)
-			dlsym(handle, "sstack_ssd_cache_get_handle_t");
+			dlsym(handle, "sstack_ssd_cache_get_handle");
 	if (NULL == cache->ops.ssd_cache_get_handle) {
 		sfs_log(ctx, SFS_ERR, "%s: sstack_ssd_cache_get_handle not defined \n",
 						__FUNCTION__);

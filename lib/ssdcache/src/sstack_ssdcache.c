@@ -196,7 +196,7 @@ ssdmd_add(ssd_cache_struct_t *cache_struct, ssdcachemd_entry_t *md_entry,
 	if (NULL == lru_entry) {
 		sfs_log(ctx, SFS_ERR, "%s: Failed to allocate memory for lruentry\n",
 						__FUNCTION__);
-		RBTreeDelete(cache_struct->md_tree, node);
+		RBDelete(cache_struct->md_tree, node);
 
 		return -1;
 	}
@@ -210,7 +210,7 @@ ssdmd_add(ssd_cache_struct_t *cache_struct, ssdcachemd_entry_t *md_entry,
 						" %d\n", __FUNCTION__, md_entry->ssd_ce);
 		pthread_spin_unlock(&cache_struct->lru_lock);
 		free(lru_entry);
-		RBTreeDelete(cache_struct->md_tree, node);
+		RBDelete(cache_struct->md_tree, node);
 
 		return -1;
 	}
@@ -582,7 +582,7 @@ sstack_ssd_cache_store(ssd_cache_handle_t handle, void *data,
 	if (NULL == md_entry) {
 		sfs_log(ctx, SFS_ERR, "%s: Failed to allocate memory for ssd "
 						"cache metadata entry\n", __FUNCTION__);
-		ulink(filename);
+		unlink(filename);
 		free_ssdcache_entry(cache_struct, ssd_ce, ctx);
 
 		return -1;
@@ -595,7 +595,7 @@ sstack_ssd_cache_store(ssd_cache_handle_t handle, void *data,
 	if (ret == -1) {
 		sfs_log(ctx, SFS_ERR, "%s: Failed to insert ssd cache metadata into "
 						"mdstore \n", __FUNCTION__);
-		ulink(filename);
+		unlink(filename);
 		free_ssdcache_entry(cache_struct, ssd_ce, ctx);
 		free(md_entry);
 
@@ -628,5 +628,10 @@ sstack_ssd_cache_retrieve(ssd_cache_handle_t handle, ssd_cache_entry_t entry,
 
 void
 sstack_ssd_cache_destroy(ssd_cache_handle_t handle)
+{
+}
+
+ssd_cache_handle_t
+sstack_ssd_cache_get_handle(void) 
 {
 }
