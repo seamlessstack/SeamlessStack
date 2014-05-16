@@ -1,0 +1,3 @@
+[submodule "oss/rocksdb"]
+	path = oss/rocksdb
+	url = https://github.com/facebook/rocksdb.git

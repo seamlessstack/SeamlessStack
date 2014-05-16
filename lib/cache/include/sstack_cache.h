@@ -56,6 +56,6 @@ extern sstack_cache_t *sstack_cache_search(uint8_t *, log_ctx_t *);
 extern char *sstack_cache_get(uint8_t *, size_t , log_ctx_t *);
 extern int sstack_cache_purge(uint8_t *, log_ctx_t *);
 extern int cache_init(log_ctx_t *);
-
+extern ssd_cache_t *ssd_cache_register(log_ctx_t *ctx);
 
 #endif // __SSTACK_CACHE_H__
