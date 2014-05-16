@@ -1590,6 +1590,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 
 		return -1;
 	}
+
 	inode_num = atoll((const char *)inodestr);
 	ret = sfs_rdlock(inode_num);
 	if (ret == -1) {
@@ -1638,7 +1639,10 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 	}
 #endif
 	// Check for metadata validity
-	if (inode.i_numclients == 0 || NULL == inode.i_primary_sfsd) {
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d - numclients = %d, primary sfsd: %p\n",
+			__FUNCTION__, __LINE__,
+			inode.i_numclients, inode.i_primary_sfsd, inode.i_numextents);
+	if (inode.i_numclients == 0 && NULL == inode.i_primary_sfsd) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Inode metadata corrupt for file %s \n",
 						__FUNCTION__, path);
 		errno = EIO;
@@ -2056,7 +2060,8 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 	bytes_to_write = size;
-
+	inode->i_numclients = 1;
+	put_inode(inode, db);
 	// Create job_map for this job.
 	// This is required to track multiple sub-jobs to a single request
 	// This is safe to do as async IO from applications are not part of

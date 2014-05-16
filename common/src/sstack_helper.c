@@ -346,8 +346,11 @@ flatten_inode(sstack_inode_t *inode, size_t *len, log_ctx_t *ctx)
 
 	sfs_log(ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__,__LINE__);
 	// 3. Extents
+	
 	ex = inode->i_extent;
-
+	if(ex)
+		sfs_log(ctx, SFS_DEBUG, "%s() - extents: %d numreplicas: %d\n",
+				__FUNCTION__, inode->i_numextents, ex->e_numreplicas);
 	for (i = 0; i < inode->i_numextents; i++) {
 
 		fixed_len = get_extent_fixed_fields_len();

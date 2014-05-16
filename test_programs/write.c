@@ -19,8 +19,18 @@ int main(int argc, char *argv[])
 		nbytes = write(fd, "12345", 6);
 		printf ("Wrote %d bytes\n", nbytes);
 		perror("write status");
+		close(fd);
 	}
+#if 0
+	fd = open(argv[1], O_RDONLY);
 
+	if (fd > 0) {
+		char buf[10];
+		nbytes = read(fd, buf, 10);
+		perror("Read status");
+		printf ("Read %d bytes, data = %s\n", nbytes, buf);
+	}
+#endif
 	return 0;
 }
 

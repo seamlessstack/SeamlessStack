@@ -649,7 +649,8 @@ sstack_payload_t *sstack_write(sstack_payload_t *payload,
 	int fd;
 	char *policy_inbuf, *policy_outbuf;
 	uint32_t cksum = 0;
-	sstack_extent_t *temp = NULL;
+	sstack_extent_t *new_extents = NULL;
+	uint32_t extent_created = 0;
 
 	sfs_log(ctx, SFS_DEBUG, "%s() - %d\n",
 			__FUNCTION__, __LINE__);
@@ -695,6 +696,7 @@ sstack_payload_t *sstack_write(sstack_payload_t *payload,
 				command_stat = errno;
 				goto error;
 			}
+			extent_created = 1;
 			/* A new extent is created */
 			close(fd);
 		}
@@ -749,10 +751,65 @@ sstack_payload_t *sstack_write(sstack_payload_t *payload,
 	sfs_log(ctx, SFS_DEBUG, "command status: %d\n", command_stat);
 	if (command_stat < 0)
 		goto error;
+
+	/* Now go ahead update the metadata */
+
+	if (extent_created) {
+		sstack_extent_t *extent;
+		sfs_log(ctx, SFS_DEBUG,
+				"%s() - A new extent has been created,update extent\n",
+				__FUNCTION__);
+		pthread_mutex_lock(&inode->i_lock);
+		new_extents = realloc(inode->i_extent, sizeof(*(inode->i_extent))
+							  * (inode->i_numextents + 1));
+		if (new_extents)
+			inode->i_extent = new_extents;
+		else
+			goto error;
+
+		sfs_log(ctx, SFS_DEBUG, "%s() - A new extent structure has been allocated\n",
+				__FUNCTION__);
+		extent = &inode->i_extent[inode->i_numextents];
+		memset(extent, 0, sizeof(sstack_extent_t));
+		extent->e_size = cmd->data.data_len;
+		extent->e_sizeondisk = out_size;
+		extent->e_cksum = cksum;
+		extent->e_path = malloc(sizeof(sstack_file_handle_t));
+		sprintf (extent->e_path->name, "%s/%s",
+				 sfsd->chunk->storage[chunk_index].path,
+				 basename(extent_name));
+		sfs_log(ctx, SFS_DEBUG, "%s() - handle name: %s\n",
+				__FUNCTION__, extent->e_path->name);
+		extent->e_path->name_len = strlen(extent_name);
+		if (inode->i_size != 0) {
+			sstack_extent_t *prev_extent;
+			prev_extent = extent - 1;
+			extent->e_offset = prev_extent->e_offset + prev_extent->e_size;
+			extent->e_path->proto = prev_extent->e_path->proto;
+			memcpy(&extent->e_path->address,&prev_extent->e_path->address,
+				   sizeof(sstack_address_t));
+		} else {
+			sfs_log(ctx, SFS_DEBUG, "%s() == New extent path\n",
+					__FUNCTION__);
+			extent->e_offset = 0;
+			extent->e_path->proto =
+				sfsd->chunk->storage[chunk_index].protocol;
+			memcpy(&extent->e_path->address,
+				   &sfsd->chunk->storage[chunk_index].address,
+				   sizeof(sstack_address_t));
+		}
+		inode->i_numextents++;
+	}
+	put_inode(inode, sfsd->db);
+	sstack_free_inode_res(inode, ctx);
+	bds_cache_free(sfsd->local_caches[INODE_CACHE_OFFSET], inode);
+	sfs_log(ctx, SFS_DEBUG, "%s() - put_inode, free_inode done\n",
+			__FUNCTION__);
+
 //	command_stat = write_erasure_code();
 
-	if (command_stat < 0)
-		goto error;
+//	if (command_stat < 0)
+//		goto error;
 #if 0
 	/* Metadata update code is here */
 		pthread_mutex_lock(&inode->i_lock);
