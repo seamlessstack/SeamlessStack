@@ -69,6 +69,11 @@ destroy_func(void *val)
 		free(val);
 }
 
+static void
+destroy_key(void *val)
+{
+	/* Do nothing. Place holder to avoid RB tree crash */
+}
 
 /*
  * cache_init - Create RB-tree to maintain cache metadata
@@ -80,7 +85,8 @@ int
 cache_init(log_ctx_t *ctx)
 {
 	// Create RB-tree for managing the cache
-	cache_tree = RBTreeCreate(compare_func, destroy_func, NULL, NULL, NULL);
+	cache_tree = RBTreeCreate(compare_func, destroy_key, destroy_func,
+								NULL, NULL);
 	if (NULL == cache_tree) {
 		sfs_log(ctx, SFS_ERR, "%s: Failed to create RB-tree for cache \n",
 						__FUNCTION__);
@@ -281,10 +287,10 @@ sstack_cache_search(uint8_t *hashkey, log_ctx_t *ctx)
 		return NULL;
 	}
 
-	memcpy((void *) &c.hashkey, (void *) hashkey, (SHA256_DIGEST_LENGTH + 1));
+	//memcpy((void *) &c.hashkey, (void *) hashkey, (SHA256_DIGEST_LENGTH + 1));
 
 	pthread_spin_lock(&cache_lock);
-	node = RBExactQuery(cache_tree, (void *) &c);
+	node = RBExactQuery(cache_tree, (void *) hashkey);
 	if (NULL == node) {
 		sfs_log(ctx, SFS_CRIT, "%s: hashkey %s not found in RB-tree \n",
 						__FUNCTION__, (char *) hashkey);
@@ -422,10 +428,10 @@ sstack_cache_purge(uint8_t *hashkey, log_ctx_t *ctx)
 		return -1;
 	}
 
-	memcpy((void *) &c.hashkey, (void *) hashkey, (SHA256_DIGEST_LENGTH + 1));
+	//memcpy((void *) &c.hashkey, (void *) hashkey, (SHA256_DIGEST_LENGTH + 1));
 
 	pthread_spin_lock(&cache_lock);
-	node = RBExactQuery(cache_tree, (void *) &c);
+	node = RBExactQuery(cache_tree, (void *) hashkey);
 	if (NULL == node) {
 		sfs_log(ctx, SFS_CRIT, "%s: hashkey %s not found in RB-tree \n",
 						__FUNCTION__, (char *) hashkey);

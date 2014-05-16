@@ -44,9 +44,9 @@ pthread_spinlock_t lru_lock;
 static int
 lru_comp_func(const void *val1, const void *val2)
 {
-	if (*(time_t *)val1 > *(time_t *)val2)
+	if ((time_t)val1 > (time_t)val2)
 		return 1;
-	if (*(time_t *)val1 < *(time_t *)val2)
+	if ((time_t)val1 < (time_t)val2)
 		return -1;
 
 	return 0;

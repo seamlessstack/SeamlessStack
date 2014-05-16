@@ -6,10 +6,13 @@
 #include <sstack_lrucache.h>
 #include <red_black_tree.h>
 
+char *value1 = "qwewretrt  tprtritor r trotrtifsldfsfkdlsfkslfsfffkds n,dfnsnf,sddfs fdlkfdkfhsfhwe ejfsjflsjdfksfskdfj  efljdlfjslkdjfsjdkfjsljfsj sjfsjdflslfjsljfldsjsjlfjsl jljfjsljf lsjfljsdlfjsjl jlajljdl jlsjflsjl jalfjksdj ljsfljsldkjflj ljsfl js";
+
 int
 main(void)
 {
 	char *key = "data_123456789098765432123456789";
+	char *key1 = "data_123456789098765432123456798";
 	char *value = "Test the cache code and harden it";
 	memcached_st *memc = NULL;
 	char *config = "localhost";
@@ -58,5 +61,52 @@ main(void)
 		return (-1);
 	}
 
-	printf("%s: %d cache_get %s\n", __FUNCTION__, __LINE__);
+	printf("%s: %d cache_get %s\n", __FUNCTION__, __LINE__, data);
+	
+	cache_entry = sstack_allocate_cache_entry(NULL);
+	if (cache_entry == NULL) {
+		printf("%s: %d\n", __FUNCTION__, __LINE__);
+		return (-1);
+	}
+
+	printf("%s: %d cache entry allocated\n", __FUNCTION__, __LINE__);
+
+	cache_entry->memcache.mc = memc;
+	strcpy((char *)cache_entry->hashkey, key1);
+	ret = sstack_cache_store(value1, strlen(value1), cache_entry, NULL);
+
+	if (ret != 0) {
+		printf("%s: %d\n", __FUNCTION__, __LINE__);
+	    return (-1);
+	}
+	
+	printf("%s: %d cache_store success\n", __FUNCTION__, __LINE__);
+
+	data = sstack_cache_get(key1, 1000, NULL);
+	if (data == NULL) {
+		printf("%s: %d\n", __FUNCTION__, __LINE__);
+		return (-1);
+	}
+
+	printf("%s: %d cache_get %s\n", __FUNCTION__, __LINE__, data);
+	
+	data = sstack_cache_get(key, 1000, NULL);
+	if (data == NULL) {
+		printf("%s: %d\n", __FUNCTION__, __LINE__);
+		return (-1);
+	}
+
+	printf("%s: %d cache_get %s\n", __FUNCTION__, __LINE__, data);
+
+	ret = sstack_cache_purge(key, NULL);
+	if (ret != 0) {
+		printf("%s: %d\n", __FUNCTION__, __LINE__);
+		return (-1);
+	}
+
+	data = sstack_cache_get(key, 1000, NULL);
+	if (data == NULL) {
+		printf("%s: %d\n", __FUNCTION__, __LINE__);
+		return (-1);
+	}
 }
