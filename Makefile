@@ -17,6 +17,7 @@
 #
 
 MONGODIR = db/mongo
+ROCKSDB_DIR = db/rocksdb
 SFSDIR = sfs
 MONGODRV = oss/mongo-c-driver
 OSS = oss
@@ -55,6 +56,7 @@ all:
 	$(RM) -f cli.proto
 	$(MAKE) -C $(MONGODIR)
 	$(MAKE) -C $(MONGODRV)
+	$(MAKE) -C $(ROCKSDB_DIR)
 	$(MAKE) -C $(POLICYDIR)
 	$(MAKE) -C $(CLIDIR)
 	$(MAKE) -C $(CACHINGDIR)
@@ -70,6 +72,7 @@ all:
 install:
 	$(MKDIR) -p $(BUILDDIR) $(BINDIR) $(LIBDIR)
 	$(CP) $(MONGODIR)/*.so $(LIBDIR)
+	$(CP) $(ROCKSDB_DIR)/*.so $(LIBDIR)
 	$(CP) $(MONGODRV)/*.so $(LIBDIR)
 	$(CP) $(POLICYDIR)/*.so $(LIBDIR)
 	$(CP) $(CLIDIR)/*.so $(LIBDIR)
