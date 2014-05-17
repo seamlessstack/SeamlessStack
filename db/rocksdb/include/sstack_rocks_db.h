@@ -23,7 +23,7 @@
 #include <inttypes.h>
 #include <sstack_db.h>
 #include <sstack_log.h>
-#define TRANSACTIONDB_NAME "transaction_db"
+#define TRANSACTIONDB_NAME "/var/sfs/transaction_db"
 
 #define T 1
 #define WRITE_BUFFER_SIZE 67108864 // 64 MiB
