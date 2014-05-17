@@ -20,9 +20,21 @@
 #ifndef __ROCKS_DB_H__
 #define __ROCKS_DB_H__
 
+#include <inttypes.h>
 #include <sstack_db.h>
 #include <sstack_log.h>
 #define TRANSACTIONDB_NAME "transaction_db"
+
+#define T 1
+#define WRITE_BUFFER_SIZE 67108864 // 64 MiB
+#define MAXIMUM_OPEN_FILES 8192
+#define MAX_WRITE_BUFFER_NUM 3
+#define TARGET_FILE_SIZE_BASE 67108864
+#define NUM_BLLOM_FILTER_BITS 10
+#define LRU_CACHE_SIZE 67108864
+#define MAX_COMPACTION_THREADS 8
+#define MAX_BACKGROUND_FLUSH_THREADS 8
+
 
 extern int rocks_db_open(log_ctx_t *);
 extern int rocks_db_close(log_ctx_t *);

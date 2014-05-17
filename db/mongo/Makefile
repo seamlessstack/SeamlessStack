@@ -19,12 +19,13 @@
 TOPDIR = ../..
 MONGO_OBJECTS = src/mongo_db.o
 MONGO_DB_LIBNAME = libmongo_db.so
-CFLAGS += -I include -I $(TOPDIR)/oss/mongo-c-driver/src -I $(TOPDIR)/common/include -DMONGO_HAVE_STDINT
+CFLAGS += -I include -I $(TOPDIR)/oss/mongo-c-driver/src 
+CFLAGS += -I $(TOPDIR)/common/include -DMONGO_HAVE_STDINT
 CFLAGS += -D_GNU_SOURCE -fPIC
 CC = gcc
 LDFLAGS = -shared -o
 MONGOC_LIB = -L $(TOPDIR)/oss_install/lib -lmongoc
-BSON_LIB = -L $(TOPDIR)/oss_libs/lib -lbson
+BSON_LIB = -L $(TOPDIR)/oss_install/lib -lbson
 
 all:: $(MONGO_DB_LIBNAME)
 

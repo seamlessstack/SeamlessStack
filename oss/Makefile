@@ -30,6 +30,7 @@ OPENSSL_DIR = openssl-1.0.1g
 GFP = $(shell pwd)/gf-complete
 RBTREE_DIR = rbtree
 CLISH_DIR = clish-0.7.3
+ROCKSDB_DIR = rocksdb
 RM = rm
 CC = gcc
 CP = cp
@@ -46,7 +47,7 @@ all: $(CONFIGURE)
 	$(MAKE) -C $(MEMCACHEDDIR) install
 	$(MAKE) -C $(MONGOCDIR)
 	$(CP) $(JERASUREDIR)/src/.libs/*.so $(OSS_LIBSDIR)
-	$(LN) -sf $(OSS_LIBSDIR)/libJerasure.so $(OSS_LIBSDIR)/libJerasure.so.2								
+	$(LN) -sf $(OSS_LIBSDIR)/libJerasure.so $(OSS_LIBSDIR)/libJerasure.so.2	
 	$(CP) $(MONGOCDIR)/*.so $(OSS_LIBSDIR)
 	$(MAKE) -C $(LZ4DIR) 
 	$(CP) $(LZ4DIR)/*.so $(OSS_LIBSDIR)
@@ -57,17 +58,21 @@ all: $(CONFIGURE)
 	$(MAKE) -C $(RBTREE_DIR)
 	$(CP) $(RBTREE_DIR)/*.so $(OSS_LIBSDIR)
 	$(MAKE) -C $(CLISH_DIR)
+	$(MAKE) -C $(ROCKSDB_DIR) shared_lib
+	$(CP) $(ROCKSDB_DIR)/*.so $(OSS_LIBSDIR)
 
 $(CONFIGURE): gf_comp jerasure_touch
 	$(CD) $(MEMCACHEDDIR) && ./configure --prefix=$(OSS_INSTALL_DIR)
 	$(CD) $(OPENSSL_DIR) && ./config shared
-	$(CD) $(JERASUREDIR) && ./configure LDFLAGS=-L$(GFP)/src/.libs CPPFLAGS=-I$(GFP)/include
+	$(CD) $(JERASUREDIR) && ./configure LDFLAGS=-L$(GFP)/src/.libs \
+			CPPFLAGS=-I$(GFP)/include
 
 gf_comp:
 	$(MAKE) -C $(GF_COMPLETEDIR)
 
 jerasure_touch:
-	$(CD) $(JERASUREDIR) && touch configure.ac aclocal.m4 configure Makefile.am Makefile.in
+	$(CD) $(JERASUREDIR) && touch configure.ac aclocal.m4 configure \
+				Makefile.am Makefile.in
 
 clean:
 	$(MAKE) -C $(JERASUREDIR) clean
@@ -78,3 +83,4 @@ clean:
 	$(MAKE) -C $(RBTREE_DIR) clean
 	$(MAKE) -C $(CLISH_DIR) clean
 	$(MAKE) -C $(GF_COMPLETEDIR) clean
+	$(MAKE) -C $(ROCKSDB_DIR) clean

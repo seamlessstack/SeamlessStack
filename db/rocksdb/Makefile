@@ -17,14 +17,15 @@
 #
 
 TOPDIR = ../..
-ROCKSDB_OBJECTS = src/rocksdb_db.o
+ROCKSDB_OBJECTS = src/rocks_db.o
 ROCKSDB_LIBNAME = librocksdb_db.so
-CFLAGS += -I include 
+CFLAGS += -I $(TOPDIR)/oss/rocksdb/include
 CFLAGS += -I $(TOPDIR)/common/include
+CFLAGS += -I include 
 CFLAGS += -D_GNU_SOURCE -fPIC
 CC = gcc
 LDFLAGS = -shared -o
-ROCKSDB_LIB = -L $(TOPDIR)/oss_install/lib -lmongoc
+ROCKSDB_LIB = -L $(TOPDIR)/oss_install/lib -lrocksdb
 
 all:: $(ROCKSDB_LIBNAME)
 
