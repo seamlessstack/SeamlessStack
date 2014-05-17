@@ -100,6 +100,7 @@ tags:
 clean:
 	$(MAKE) -C $(OSS) clean
 	$(MAKE) -C $(MONGODIR) clean
+	$(MAKE) -C $(ROCKSDB_DIR) clean
 	$(MAKE) -C $(MONGODRV) clean
 	$(MAKE) -C $(POLICYDIR) clean
 	$(MAKE) -C $(CLIDIR) clean
