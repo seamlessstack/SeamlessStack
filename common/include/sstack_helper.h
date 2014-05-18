@@ -32,6 +32,9 @@
 
 #define MAX_INODE_LEN 40 // Maximum number of characters in 2^128 is 39
 
+int32_t sstack_helper_init(log_ctx_t *ctx);
+sstack_inode_t* sstack_create_inode(void);
+void sstack_free_inode(sstack_inode_t *inode);
 int get_inode(unsigned long long , sstack_inode_t *, db_t *);
 int put_inode(sstack_inode_t *, db_t *);
 inline void sstack_free_erasure(log_ctx_t *, sstack_extent_t *, int );

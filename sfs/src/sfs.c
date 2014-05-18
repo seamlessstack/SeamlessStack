@@ -1083,6 +1083,14 @@ sfs_init(struct fuse_conn_info *conn)
 		return -ENOMEM;
 	}
 
+	ret = sstack_helper_init(sfs_ctx);
+
+	if (ret != 0) {
+		sfs_log(sfs_ctx, SFS_CRIT, "%s() - Helper init failed\n",
+				__FUNCTION__);
+		return -ENOMEM;
+	}
+
 	// Create db instance
 	db = malloc(sizeof(db_t));
 	if (NULL == db) {

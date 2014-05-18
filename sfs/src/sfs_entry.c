@@ -1556,7 +1556,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 {
 	unsigned long long inode_num = 0;
 	char *inodestr = NULL;
-	sstack_inode_t inode;
+	sstack_inode_t *inode = NULL;
 	size_t size1 = 0;
 	sstack_extent_t *extent = NULL;
 	int i = 0;
@@ -1600,8 +1600,13 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 
 		return -1;
 	}
+	if ((inode = sstack_create_inode()) == NULL) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s() - Failed getting inode\n",
+				__FUNCTION__);
+		return -ENOMEM;
+	}
 	// Get inode from DB
-	ret = get_inode(inode_num, &inode, db);
+	ret = get_inode(inode_num, inode, db);
 	if (ret != 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to get inode %lld. Path = %s "
 						"error = %d\n", __FUNCTION__, inode_num, path, ret);
@@ -1612,7 +1617,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 	}
 
 	// Parameter validation; AGAIN :-)
-	if (inode.i_size < size || (offset + size ) > inode.i_size ) {
+	if (inode->i_size < size || (offset + size ) > inode->i_size ) {
 		// Appl asking for file offset greater tha real size
 		// Return error
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid offset/size specified \n",
@@ -1641,8 +1646,8 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 	// Check for metadata validity
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d - numclients = %d, primary sfsd: %p\n",
 			__FUNCTION__, __LINE__,
-			inode.i_numclients, inode.i_primary_sfsd, inode.i_numextents);
-	if (inode.i_numclients == 0 && NULL == inode.i_primary_sfsd) {
+			inode->i_numclients, inode->i_primary_sfsd, inode->i_numextents);
+	if (inode->i_numclients == 0 && NULL == inode->i_primary_sfsd) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Inode metadata corrupt for file %s \n",
 						__FUNCTION__, path);
 		errno = EIO;
@@ -1657,8 +1662,8 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 	thread_id = pthread_self();
 
 	// Get the extent covering the request
-	for(i = 0; i < inode.i_numextents; i++) {
-		extent = inode.i_extent;
+	for(i = 0; i < inode->i_numextents; i++) {
+		extent = inode->i_extent;
 		if (extent->e_offset <= relative_offset &&
 				(extent->e_offset + extent->e_size >= relative_offset)) {
 			// Found the initial extent
@@ -1724,10 +1729,10 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 		job->id = get_next_job_id();
 		job->job_type = SFSD_IO;
 		job->num_clients = 1;
-		job->sfsds[0] = inode.i_primary_sfsd->sfsd;
+		job->sfsds[0] = inode->i_primary_sfsd->sfsd;
 		job->job_status[0] = JOB_STARTED;
 #if 0
-		for (j = 0; j < inode.i_numclients; j++)
+		for (j = 0; j < inode->i_numclients; j++)
 			job->job_status[j] =  JOB_STARTED;
 #endif
 
@@ -1742,7 +1747,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 		payload->hdr.priority = job->priority;
 		payload->hdr.arg = (uint64_t) job;
 		payload->command = NFS_READ;
-		payload->command_struct.read_cmd.inode_no = inode.i_num;
+		payload->command_struct.read_cmd.inode_no = inode->i_num;
 		payload->command_struct.read_cmd.offset = offset;
 		if ((offset + size) > (extent->e_offset + extent->e_size))
 			read_size = (extent->e_offset + extent->e_size) - offset;
@@ -1926,12 +1931,13 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 	}
 	// Get inode from DB
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
-	if (!(inode = malloc(sizeof(*inode)))) {
+	inode = sstack_create_inode();
+	if (inode == NULL) {
 		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - Unable to allocate inode",
 				__FUNCTION__);
 		return -ENOMEM;
 	}
-	memset(inode, 0, sizeof(*inode));
+
 	ret = get_inode(inode_num, inode, db);
 	if (ret != 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to get inode %lld. Path = %s "
@@ -2310,7 +2316,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 	// Free up dynamically allocated fields in inode structure
 	sstack_free_inode_res(inode, sfs_ctx);
 	sfs_unlock(inode_num);
-	free(inode);
+	sstack_free_inode(inode);
 
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d ret %d\n",
 			__FUNCTION__, __LINE__, ret);

@@ -20,9 +20,47 @@
 #include <sstack_db.h>
 #include <sstack_helper.h>
 #include <sstack_md.h>
+#include <bds_slab.h>
 #include <sstack_transport.h>
 
 // This file contains all the helper functions common for sfs and sfsd
+static bds_cache_desc_t inode_cache = NULL;
+static log_ctx_t *alloc_ctx = NULL; 
+/* Inode create functions */
+int32_t sstack_helper_init(log_ctx_t *ctx)
+{
+	bds_status_t ret = -1;
+	ret = bds_cache_create("helper-inode-cahe", sizeof(sstack_inode_t),
+						   0, NULL, NULL, &inode_cache);
+	if (ret != 0)
+		sfs_log(ctx, SFS_ERR, "%s() - Cannot create inode cache\n",
+				__FUNCTION__);
+	else
+		sfs_log(ctx, SFS_INFO, "%s() - Helper cache create successful\n",
+				__FUNCTION__);
+	alloc_ctx = ctx;
+	return ret;
+}
+
+sstack_inode_t *sstack_create_inode(void)
+{
+	sstack_inode_t *inode = NULL;
+	inode = (sstack_inode_t *) bds_cache_alloc(inode_cache);
+	if (inode == NULL)
+		sfs_log(alloc_ctx, SFS_ERR, "%s() - inode create returned NULL\n",
+				__FUNCTION__);
+	if (inode != NULL)
+		memset(inode, 0, sizeof(*inode));
+	return inode;
+}
+
+void sstack_free_inode(sstack_inode_t *inode)
+{
+	bds_cache_free(inode_cache, inode);
+}
+	
+		
+	
 
 /* DB helper functions */
 
