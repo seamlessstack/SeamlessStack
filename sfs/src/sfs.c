@@ -246,7 +246,7 @@ add_inodes(const char *path)
 	inode.i_xattr = NULL; // No extended attributes carried over
 
 	// Store inode
-	ret = put_inode(&inode, db);
+	ret = put_inode(&inode, db, 0);
 	if (ret != 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to store inode #%lld for "
 				"path %s. Error %d\n", __FUNCTION__, inode.i_num,

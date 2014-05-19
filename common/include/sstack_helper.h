@@ -36,7 +36,7 @@ int32_t sstack_helper_init(log_ctx_t *ctx);
 sstack_inode_t* sstack_create_inode(void);
 void sstack_free_inode(sstack_inode_t *inode);
 int get_inode(unsigned long long , sstack_inode_t *, db_t *);
-int put_inode(sstack_inode_t *, db_t *);
+int put_inode(sstack_inode_t *, db_t *, int );
 inline void sstack_free_erasure(log_ctx_t *, sstack_extent_t *, int );
 inline void sstack_free_inode_res(sstack_inode_t *, log_ctx_t *);
 uint8_t * create_hash(void *, size_t , uint8_t *, log_ctx_t *);

@@ -651,6 +651,7 @@ sstack_payload_t *sstack_write(sstack_payload_t *payload,
 	uint32_t cksum = 0;
 	sstack_extent_t *new_extents = NULL;
 	uint32_t extent_created = 0;
+	unsigned long long size = 0;
 
 	sfs_log(ctx, SFS_DEBUG, "%s() - %d\n",
 			__FUNCTION__, __LINE__);
@@ -800,8 +801,21 @@ sstack_payload_t *sstack_write(sstack_payload_t *payload,
 		}
 		inode->i_numextents++;
 	}
-	put_inode(inode, sfsd->db);
+	// Update inode size
+	for (i = 0; i < inode->i_numextents; i++)
+		size += inode->i_extent[i].e_size;
+
+	inode->i_size = size;
+	sfs_log(ctx, SFS_DEBUG, "%s: Updated size = %"PRIx64"\n",
+			__FUNCTION__, inode->i_size);
+	put_inode(inode, sfsd->db, 1);
 	sstack_free_inode_res(inode, ctx);
+	// Check
+	get_inode(inode->i_num, inode, sfsd->db);
+	sfs_log(ctx, SFS_DEBUG, "%s: inode name = %s number = %d size = %d\n",
+			__FUNCTION__, inode->i_name, inode->i_num, inode->i_size);
+	sstack_free_inode_res(inode, ctx);
+
 	bds_cache_free(sfsd->local_caches[INODE_CACHE_OFFSET], inode);
 	sfs_log(ctx, SFS_DEBUG, "%s() - put_inode, free_inode done\n",
 			__FUNCTION__);
@@ -847,7 +861,7 @@ sstack_payload_t *sstack_write(sstack_payload_t *payload,
 				(int32_t)ceil((1.0) * (out_size/4096));
 			inode->i_size += cmd->data.data_len;
 			inode->i_sizeondisk += out_size;
-			put_inode(inode,sfsd->db);
+			put_inode(inode,sfsd->db, 1);
 		}
 			if (fd > 0) {
 				ret =  write(fd, policy_buf, out_size);

@@ -25,7 +25,7 @@
 
 // This file contains all the helper functions common for sfs and sfsd
 static bds_cache_desc_t inode_cache = NULL;
-static log_ctx_t *alloc_ctx = NULL; 
+static log_ctx_t *alloc_ctx = NULL;
 /* Inode create functions */
 int32_t sstack_helper_init(log_ctx_t *ctx)
 {
@@ -58,9 +58,9 @@ void sstack_free_inode(sstack_inode_t *inode)
 {
 	bds_cache_free(inode_cache, inode);
 }
-	
-		
-	
+
+
+
 
 /* DB helper functions */
 
@@ -384,7 +384,7 @@ flatten_inode(sstack_inode_t *inode, size_t *len, log_ctx_t *ctx)
 
 	sfs_log(ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__,__LINE__);
 	// 3. Extents
-	
+
 	ex = inode->i_extent;
 	if(ex)
 		sfs_log(ctx, SFS_DEBUG, "%s() - extents: %d numreplicas: %d\n",
@@ -448,13 +448,14 @@ flatten_inode(sstack_inode_t *inode, size_t *len, log_ctx_t *ctx)
  *
  * inode - in-core inode structure . Should be non-NULL
  * db - DB pointer. Should be non-NULL
+ * update - Is this an update? If so, send 1. Else 0
  *
  * Returns 0 on success and negative number indicating error on failure.
  */
 
 
 int
-put_inode(sstack_inode_t *inode, db_t *db)
+put_inode(sstack_inode_t *inode, db_t *db, int update)
 {
 	char inode_str[MAX_INODE_LEN] = { '\0' };
 	char *data = NULL;
@@ -463,7 +464,7 @@ put_inode(sstack_inode_t *inode, db_t *db)
 	unsigned long long inode_num = 0;
 
 	// Parameter validation
-	if (NULL == inode || NULL == db) {
+	if (NULL == inode || NULL == db || update < 0 || update > 1) {
 		sfs_log(db->ctx, SFS_ERR, "%s: Invalid parameters specified.\n",
 						__FUNCTION__);
 		return -EINVAL;
@@ -487,17 +488,32 @@ put_inode(sstack_inode_t *inode, db_t *db)
 		return -1;
 	}
 
-	if (db->db_ops.db_insert && ((db->db_ops.db_insert(inode_str, data, len,
-					INODE_TYPE, db->ctx)) == 1)) {
-		sfs_log(db->ctx, SFS_INFO, "%s: Succeeded for inode %lld \n",
+	if (update == 0) {
+		if (db->db_ops.db_insert && ((db->db_ops.db_insert(inode_str, data,
+							len, INODE_TYPE, db->ctx)) == 1)) {
+			sfs_log(db->ctx, SFS_INFO, "%s: Succeeded for inode %lld \n",
 				__FUNCTION__, inode_num);
 
-		ret = 0;
-	} else {
-		sfs_log(db->ctx, SFS_ERR, "%s: Failed for inode %lld \n",
+			ret = 0;
+		} else {
+			sfs_log(db->ctx, SFS_ERR, "%s: Failed for inode %lld \n",
 				__FUNCTION__, inode_num);
 
-		ret = -2;
+			ret = -2;
+		}
+	} else if (update == 0) {
+		if (db->db_ops.db_insert && ((db->db_ops.db_update(inode_str, data,
+							len, INODE_TYPE, db->ctx)) == 1)) {
+			sfs_log(db->ctx, SFS_INFO, "%s: Succeeded for inode %lld \n",
+				__FUNCTION__, inode_num);
+
+			ret = 0;
+		} else {
+			sfs_log(db->ctx, SFS_ERR, "%s: Failed for inode %lld \n",
+				__FUNCTION__, inode_num);
+
+			ret = -2;
+		}
 	}
 
 	free(data);

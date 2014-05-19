@@ -363,7 +363,7 @@ sfs_mkdir(const char *path, mode_t mode)
 	inode.i_xattr = NULL; // No extended attributes carried over
 
 	// Store inode
-	ret = put_inode(&inode, db);
+	ret = put_inode(&inode, db, 0);
 	if (ret != 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to store inode #%lld for "
 				"path %s. Error %d\n", __FUNCTION__, inode.i_num,
@@ -950,7 +950,7 @@ sfs_symlink(const char *from, const char *to)
 	inode.i_xattr = NULL; // No extended attributes carried over
 
 	// Store inode
-	ret = put_inode(&inode, db);
+	ret = put_inode(&inode, db, 0);
 	if (ret != 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to store inode #%lld for "
 				"path %s. Error %d\n", __FUNCTION__, inode.i_num,
@@ -1012,7 +1012,7 @@ sfs_rename(const char *from, const char *to)
 	/* Change inode's path name */
 	strcpy(inode.i_name, to);
 	/*Put back the inode into DB */
-	ret = put_inode(&inode, db);
+	ret = put_inode(&inode, db, 1);
 	if (ret == -1) {
         sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to store inode  %lld in db."
 		                        " Inode name = %s \n",
@@ -1115,7 +1115,7 @@ sfs_link(const char *from, const char *to)
 	inode.i_xattr = NULL; // No extended attributes carried over
 
 	// Store inode
-	ret = put_inode(&inode, db);
+	ret = put_inode(&inode, db, 0);
 	if (ret != 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to store inode #%lld for "
 				"path %s. Error %d\n", __FUNCTION__, inode.i_num,
@@ -1211,7 +1211,7 @@ sfs_chmod(const char *path, mode_t mode)
 	inode.i_mode = mode;
 
 	// Store the inode back to DB
-	ret = put_inode(&inode, db);
+	ret = put_inode(&inode, db, 1);
 	if (ret == -1) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to store inode  %lld in db."
 						" Inode name = %s \n",
@@ -1301,7 +1301,7 @@ sfs_chown(const char *path, uid_t uid, gid_t gid)
 	inode.i_gid = gid;
 
 	// Store the inode back to DB
-	ret = put_inode(&inode, db);
+	ret = put_inode(&inode, db, 1);
 	if (ret == -1) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to store inode  %lld in db."
 						" Inode name = %s \n",
@@ -1391,7 +1391,7 @@ sfs_truncate(const char *path, off_t size)
 	// operation
 
 	// Store inode
-	ret = put_inode(&inode, db);
+	ret = put_inode(&inode, db, 1);
 	if (ret != 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to store inode #%lld for "
 				"path %s. Error %d\n", __FUNCTION__, inode.i_num,
@@ -1524,7 +1524,7 @@ sfs_open(const char *path, struct fuse_file_info *fi)
 	inode.i_numclients = 0;
 
 	// Store inode
-	ret = put_inode(&inode, db);
+	ret = put_inode(&inode, db, 0);
 	if (ret != 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to store inode #%lld for "
 				"path %s. Error %d\n", __FUNCTION__, inode.i_num,
@@ -1616,6 +1616,9 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 		return -1;
 	}
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: Inode size %d size %d offset %d \n",
+			__FUNCTION__, inode->i_size, size, offset);
+	syncfs(sfs_ctx->log_fd);
 	// Parameter validation; AGAIN :-)
 	if (inode->i_size < size || (offset + size ) > inode->i_size ) {
 		// Appl asking for file offset greater tha real size
@@ -2067,7 +2070,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 	bytes_to_write = size;
 	inode->i_numclients = 1;
-	put_inode(inode, db);
+	put_inode(inode, db, 1);
 	// Create job_map for this job.
 	// This is required to track multiple sub-jobs to a single request
 	// This is safe to do as async IO from applications are not part of
@@ -2533,7 +2536,7 @@ replace_xattr(sstack_inode_t *inode, const char *name, const char *value,
 	}
 
 	// Store the updated inode
-	ret = put_inode(inode, db);
+	ret = put_inode(inode, db, 1);
 	if (ret != 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: put inode failed. Error = %d\n",
 						__FUNCTION__, errno);
@@ -2607,7 +2610,7 @@ append_xattr(sstack_inode_t *inode, const char * name, const char * value,
 	inode->i_xattr = p;
 
 	// Store the updated inode
-	ret = put_inode(inode, db);
+	ret = put_inode(inode, db, 1);
 	if (ret != 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: put inode failed. Error = %d\n",
 						__FUNCTION__, errno);
@@ -3267,7 +3270,7 @@ sfs_removexattr(const char *path, const char *name)
 	}
 
 	// Update inode
-	ret = put_inode(&inode, db);
+	ret = put_inode(&inode, db, 1);
 	if (ret != 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: put inode failed. Error = %d\n",
 						__FUNCTION__, errno);
@@ -3481,7 +3484,7 @@ sfs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 	// Store inode
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - Before storing the inode db: %p\n",
 			__FUNCTION__, db);
-	ret = put_inode(&inode, db);
+	ret = put_inode(&inode, db, 0);
 	if (ret != 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to store inode #%lld for "
 				"path %s. Error %d\n", __FUNCTION__, inode.i_num,
@@ -3581,7 +3584,7 @@ sfs_ftruncate(const char *path, off_t offset, struct fuse_file_info *fi)
 	// operation
 
 	// Store inode
-	ret = put_inode(&inode, db);
+	ret = put_inode(&inode, db, 1);
 	if (ret != 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to store inode #%lld for "
 				"path %s. Error %d\n", __FUNCTION__, inode.i_num,
