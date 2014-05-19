@@ -31,6 +31,7 @@ GFP = $(shell pwd)/gf-complete
 RBTREE_DIR = rbtree
 CLISH_DIR = clish-0.7.3
 ROCKSDB_DIR = rocksdb
+CZMQ_DIR = czmq
 RM = rm
 CC = gcc
 CP = cp
@@ -60,12 +61,16 @@ all: $(CONFIGURE)
 	$(MAKE) -C $(CLISH_DIR)
 	$(MAKE) -C $(ROCKSDB_DIR) shared_lib
 	$(CP) $(ROCKSDB_DIR)/*.so $(OSS_LIBSDIR)
+	$(MAKE) -C $(CZMQ_DIR)
+	$(CP) $(CZMQ_DIR)/src/.libs/*.so $(OSS_LIBSDIR)
 
 $(CONFIGURE): gf_comp jerasure_touch
 	$(CD) $(MEMCACHEDDIR) && ./configure --prefix=$(OSS_INSTALL_DIR)
 	$(CD) $(OPENSSL_DIR) && ./config shared
 	$(CD) $(JERASUREDIR) && ./configure LDFLAGS=-L$(GFP)/src/.libs \
 			CPPFLAGS=-I$(GFP)/include
+	$(CD) $(CZMQ_DIR) && ./autogen.sh
+	$(CD) $(CZMQ_DIR) && ./configure
 
 gf_comp:
 	$(MAKE) -C $(GF_COMPLETEDIR)
@@ -84,3 +89,4 @@ clean:
 	$(MAKE) -C $(CLISH_DIR) clean
 	$(MAKE) -C $(GF_COMPLETEDIR) clean
 	$(MAKE) -C $(ROCKSDB_DIR) clean
+	$(MAKE) -C $(CZMQ_DIR) clean
