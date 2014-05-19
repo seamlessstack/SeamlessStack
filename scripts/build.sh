@@ -1,3 +1,4 @@
 #!/bin/bash
-./git_update
+git submodule init
+git submodule update
 make  all install tags

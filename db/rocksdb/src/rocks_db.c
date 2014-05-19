@@ -16,6 +16,7 @@
  * is strictly forbidden unless prior written permission is obtained
  * from SeamlessStack Incorporated.
  */
+#include <pthread.h>
 #include <rocksdb/c.h>
 #include <sstack_db.h>
 #include <sstack_log.h>
@@ -25,6 +26,7 @@ static rocksdb_t *rocksdb = NULL;
 static rocksdb_writeoptions_t *write_options = NULL;
 static rocksdb_readoptions_t *read_options = NULL;
 static rocksdb_options_t *options = NULL;
+static pthread_spinlock_t rocksdb_lock;
 
 static int
 cmp_compare(void *arg, const char *s1, size_t s1_len, const char *s2,
@@ -125,6 +127,7 @@ rocks_db_init(log_ctx_t *ctx)
 		// Data integrity check
 		rocksdb_readoptions_set_verify_checksum(read_options, 1);
 		rocksdb_readoptions_set_fill_cache(read_options, 0);
+		pthread_spin_init(&rocksdb_lock, PTHREAD_PROCESS_PRIVATE);
 
 		sfs_log(ctx, SFS_DEBUG, "%s: succeeded. rocksdb = %"PRIx64"\n",
 				__FUNCTION__, rocksdb);
@@ -168,8 +171,10 @@ rocks_db_insert(char *key, char *value, size_t value_len, db_type_t type,
 		return -1;
 	}
 
+	pthread_spin_lock(&rocksdb_lock);
 	rocksdb_put(rocksdb, write_options, key, strlen(key), value,
 			value_len, &err);
+	pthread_spin_unlock(&rocksdb_lock);
 	if (err != NULL) {
 		sfs_log(ctx, SFS_ERR, "%s: rocksdb_put failed for key %s . "
 				"Error = %s\n", __FUNCTION__, key, err);
@@ -195,7 +200,9 @@ rocks_db_remove(char *key, db_type_t type, log_ctx_t *ctx)
 		return -1;
 	}
 
+	pthread_spin_lock(&rocksdb_lock);
 	rocksdb_delete(rocksdb, write_options, key, strlen(key), &err);
+	pthread_spin_unlock(&rocksdb_lock);
 	if (err != NULL) {
 		sfs_log(ctx, SFS_ERR, "%s: rocksdb_delete failed for key %s . "
 				"Error = %s\n", __FUNCTION__, key, err);
@@ -242,8 +249,10 @@ rocks_db_get(char *key, char **data, db_type_t type, log_ctx_t *ctx)
 		return -1;
 	}
 
+	pthread_spin_lock(&rocksdb_lock);
 	*data = rocksdb_get(rocksdb, read_options, key, strlen(key),
 				&value_len, &err);
+	pthread_spin_unlock(&rocksdb_lock);
 	if (err != NULL) {
 		sfs_log(ctx, SFS_ERR, "%s: rocksdb_get failed for key %s . "
 				"Error = %s\n", __FUNCTION__, key, err);
@@ -283,7 +292,9 @@ rocks_db_update(char *key, char *data, size_t len, db_type_t type,
 
 	// Update would cause read-modify-write
 	// rocksdb_merge is supposed to avoid read-modify-write
+	pthread_spin_lock(&rocksdb_lock);
 	rocksdb_merge(rocksdb, write_options, key, strlen(key), data, len, &err);
+	pthread_spin_unlock(&rocksdb_lock);
 	if (err != NULL) {
 		sfs_log(ctx, SFS_ERR, "%s: rocksdb_merge failed for key %s . "
 				"Error = %s\n", __FUNCTION__, key, err);
@@ -299,7 +310,9 @@ rocks_db_delete(char *key, log_ctx_t *ctx)
 {
 	char *err = NULL;
 
+	pthread_spin_lock(&rocksdb_lock);
 	rocksdb_delete(rocksdb, write_options, key, strlen(key), &err);
+	pthread_spin_unlock(&rocksdb_lock);
 	if (err != NULL) {
 		sfs_log(ctx, SFS_ERR, "%s: rocksdb_delete failed for key %s . "
 				"Error = %s\n", __FUNCTION__, key, err);
@@ -316,7 +329,9 @@ rocks_db_cleanup(log_ctx_t *ctx)
 {
 	char *err = NULL;
 
+	pthread_spin_lock(&rocksdb_lock);
 	rocksdb_destroy_db(options, TRANSACTIONDB_NAME, &err);
+	pthread_spin_unlock(&rocksdb_lock);
 	if (err != NULL) {
 		sfs_log(ctx, SFS_ERR, "%s: rocksdb_destroy_db failed with error %s\n",
 				 __FUNCTION__, err);
@@ -346,6 +361,7 @@ rocks_db_iterate(db_type_t type, iterator_function_t iterator_fn, void *params,
 		return;
 	}
 
+	pthread_spin_lock(&rocksdb_lock);
 	// Set to first record
 	rocksdb_iter_seek_to_first(iter);
 
@@ -357,6 +373,7 @@ rocks_db_iterate(db_type_t type, iterator_function_t iterator_fn, void *params,
 		if (NULL == key) {
 			sfs_log(ctx, SFS_ERR, "%s: key returned is NULL \n", __FUNCTION__);
 
+			pthread_spin_unlock(&rocksdb_lock);
 			return;
 		}
 
@@ -364,6 +381,7 @@ rocks_db_iterate(db_type_t type, iterator_function_t iterator_fn, void *params,
 		data = rocksdb_iter_value(iter, &len);
 		if (NULL == data) {
 			sfs_log(ctx, SFS_ERR, "%s: data returned is NULL \n", __FUNCTION__);
+			pthread_spin_unlock(&rocksdb_lock);
 
 			return;
 		}
@@ -373,6 +391,7 @@ rocks_db_iterate(db_type_t type, iterator_function_t iterator_fn, void *params,
 		// Point to next record
 		rocksdb_iter_next(iter);
 	}
+	pthread_spin_unlock(&rocksdb_lock);
 
 	return;
 }

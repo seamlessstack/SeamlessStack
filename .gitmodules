@@ -1,3 +1,6 @@
 [submodule "oss/rocksdb"]
 	path = oss/rocksdb
 	url = https://github.com/facebook/rocksdb.git
+[submodule "oss/czmq"]
+	path = oss/czmq
+	url = https://github.com/zeromq/czmq.git
