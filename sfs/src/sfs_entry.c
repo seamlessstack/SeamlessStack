@@ -1463,73 +1463,92 @@ sfs_open(const char *path, struct fuse_file_info *fi)
 		return 0;
 	}
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: inodestr = %s \n", __FUNCTION__, inodestr);
+	syncfs(sfs_ctx->log_fd);
+
 	free(fullpath);
 	// Update file handle to FUSE
 	fi->fh = fd;
 
 	// Populate DB with new inode info
-	inode.i_num = get_free_inode();
-	strcpy(inode.i_name, path);
-	inode.i_uid = status.st_uid;
-	inode.i_gid = status.st_gid;
-	inode.i_mode = status.st_mode;
-	switch (status.st_mode & S_IFMT) {
-		case S_IFDIR:
-			inode.i_type = DIRECTORY;
-			break;
-		case S_IFREG:
-			inode.i_type = REGFILE;
-			break;
-		case S_IFLNK:
-			inode.i_type = SYMLINK;
-			break;
-		case S_IFBLK:
-			inode.i_type = BLOCKDEV;
-			break;
-		case S_IFCHR:
-			inode.i_type = CHARDEV;
-			break;
-		case S_IFIFO:
-			inode.i_type = FIFO;
-			break;
-		case S_IFSOCK:
-			inode.i_type = SOCKET_TYPE;
-			break;
-		default:
-			inode.i_type = UNKNOWN;
-			break;
-	}
-
-	// Make sure we are not looping
-	// TBD
-
-	memcpy(&inode.i_atime, &status.st_atime, sizeof(struct timespec));
-	memcpy(&inode.i_ctime, &status.st_ctime, sizeof(struct timespec));
-	memcpy(&inode.i_mtime, &status.st_mtime, sizeof(struct timespec));
-	inode.i_size = status.st_size;
-	inode.i_ondisksize = (status.st_blocks * 512);
-	inode.i_numreplicas = 1; // For now, single copy
-	// Since the file already exists, done't split it now. Split it when
-	// next write arrives
-	inode.i_numextents = 0;
-	inode.i_numerasure = 0; // No erasure code segments
-	inode.i_xattrlen = 0; // No extended attributes
-	inode.i_links = status.st_nlink;
-	sfs_log(sfs_ctx, SFS_INFO,
-		"%s: nlinks for %s are %d\n", __FUNCTION__, path, inode.i_links);
-	// Populate the extent
-	inode.i_extent = NULL;
-	inode.i_erasure = NULL; // No erasure coding info for now
-	inode.i_xattr = NULL; // No extended attributes carried over
-	inode.i_numclients = 0;
-
-	// Store inode
-	ret = put_inode(&inode, db, 0);
+	// Check if inode already exists
+	// If so, only update the access time
+	ret = get_inode(atoll(inodestr), &inode, db);
 	if (ret != 0) {
-		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to store inode #%lld for "
-				"path %s. Error %d\n", __FUNCTION__, inode.i_num,
-				inode.i_name, errno);
-		return -1;
+		inode.i_num = get_free_inode();
+		strcpy(inode.i_name, path);
+		inode.i_uid = status.st_uid;
+		inode.i_gid = status.st_gid;
+		inode.i_mode = status.st_mode;
+		switch (status.st_mode & S_IFMT) {
+			case S_IFDIR:
+				inode.i_type = DIRECTORY;
+				break;
+			case S_IFREG:
+				inode.i_type = REGFILE;
+				break;
+			case S_IFLNK:
+				inode.i_type = SYMLINK;
+				break;
+			case S_IFBLK:
+				inode.i_type = BLOCKDEV;
+				break;
+			case S_IFCHR:
+				inode.i_type = CHARDEV;
+				break;
+			case S_IFIFO:
+				inode.i_type = FIFO;
+				break;
+			case S_IFSOCK:
+				inode.i_type = SOCKET_TYPE;
+				break;
+			default:
+				inode.i_type = UNKNOWN;
+				break;
+		}
+
+		// Make sure we are not looping
+		// TBD
+
+		memcpy(&inode.i_atime, &status.st_atime, sizeof(struct timespec));
+		memcpy(&inode.i_ctime, &status.st_ctime, sizeof(struct timespec));
+		memcpy(&inode.i_mtime, &status.st_mtime, sizeof(struct timespec));
+		inode.i_size = status.st_size;
+		inode.i_ondisksize = (status.st_blocks * 512);
+		inode.i_numreplicas = 1; // For now, single copy
+		// Since the file already exists, done't split it now. Split it when
+		// next write arrives
+		inode.i_numextents = 0;
+		inode.i_numerasure = 0; // No erasure code segments
+		inode.i_xattrlen = 0; // No extended attributes
+		inode.i_links = status.st_nlink;
+		sfs_log(sfs_ctx, SFS_INFO,
+				"%s: nlinks for %s are %d\n", __FUNCTION__, path, inode.i_links);
+		// Populate the extent
+		inode.i_extent = NULL;
+		inode.i_erasure = NULL; // No erasure coding info for now
+		inode.i_xattr = NULL; // No extended attributes carried over
+		inode.i_numclients = 0;
+
+		// Store inode
+		ret = put_inode(&inode, db, 0);
+		if (ret != 0) {
+			sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to store inode #%lld for "
+					"path %s. Error %d\n", __FUNCTION__, inode.i_num,
+					inode.i_name, errno);
+			return -1;
+		}
+	} else {
+		// File already exists.
+		// Update access time and update inode
+		memcpy(&inode.i_atime, &status.st_atime, sizeof(struct timespec));
+		ret = put_inode(&inode, db, 1);
+		if (ret != 0) {
+			sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to store inode #%lld for "
+					"path %s. Error %d\n", __FUNCTION__, inode.i_num,
+					inode.i_name, errno);
+			return -1;
+		}
 	}
 
 	sfs_log(sfs_ctx, SFS_INFO, "%s: put_inode succeeded \n", __FUNCTION__);
@@ -1579,6 +1598,10 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 
 		return -1;
 	}
+
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: path = %s size = %d offset %d \n",
+			__FUNCTION__, path, size, offset);
+	syncfs(sfs_ctx->log_fd);
 
 	// Get the inode number for the file.
 	inodestr = sstack_memcache_read_one(mc, path, strlen(path), &size1,
@@ -1910,6 +1933,9 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 
 		return -1;
 	}
+
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: path %s size %d offset %d \n",
+			__FUNCTION__, path, size, offset);
 	sfs_log(sfs_ctx, SFS_DEBUG, "Data: %s\n", buf);
 
 	// Get the inode number for the file.
@@ -1922,8 +1948,10 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 
 		return -1;
 	}
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
+//	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 	inode_num = atoll((const char *)inodestr);
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s: path %s inode_num = %"PRId64"\n",
+			__FUNCTION__, path, inode_num);
 	ret = sfs_wrlock(inode_num);
 	if (ret == -1) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to obtain write lock for file "
@@ -1933,7 +1961,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		return -1;
 	}
 	// Get inode from DB
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
+//	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 	inode = sstack_create_inode();
 	if (inode == NULL) {
 		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - Unable to allocate inode",
@@ -1951,7 +1979,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		return -1;
 	}
 
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
+//	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 	// Check for validity of metadata
 	fullpath = prepend_mntpath(path);
 	ret = stat(fullpath, &st);
@@ -1965,7 +1993,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		return -1;
 	}
 	free(fullpath);
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
+//	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 
 	if (st.st_size > 0 &&
 				(inode->i_numclients == 0 || NULL == inode->i_sfsds)) {
@@ -1980,7 +2008,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		return -1;
 	}
 
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
+//	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 	// If first write for the file, get the sfsd list for the file.
 #if 0
 	if (st.st_size == 0) {
@@ -2052,7 +2080,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 			sizeof(sstack_transport_t));
 	inode->i_primary_sfsd = &inode->i_sfsds[0];
 
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
+//	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 	relative_offset = offset;
 	thread_id = pthread_self();
 
@@ -2067,7 +2095,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		extent ++;
 	}
 
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
+//	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 	bytes_to_write = size;
 	inode->i_numclients = 1;
 	put_inode(inode, db, 1);
@@ -2089,7 +2117,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		sfs_unlock(inode_num);
 		return -1;
 	}
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
+//	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 
 	for (i = 0; i < inode->i_numclients; i++)
 		job_map->op_status[i] = JOB_STARTED;
@@ -2131,13 +2159,13 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 			sfs_unlock(inode_num);
 			return -1;
 		}
-		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
+//		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 
 		job->id = get_next_job_id();
 		job->job_type = SFSD_IO;
-		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
+//		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 		job->num_clients = inode->i_numclients;
-		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
+//		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 		//FIXME:
 		//job->sfsds[0] = inode.i_primary_sfsd->sfsd;
 		//for (j = 0; j < (inode.i_numclients - 1); j++)
@@ -2150,7 +2178,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		//job->priority = policy->pe_attr.a_qoslevel;
 		// Create new payload
 		payload = sstack_create_payload(NFS_WRITE);
-		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
+//		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 		// Populate payload
 		payload->hdr.sequence = 0; // Reinitialized by transport
 		payload->hdr.payload_len = sizeof(sstack_payload_t);
@@ -2160,7 +2188,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		payload->command = NFS_WRITE;
 		payload->command_struct.write_cmd.inode_no = inode->i_num;
 		payload->command_struct.write_cmd.offset = offset;
-		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
+//		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 		//TODO: Extent is unallocated here. Take care for the fisrt
 		//extent
 
@@ -2168,7 +2196,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		if (extent) {
 			if ((offset + size) > (extent->e_offset + extent->e_size))
 				write_size = (extent->e_offset + extent->e_size) - offset;
-			sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
+//			sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 		} else {
 			write_size = size;
 		}
@@ -2202,7 +2230,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 
 			return -1;
 		}
-		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
+//		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 		job_map->job_ids = (sstack_job_id_t *) temp;
 
 		pthread_spin_lock(&job_map->lock);
@@ -2210,7 +2238,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		job_map->num_jobs_left ++;
 		pthread_spin_unlock(&job_map->lock);
 
-		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
+//		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 		temp = realloc(job_map->job_status, job_map->num_jobs *
 						sizeof(sstack_job_status_t));
 		if (NULL == temp) {
@@ -2232,7 +2260,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		job_map->job_status[job_map->num_jobs - 1] = JOB_STARTED;
 		pthread_spin_unlock(&job_map->lock);
 
-		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
+//		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 		ret = sfs_job2thread_map_insert(thread_id, job->id, job);
 		if (ret == -1) {
 			sfs_log(sfs_ctx, SFS_ERR, "%s: Failed insert the job context "
@@ -2248,7 +2276,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 
 			return -1;
 		}
-		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
+//		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 		// Add this job to job queue
 		ret = sfs_submit_job(job->priority, jobs, job);
 		if (ret == -1) {
@@ -2264,8 +2292,6 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 
 			return -1;
 		}
-		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d bytes issued: %d\n",
-				__FUNCTION__, __LINE__, bytes_issued);
 
 		bytes_issued += write_size;
 
@@ -2304,7 +2330,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		return -1;
 	}
 
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
+//	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 	ret = sfs_wait_for_completion(job_map);
 
 	// TODO
@@ -2406,6 +2432,7 @@ sfs_release(const char *path, struct fuse_file_info *fi)
 
 		return -1;
 	}
+#if 0
 	sfs_log(sfs_ctx, SFS_INFO, "%s: Calling sstack_memcache_remove \n",
 			__FUNCTION__);
 	// Remove the reverse mapping for the path
@@ -2414,6 +2441,7 @@ sfs_release(const char *path, struct fuse_file_info *fi)
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Reverse lookup for path %s failed. "
 						"Return value = %d\n", __FUNCTION__, path, res);
 	}
+#endif
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - Release done\n", __FUNCTION__);
 	return 0;
 }
