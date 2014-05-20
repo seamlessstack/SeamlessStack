@@ -501,7 +501,7 @@ put_inode(sstack_inode_t *inode, db_t *db, int update)
 
 			ret = -2;
 		}
-	} else if (update == 0) {
+	} else if (update == 1) {
 		if (db->db_ops.db_insert && ((db->db_ops.db_update(inode_str, data,
 							len, INODE_TYPE, db->ctx)) == 1)) {
 			sfs_log(db->ctx, SFS_INFO, "%s: Succeeded for inode %lld \n",
