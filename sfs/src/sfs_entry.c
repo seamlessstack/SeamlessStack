@@ -1642,6 +1642,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s: Inode size %d size %d offset %d \n",
 			__FUNCTION__, inode->i_size, size, offset);
 	syncfs(sfs_ctx->log_fd);
+#if 0
 	// Parameter validation; AGAIN :-)
 	if (inode->i_size < size || (offset + size ) > inode->i_size ) {
 		// Appl asking for file offset greater tha real size
@@ -1655,6 +1656,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 
 		return -1;
 	}
+#endif
 
 	relative_offset = offset;
 #if 0
@@ -1719,6 +1721,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 	}
 	// job_map->command = NFS_READ;
 
+#if 0
 	/*
 	 * Note: Don't free policy. It is just a pointer to original DS
 	 * and no copies are made by get_policy.
@@ -1734,6 +1737,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 				"hidden %d \n", __FUNCTION__, path, policy->pe_attr.ver,
 				policy->pe_attr.a_qoslevel, policy->pe_attr.a_ishidden);
 	}
+#endif
 
 	while (bytes_to_read) {
 		sfs_job_t *job = NULL;
