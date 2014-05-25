@@ -1630,6 +1630,8 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 
 		return -1;
 	}
+	sstack_dump_inode(inode, sfs_ctx);
+	sstack_dump_extent(inode->i_extent, sfs_ctx);
 
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s: Inode size %d size %d offset %d \n",
 			__FUNCTION__, inode->i_size, size, offset);
@@ -1680,7 +1682,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 
 	// Get the extent covering the request
 	for(i = 0; i < inode->i_numextents; i++) {
-		extent = inode->i_extent;
+		extent = &inode->i_extent[i];
 		if (extent->e_offset <= relative_offset &&
 				(extent->e_offset + extent->e_size >= relative_offset)) {
 			// Found the initial extent
@@ -1688,8 +1690,8 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 		}
 		extent ++;
 	}
+	sstack_dump_extent(extent, sfs_ctx);
 
-	bytes_to_read = size;
 	// Create job_map for this job.
 	// This is required to track multiple sub-jobs to a single request
 	// This is safe to do as async IO from applications are not part of
@@ -1728,6 +1730,12 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 	}
 #endif
 
+	if (size > inode->i_size) {
+		bytes_to_read = inode->i_size;
+	} else {
+		bytes_to_read = size;
+	}
+
 	while (bytes_to_read) {
 		sfs_job_t *job = NULL;
 		size_t read_size = 0;
@@ -1756,7 +1764,8 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 #endif
 
 
-		job->priority = policy->pe_attr.a_qoslevel;
+		//job->priority = policy->pe_attr.a_qoslevel;
+		job->priority = QOS_HIGH;
 		// Create new payload
 		payload = sstack_create_payload(NFS_READ);
 		// Populate payload
@@ -1772,8 +1781,8 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 			read_size = (extent->e_offset + extent->e_size) - offset;
 		payload->command_struct.read_cmd.count = read_size;
 		payload->command_struct.read_cmd.read_ecode = 0;
-		memcpy((void *) &payload->command_struct.read_cmd.pe, (void *)
-						policy, sizeof(struct policy_entry));
+		/*memcpy((void *) &payload->command_struct.read_cmd.pe, (void *)
+						policy, sizeof(struct policy_entry));*/
 		job->payload_len = sizeof(sstack_payload_t);
 		job->payload = payload;
 		// Add this job to job_map
@@ -1816,6 +1825,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 
 			return -1;
 		}
+		job_map->job_status = (sstack_job_status_t *)temp;
 		pthread_spin_lock(&job_map->lock);
 		job_map->job_status[job_map->num_jobs - 1] = JOB_STARTED;
 		pthread_spin_unlock(&job_map->lock);
@@ -1852,6 +1862,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 		}
 
 		bytes_issued += read_size;
+#if 0
 		// Check whether we are done with original request
 		if ((offset + size) > (extent->e_offset + extent->e_size)) {
 			// Request spans multiple extents
@@ -1863,6 +1874,10 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 		} else {
 			bytes_to_read = size - bytes_issued;
 		}
+#endif
+		bytes_to_read -= bytes_issued;
+		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d - bytes_to_read: %d\n",
+				__FUNCTION__, __LINE__,bytes_to_read);
 	}
 	// Add job_map to the jobmap RB-tree
 	ret = sfs_job_context_insert(thread_id, job_map);
