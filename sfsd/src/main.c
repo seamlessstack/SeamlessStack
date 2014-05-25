@@ -148,6 +148,11 @@ int main(int argc, char **argv)
 		return -ENOMEM;
 	};
 
+	if (sstack_helper_init(sfsd.log_ctx) != 0) {
+		sfs_log(sfsd.log_ctx, SFS_CRIT, "helper init failed\n");
+		return -ENOMEM;
+	}
+
 	/* Initialize thread pool */
 	init_thread_pool(&sfsd);
 

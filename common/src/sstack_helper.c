@@ -59,6 +59,109 @@ void sstack_free_inode(sstack_inode_t *inode)
 	bds_cache_free(inode_cache, inode);
 }
 
+/* Debug function */
+void sstack_dump_inode(sstack_inode_t *inode, log_ctx_t *ctx)
+{
+	int32_t i = 0;
+	if (ctx == NULL)
+		return;
+	if (inode == NULL) {
+		sfs_log(ctx, SFS_ERR, "%s() - inode is null, nothing to log\n");
+		return;
+	}
+
+	sfs_log(ctx, SFS_DEBUG, "%s() - inode->i_num: %llu\n",
+			__FUNCTION__, inode->i_num);
+	sfs_log(ctx, SFS_DEBUG, "%s() - inode->i_name: %s\n",
+			__FUNCTION__, inode->i_name);
+	sfs_log(ctx, SFS_DEBUG, "%s() - inode->i_uid: %d, inode->i_gid: %d\n",
+			__FUNCTION__, inode->i_uid, inode->i_gid);
+	sfs_log(ctx, SFS_DEBUG, "%s() - inode->i_mode: %d\n",
+			__FUNCTION__, inode->i_mode);
+	sfs_log(ctx, SFS_DEBUG, "%s() - inode->i_links: %d\n",
+			__FUNCTION__, inode->i_links);
+	sfs_log(ctx, SFS_DEBUG, "%s() - inode->i_size: %llu\n",
+			__FUNCTION__, inode->i_size);
+	sfs_log(ctx, SFS_DEBUG, "%s() - inode->i_ondisksize: %llu\n",
+			__FUNCTION__,inode->i_ondisksize);
+	sfs_log(ctx, SFS_DEBUG, "%s() - inode->i_numreplicas: %d\n",
+			__FUNCTION__, inode->i_numreplicas);
+	sfs_log(ctx, SFS_DEBUG, "%s() - inode->i_enable_dr: %d\n",
+			__FUNCTION__, inode->i_enable_dr);
+	sfs_log(ctx, SFS_DEBUG, "%s() - inode->i_numclients: %d\n",
+			__FUNCTION__, inode->i_numclients);
+	sfs_log(ctx, SFS_DEBUG, "%s() - inode->i_erasure_stripe_size: %llu\n",
+			__FUNCTION__, inode->i_erasure_stripe_size);
+	sfs_log(ctx, SFS_DEBUG, "%s() - inode->i_numerasure: %lu\n",
+			__FUNCTION__, inode->i_numerasure);
+	sfs_log(ctx, SFS_DEBUG, "%s() - inode->i_numextents: %d\n",
+			__FUNCTION__, inode->i_numextents);
+	sfs_log(ctx, SFS_DEBUG, "%s() - inode->i_xattrlen: %d\n",
+			__FUNCTION__, inode->i_xattrlen);
+	sfs_log(ctx, SFS_DEBUG, "%s() - inode->i_primary_sfsd: %p\n",
+			__FUNCTION__, inode->i_primary_sfsd);
+
+	if (inode->i_xattrlen)
+		sfs_log(ctx, SFS_DEBUG, "%s() inode->i_xattr: %s\n",
+				__FUNCTION__, inode->i_xattr);
+	for(i = 0; i < inode->i_numextents; ++i) {
+		sfs_log(ctx, SFS_DEBUG, "%s() - extent->e_offset: %d\n",
+			__FUNCTION__, inode->i_extent[i].e_offset);
+		sfs_log(ctx, SFS_DEBUG, "%s() - extent->e_size: %d\n",
+			__FUNCTION__, inode->i_extent[i].e_size);
+		sfs_log(ctx, SFS_DEBUG, "%s() - extent->e_sizeondisk: %d\n",
+			__FUNCTION__, inode->i_extent[i].e_sizeondisk);
+		sfs_log(ctx, SFS_DEBUG, "%s() - extent->e_cksum: %u\n",
+			__FUNCTION__, inode->i_extent[i].e_cksum);
+		sfs_log(ctx, SFS_DEBUG, "%s() - extent->e_numreplicas: %u\n",
+			__FUNCTION__, inode->i_extent[i].e_numreplicas);
+		sfs_log(ctx, SFS_DEBUG, "%s() - extent->e_path: %s\n",
+			__FUNCTION__, inode->i_extent[i].e_path->name);
+	}
+
+	for(i = 0; i < inode->i_numerasure; ++i) {
+		sfs_log(ctx, SFS_DEBUG, "%s() - extent->e_offset: %d\n",
+			__FUNCTION__, inode->i_erasure[i].e_offset);
+		sfs_log(ctx, SFS_DEBUG, "%s() - extent->e_size: %d\n",
+			__FUNCTION__, inode->i_erasure[i].e_size);
+		sfs_log(ctx, SFS_DEBUG, "%s() - extent->e_sizeondisk: %d\n",
+			__FUNCTION__, inode->i_erasure[i].e_sizeondisk);
+		sfs_log(ctx, SFS_DEBUG, "%s() - extent->e_cksum: %u\n",
+			__FUNCTION__, inode->i_erasure[i].e_cksum);
+		sfs_log(ctx, SFS_DEBUG, "%s() - extent->e_numreplicas: %u\n",
+			__FUNCTION__, inode->i_erasure[i].e_numreplicas);
+		sfs_log(ctx, SFS_DEBUG, "%s() - extent->e_path: %s\n",
+			__FUNCTION__, inode->i_erasure[i].e_path->name);
+	}
+	return;
+}
+
+void sstack_dump_extent(sstack_extent_t *ex, log_ctx_t *ctx)
+{
+	int32_t i = 0;
+	if (ctx == NULL)
+		return NULL;
+	if (ex != NULL) {
+		sfs_log(ctx, SFS_DEBUG, "%s() - ex->e_offset: %d\n",
+				__FUNCTION__, ex->e_offset);
+		sfs_log(ctx, SFS_DEBUG, "%s() - ex->e_size: %llu\n",
+				__FUNCTION__, ex->e_size);
+		sfs_log(ctx, SFS_DEBUG, "%s() - ex->e_ondisksize: %llu\n",
+				__FUNCTION__, ex->e_sizeondisk);
+		sfs_log(ctx, SFS_DEBUG, "%s() - ex->e_cksum: %u\n",
+				__FUNCTION__, ex->e_cksum);
+		sfs_log(ctx, SFS_DEBUG, "%s() - ex->e_numreplicas: %u\n",
+				__FUNCTION__, ex->e_numreplicas);
+		for(i = 0; i < ex->e_numreplicas; ++i) {
+			sfs_log(ctx, SFS_DEBUG, "%s() - ex->e_path[%d]: %s\n",
+					__FUNCTION__, i, ex->e_path[i].name);
+		}
+	} else {
+		sfs_log(ctx, SFS_ERR, "%s() - Cannot dump null extent\n",
+				__FUNCTION__);
+	}
+	return;
+}
 
 
 
@@ -352,6 +455,14 @@ flatten_inode(sstack_inode_t *inode, size_t *len, log_ctx_t *ctx)
 	// 1. Extended attributes
 
 	if (inode->i_xattrlen > 0) {
+		temp = realloc(data, (*len + inode->i_xattrlen));
+		if (NULL == temp) {
+			sfs_log(ctx, SFS_ERR,
+					"%s() - Unable to allocate memort for xattr\n",
+					__FUNCTION__);
+			free(data);
+			return NULL;
+		}
 		memcpy((void *) (data + (*len)), (void *) inode->i_xattr,
 					inode->i_xattrlen);
 		*len += inode->i_xattrlen;
@@ -386,11 +497,9 @@ flatten_inode(sstack_inode_t *inode, size_t *len, log_ctx_t *ctx)
 	// 3. Extents
 
 	ex = inode->i_extent;
-	if(ex)
-		sfs_log(ctx, SFS_DEBUG, "%s() - extents: %d numreplicas: %d\n",
-				__FUNCTION__, inode->i_numextents, ex->e_numreplicas);
 	for (i = 0; i < inode->i_numextents; i++) {
-
+		
+		sstack_dump_extent(ex, ctx);
 		fixed_len = get_extent_fixed_fields_len();
 		// Copy fixed fields
 		temp = realloc(data, ((*len) + fixed_len));
@@ -416,10 +525,12 @@ flatten_inode(sstack_inode_t *inode, size_t *len, log_ctx_t *ctx)
 			return NULL;
 		}
 		data = temp;
+		sfs_log(ctx, SFS_DEBUG, "%s() - putting %s at offset: %d\n",
+				__FUNCTION__, ex->e_path, *len);
 		memcpy((void *) (data + (*len)), ex->e_path,
 						(ex->e_numreplicas * sizeof(sstack_file_handle_t)));
 		*len += (ex->e_numreplicas * sizeof(sstack_file_handle_t));
-		ex ++;
+		//ex ++;
 	}
 
 	sfs_log(ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__,__LINE__);
@@ -491,19 +602,19 @@ put_inode(sstack_inode_t *inode, db_t *db, int update)
 	if (update == 0) {
 		if (db->db_ops.db_insert && ((db->db_ops.db_insert(inode_str, data,
 							len, INODE_TYPE, db->ctx)) == 1)) {
-			sfs_log(db->ctx, SFS_INFO, "%s: Succeeded for inode %lld \n",
+			sfs_log(db->ctx, SFS_INFO, "1%s: Succeeded for inode %lld \n",
 				__FUNCTION__, inode_num);
 
 			ret = 0;
 		} else {
-			sfs_log(db->ctx, SFS_ERR, "%s: Failed for inode %lld \n",
+			sfs_log(db->ctx, SFS_ERR, "2%s: Failed for inode %lld \n",
 				__FUNCTION__, inode_num);
 
 			ret = -2;
 		}
 	} else if (update == 1) {
 		if (db->db_ops.db_insert && ((db->db_ops.db_update(inode_str, data,
-							len, INODE_TYPE, db->ctx)) == 1)) {
+							len, INODE_TYPE, db->ctx)) > 0)) {
 			sfs_log(db->ctx, SFS_INFO, "%s: Succeeded for inode %lld \n",
 				__FUNCTION__, inode_num);
 

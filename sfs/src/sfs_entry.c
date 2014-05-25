@@ -1421,7 +1421,7 @@ sfs_truncate(const char *path, off_t size)
 int
 sfs_open(const char *path, struct fuse_file_info *fi)
 {
-	sstack_inode_t inode;
+	sstack_inode_t *inode = NULL;
 	struct stat status;
 	int ret = -1;
 	char *inodestr = NULL;
@@ -1455,17 +1455,8 @@ sfs_open(const char *path, struct fuse_file_info *fi)
 
 	// Check if the file alreday exists in reverse lookup
 	inodestr = sstack_memcache_read_one(mc, path, strlen(path), &size, sfs_ctx);
-	if (inodestr) {
-		// File already created. We don't need to do anything.
-		fi->fh = fd;
-
-		free(fullpath);
-		return 0;
-	}
-
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s: inodestr = %s \n", __FUNCTION__, inodestr);
 	syncfs(sfs_ctx->log_fd);
-
 	free(fullpath);
 	// Update file handle to FUSE
 	fi->fh = fd;
@@ -1473,80 +1464,82 @@ sfs_open(const char *path, struct fuse_file_info *fi)
 	// Populate DB with new inode info
 	// Check if inode already exists
 	// If so, only update the access time
-	ret = get_inode(atoll(inodestr), &inode, db);
+	inode = sstack_create_inode();
+	if (inode == NULL) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s() - inode allcation failed\n",
+				__FUNCTION__);
+		return -ENOMEM;
+	}
+	ret = get_inode(atoll(inodestr), inode, db);
 	if (ret != 0) {
-		inode.i_num = get_free_inode();
-		strcpy(inode.i_name, path);
-		inode.i_uid = status.st_uid;
-		inode.i_gid = status.st_gid;
-		inode.i_mode = status.st_mode;
+		inode->i_num = get_free_inode();
+		strcpy(inode->i_name, path);
+		inode->i_uid = status.st_uid;
+		inode->i_gid = status.st_gid;
+		inode->i_mode = status.st_mode;
 		switch (status.st_mode & S_IFMT) {
 			case S_IFDIR:
-				inode.i_type = DIRECTORY;
+				inode->i_type = DIRECTORY;
 				break;
 			case S_IFREG:
-				inode.i_type = REGFILE;
+				inode->i_type = REGFILE;
 				break;
 			case S_IFLNK:
-				inode.i_type = SYMLINK;
+				inode->i_type = SYMLINK;
 				break;
 			case S_IFBLK:
-				inode.i_type = BLOCKDEV;
+				inode->i_type = BLOCKDEV;
 				break;
 			case S_IFCHR:
-				inode.i_type = CHARDEV;
+				inode->i_type = CHARDEV;
 				break;
 			case S_IFIFO:
-				inode.i_type = FIFO;
+				inode->i_type = FIFO;
 				break;
 			case S_IFSOCK:
-				inode.i_type = SOCKET_TYPE;
+				inode->i_type = SOCKET_TYPE;
 				break;
 			default:
-				inode.i_type = UNKNOWN;
+				inode->i_type = UNKNOWN;
 				break;
 		}
 
 		// Make sure we are not looping
 		// TBD
-
-		memcpy(&inode.i_atime, &status.st_atime, sizeof(struct timespec));
-		memcpy(&inode.i_ctime, &status.st_ctime, sizeof(struct timespec));
-		memcpy(&inode.i_mtime, &status.st_mtime, sizeof(struct timespec));
-		inode.i_size = status.st_size;
-		inode.i_ondisksize = (status.st_blocks * 512);
-		inode.i_numreplicas = 1; // For now, single copy
+		memcpy(&inode->i_atime, &status.st_atime, sizeof(struct timespec));
+		memcpy(&inode->i_ctime, &status.st_ctime, sizeof(struct timespec));
+		memcpy(&inode->i_mtime, &status.st_mtime, sizeof(struct timespec));
+		inode->i_size = status.st_size;
+		inode->i_ondisksize = (status.st_blocks * 512);
+		inode->i_numreplicas = 1; // For now, single copy
 		// Since the file already exists, done't split it now. Split it when
 		// next write arrives
-		inode.i_numextents = 0;
-		inode.i_numerasure = 0; // No erasure code segments
-		inode.i_xattrlen = 0; // No extended attributes
-		inode.i_links = status.st_nlink;
+		inode->i_numextents = 1;
+		inode->i_numerasure = 0; // No erasure code segments
+		inode->i_xattrlen = 0; // No extended attributes
+		inode->i_links = status.st_nlink;
 		sfs_log(sfs_ctx, SFS_INFO,
-				"%s: nlinks for %s are %d\n", __FUNCTION__, path, inode.i_links);
+				"%s: nlinks for %s are %d\n", __FUNCTION__, path, inode->i_links);
 		// Populate the extent
-		inode.i_extent = NULL;
-		inode.i_erasure = NULL; // No erasure coding info for now
-		inode.i_xattr = NULL; // No extended attributes carried over
-		inode.i_numclients = 0;
 
 		// Store inode
-		ret = put_inode(&inode, db, 0);
+		ret = put_inode(inode, db, 0);
 		if (ret != 0) {
 			sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to store inode #%lld for "
-					"path %s. Error %d\n", __FUNCTION__, inode.i_num,
-					inode.i_name, errno);
+					"path %s. Error %d\n", __FUNCTION__, inode->i_num,
+					inode->i_name, errno);
 			return -1;
 		}
 	} else {
 		// File already exists.
 		// Update access time and update inode
-		memcpy(&inode.i_atime, &status.st_atime, sizeof(struct timespec));
-		ret = put_inode(&inode, db, 1);
+		memcpy(&inode->i_atime, &status.st_atime, sizeof(struct timespec));
+		ret = put_inode(inode, db, 1);
+		sstack_dump_inode(inode, sfs_ctx);
 		if (ret != 0) {
 			sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to store inode #%lld for "
-					"path %s. Error %d\n", __FUNCTION__, inode.i_num,
-					inode.i_name, errno);
+					"path %s. Error %d\n", __FUNCTION__, inode->i_num,
+					inode->i_name, errno);
 			return -1;
 		}
 	}
@@ -1555,7 +1548,7 @@ sfs_open(const char *path, struct fuse_file_info *fi)
 
 
 	// Populate memcached for reverse lookup
-	sprintf(inode_str, "%lld", inode.i_num);
+	sprintf(inode_str, "%lld", inode->i_num);
 	ret = sstack_memcache_store(mc, path, inode_str, (strlen(inode_str) + 1),
 					sfs_ctx);
 	if (ret != 0) {
@@ -1563,7 +1556,6 @@ sfs_open(const char *path, struct fuse_file_info *fi)
 				" Key = %s value = %s \n", __FUNCTION__, path, inode_str);
 		return -1;
 	}
-
 
 	return 0;
 }
@@ -1672,15 +1664,12 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 	}
 #endif
 	// Check for metadata validity
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d - numclients = %d, primary sfsd: %p\n",
-			__FUNCTION__, __LINE__,
-			inode->i_numclients, inode->i_primary_sfsd, inode->i_numextents);
 	if (inode->i_numclients == 0 && NULL == inode->i_primary_sfsd) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Inode metadata corrupt for file %s \n",
 						__FUNCTION__, path);
 		errno = EIO;
 		// Free up dynamically allocated fields in inode structure
-		sstack_free_inode_res(&inode, sfs_ctx);
+		sstack_free_inode_res(inode, sfs_ctx);
 		sfs_unlock(inode_num);
 
 		return -1;
@@ -1715,7 +1704,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed allocate memory for "
 						"job map \n", __FUNCTION__);
 		// Free up dynamically allocated fields in inode structure
-		sstack_free_inode_res(&inode, sfs_ctx);
+		sstack_free_inode_res(inode, sfs_ctx);
 		sfs_unlock(inode_num);
 		return -1;
 	}
@@ -1751,7 +1740,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 					__FUNCTION__);
 			free_job_map(job_map);
 			// Free up dynamically allocated fields in inode structure
-			sstack_free_inode_res(&inode, sfs_ctx);
+			sstack_free_inode_res(inode, sfs_ctx);
 			sfs_unlock(inode_num);
 			return -1;
 		}
@@ -1799,7 +1788,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 			free_job_map(job_map);
 			free_payload(sfs_global_cache, payload);
 			// Free up dynamically allocated fields in inode structure
-			sstack_free_inode_res(&inode, sfs_ctx);
+			sstack_free_inode_res(inode, sfs_ctx);
 			sfs_unlock(inode_num);
 
 			return -1;
@@ -1822,7 +1811,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 			free_job_map(job_map);
 			free_payload(sfs_global_cache, payload);
 			// Free up dynamically allocated fields in inode structure
-			sstack_free_inode_res(&inode, sfs_ctx);
+			sstack_free_inode_res(inode, sfs_ctx);
 			sfs_unlock(inode_num);
 
 			return -1;
@@ -1841,7 +1830,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 			free_job_map(job_map);
 			free_payload(sfs_global_cache, payload);
 			// Free up dynamically allocated fields in inode structure
-			sstack_free_inode_res(&inode, sfs_ctx);
+			sstack_free_inode_res(inode, sfs_ctx);
 			sfs_unlock(inode_num);
 
 			return -1;
@@ -1856,7 +1845,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 			free_job_map(job_map);
 			free_payload(sfs_global_cache, payload);
 			// Free up dynamically allocated fields in inode structure
-			sstack_free_inode_res(&inode, sfs_ctx);
+			sstack_free_inode_res(inode, sfs_ctx);
 			sfs_unlock(inode_num);
 
 			return -1;
@@ -1885,7 +1874,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 		free_job_map(job_map);
 		free_payload(sfs_global_cache, payload);
 		// Free up dynamically allocated fields in inode structure
-		sstack_free_inode_res(&inode, sfs_ctx);
+		sstack_free_inode_res(inode, sfs_ctx);
 		sfs_unlock(inode_num);
 
 		return -1;
@@ -1900,13 +1889,14 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 	free(job_map->job_status);
 	free_job_map(job_map);
 	// Free up dynamically allocated fields in inode structure
-	sstack_free_inode_res(&inode, sfs_ctx);
+	sstack_free_inode_res(inode, sfs_ctx);
 	sfs_unlock(inode_num);
 
 	return (ret);
 }
 
 extern sfsd_t accept_sfsd;
+
 int
 sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 	struct fuse_file_info *fi)
@@ -1938,10 +1928,6 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		return -1;
 	}
 
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s: path %s size %d offset %d \n",
-			__FUNCTION__, path, size, offset);
-	sfs_log(sfs_ctx, SFS_DEBUG, "Data: %s\n", buf);
-
 	// Get the inode number for the file.
 	inodestr = sstack_memcache_read_one(mc, path, strlen(path), &size1,
 			sfs_ctx);
@@ -1952,10 +1938,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 
 		return -1;
 	}
-//	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 	inode_num = atoll((const char *)inodestr);
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s: path %s inode_num = %"PRId64"\n",
-			__FUNCTION__, path, inode_num);
 	ret = sfs_wrlock(inode_num);
 	if (ret == -1) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to obtain write lock for file "
@@ -1965,7 +1948,6 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		return -1;
 	}
 	// Get inode from DB
-//	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 	inode = sstack_create_inode();
 	if (inode == NULL) {
 		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - Unable to allocate inode",
@@ -1983,7 +1965,6 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		return -1;
 	}
 
-//	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 	// Check for validity of metadata
 	fullpath = prepend_mntpath(path);
 	ret = stat(fullpath, &st);
@@ -1997,7 +1978,6 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		return -1;
 	}
 	free(fullpath);
-//	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 
 	if (st.st_size > 0 &&
 				(inode->i_numclients == 0 || NULL == inode->i_sfsds)) {
@@ -2012,7 +1992,6 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		return -1;
 	}
 
-//	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 	// If first write for the file, get the sfsd list for the file.
 #if 0
 	if (st.st_size == 0) {
@@ -2079,12 +2058,28 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 	//FIXME: Hardcoding sfsds for now
 	inode->i_numclients = 1;
 	inode->i_sfsds = malloc(sizeof(sstack_sfsd_info_t));
-	inode->i_sfsds[0].sfsd = &accept_sfsd;
-	memcpy(&inode->i_sfsds[0].transport, &accept_sfsd.transport,
-			sizeof(sstack_transport_t));
-	inode->i_primary_sfsd = &inode->i_sfsds[0];
+	inode->i_sfsds->sfsd = &accept_sfsd;
+	/*memcpy(&inode->i_sfsds[0].transport, &accept_sfsd.transport,
+			sizeof(sstack_transport_t));*/
+	inode->i_primary_sfsd = inode->i_sfsds;
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d, primary sfsd: %p %p\n",
+			__FUNCTION__, __LINE__, inode->i_primary_sfsd, inode->i_sfsds);
+	sstack_dump_inode(inode, sfs_ctx);
 
-//	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
+	if (put_inode(inode, db, 1) != 0) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s() - put_inode failed\n",
+				__FUNCTION__);
+		return -1;
+	}
+#if 0
+	//REMOVE
+	memset(inode, 0, sizeof(*inode));
+	get_inode(3, inode, db);
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - read after update\n",
+			__FUNCTION__);
+	sstack_dump_inode(inode, sfs_ctx);
+#endif
+#if 1
 	relative_offset = offset;
 	thread_id = pthread_self();
 
@@ -2099,10 +2094,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		extent ++;
 	}
 
-//	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 	bytes_to_write = size;
-	inode->i_numclients = 1;
-	put_inode(inode, db, 1);
 	// Create job_map for this job.
 	// This is required to track multiple sub-jobs to a single request
 	// This is safe to do as async IO from applications are not part of
@@ -2121,7 +2113,6 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		sfs_unlock(inode_num);
 		return -1;
 	}
-//	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 
 	for (i = 0; i < inode->i_numclients; i++)
 		job_map->op_status[i] = JOB_STARTED;
@@ -2143,9 +2134,6 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 				policy->pe_attr.a_qoslevel, policy->pe_attr.a_ishidden);
 	}
 #endif
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d size: %d\n",
-			__FUNCTION__, __LINE__, bytes_to_write);
-
 	while (bytes_to_write) {
 		sfs_job_t *job = NULL;
 		int j = -1;
@@ -2163,13 +2151,10 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 			sfs_unlock(inode_num);
 			return -1;
 		}
-//		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 
 		job->id = get_next_job_id();
 		job->job_type = SFSD_IO;
-//		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 		job->num_clients = inode->i_numclients;
-//		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 		//FIXME:
 		//job->sfsds[0] = inode.i_primary_sfsd->sfsd;
 		//for (j = 0; j < (inode.i_numclients - 1); j++)
@@ -2182,7 +2167,6 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		//job->priority = policy->pe_attr.a_qoslevel;
 		// Create new payload
 		payload = sstack_create_payload(NFS_WRITE);
-//		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 		// Populate payload
 		payload->hdr.sequence = 0; // Reinitialized by transport
 		payload->hdr.payload_len = sizeof(sstack_payload_t);
@@ -2192,7 +2176,6 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		payload->command = NFS_WRITE;
 		payload->command_struct.write_cmd.inode_no = inode->i_num;
 		payload->command_struct.write_cmd.offset = offset;
-//		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 		//TODO: Extent is unallocated here. Take care for the fisrt
 		//extent
 
@@ -2200,13 +2183,11 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		if (extent) {
 			if ((offset + size) > (extent->e_offset + extent->e_size))
 				write_size = (extent->e_offset + extent->e_size) - offset;
-//			sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 		} else {
 			write_size = size;
 		}
 		payload->command_struct.write_cmd.count = write_size;
 		payload->command_struct.write_cmd.data.data_len = write_size;
-		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 		payload->command_struct.write_cmd.data.data_buf =
 				(unsigned char *) (buf + bytes_issued);
 		sfs_log(sfs_ctx, SFS_DEBUG, "Data1: %s\n",
@@ -2234,7 +2215,6 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 
 			return -1;
 		}
-//		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 		job_map->job_ids = (sstack_job_id_t *) temp;
 
 		pthread_spin_lock(&job_map->lock);
@@ -2242,7 +2222,6 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		job_map->num_jobs_left ++;
 		pthread_spin_unlock(&job_map->lock);
 
-//		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 		temp = realloc(job_map->job_status, job_map->num_jobs *
 						sizeof(sstack_job_status_t));
 		if (NULL == temp) {
@@ -2264,7 +2243,6 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		job_map->job_status[job_map->num_jobs - 1] = JOB_STARTED;
 		pthread_spin_unlock(&job_map->lock);
 
-//		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 		ret = sfs_job2thread_map_insert(thread_id, job->id, job);
 		if (ret == -1) {
 			sfs_log(sfs_ctx, SFS_ERR, "%s: Failed insert the job context "
@@ -2280,7 +2258,6 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 
 			return -1;
 		}
-//		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 		// Add this job to job queue
 		ret = sfs_submit_job(job->priority, jobs, job);
 		if (ret == -1) {
@@ -2334,7 +2311,6 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 		return -1;
 	}
 
-//	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 	ret = sfs_wait_for_completion(job_map);
 
 	// TODO
@@ -2349,11 +2325,16 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 	// Free up dynamically allocated fields in inode structure
 	sstack_free_inode_res(inode, sfs_ctx);
 	sfs_unlock(inode_num);
+	memset(inode, 0, sizeof(*inode));
+	get_inode(3, inode, db);
+	sstack_dump_inode(inode, sfs_ctx);
 	sstack_free_inode(inode);
 
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d ret %d\n",
 			__FUNCTION__, __LINE__, ret);
 	return (ret);
+#endif
+	return 0;
 }
 
 /*
@@ -3422,15 +3403,14 @@ sfs_access(const char *path, int mode)
 int
 sfs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 {
-	sstack_inode_t inode;
+	sstack_inode_t *inode = NULL;
 	int ret = -1;
 	int fd = -1;
 	char inode_str[MAX_INODE_LEN] = { '\0' };
 	char *fullpath = NULL;
 	struct timespec ts;
-
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<<\n", __FUNCTION__);
-	// Parameter validation
+	
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - enter\n", __FUNCTION__);
 	if (NULL == path) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters specified \n",
 				__FUNCTION__);
@@ -3440,7 +3420,6 @@ sfs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 
 	fullpath = prepend_mntpath(path);
     sfs_log(sfs_ctx, SFS_DEBUG, "%s: path = %s\n", __FUNCTION__, fullpath);
-
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - file handle : %d\n",
 			__FUNCTION__, fi->fh);
 	fd = creat(fullpath, mode);
@@ -3454,37 +3433,45 @@ sfs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 	fi->fh = fd;
 	free(fullpath);
 
-	// Populate DB with new inode info
-	inode.i_num = get_free_inode();
-	strcpy(inode.i_name, path);
+	inode = sstack_create_inode();
 
-	inode.i_uid = getuid();
-	inode.i_gid = getgid();
-	inode.i_mode = mode;
+	if (inode == NULL) {
+		sfs_log(sfs_ctx, SFS_ERR, "Inode create failed\n");
+		unlink(fullpath);
+		return -ENOMEM;
+	}
+
+	// Populate DB with new inode info
+	inode->i_num = get_free_inode();
+	strcpy(inode->i_name, path);
+
+	inode->i_uid = getuid();
+	inode->i_gid = getgid();
+	inode->i_mode = mode;
 	switch (mode & S_IFMT) {
 		case S_IFDIR:
-			inode.i_type = DIRECTORY;
+			inode->i_type = DIRECTORY;
 			break;
 		case S_IFREG:
-			inode.i_type = REGFILE;
+			inode->i_type = REGFILE;
 			break;
 		case S_IFLNK:
-			inode.i_type = SYMLINK;
+			inode->i_type = SYMLINK;
 			break;
 		case S_IFBLK:
-			inode.i_type = BLOCKDEV;
+			inode->i_type = BLOCKDEV;
 			break;
 		case S_IFCHR:
-			inode.i_type = CHARDEV;
+			inode->i_type = CHARDEV;
 			break;
 		case S_IFIFO:
-			inode.i_type = FIFO;
+			inode->i_type = FIFO;
 			break;
 		case S_IFSOCK:
-			inode.i_type = SOCKET_TYPE;
+			inode->i_type = SOCKET_TYPE;
 			break;
 		default:
-			inode.i_type = UNKNOWN;
+			inode->i_type = UNKNOWN;
 			break;
 	}
 
@@ -3492,54 +3479,34 @@ sfs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 	// TBD
 
 	clock_gettime(CLOCK_MONOTONIC, &ts);
-	memcpy(&inode.i_atime, &ts, sizeof(struct timespec));
-	memcpy(&inode.i_ctime, &ts, sizeof(struct timespec));
-	memcpy(&inode.i_mtime, &ts, sizeof(struct timespec));
-	inode.i_size = 0;
-	inode.i_ondisksize = 0;
-	inode.i_numreplicas = 1; // For now, single copy
-	// Since the file already exists, done't split it now. Split it when
-	// next write arrives
-	inode.i_numextents = 0;
-	inode.i_numerasure = 0; // No erasure code segments
-	inode.i_xattrlen = 0; // No extended attributes
-	inode.i_links = 1;
-	inode.i_numclients = 0;
-	sfs_log(sfs_ctx, SFS_INFO,
-		"%s: nlinks for %s are %d\n", __FUNCTION__, path, inode.i_links);
-	// Populate the extent
-	inode.i_extent = NULL;
-	inode.i_erasure = NULL; // No erasure coding info for now
-	inode.i_xattr = NULL; // No extended attributes carried over
-	inode.i_sfsds = NULL; // No sfsds associated with it now
-
-	// Store inode
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - Before storing the inode db: %p\n",
-			__FUNCTION__, db);
-	ret = put_inode(&inode, db, 0);
+	memcpy(&inode->i_atime, &ts, sizeof(struct timespec));
+	memcpy(&inode->i_ctime, &ts, sizeof(struct timespec));
+	memcpy(&inode->i_mtime, &ts, sizeof(struct timespec));
+	inode->i_links = 1;
+	ret = put_inode(inode, db, 0);
 	if (ret != 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to store inode #%lld for "
-				"path %s. Error %d\n", __FUNCTION__, inode.i_num,
-				inode.i_name, errno);
+				"path %s. Error %d\n", __FUNCTION__, inode->i_num,
+				inode->i_name, errno);
 		close(fd);
 		return -1;
 	}
 
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - Inode pushed to mongo db\n",
-			__FUNCTION__);
 	// Populate memcached for reverse lookup
-	sprintf(inode_str, "%lld", inode.i_num);
+	sprintf(inode_str, "%lld", inode->i_num);
 	ret = sstack_memcache_store(mc, path, inode_str, (strlen(inode_str) + 1),
 					sfs_ctx);
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - memcached operations done\n",
-			__FUNCTION__);
 	if (ret != 0) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to store object into memcached."
 				" Key = %s value = %s \n", __FUNCTION__, path, inode_str);
 		close(fd);
 		return -1;
 	}
-
+	sstack_dump_inode(inode, sfs_ctx);
+	memset(inode, 0, sizeof(*inode));
+	get_inode(3, inode, db);
+	sstack_dump_inode(inode, sfs_ctx);
+	sstack_free_inode(inode);
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - file created, return: %d\n",
 			__FUNCTION__, fd);
 	return 0;

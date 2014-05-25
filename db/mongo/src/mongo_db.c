@@ -502,6 +502,7 @@ mongo_db_get(char *key, char **data, db_type_t type, log_ctx_t *ctx)
 
 		return -EINVAL;
 	}
+	memset(*data, 0, record_len);
 	memcpy(*data, bson_iterator_bin_data(iter), record_len);
 
 	bson_destroy(query);
@@ -578,7 +579,6 @@ mongo_db_update(char *key, char *data, size_t len, db_type_t type,
 	}
 	pthread_rwlock_unlock(&mongo_db_lock);
 	bson_destroy(b);
-
 	return len;
 }
 

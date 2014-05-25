@@ -31,6 +31,7 @@
 #include <sstack_signatures.h>
 #include <sfsd_erasure.h>
 #include <policy.h>
+#include <sstack_serdes.h>
 
 #define USE_INDEX 0
 #define USE_HANDLE 1
@@ -635,7 +636,7 @@ sstack_payload_t *sstack_write(sstack_payload_t *payload,
 							   sfsd_t *sfsd, log_ctx_t *ctx)
 {
 	int32_t i, command_stat = 0;
-	sstack_inode_t *inode;
+	sstack_inode_t *inode = NULL;
 	struct sstack_nfs_write_cmd *cmd = &payload->command_struct.write_cmd;
 	struct sstack_file_handle_t *extent_handle =
 		&payload->command_struct.extent_handle;
@@ -653,19 +654,13 @@ sstack_payload_t *sstack_write(sstack_payload_t *payload,
 	uint32_t extent_created = 0;
 	unsigned long long size = 0;
 
-	sfs_log(ctx, SFS_DEBUG, "%s() - %d\n",
-			__FUNCTION__, __LINE__);
-	inode = bds_cache_alloc(sfsd->local_caches[INODE_CACHE_OFFSET]);
-	sfs_log(ctx, SFS_DEBUG, "%s() - %d %p\n", __FUNCTION__, __LINE__, inode);
-
+	inode = sstack_create_inode();
 	if (inode == NULL) {
 		command_stat = -ENOMEM;
 		sfs_log(ctx, SFS_ERR, "%s(): %s\n",
 			__FUNCTION__, "Inode cache mem not available\n");
 		goto error;
 	}
-	sfs_log(ctx, SFS_DEBUG, "%s() - %d\n",
-			__FUNCTION__, __LINE__);
 
 	if (get_inode(cmd->inode_no, inode, sfsd->db) != 0) {
 		command_stat = -EINVAL;
@@ -673,9 +668,6 @@ sstack_payload_t *sstack_write(sstack_payload_t *payload,
 			__FUNCTION__);
 		goto error;
 	}
-	sfs_log(ctx, SFS_DEBUG, "%s() - %d\n",
-			__FUNCTION__, __LINE__);
-
 	/* if the payload handle is NULL, it means this is a request for
 	 * a new extent.
 	 */
@@ -754,6 +746,8 @@ sstack_payload_t *sstack_write(sstack_payload_t *payload,
 		goto error;
 
 	/* Now go ahead update the metadata */
+	/* TODO: This will come from policy */
+	inode->i_numreplicas = 1;
 
 	if (extent_created) {
 		sstack_extent_t *extent;
@@ -775,6 +769,7 @@ sstack_payload_t *sstack_write(sstack_payload_t *payload,
 		extent->e_size = cmd->data.data_len;
 		extent->e_sizeondisk = out_size;
 		extent->e_cksum = cksum;
+		extent->e_numreplicas = inode->i_numreplicas;
 		extent->e_path = malloc(sizeof(sstack_file_handle_t));
 		sprintf (extent->e_path->name, "%s/%s",
 				 sfsd->chunk->storage[chunk_index].path,
@@ -782,6 +777,8 @@ sstack_payload_t *sstack_write(sstack_payload_t *payload,
 		sfs_log(ctx, SFS_DEBUG, "%s() - handle name: %s\n",
 				__FUNCTION__, extent->e_path->name);
 		extent->e_path->name_len = strlen(extent_name);
+		sfs_log(ctx, SFS_DEBUG, "%s() - size: %d\n",
+				inode->i_size);
 		if (inode->i_size != 0) {
 			sstack_extent_t *prev_extent;
 			prev_extent = extent - 1;
@@ -804,21 +801,16 @@ sstack_payload_t *sstack_write(sstack_payload_t *payload,
 	// Update inode size
 	for (i = 0; i < inode->i_numextents; i++)
 		size += inode->i_extent[i].e_size;
-
 	inode->i_size = size;
 	sfs_log(ctx, SFS_DEBUG, "%s: Updated size = %"PRIx64"\n",
 			__FUNCTION__, inode->i_size);
+	sstack_dump_inode(inode, ctx);
 	put_inode(inode, sfsd->db, 1);
+	sfs_log(ctx, SFS_DEBUG, "read after update\n");
+	memset(inode, 0, sizeof(*inode));
+	get_inode(3, inode, sfsd->db);
+	sstack_dump_inode(inode, ctx);
 	sstack_free_inode_res(inode, ctx);
-	// Check
-	get_inode(inode->i_num, inode, sfsd->db);
-	sfs_log(ctx, SFS_DEBUG, "%s: inode name = %s number = %d size = %d\n",
-			__FUNCTION__, inode->i_name, inode->i_num, inode->i_size);
-	sstack_free_inode_res(inode, ctx);
-
-	bds_cache_free(sfsd->local_caches[INODE_CACHE_OFFSET], inode);
-	sfs_log(ctx, SFS_DEBUG, "%s() - put_inode, free_inode done\n",
-			__FUNCTION__);
 
 //	command_stat = write_erasure_code();
 
@@ -895,6 +887,7 @@ sstack_payload_t *sstack_write(sstack_payload_t *payload,
 	payload->response_struct.write_resp.file_wc = command_stat;
 	sfs_log(ctx, SFS_DEBUG, "%s() - Returning payload %p command stat: %d\n",
 			__FUNCTION__, payload, command_stat);
+	sstack_free_inode(inode);
 	return payload;
 error:
 	sfs_log(ctx, SFS_INFO, "%s(): function not implemented\n", __FUNCTION__);

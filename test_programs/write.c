@@ -13,8 +13,6 @@ int main(int argc, char *argv[])
 
 	fd = open(argv[1], O_CREAT|O_WRONLY, S_IRWXU);
 
-	printf ("Open fd = %d\n", fd);
-
 	if (fd > 0) {
 		nbytes = write(fd, "12345", 6);
 		printf ("Wrote %d bytes\n", nbytes);
@@ -23,6 +21,8 @@ int main(int argc, char *argv[])
 	}
 #if 0
 	fd = open(argv[1], O_RDONLY);
+	printf ("file des: %d\n", fd);
+	perror("open status");
 
 	if (fd > 0) {
 		char buf[10];

@@ -30,7 +30,7 @@
 #include <time.h>
 #include <syslog.h>
 #include <sys/param.h>
-
+#include <stdint.h>
 #include <policy.h>
 #include <sstack_bitops.h>
 #include <sstack_db.h>
@@ -87,7 +87,7 @@ static inline int
 get_extent_fixed_fields_len(void)
 {
 	return (sizeof(sstack_offset_t) + sizeof(uint64_t) + sizeof(uint64_t) +
-			sizeof(unsigned long) + sizeof(unsigned int));
+			sizeof(sstack_cksum_t) + sizeof(unsigned int));
 }
 
 
@@ -113,34 +113,33 @@ typedef struct sstack_sfsd_info {
 // If i_type is SYMLINK, first extent file name contains the real file name
 // to which this inode/file links.
 
-
 typedef struct inode {
 	// Following structure indicates fixed fields in sstack_inode_t
 	// Remaining fileds are variable in nature.
 	struct {
 		pthread_mutex_t	i_lock; // We could use futex
-		// Inode number. Max is 2^128 on 64-bit machine
-		unsigned long long i_num;
 		char i_name[PATH_MAX];
 		uid_t	i_uid; // Owner uid
 		gid_t	i_gid; // Owner gid
 		mode_t	i_mode; // Permissions
 		type_t	i_type; // Type of file
-		int		i_links; // Number of references. Used for unlink()
 		struct timespec i_atime; // Last access time
 		struct timespec i_ctime; // Creation time
 		struct timespec i_mtime; // Modification time
 		sstack_size_t	i_size; // Size of the file
 		sstack_size_t i_ondisksize;
-		int i_numreplicas:16; // Number of replicas
-		int i_enable_dr:16; // DR enable flag
-		int i_numclients; // Number of sfsds maintaining this file
-		uint64_t i_erasure_stripe_size; // Erasure code stripe size
-		unsigned int i_numerasure; // Number of erasure code extents
-		int	i_esure_valid; // Is erasure code valid?
-		int i_numextents; // Number of extents
-		int i_xattrlen; // Extended attibute len
 		sstack_sfsd_info_t *i_primary_sfsd; // sfsd having erasure coded stripes
+		int32_t	i_links; // Number of references. Used for unlink()
+		int32_t i_numreplicas; // Number of replicas
+		int32_t i_enable_dr; // DR enable flag
+		int32_t i_numclients; // Number of sfsds maintaining this file
+		uint32_t i_numerasure; // Number of erasure code extents
+		int32_t	i_esure_valid; // Is erasure code valid?
+		int32_t i_numextents; // Number of extents
+		int32_t i_xattrlen; // Extended attibute len
+		// Inode number. Max is 2^128 on 64-bit machine
+		uint64_t i_num;
+		uint64_t i_erasure_stripe_size; // Erasure code stripe size
 	};
 	char *i_xattr; // Extended attributes
 	sstack_extent_t *i_erasure; // Erasure code segment information
@@ -158,14 +157,11 @@ typedef struct inode {
 static inline int
 get_inode_fixed_fields_len(void)
 {
-	return (sizeof(pthread_mutex_t) +  sizeof(unsigned long long) +
-			PATH_MAX + sizeof(uid_t) + sizeof(gid_t) + sizeof(mode_t) +
-			sizeof(type_t) + sizeof(int)  +
-			(3 * sizeof(struct timespec)) + sizeof(sstack_size_t) +
-			sizeof(sstack_size_t) + 4 + 4 + 8 + 4 + 4 + 4 + 4 +
-			sizeof(sstack_sfsd_info_t *));
+	return (sizeof(pthread_mutex_t) + PATH_MAX + sizeof(uid_t) + sizeof(gid_t)
+			+ sizeof(mode_t) + sizeof(type_t) + (3 * sizeof(struct timespec))
+			+ (2 *sizeof(sstack_size_t)) + sizeof(sstack_sfsd_info_t *) +
+			+ 32 /* All uint/int32_t's */ + 16 /* All uint64_t's */);
 }
-
 extern int get_extents(unsigned long long  inode_num, sstack_extent_t *extent,
 				int num_extents, db_t *db);
 extern uint64_t get_inode_number(const char *path);

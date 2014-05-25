@@ -41,5 +41,7 @@ inline void sstack_free_erasure(log_ctx_t *, sstack_extent_t *, int );
 inline void sstack_free_inode_res(sstack_inode_t *, log_ctx_t *);
 uint8_t * create_hash(void *, size_t , uint8_t *, log_ctx_t *);
 inline char * get_opt_str(const char *, char *);
+void sstack_dump_inode(sstack_inode_t *inode, log_ctx_t *ctx);
+void sstack_dump_extent(sstack_extent_t *ex, log_ctx_t *ctx);
 
 #endif //__SSTACK_HELPER_H_
