@@ -711,53 +711,31 @@ sstack_send_payload(sstack_client_handle_t handle,
 			PolicyEntry entry = POLICY_ENTRY__INIT;
 			Attribute attr = ATTRIBUTE__INIT;
 			PolicyPlugin **plugins = NULL;
-			SstackExtentHandle *extent_handle = NULL;
+			SstackExtentHandle extent_handle = SSTACK_EXTENT_HANDLE__INIT;
+			SstackFileNameT file_name = SSTACK_FILE_NAME_T__INIT;
+			SstackAddressT address = SSTACK_ADDRESS_T__INIT;
 			int i = 0;
 
 			sfs_log(ctx, SFS_INFO, "%s: %s called \n", __FUNCTION__,
 					sstack_command_stringify(payload->command));
 
-			/* Pass down the extent handle */
-			extent_handle = malloc(sizeof(SstackExtentHandle));
-			if (extent_handle == NULL) {
-				sfs_log(serdes_ctx, SFS_ERR,
-						"%s() - Unable to allocate memory for handle\n",
-						__FUNCTION__);
-				return -ENOMEM;
-			}
-			extent_handle->extent_handle = malloc(sizeof(SstackFileNameT));
-			if (extent_handle->extent_handle == NULL) {
-				sfs_log(serdes_ctx, SFS_ERR,
-						"%s() - Unable to allocate extent handle\n",
-						__FUNCTION__);
-				free(extent_handle);
-				return -ENOMEM;
-			}
-			extent_handle->extent_handle->address = 
-					malloc(sizeof(SstackAddressT));
-			if (extent_handle->extent_handle->address == NULL) {
-				sfs_log(serdes_ctx, SFS_ERR,
-						"%s() - Unable to allocate memory for extent",
-						__FUNCTION__);
-				free(extent_handle->extent_handle);
-				free(extent_handle);
-			}
-
-			extent_handle->extent_handle->name_len = 
+			file_name.name_len = 
 				payload->command_struct.extent_handle.name_len;
-			extent_handle->extent_handle->name.data = 
+			file_name.name.data = 
 				payload->command_struct.extent_handle.name;
-			extent_handle->extent_handle->proto = 
+			file_name.proto = 
 				payload->command_struct.extent_handle.proto;
 
-			extent_handle->extent_handle->address->protocol = 
+			address.protocol = 
 				payload->command_struct.extent_handle.address.protocol;
-			extent_handle->extent_handle->address->has_ipv4_address = true;
-			extent_handle->extent_handle->address->ipv4_address.len =
+			address.has_ipv4_address = true;
+			address.ipv4_address.len =
 				strlen(payload->command_struct.
 						extent_handle.address.ipv4_address);
-			extent_handle->extent_handle->address->ipv4_address.data =
+			address.ipv4_address.data =
 				payload->command_struct.extent_handle.address.ipv4_address;
+			file_name.address = &address;
+			extent_handle.extent_handle = &file_name;
 
 			msg.command = SSTACK_PAYLOAD_T__SSTACK_NFS_COMMAND_T__NFS_READ;
 			readcmd.inode_no = payload->command_struct.read_cmd.inode_no;
@@ -790,9 +768,6 @@ sstack_send_payload(sstack_client_handle_t handle,
 							"%s. Command aborted \n", __FUNCTION__,
 							sstack_command_stringify(payload->command));
 
-					free(extent_handle->extent_handle->address);
-					free(extent_handle->extent_handle);
-					free(extent_handle);
 					return -ENOMEM;
 				}
 				for ( i = 0; i < entry.pe_num_plugins; i++ ) {
@@ -826,7 +801,7 @@ sstack_send_payload(sstack_client_handle_t handle,
 			}
 			readcmd.pe = &entry;
 			cmd.read_cmd = &readcmd;
-			cmd.extent_handle = extent_handle;
+			cmd.extent_handle = &extent_handle;
 			msg.command_struct = &cmd;
 			hdr.payload_len = sizeof(sstack_payload_hdr_t);
 			msg.hdr = &hdr; // Parannoid
@@ -837,9 +812,6 @@ sstack_send_payload(sstack_client_handle_t handle,
 					"%s. Command aborted \n", __FUNCTION__,
 					sstack_command_stringify(payload->command));
 
-				free(extent_handle->extent_handle->address);
-				free(extent_handle->extent_handle);
-				free(extent_handle);
 				return -ENOMEM;
 			}
 			sstack_payload_t__pack(&msg, buffer);
@@ -850,9 +822,6 @@ sstack_send_payload(sstack_client_handle_t handle,
 					 __FUNCTION__,
 					sstack_command_stringify(payload->command), ret);
 
-				free(extent_handle->extent_handle->address);
-				free(extent_handle->extent_handle);
-				free(extent_handle);
 				sstack_free_payload(payload);
 				free(buffer);
 
@@ -862,9 +831,6 @@ sstack_send_payload(sstack_client_handle_t handle,
 					"for %s request \n",
 					 __FUNCTION__,
 					sstack_command_stringify(payload->command));
-				free(extent_handle->extent_handle->address);
-				free(extent_handle->extent_handle);
-				free(extent_handle);
 				sstack_free_payload(payload);
 				free(buffer);
 
