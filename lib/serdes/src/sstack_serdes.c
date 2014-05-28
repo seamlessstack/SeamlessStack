@@ -711,10 +711,54 @@ sstack_send_payload(sstack_client_handle_t handle,
 			PolicyEntry entry = POLICY_ENTRY__INIT;
 			Attribute attr = ATTRIBUTE__INIT;
 			PolicyPlugin **plugins = NULL;
+			SstackExtentHandle *extent_handle = NULL;
 			int i = 0;
 
 			sfs_log(ctx, SFS_INFO, "%s: %s called \n", __FUNCTION__,
 					sstack_command_stringify(payload->command));
+
+			/* Pass down the extent handle */
+			extent_handle = malloc(sizeof(SstackExtentHandle));
+			if (extent_handle == NULL) {
+				sfs_log(serdes_ctx, SFS_ERR,
+						"%s() - Unable to allocate memory for handle\n",
+						__FUNCTION__);
+				return -ENOMEM;
+			}
+			extent_handle->extent_handle = malloc(sizeof(SstackFileNameT));
+			if (extent_handle->extent_handle == NULL) {
+				sfs_log(serdes_ctx, SFS_ERR,
+						"%s() - Unable to allocate extent handle\n",
+						__FUNCTION__);
+				free(extent_handle);
+				return -ENOMEM;
+			}
+			extent_handle->extent_handle->address = 
+					malloc(sizeof(SstackAddressT));
+			if (extent_handle->extent_handle->address == NULL) {
+				sfs_log(serdes_ctx, SFS_ERR,
+						"%s() - Unable to allocate memory for extent",
+						__FUNCTION__);
+				free(extent_handle->extent_handle);
+				free(extent_handle);
+			}
+
+			extent_handle->extent_handle->name_len = 
+				payload->command_struct.extent_handle.name_len;
+			extent_handle->extent_handle->name.data = 
+				payload->command_struct.extent_handle.name;
+			extent_handle->extent_handle->proto = 
+				payload->command_struct.extent_handle.proto;
+
+			extent_handle->extent_handle->address->protocol = 
+				payload->command_struct.extent_handle.address.protocol;
+			extent_handle->extent_handle->address->has_ipv4_address = true;
+			extent_handle->extent_handle->address->ipv4_address.len =
+				strlen(payload->command_struct.
+						extent_handle.address.ipv4_address);
+			extent_handle->extent_handle->address->ipv4_address.data =
+				payload->command_struct.extent_handle.address.ipv4_address;
+
 			msg.command = SSTACK_PAYLOAD_T__SSTACK_NFS_COMMAND_T__NFS_READ;
 			readcmd.inode_no = payload->command_struct.read_cmd.inode_no;
 			readcmd.offset = payload->command_struct.read_cmd.offset;
@@ -746,6 +790,9 @@ sstack_send_payload(sstack_client_handle_t handle,
 							"%s. Command aborted \n", __FUNCTION__,
 							sstack_command_stringify(payload->command));
 
+					free(extent_handle->extent_handle->address);
+					free(extent_handle->extent_handle);
+					free(extent_handle);
 					return -ENOMEM;
 				}
 				for ( i = 0; i < entry.pe_num_plugins; i++ ) {
@@ -774,10 +821,12 @@ sstack_send_payload(sstack_client_handle_t handle,
 						->pp_lock;
 				}
 				entry.pe_policy = plugins;
-			} else
+			} else {
 				entry.pe_policy = plugins;
+			}
 			readcmd.pe = &entry;
 			cmd.read_cmd = &readcmd;
+			cmd.extent_handle = extent_handle;
 			msg.command_struct = &cmd;
 			hdr.payload_len = sizeof(sstack_payload_hdr_t);
 			msg.hdr = &hdr; // Parannoid
@@ -788,6 +837,9 @@ sstack_send_payload(sstack_client_handle_t handle,
 					"%s. Command aborted \n", __FUNCTION__,
 					sstack_command_stringify(payload->command));
 
+				free(extent_handle->extent_handle->address);
+				free(extent_handle->extent_handle);
+				free(extent_handle);
 				return -ENOMEM;
 			}
 			sstack_payload_t__pack(&msg, buffer);
@@ -798,6 +850,9 @@ sstack_send_payload(sstack_client_handle_t handle,
 					 __FUNCTION__,
 					sstack_command_stringify(payload->command), ret);
 
+				free(extent_handle->extent_handle->address);
+				free(extent_handle->extent_handle);
+				free(extent_handle);
 				sstack_free_payload(payload);
 				free(buffer);
 
@@ -807,7 +862,9 @@ sstack_send_payload(sstack_client_handle_t handle,
 					"for %s request \n",
 					 __FUNCTION__,
 					sstack_command_stringify(payload->command));
-
+				free(extent_handle->extent_handle->address);
+				free(extent_handle->extent_handle);
+				free(extent_handle);
 				sstack_free_payload(payload);
 				free(buffer);
 
@@ -1908,7 +1965,20 @@ sstack_recv_payload(sstack_client_handle_t handle,
 				payload->command_struct.read_cmd.pe.pe_policy[i]->pp_lock =
 					plugins[i]->pp_lock;
 			}
-
+			/* Copy over the extent handle */
+			payload->command_struct.extent_handle.name_len = 
+				msg->command_struct->extent_handle->extent_handle->name_len;
+			strcpy(payload->command_struct.extent_handle.name,
+					msg->command_struct->extent_handle->extent_handle->name.data);
+			payload->command_struct.extent_handle.proto = 
+				msg->command_struct->extent_handle->extent_handle->proto;
+			payload->command_struct.extent_handle.address.protocol = 
+				msg->command_struct->extent_handle->extent_handle->address->protocol;
+			if (msg->command_struct->
+				 extent_handle->extent_handle->address->has_ipv4_address
+				 == true) 
+				strcpy(payload->command_struct.extent_handle.address.ipv4_address,
+						msg->command_struct->extent_handle->extent_handle->address->ipv4_address.data);
 			bds_cache_free(serdes_caches[SERDES_PAYLOAD_CACHE_IDX], temp_payload);
 			return payload;
 		}

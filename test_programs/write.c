@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
 		perror("write status");
 		close(fd);
 	}
-#if 0
+#if 1
 	fd = open(argv[1], O_RDONLY);
 	printf ("file des: %d\n", fd);
 	perror("open status");

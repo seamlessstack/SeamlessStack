@@ -542,7 +542,7 @@ sstack_payload_t *sstack_read(sstack_payload_t *payload,
 	char mount_path[PATH_MAX];
 	ssize_t extent_index;
 
-	inode = bds_cache_alloc(sfsd_global_cache_arr[INODE_CACHE_OFFSET]);
+	inode = sstack_create_inode();
 	if (inode == NULL) {
 		command_stat = -ENOMEM;
 		sfs_log(ctx, SFS_ERR, "%s(): %s\n",
@@ -556,7 +556,10 @@ sstack_payload_t *sstack_read(sstack_payload_t *payload,
 			__FUNCTION__);
 		goto error;
 	}
-
+	sfs_log(ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
+	sstack_dump_inode(inode, ctx);
+	sfs_log(ctx, SFS_DEBUG, "%s() - extent handle: %s\n",
+			__FUNCTION__, payload->command_struct.extent_handle.name);
 	/* Get the extent to read */
 	extent_index = get_extent(inode->i_extent, inode->i_numextents,
 							  INVALID_INDEX,
@@ -567,6 +570,7 @@ sstack_payload_t *sstack_read(sstack_payload_t *payload,
 		command_stat = -EINVAL;
 		goto error;
 	}
+	sfs_log(ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 
 	/* Read the erasure coded stripes since we are asked to
 	   do so :-)
@@ -762,7 +766,8 @@ sstack_payload_t *sstack_write(sstack_payload_t *payload,
 		else
 			goto error;
 
-		sfs_log(ctx, SFS_DEBUG, "%s() - A new extent structure has been allocated\n",
+		sfs_log(ctx, SFS_DEBUG,
+				"%s() - A new extent structure has been allocated\n",
 				__FUNCTION__);
 		extent = &inode->i_extent[inode->i_numextents];
 		memset(extent, 0, sizeof(sstack_extent_t));
@@ -779,6 +784,7 @@ sstack_payload_t *sstack_write(sstack_payload_t *payload,
 		extent->e_path->name_len = strlen(extent_name);
 		sfs_log(ctx, SFS_DEBUG, "%s() - size: %d\n",
 				inode->i_size);
+		sstack_dump_extent(extent, ctx);
 		if (inode->i_size != 0) {
 			sstack_extent_t *prev_extent;
 			prev_extent = extent - 1;

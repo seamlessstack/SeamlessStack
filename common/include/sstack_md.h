@@ -55,6 +55,8 @@ typedef enum type {
 	UNKNOWN
 } type_t;
 
+#define NUM_MAX_REPLICAS 2
+
 typedef unsigned long long sstack_offset_t;
 typedef unsigned long long sstack_size_t;
 

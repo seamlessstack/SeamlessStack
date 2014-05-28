@@ -1781,6 +1781,8 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 			read_size = (extent->e_offset + extent->e_size) - offset;
 		payload->command_struct.read_cmd.count = read_size;
 		payload->command_struct.read_cmd.read_ecode = 0;
+		memcpy(&payload->command_struct.extent_handle,
+				extent->e_path, sizeof(sstack_file_handle_t));
 		/*memcpy((void *) &payload->command_struct.read_cmd.pe, (void *)
 						policy, sizeof(struct policy_entry));*/
 		job->payload_len = sizeof(sstack_payload_t);

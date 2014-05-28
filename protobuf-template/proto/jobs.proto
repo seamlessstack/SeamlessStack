@@ -135,6 +135,15 @@ message sstack_file_name_t
 {
 	required uint32 name_len = 1;
 	required bytes name = 2;
+	enum sfs_protocol_t
+	{
+		NFS = 1;
+		CIFS = 2;
+		ISCSI = 3;
+		NATIVE = 4;
+	}
+	required sfs_protocol_t proto = 3;
+	required sstack_address_t address = 4;
 }
 
 message sstack_nfs_symlink_cmd
@@ -159,22 +168,28 @@ message sstack_nfs_commit_cmd
 	required uint64 count = 2;
 }
 
+message sstack_extent_handle
+{
+	required sstack_file_name_t extent_handle = 1;
+}
+
 message sstack_nfs_command_struct
 {
-	optional sstack_chunk_cmd add_chunk_cmd = 1;
-	optional sstack_chunk_cmd update_chunk_cmd = 2;
-	optional sstack_chunk_cmd delete_chunk_cmd = 3;
-	optional sstack_nfs_setattr_cmd setattr_cmd = 4;
-	optional sstack_nfs_lookup_cmd lookup_cmd = 5;
-	optional sstack_nfs_access_cmd access_cmd = 6;
-	optional sstack_nfs_read_cmd read_cmd = 7;
-	optional sstack_nfs_write_cmd write_cmd = 8;
-	optional sstack_nfs_create_cmd create_cmd = 9;
-	optional sstack_nfs_mkdir_cmd mkdir_cmd = 10;
-	optional sstack_nfs_symlink_cmd symlink_cmd = 11;
-	optional sstack_nfs_rename_cmd rename_cmd = 12;
-	optional sstack_nfs_remove_cmd remove_cmd = 13;
-	optional sstack_nfs_commit_cmd commit_cmd = 14;
+	optional sstack_extent_handle extent_handle = 1;
+	optional sstack_chunk_cmd add_chunk_cmd = 2;
+	optional sstack_chunk_cmd update_chunk_cmd = 3;
+	optional sstack_chunk_cmd delete_chunk_cmd = 4;
+	optional sstack_nfs_setattr_cmd setattr_cmd = 5;
+	optional sstack_nfs_lookup_cmd lookup_cmd = 6;
+	optional sstack_nfs_access_cmd access_cmd = 7;
+	optional sstack_nfs_read_cmd read_cmd = 8;
+	optional sstack_nfs_write_cmd write_cmd = 9;
+	optional sstack_nfs_create_cmd create_cmd = 10;
+	optional sstack_nfs_mkdir_cmd mkdir_cmd = 11;
+	optional sstack_nfs_symlink_cmd symlink_cmd = 12;
+	optional sstack_nfs_rename_cmd rename_cmd = 13;
+	optional sstack_nfs_remove_cmd remove_cmd = 14;
+	optional sstack_nfs_commit_cmd commit_cmd = 15;
 } 	
 
 // Not sure how this can be handled 

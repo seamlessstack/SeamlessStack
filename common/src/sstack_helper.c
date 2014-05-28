@@ -104,35 +104,12 @@ void sstack_dump_inode(sstack_inode_t *inode, log_ctx_t *ctx)
 	if (inode->i_xattrlen)
 		sfs_log(ctx, SFS_DEBUG, "%s() inode->i_xattr: %s\n",
 				__FUNCTION__, inode->i_xattr);
-	for(i = 0; i < inode->i_numextents; ++i) {
-		sfs_log(ctx, SFS_DEBUG, "%s() - extent->e_offset: %d\n",
-			__FUNCTION__, inode->i_extent[i].e_offset);
-		sfs_log(ctx, SFS_DEBUG, "%s() - extent->e_size: %d\n",
-			__FUNCTION__, inode->i_extent[i].e_size);
-		sfs_log(ctx, SFS_DEBUG, "%s() - extent->e_sizeondisk: %d\n",
-			__FUNCTION__, inode->i_extent[i].e_sizeondisk);
-		sfs_log(ctx, SFS_DEBUG, "%s() - extent->e_cksum: %u\n",
-			__FUNCTION__, inode->i_extent[i].e_cksum);
-		sfs_log(ctx, SFS_DEBUG, "%s() - extent->e_numreplicas: %u\n",
-			__FUNCTION__, inode->i_extent[i].e_numreplicas);
-		sfs_log(ctx, SFS_DEBUG, "%s() - extent->e_path: %s\n",
-			__FUNCTION__, inode->i_extent[i].e_path->name);
-	}
+	for(i = 0; i < inode->i_numextents; ++i)
+		sstack_dump_extent(&inode->i_extent[i], ctx);
 
-	for(i = 0; i < inode->i_numerasure; ++i) {
-		sfs_log(ctx, SFS_DEBUG, "%s() - extent->e_offset: %d\n",
-			__FUNCTION__, inode->i_erasure[i].e_offset);
-		sfs_log(ctx, SFS_DEBUG, "%s() - extent->e_size: %d\n",
-			__FUNCTION__, inode->i_erasure[i].e_size);
-		sfs_log(ctx, SFS_DEBUG, "%s() - extent->e_sizeondisk: %d\n",
-			__FUNCTION__, inode->i_erasure[i].e_sizeondisk);
-		sfs_log(ctx, SFS_DEBUG, "%s() - extent->e_cksum: %u\n",
-			__FUNCTION__, inode->i_erasure[i].e_cksum);
-		sfs_log(ctx, SFS_DEBUG, "%s() - extent->e_numreplicas: %u\n",
-			__FUNCTION__, inode->i_erasure[i].e_numreplicas);
-		sfs_log(ctx, SFS_DEBUG, "%s() - extent->e_path: %s\n",
-			__FUNCTION__, inode->i_erasure[i].e_path->name);
-	}
+	for(i = 0; i < inode->i_numerasure; ++i)
+		sstack_dump_extent(&inode->i_erasure[i], ctx);
+
 	return;
 }
 
@@ -140,7 +117,7 @@ void sstack_dump_extent(sstack_extent_t *ex, log_ctx_t *ctx)
 {
 	int32_t i = 0;
 	if (ctx == NULL)
-		return NULL;
+		return;
 	if (ex != NULL) {
 		sfs_log(ctx, SFS_DEBUG, "%s() - ex->e_offset: %d\n",
 				__FUNCTION__, ex->e_offset);
@@ -525,12 +502,10 @@ flatten_inode(sstack_inode_t *inode, size_t *len, log_ctx_t *ctx)
 			return NULL;
 		}
 		data = temp;
-		sfs_log(ctx, SFS_DEBUG, "%s() - putting %s at offset: %d\n",
-				__FUNCTION__, ex->e_path, *len);
 		memcpy((void *) (data + (*len)), ex->e_path,
 						(ex->e_numreplicas * sizeof(sstack_file_handle_t)));
 		*len += (ex->e_numreplicas * sizeof(sstack_file_handle_t));
-		//ex ++;
+		ex ++;
 	}
 
 	sfs_log(ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__,__LINE__);
