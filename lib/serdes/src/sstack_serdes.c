@@ -719,13 +719,6 @@ sstack_send_payload(sstack_client_handle_t handle,
 			sfs_log(ctx, SFS_INFO, "%s: %s called \n", __FUNCTION__,
 					sstack_command_stringify(payload->command));
 
-			file_name.name_len = 
-				payload->command_struct.extent_handle.name_len;
-			file_name.name.data = 
-				payload->command_struct.extent_handle.name;
-			file_name.proto = 
-				payload->command_struct.extent_handle.proto;
-
 			address.protocol = 
 				payload->command_struct.extent_handle.address.protocol;
 			address.has_ipv4_address = true;
@@ -734,7 +727,18 @@ sstack_send_payload(sstack_client_handle_t handle,
 						extent_handle.address.ipv4_address);
 			address.ipv4_address.data =
 				payload->command_struct.extent_handle.address.ipv4_address;
+
+			file_name.name_len = 
+				payload->command_struct.extent_handle.name_len;
+			file_name.name.len =
+				payload->command_struct.extent_handle.name_len;
+			file_name.name.data = 
+				payload->command_struct.extent_handle.name;
+			file_name.proto = 
+				payload->command_struct.extent_handle.proto;
+
 			file_name.address = &address;
+
 			extent_handle.extent_handle = &file_name;
 
 			msg.command = SSTACK_PAYLOAD_T__SSTACK_NFS_COMMAND_T__NFS_READ;
@@ -804,6 +808,10 @@ sstack_send_payload(sstack_client_handle_t handle,
 			cmd.extent_handle = &extent_handle;
 			msg.command_struct = &cmd;
 			hdr.payload_len = sizeof(sstack_payload_hdr_t);
+			sfs_log(serdes_ctx, SFS_DEBUG, "%s() - name len: %d name %s\n",
+					__FUNCTION__,
+					cmd.extent_handle->extent_handle->name.len,
+					cmd.extent_handle->extent_handle->name.data);
 			msg.hdr = &hdr; // Parannoid
 			len = sstack_payload_t__get_packed_size(&msg);
 			buffer = malloc(len);
@@ -1933,9 +1941,15 @@ sstack_recv_payload(sstack_client_handle_t handle,
 			}
 			/* Copy over the extent handle */
 			payload->command_struct.extent_handle.name_len = 
-				msg->command_struct->extent_handle->extent_handle->name_len;
-			strcpy(payload->command_struct.extent_handle.name,
-					msg->command_struct->extent_handle->extent_handle->name.data);
+				msg->command_struct->extent_handle->extent_handle->name.len;
+			sfs_log(serdes_ctx, SFS_DEBUG, "%s() - %d, name len: %d name: %s\n",
+					__FUNCTION__, __LINE__,
+					msg->command_struct->
+					extent_handle->extent_handle->name.len,
+					(char*)msg->command_struct->extent_handle->extent_handle->name.data);
+			strncpy(payload->command_struct.extent_handle.name,
+					(char *)msg->command_struct->extent_handle->extent_handle->name.data,
+					msg->command_struct->extent_handle->extent_handle->name.len);
 			payload->command_struct.extent_handle.proto = 
 				msg->command_struct->extent_handle->extent_handle->proto;
 			payload->command_struct.extent_handle.address.protocol = 
@@ -1943,8 +1957,9 @@ sstack_recv_payload(sstack_client_handle_t handle,
 			if (msg->command_struct->
 				 extent_handle->extent_handle->address->has_ipv4_address
 				 == true) 
-				strcpy(payload->command_struct.extent_handle.address.ipv4_address,
-						msg->command_struct->extent_handle->extent_handle->address->ipv4_address.data);
+				strncpy(payload->command_struct.extent_handle.address.ipv4_address,
+						msg->command_struct->extent_handle->extent_handle->address->ipv4_address.data,
+						IPV4_ADDR_MAX);
 			bds_cache_free(serdes_caches[SERDES_PAYLOAD_CACHE_IDX], temp_payload);
 			return payload;
 		}
