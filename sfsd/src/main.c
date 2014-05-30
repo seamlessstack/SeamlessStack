@@ -37,7 +37,7 @@ char sstack_log_directory[PATH_MAX];
 struct handle_payload_params;
 sfsd_t sfsd;
 bds_cache_desc_t *sfsd_global_cache_arr = NULL;
-
+log_ctx_t *gbl_ctx = NULL;
 struct cache_entry {
 	char name[32];
 	size_t size;
@@ -164,7 +164,7 @@ int main(int argc, char **argv)
 
 	/* Daemonize */
 	// daemon(0, 0);
-
+	gbl_ctx = sfsd.log_ctx;
 	while(1) {
 		sleep(100);
 	}

@@ -1531,9 +1531,11 @@ sstack_send_payload(sstack_client_handle_t handle,
 			read_resp.eof = payload->response_struct.read_resp.eof;
 			data.data_len = payload->response_struct.read_resp.data.data_len;
 			data.data_buf.len = data.data_len;
-			memcpy((void *) &data.data_buf.data,
+			/*memcpy((void *) &data.data_buf.data,
 					(void*) payload->response_struct.read_resp.data.data_buf,
-					data.data_len);
+					data.data_len);*/
+			data.data_buf.data =
+				payload->response_struct.read_resp.data.data_buf;
 			read_resp.data = &data;
 			response.read_resp = &read_resp;
 			msg.response_struct = &response;
@@ -2200,6 +2202,8 @@ sstack_recv_payload(sstack_client_handle_t handle,
 			memcpy((void *) payload->response_struct.read_resp.data.data_buf,
 				(void *) data_buf.data, data_buf.len);
 			bds_cache_free(serdes_caches[SERDES_PAYLOAD_CACHE_IDX], temp_payload);
+			sfs_log(serdes_ctx, SFS_DEBUG, "%s() - %d returning payload: %p\n",
+					__FUNCTION__, __LINE__, payload);
 			return payload;
 		}
 		case NFS_WRITE_RSP:

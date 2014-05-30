@@ -130,8 +130,17 @@ void sstack_dump_extent(sstack_extent_t *ex, log_ctx_t *ctx)
 		sfs_log(ctx, SFS_DEBUG, "%s() - ex->e_numreplicas: %u\n",
 				__FUNCTION__, ex->e_numreplicas);
 		for(i = 0; i < ex->e_numreplicas; ++i) {
-			sfs_log(ctx, SFS_DEBUG, "%s() - ex->e_path[%d]: %s\n",
+			sfs_log(ctx, SFS_DEBUG, "%s() - ex->e_path[%d].name: %s\n",
 					__FUNCTION__, i, ex->e_path[i].name);
+			sfs_log(ctx, SFS_DEBUG, "%s() - ex->e_path[%d].proto: %d\n",
+					__FUNCTION__, i, ex->e_path[i].proto);
+			sfs_log(ctx, SFS_DEBUG, "%s() - ex->e_path[%d].name_len: %d\n",
+					__FUNCTION__, i, ex->e_path[i].name_len);
+			sfs_log(ctx, SFS_DEBUG, "%s() - ex->e_path[%d].address.proto %d\n",
+					__FUNCTION__, i, ex->e_path[i].address.protocol);
+			sfs_log(ctx, SFS_DEBUG,
+					"%s() - ex->e_path[%d].address.ipv4_address: %s\n",
+					__FUNCTION__, i, ex->e_path[i].address.ipv4_address);
 		}
 	} else {
 		sfs_log(ctx, SFS_ERR, "%s() - Cannot dump null extent\n",

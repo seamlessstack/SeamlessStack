@@ -48,6 +48,7 @@ extern char *get_mount_path(sfs_chunk_domain_t * ,
 							sstack_file_handle_t * , char ** );
 extern int32_t match_address(sstack_address_t * , sstack_address_t * );
 extern sfsd_t sfsd;
+extern log_ctx_t *gbl_ctx;
 
 sstack_payload_t* sstack_getattr(sstack_payload_t *payload, log_ctx_t *ctx)
 {
@@ -210,13 +211,16 @@ static inline int32_t match_extent(sstack_file_handle_t *h1,
 	/* Match extent addresses based on protocol */
 	if (h1->proto != h2->proto)
 		return FALSE;
-
-	if (match_address(&h1->address, &h2->address) == FALSE)
+	sfs_log(gbl_ctx, SFS_DEBUG, "%s() - proto pass\n", __FUNCTION__);
+	if (strncmp(h1->address.ipv6_address, h2->address.ipv4_address,
+				IPV6_ADDR_MAX))
 		return FALSE;
-
+	/*if (match_address(&h1->address, &h2->address) == FALSE)
+		return FALSE;*/
+	sfs_log(gbl_ctx, SFS_DEBUG, "%s() - address pass\n", __FUNCTION__);
 	if (!strncmp(h1->name, h2->name, PATH_MAX))
 		return TRUE;
-
+	sfs_log(gbl_ctx, SFS_DEBUG, "%s() - name pass\n", __FUNCTION__);
 	return FALSE;
 }
 
@@ -232,8 +236,8 @@ static inline int32_t match_extent(sstack_file_handle_t *h1,
  * @return: the index of the extent if found in the array else
  *   appropriate error code.
  */
-static size_t get_extent(sstack_extent_t *extents, size_t num_extents,
-						 ssize_t index, sstack_file_handle_t *extent_handle,
+static size_t get_extent(sstack_extent_t *extents, int32_t num_extents,
+						 int32_t index, sstack_file_handle_t *extent_handle,
 						 sfsd_t *sfsd, char *mounted_path, log_ctx_t *ctx)
 {
 	int32_t i;
@@ -245,8 +249,9 @@ static size_t get_extent(sstack_extent_t *extents, size_t num_extents,
 	sstack_extent_t *extent = NULL;
 
 	if (index > num_extents) {
-		sfs_log(ctx, SFS_ERR, "%s()-passed index greater than size of array\n",
-				__FUNCTION__);
+		sfs_log(ctx, SFS_ERR, "%s() - index(%d) passed index "
+				"greater than size of array\n",
+				__FUNCTION__, index);
 		goto ret;
 	}
 
@@ -255,6 +260,7 @@ static size_t get_extent(sstack_extent_t *extents, size_t num_extents,
 		ret = index;
 	} else {
 		for(i = 0; i < num_extents; ++i) {
+			sstack_dump_extent(&extents[i], ctx);
 			if (TRUE == match_extent(extent_handle,
 									 extents[i].e_path)) {
 				extent = &extents[i];
@@ -265,7 +271,7 @@ static size_t get_extent(sstack_extent_t *extents, size_t num_extents,
 	}
 
 	if (extent == NULL) {
-		sfs_log(ctx, SFS_ERR, "%s(): Error getting extent\n");
+		sfs_log(ctx, SFS_ERR, "%s(): Error getting extent\n", __FUNCTION__);
 		ret = -EINVAL;
 		goto ret;
 	}
@@ -276,10 +282,10 @@ static size_t get_extent(sstack_extent_t *extents, size_t num_extents,
 			ret = -EINVAL;
 			goto ret;
 		}
-		/* Create the file path relative to the mount point */
-		len = strlen(r); /* r contains the nfs export */
-		p += len; /* p points to start of the path minus the nfs export */
-
+		sfs_log(ctx, SFS_DEBUG, "%s() - mount point: %s\n",
+				__FUNCTION__, q);
+		sfs_log(ctx, SFS_DEBUG, "%s() - storage path: %s\n",
+				__FUNCTION__, r);
 		/* Create the file path relative to the mount point */
 		len = strlen(r); /* r contains the nfs export */
 		p += len; /* p points to start of the path minus the nfs export */
@@ -305,6 +311,8 @@ static int32_t read_check_extent(char *mounted_path, size_t read_size,
 		sfs_log(ctx, SFS_ERR, "%s() - Invalid Parameters\n", __FUNCTION__);
 		goto ret;
 	}
+	sfs_log(ctx, SFS_DEBUG, "%s() - %d path to open: %s\n",
+			__FUNCTION__, __LINE__, mounted_path);
 	if ((fd = open(mounted_path, O_RDONLY|O_DIRECT)) < 0) {
 		sfs_log(ctx, SFS_ERR, "%s(): extent '%s' open failed\n",
 				__FUNCTION__, mounted_path);
@@ -318,6 +326,8 @@ static int32_t read_check_extent(char *mounted_path, size_t read_size,
 		ret = errno;
 		goto ret;
 	}
+	sfs_log(ctx, SFS_DEBUG, "%s() - %d read bytes: %d\n",
+			__FUNCTION__, __LINE__, nbytes);
 	ret = nbytes;
 	if (check_cksum) {
 		uint32_t crc;
@@ -541,6 +551,7 @@ sstack_payload_t *sstack_read(sstack_payload_t *payload,
 	void *buffer, *policy_buf = NULL, *run_buf = NULL, *out_buf = NULL;
 	char mount_path[PATH_MAX];
 	ssize_t extent_index;
+	sstack_payload_t *response = NULL;
 
 	inode = sstack_create_inode();
 	if (inode == NULL) {
@@ -592,17 +603,26 @@ sstack_payload_t *sstack_read(sstack_payload_t *payload,
 		 * Just try to do a normal read
 		 * and report success or failure
 		 */
-		buffer = bds_cache_alloc(sfsd_global_cache_arr[DATA64K_CACHE_OFFSET]);
+		/*buffer =
+		 * bds_cache_alloc(sfsd_global_cache_arr[DATA64K_CACHE_OFFSET]);*/
+		sfs_log(ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
+		//response = sstack_create_payload(NFS_READ_RSP);
+		buffer =
+			bds_cache_alloc(sfsd->serdes_caches[SERDES_DATA_64K_CACHE_IDX]);
 		if (buffer == NULL) {
-			sfs_log(ctx, SFS_ERR, "%s(): Error getting read buffer\n",
+			sfs_log(ctx, SFS_ERR, "%s(): error allocating response payload\n",
 					__FUNCTION__);
 			command_stat = -ENOMEM;
 			goto error;
 		}
+		sfs_log(ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
+		//buffer = response->response_struct.read_resp.data.data_buf;
+		payload->response_struct.read_resp.data.data_buf = buffer;
 		/* Read the actual extent now */
 		command_stat = read_check_extent(mount_path, MAX_EXTENT_SIZE, TRUE,
 										 inode->i_extent[extent_index].e_cksum,
 										 buffer, ctx);
+		sfs_log(ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 		if (command_stat < 0) {
 			sfs_log(ctx, SFS_ERR, "%s(): Error reading extent\n",
 					__FUNCTION__);
@@ -615,7 +635,7 @@ sstack_payload_t *sstack_read(sstack_payload_t *payload,
 	 *  Need to de-apply policies on it
 	 */
 
-	out_size = deapply_policies(pe, buffer, MAX_EXTENT_SIZE, &policy_buf);
+	/*out_size = deapply_policies(pe, buffer, MAX_EXTENT_SIZE, &policy_buf);*/
 
 	/*
 	 * Modify the sent payload to make it a response.
@@ -625,8 +645,8 @@ sstack_payload_t *sstack_read(sstack_payload_t *payload,
 	payload->command = NFS_READ_RSP;
 	payload->response_struct.read_resp.count = out_size;
 	payload->response_struct.read_resp.eof = 0;
-	payload->response_struct.read_resp.data.data_len = out_size;
-	payload->response_struct.read_resp.data.data_buf = policy_buf;
+	payload->response_struct.read_resp.data.data_len = command_stat;
+	//response->response_struct.read_resp.data.data_buf = policy_buf;
 	//TODO:Write back the erasure coded data - write_erasure_code();
 	return payload;
 
@@ -698,7 +718,7 @@ sstack_payload_t *sstack_write(sstack_payload_t *payload,
 			close(fd);
 		}
 	} else {
-		/* Get the extent to write to */
+		/* Get the extent to write to. TODO: correct parameters */
 		extent_index = get_extent(inode->i_extent, inode->i_numextents,
 								  INVALID_INDEX,
 								  extent_name, sfsd, mount_path, ctx);
@@ -784,6 +804,7 @@ sstack_payload_t *sstack_write(sstack_payload_t *payload,
 		extent->e_path->name_len = strlen(extent_name);
 		sfs_log(ctx, SFS_DEBUG, "%s() - size: %d\n",
 				inode->i_size);
+		extent->e_path->address.protocol = IPV4;
 		sstack_dump_extent(extent, ctx);
 		if (inode->i_size != 0) {
 			sstack_extent_t *prev_extent;

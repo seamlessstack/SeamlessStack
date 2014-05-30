@@ -524,8 +524,12 @@ char *get_mount_path(sfs_chunk_domain_t *chunk_domain ,
 		if (file_handle->proto != storage->protocol)
 			continue;
 		/* Match the IP addresses */
-		if (match_address(&file_handle->address,
+		/*if (match_address(&file_handle->address,
 				  &storage->address) == FALSE)
+			continue;*/
+		if (strncmp(file_handle->address.ipv6_address, 
+					storage->address.ipv6_address, IPV6_ADDR_MAX) || 
+				(file_handle->address.protocol != storage->address.protocol))
 			continue;
 
 		/* Protocol and addresses match. Let's try to match the nfs
