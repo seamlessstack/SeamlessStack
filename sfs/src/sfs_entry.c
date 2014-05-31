@@ -1908,7 +1908,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 	// Free up dynamically allocated fields in inode structure
 	sstack_free_inode_res(inode, sfs_ctx);
 	sfs_unlock(inode_num);
-	
+
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - returning: %d\n",
 			__FUNCTION__, ret);
 	return (ret);
@@ -3428,7 +3428,7 @@ sfs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 	char inode_str[MAX_INODE_LEN] = { '\0' };
 	char *fullpath = NULL;
 	struct timespec ts;
-	
+
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - enter\n", __FUNCTION__);
 	if (NULL == path) {
 		sfs_log(sfs_ctx, SFS_ERR, "%s: Invalid parameters specified \n",
@@ -3714,45 +3714,47 @@ sfs_send_read_status(sstack_job_map_t *job_map, char *buf, size_t size)
     sfs_job_t               *job = NULL;
     struct sstack_nfs_read_resp    *read_resp;
 
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<< jobs left: %d, total jobs: %d\n",
-			__FUNCTION__, job_map->num_jobs_left, job_map->num_jobs);
-	/* Not all jobs processed and we got a pthread_cond_signal.
+    sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<< jobs left: %d, total jobs: %d\n",
+		    __FUNCTION__, job_map->num_jobs_left, job_map->num_jobs);
+    /* Not all jobs processed and we got a pthread_cond_signal.
        Some job had a read specific error */
     if (job_map->num_jobs_left != 0) {
-		errno = job_map->err_no;
-        return (-1);
-   	} 
+	    errno = job_map->err_no;
+	    return (-1);
+    }
 
-	/* Success case. Return the number of bytes read */
-	for (i = 0; i < job_map->num_jobs; i++) {
+    /* Success case. Return the number of bytes read */
+    for (i = 0; i < job_map->num_jobs; i++) {
 	    job_id = job_map->job_ids[i];
-		sfs_log(sfs_ctx, SFS_DEBUG, "%s() %d\n", __FUNCTION__,
-				__LINE__);
+	    sfs_log(sfs_ctx, SFS_DEBUG, "%s() %d\n", __FUNCTION__,
+			    __LINE__);
 
-		jt_key.magic = JTNODE_MAGIC;
-        jt_key.job_id = job_id;
-        jt_node = jobid_tree_search(jobid_tree, &jt_key);
-        job = jt_node->job;
-		sfs_log(sfs_ctx, SFS_DEBUG, "%s() %d job: %p\n", __FUNCTION__,
-				__LINE__, job);
-	
-		if (job)
-			sfs_log(sfs_ctx, SFS_DEBUG, "payload: %p\n", job->payload);
-		read_resp = &job->payload->response_struct.read_resp;
-		sfs_log(sfs_log, SFS_DEBUG, "%s() - Read response len: %d %s\n",
-				__FUNCTION__,
-				read_resp->data.data_len, read_resp->data.data_buf);
-		memcpy(buf, read_resp->data.data_buf, read_resp->data.data_len); 
-		buf += read_resp->data.data_len;
-		num_bytes += read_resp->data.data_len;
+	    jt_key.magic = JTNODE_MAGIC;
+	    jt_key.job_id = job_id;
+	    jt_node = jobid_tree_search(jobid_tree, &jt_key);
+	    job = jt_node->job;
+	    sfs_log(sfs_ctx, SFS_DEBUG, "%s() %d job: %p\n", __FUNCTION__,
+			    __LINE__, job);
 
-		sfs_job2thread_map_remove(job_id);
-		sstack_free_payload(job->payload);
-		free(job);
-	}
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - returning: %d\n",
-			__FUNCTION__, num_bytes);
-	return (num_bytes);
+	    if (job)
+		    sfs_log(sfs_ctx, SFS_DEBUG, "payload: %p\n", job->payload);
+	    read_resp = &job->payload->response_struct.read_resp;
+	    sfs_log(sfs_log, SFS_DEBUG, "%s() - Read response len: %d %s\n",
+			    __FUNCTION__,
+			    read_resp->data.data_len, read_resp->data.data_buf);
+	    memcpy(buf, read_resp->data.data_buf, read_resp->data.data_len);
+		sfs_log(sfs_ctx, SFS_DEBUG, "%s: buffer = %s \n",
+				__FUNCTION__, buf);
+	    buf += read_resp->data.data_len;
+	    num_bytes += read_resp->data.data_len;
+
+	    sfs_job2thread_map_remove(job_id);
+	    sstack_free_payload(job->payload);
+	    free(job);
+    }
+    sfs_log(sfs_ctx, SFS_DEBUG, "%s() - returning: %d\n",
+		    __FUNCTION__, num_bytes);
+    return (num_bytes);
 }
 
 static inline int
