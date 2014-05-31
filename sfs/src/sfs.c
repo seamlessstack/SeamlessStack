@@ -432,8 +432,8 @@ sigchld_handler(int signal)
 static void
 sfs_process_read_response(sstack_payload_t *payload)
 {
-	sstack_nfs_response_struct resp = payload->response_struct;
-	// struct sstack_nfs_read_resp read_resp = resp.read_resp;
+	sstack_nfs_response_struct *resp = &payload->response_struct;
+	// struct sstack_nfs_read_resp read_resp = resp->read_resp;
 	sstack_jm_t			*jm_node = NULL, jm_key;
 	sstack_jt_t			*jt_node = NULL, jt_key;
 	pthread_t			thread_id;
@@ -445,10 +445,13 @@ sfs_process_read_response(sstack_payload_t *payload)
 	int					i = 0, ret = -1;
 
 	job_id = payload->hdr.job_id;
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 
 	jt_key.magic = JTNODE_MAGIC;
 	jt_key.job_id = job_id;
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 	jt_node = jobid_tree_search(jobid_tree, &jt_key);
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 
 	if (jt_node == NULL) {
 		/* TBD: something wrong happened.
@@ -458,13 +461,16 @@ sfs_process_read_response(sstack_payload_t *payload)
 		errno = SSTACK_CRIT_FAILURE;
 		return;
 	}
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 	thread_id = jt_node->thread_id;
 	job = jt_node->job;
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 
 	jm_key.magic = JMNODE_MAGIC;
 	jm_key.thread_id = thread_id;
 	jm_node = jobmap_tree_search(jobmap_tree, &jm_key);
 
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
 	if (jm_node == NULL) {
 		/* this is not an error. This could happen if earlier
 		   job in this job_map had a read error due to which
@@ -475,18 +481,26 @@ sfs_process_read_response(sstack_payload_t *payload)
 	}
 	job_map = jm_node->job_map;
 
-	if (resp.command_ok == SSTACK_SUCCESS) {
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d status:%d\n",
+			__FUNCTION__, __LINE__, resp->command_ok);
+	if (resp->command_ok == SSTACK_SUCCESS) {
 		pthread_spin_lock(&job_map->lock);
-		job_map->num_jobs_left --;
+		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
+		job_map->num_jobs_left--;
 		pthread_spin_unlock(&job_map->lock);
-
+		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - num jobs left: %d\n",
+				__FUNCTION__, job_map->num_jobs_left);
 		job->payload = payload;
+		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
+		job->job_status[0] = JOB_COMPLETE;
 
 		if (job_map->num_jobs_left == 0) {
 			pthread_cond_signal(&job_map->condition);
 		}
-	} else if ((resp.command_ok == -SSTACK_ECKSUM) ||
-						(resp.command_ok == -SSTACK_NOMEM)) {
+		sfs_log(sfs_ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
+		return;
+	} else if ((resp->command_ok == -SSTACK_ECKSUM) ||
+						(resp->command_ok == -SSTACK_NOMEM)) {
 		uint64_t	inode_num;
 
 		inode_num = payload->command_struct.read_cmd.inode_no;
@@ -532,7 +546,7 @@ sfs_process_read_response(sstack_payload_t *payload)
 	} else {
 		/* Read errors */
 		pthread_spin_lock(&job_map->lock);
-		job_map->err_no = resp.command_ok;
+		job_map->err_no = resp->command_ok;
 		pthread_spin_unlock(&job_map->lock);
 		pthread_cond_signal(&job_map->condition);
 	}
@@ -663,6 +677,8 @@ sfs_process_payload(void *arg)
 
 	switch (payload->command) {
 		case (NFS_READ_RSP):
+			sfs_log(sfs_ctx, SFS_DEBUG, "%s() - Read response received\n",
+					__FUNCTION__);
 			sfs_process_read_response(payload);
 			break;
 

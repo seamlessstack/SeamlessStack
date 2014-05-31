@@ -56,7 +56,7 @@ extern char sfs_mountpoint[];
 static inline int
 sfs_send_read_status(sstack_job_map_t *job_map, char *buf, size_t size);
 static inline int
-sfs_send_write_status(sstack_job_map_t *job_map, sstack_inode_t inode,
+sfs_send_write_status(sstack_job_map_t *job_map, sstack_inode_t *inode,
 							off_t offset, size_t size);
 
 static char *
@@ -1900,7 +1900,7 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 	ret = sfs_wait_for_completion(job_map);
 
 	ret = sfs_send_read_status(job_map, buf, size);
-
+	sfs_log(sfs_ctx, SFS_DEBUG, "read: %s of size %d\n", (char*)buf, ret);
 	sfs_job_context_remove(thread_id);
 	free(job_map->job_ids);
 	free(job_map->job_status);
@@ -1908,7 +1908,9 @@ sfs_read(const char *path, char *buf, size_t size, off_t offset,
 	// Free up dynamically allocated fields in inode structure
 	sstack_free_inode_res(inode, sfs_ctx);
 	sfs_unlock(inode_num);
-
+	
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - returning: %d\n",
+			__FUNCTION__, ret);
 	return (ret);
 }
 
@@ -2333,7 +2335,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 	// TODO
 	// Handle write status and erasure code
 
-	ret = sfs_send_write_status(job_map, *inode, offset, size);
+	ret = sfs_send_write_status(job_map, inode, offset, size);
 
 	sfs_job_context_remove(thread_id);
 	free(job_map->job_ids);
@@ -3710,40 +3712,51 @@ sfs_send_read_status(sstack_job_map_t *job_map, char *buf, size_t size)
     sstack_job_id_t         job_id;
     sstack_jt_t             *jt_node = NULL, jt_key;
     sfs_job_t               *job = NULL;
-    struct sstack_nfs_read_resp    read_resp;
+    struct sstack_nfs_read_resp    *read_resp;
 
-	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<<\n", __FUNCTION__);
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<< jobs left: %d, total jobs: %d\n",
+			__FUNCTION__, job_map->num_jobs_left, job_map->num_jobs);
 	/* Not all jobs processed and we got a pthread_cond_signal.
        Some job had a read specific error */
     if (job_map->num_jobs_left != 0) {
 		errno = job_map->err_no;
         return (-1);
-    }
+   	} 
 
 	/* Success case. Return the number of bytes read */
 	for (i = 0; i < job_map->num_jobs; i++) {
 	    job_id = job_map->job_ids[i];
+		sfs_log(sfs_ctx, SFS_DEBUG, "%s() %d\n", __FUNCTION__,
+				__LINE__);
 
 		jt_key.magic = JTNODE_MAGIC;
         jt_key.job_id = job_id;
         jt_node = jobid_tree_search(jobid_tree, &jt_key);
         job = jt_node->job;
-
-		read_resp = job->payload->response_struct.read_resp;
-		memcpy(buf, read_resp.data.data_buf, sizeof(uint8_t));
-		buf += read_resp.data.data_len;
-		num_bytes += read_resp.data.data_len;
+		sfs_log(sfs_ctx, SFS_DEBUG, "%s() %d job: %p\n", __FUNCTION__,
+				__LINE__, job);
+	
+		if (job)
+			sfs_log(sfs_ctx, SFS_DEBUG, "payload: %p\n", job->payload);
+		read_resp = &job->payload->response_struct.read_resp;
+		sfs_log(sfs_log, SFS_DEBUG, "%s() - Read response len: %d %s\n",
+				__FUNCTION__,
+				read_resp->data.data_len, read_resp->data.data_buf);
+		memcpy(buf, read_resp->data.data_buf, read_resp->data.data_len); 
+		buf += read_resp->data.data_len;
+		num_bytes += read_resp->data.data_len;
 
 		sfs_job2thread_map_remove(job_id);
-		free(job->payload);
+		sstack_free_payload(job->payload);
 		free(job);
 	}
-
+	sfs_log(sfs_ctx, SFS_DEBUG, "%s() - returning: %d\n",
+			__FUNCTION__, num_bytes);
 	return (num_bytes);
 }
 
 static inline int
-sfs_send_write_status(sstack_job_map_t *job_map,  sstack_inode_t inode,
+sfs_send_write_status(sstack_job_map_t *job_map,  sstack_inode_t *inode,
 						off_t offset, size_t size)
 {
 	int                     i = 0;

@@ -1527,6 +1527,8 @@ sstack_send_payload(sstack_client_handle_t handle,
 			SstackNfsReadResp read_resp = SSTACK_NFS_READ_RESP__INIT;
 			SstackNfsData data = SSTACK_NFS_DATA__INIT;
 
+			response.command_ok = payload->response_struct.command_ok;
+			msg.command = SSTACK_PAYLOAD_T__SSTACK_NFS_COMMAND_T__NFS_READ_RSP;
 			read_resp.count = payload->response_struct.read_resp.count;
 			read_resp.eof = payload->response_struct.read_resp.eof;
 			data.data_len = payload->response_struct.read_resp.data.data_len;
