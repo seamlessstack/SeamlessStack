@@ -319,7 +319,7 @@ static int32_t read_check_extent(char *mounted_path, size_t read_size,
 		ret = errno;
 		goto ret;
 	}
-	nbytes = read(fd, buffer, read_size);
+	nbytes = pread(fd, buffer, read_size);
 	if (nbytes < 0) {
 		sfs_log(ctx, SFS_ERR, "%s(): Read failure\n",
 			__FUNCTION__);
