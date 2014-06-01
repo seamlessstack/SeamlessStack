@@ -643,7 +643,8 @@ sstack_payload_t *sstack_read(sstack_payload_t *payload,
 	 */
 	payload->response_struct.command_ok = SSTACK_SUCCESS;
 	payload->command = NFS_READ_RSP;
-	payload->response_struct.read_resp.count = out_size;
+//	payload->response_struct.read_resp.count = out_size;
+	payload->response_struct.read_resp.count = command_stat;
 	payload->response_struct.read_resp.eof = 0;
 	payload->response_struct.read_resp.data.data_len = command_stat;
 	//response->response_struct.read_resp.data.data_buf = policy_buf;
@@ -835,7 +836,7 @@ sstack_payload_t *sstack_write(sstack_payload_t *payload,
 	put_inode(inode, sfsd->db, 1);
 	sfs_log(ctx, SFS_DEBUG, "read after update\n");
 	memset(inode, 0, sizeof(*inode));
-	get_inode(3, inode, sfsd->db);
+	get_inode(cmd->inode_no, inode, sfsd->db);
 	sstack_dump_inode(inode, ctx);
 	sstack_free_inode_res(inode, ctx);
 
