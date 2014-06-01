@@ -300,8 +300,8 @@ ret:
  *  returns < 0
  */
 static int32_t read_check_extent(char *mounted_path, size_t read_size,
-								 int32_t check_cksum, uint32_t cksum,
-								 void *buffer, log_ctx_t *ctx)
+								off_t offset, int32_t check_cksum,
+								uint32_t cksum, void *buffer, log_ctx_t *ctx)
 {
 	int32_t ret = 0;
 	int32_t fd = -1;
@@ -319,7 +319,7 @@ static int32_t read_check_extent(char *mounted_path, size_t read_size,
 		ret = errno;
 		goto ret;
 	}
-	nbytes = read(fd, buffer, read_size);
+	nbytes = pread(fd, buffer, read_size, offset);
 	if (nbytes < 0) {
 		sfs_log(ctx, SFS_ERR, "%s(): Read failure\n",
 			__FUNCTION__);
@@ -429,7 +429,7 @@ static ssize_t read_erasure_code(void *d_stripes[], void *c_stripes[],
 		extent_index = get_extent(inode->i_extent, inode->i_numextents,
 								  i, NULL, sfsd, path, ctx);
 		if (extent_index > 0) {
-			ret = read_check_extent(path, ERASURE_STRIPE_SIZE, TRUE,
+			ret = read_check_extent(path, ERASURE_STRIPE_SIZE, 0, TRUE,
 									inode->i_extent[i].e_cksum,
 									d_stripes[i-index], ctx);
 			if (ret == -SSTACK_ECKSUM) {
@@ -456,7 +456,7 @@ static ssize_t read_erasure_code(void *d_stripes[], void *c_stripes[],
 			erasure_index = get_extent(inode->i_erasure, inode->i_numerasure,
 									   i, NULL, sfsd, path, ctx);
 			if (erasure_index > 0) {
-				ret = read_check_extent(path, MAX_EXTENT_SIZE, TRUE,
+				ret = read_check_extent(path, MAX_EXTENT_SIZE, 0, TRUE,
 										inode->i_erasure[i].e_cksum,
 										c_stripes[i-er_index], ctx);
 				if (ret == -SSTACK_ECKSUM) {
@@ -599,6 +599,8 @@ sstack_payload_t *sstack_read(sstack_payload_t *payload,
 			buffer = d_stripes[index];
 		}
 	} else {
+		off_t offset = 0;
+
 		/* We are not required to read erasure code.
 		 * Just try to do a normal read
 		 * and report success or failure
@@ -619,7 +621,10 @@ sstack_payload_t *sstack_read(sstack_payload_t *payload,
 		//buffer = response->response_struct.read_resp.data.data_buf;
 		payload->response_struct.read_resp.data.data_buf = buffer;
 		/* Read the actual extent now */
-		command_stat = read_check_extent(mount_path, MAX_EXTENT_SIZE, TRUE,
+		offset =  cmd->offset - inode->i_extent[extent_index].e_offset;
+
+		command_stat = read_check_extent(mount_path, MAX_EXTENT_SIZE,
+										 offset,TRUE,
 										 inode->i_extent[extent_index].e_cksum,
 										 buffer, ctx);
 		sfs_log(ctx, SFS_DEBUG, "%s() - %d\n", __FUNCTION__, __LINE__);
@@ -746,7 +751,7 @@ sstack_payload_t *sstack_write(sstack_payload_t *payload,
 			policy_outbuf = cmd->data.data_buf;
 		}
 	} else {
-		out_size = read_check_extent(mount_path, MAX_EXTENT_SIZE, TRUE,
+		out_size = read_check_extent(mount_path, MAX_EXTENT_SIZE, 0, TRUE,
 										 inode->i_extent[extent_index].e_cksum,
 										 buffer, ctx);
 		if (out_size < 0) {
@@ -1049,8 +1054,9 @@ sstack_payload_t *sstack_esure_code(sstack_payload_t *payload,
 	for (i = min_start_ext; i < inode->i_numextents; i++) {
 		ret = get_extent(inode->i_extent, inode->i_numextents, i, NULL,
 							sfsd, mount_path, ctx);
-		command_stat = read_check_extent(mount_path, ERASURE_STRIPE_SIZE, TRUE,
-							inode->i_extent[i].e_cksum, d_stripes[j], ctx);
+		command_stat = read_check_extent(mount_path, ERASURE_STRIPE_SIZE, 0,
+							TRUE, inode->i_extent[i].e_cksum,
+							d_stripes[j], ctx);
 		if (command_stat == -SSTACK_ECKSUM)
 			goto done;
 		j++;
