@@ -103,6 +103,15 @@ sfs_getattr(const char *path, struct stat *stbuf)
 	int ret = -1;
 	char *fullpath = NULL;
 	time_t now = 0;
+	sstack_inode_t *inode = sstack_create_inode();
+	char *inodestr;
+	size_t size;
+	uint64_t inode_num = 0;
+
+	if (inode == NULL) {
+		sfs_log(sfs_ctx, SFS_ERR, "%s() - error allocating inode\n");
+		return -ENOMEM;
+	}
 
 	sfs_log(sfs_ctx, SFS_DEBUG, "%s() <<<<<\n", __FUNCTION__);
 	// Parameter validation
@@ -122,10 +131,42 @@ sfs_getattr(const char *path, struct stat *stbuf)
 		sfs_log(sfs_ctx, SFS_ERR, "%s: lstat failed, errno: %d\n",
 				__FUNCTION__, errno);
 		free(fullpath);
-
 		return -errno;
 	} else {
+		// Get the inode number for the file.
+		inodestr = sstack_memcache_read_one(mc, path, strlen(path), &size, sfs_ctx);
+		if (NULL == inodestr) {
+			sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to retrieve the reverse lookup "
+						"for path %s.\n", __FUNCTION__, path);
+			errno = ENOENT;
+
+			return -1;
+		}
+		inode_num = atoll((const char *)inodestr);
+		// Obtain read lock for the inode
+		ret = sfs_rdlock(inode_num);
+		if (ret == -1) {
+			sfs_log(sfs_ctx, SFS_ERR, "%s: Unable to obtain read lock for the "
+							"file %s. Try again later \n", __FUNCTION__, path);
+			errno = EAGAIN;
+			return -1;
+		}
+		// Get inode from DB
+		ret = get_inode(inode_num, inode, db);
+		if (ret != 0) {
+			sfs_log(sfs_ctx, SFS_ERR, "%s: Failed to get inode %lld. Path = %s "
+							"error = %d\n", __FUNCTION__, inode_num, path, ret);
+			errno = ret;
+			sfs_unlock(inode_num);
+
+			return -1;
+		}
+		sfs_unlock(inode_num);
+		sstack_dump_inode(inode, sfs_ctx);
+		stbuf->st_size = inode->i_size;
 		free(fullpath);
+		sstack_free_inode_res(inode, sfs_ctx);
+		sstack_free_inode(inode);
 		return 0;
 	}
 }
@@ -2345,7 +2386,7 @@ sfs_write(const char *path, const char *buf, size_t size, off_t offset,
 	sstack_free_inode_res(inode, sfs_ctx);
 	sfs_unlock(inode_num);
 	memset(inode, 0, sizeof(*inode));
-	get_inode(3, inode, db);
+	get_inode(inode_num, inode, db);
 	sstack_dump_inode(inode, sfs_ctx);
 	sstack_free_inode(inode);
 
