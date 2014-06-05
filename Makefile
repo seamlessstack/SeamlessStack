@@ -20,6 +20,7 @@ MONGODIR = db/mongo
 ROCKSDB_DIR = db/rocksdb
 SFSDIR = sfs
 MONGODRV = oss/mongo-c-driver
+BSONDRV = oss/mongo-c-driver/src/libbson
 OSS = oss
 POLICYDIR = policy
 CLIDIR	= cli
@@ -73,7 +74,8 @@ install:
 	$(MKDIR) -p $(BUILDDIR) $(BINDIR) $(LIBDIR)
 	$(CP) $(MONGODIR)/*.so $(LIBDIR)
 	$(CP) $(ROCKSDB_DIR)/*.so $(LIBDIR)
-	$(CP) $(MONGODRV)/*.so $(LIBDIR)
+	$(CP) $(MONGODRV)/.libs/*.so $(LIBDIR)/libmongoc.so
+	$(CP) $(BSONDRV)/.libs/*.so $(LIBDIR)/libbson.so
 	$(CP) $(POLICYDIR)/*.so $(LIBDIR)
 	$(CP) $(CLIDIR)/*.so $(LIBDIR)
 	$(CP) $(CLIDIR)/sfscli $(BINDIR)
@@ -88,8 +90,8 @@ install:
 	$(CP) $(VALIDATE_DIR)/*.so $(LIBDIR)
 	$(CP) $(SFSDIR)/sfs $(BINDIR)
 	$(CP) $(SFSDDIR)/sfsd $(BINDIR)
-	$(LN) -s $(LIBDIR)/libbson.so $(LIBDIR)/libbson.so.0.7
-	$(LN) -s $(LIBDIR)/libmongoc.so $(LIBDIR)/libmongoc.so.0.7
+#	$(LN) -s $(LIBDIR)/libbson.so $(LIBDIR)/libbson.so.0.7
+#	$(LN) -s $(LIBDIR)/libmongoc.so $(LIBDIR)/libmongoc.so.0.7
 
 tags:
 	$(RM) -f cscope.out

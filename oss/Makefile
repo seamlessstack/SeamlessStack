@@ -20,6 +20,7 @@ JERASUREDIR = jerasure2.0
 GF_COMPLETEDIR = gf-complete
 MEMCACHEDDIR = libmemcached-1.0.8
 MONGOCDIR = mongo-c-driver
+BSONDIR = $(MONGOCDIR)/src/libbson
 LZ4DIR = lz4
 CONFIGURE = conf
 OSS_DIR = $(PWD)
@@ -49,7 +50,10 @@ all: $(CONFIGURE)
 	$(MAKE) -C $(MONGOCDIR)
 	$(CP) $(JERASUREDIR)/src/.libs/*.so $(OSS_LIBSDIR)
 	$(LN) -sf $(OSS_LIBSDIR)/libJerasure.so $(OSS_LIBSDIR)/libJerasure.so.2	
-	$(CP) $(MONGOCDIR)/*.so $(OSS_LIBSDIR)
+	$(CP) $(MONGOCDIR)/.libs/*.so $(OSS_LIBSDIR)
+	$(CP) $(BSONDIR)/.libs/*.so $(OSS_LIBSDIR)
+	$(LN) -sf $(OSS_LIBSDIR)/libmongoc-1.0.so $(OSS_LIBSDIR)/libmongoc.0.so
+	$(LN) -sf $(OSS_LIBSDIR)/libbson-1.0.so $(OSS_LIBSDIR)/libbson.so
 	$(MAKE) -C $(LZ4DIR) 
 	$(CP) $(LZ4DIR)/*.so $(OSS_LIBSDIR)
 	$(MAKE) -C $(OPENSSL_DIR)
@@ -71,6 +75,14 @@ $(CONFIGURE): gf_comp jerasure_touch
 			CPPFLAGS=-I$(GFP)/include
 	$(CD) $(CZMQ_DIR) && ./autogen.sh
 	$(CD) $(CZMQ_DIR) && ./configure
+	$(CD) $(MONGOCDIR) && ./autogen.sh
+	$(CD) $(MONGOCDIR) && ./configure --with-libbson
+	$(CD) $(MONGOCDIR) && git submodule init
+	$(CD) $(MONGOCDIR) && git submodule update
+	$(CD) $(BSONDIR) && ./autogen.sh
+	$(CD) $(BSONDIR) && ./configure
+
+
 
 gf_comp:
 	$(MAKE) -C $(GF_COMPLETEDIR)
@@ -83,6 +95,7 @@ clean:
 	$(MAKE) -C $(JERASUREDIR) clean
 	$(MAKE) -C $(MEMCACHEDDIR) clean
 	$(MAKE) -C $(MONGOCDIR) clean
+	$(MAKE) -C $(BSONDIR) clean
 	$(MAKE) -C $(LZ4DIR) clean
 	$(MAKE) -C $(OPENSSL_DIR) clean
 	$(MAKE) -C $(RBTREE_DIR) clean
