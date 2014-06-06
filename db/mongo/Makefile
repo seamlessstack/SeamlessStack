@@ -19,7 +19,8 @@
 TOPDIR = ../..
 MONGO_OBJECTS = src/mongo_db.o
 MONGO_DB_LIBNAME = libmongo_db.so
-CFLAGS += -I include -I $(TOPDIR)/oss/mongo-c-driver/src 
+CFLAGS += -I include -I $(TOPDIR)/oss/mongo-c-driver/src/mongoc
+CFLAGS += -I $(TOPDIR)/oss/mongo-c-driver/src/libbson/src/bson
 CFLAGS += -I $(TOPDIR)/common/include -DMONGO_HAVE_STDINT
 CFLAGS += -D_GNU_SOURCE -fPIC
 CC = gcc
