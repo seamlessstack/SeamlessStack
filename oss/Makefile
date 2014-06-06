@@ -52,7 +52,7 @@ all: $(CONFIGURE)
 	$(LN) -sf $(OSS_LIBSDIR)/libJerasure.so $(OSS_LIBSDIR)/libJerasure.so.2	
 	$(CP) $(MONGOCDIR)/.libs/*.so $(OSS_LIBSDIR)
 	$(CP) $(BSONDIR)/.libs/*.so $(OSS_LIBSDIR)
-	$(LN) -sf $(OSS_LIBSDIR)/libmongoc-1.0.so $(OSS_LIBSDIR)/libmongoc.0.so
+	$(LN) -sf $(OSS_LIBSDIR)/libmongoc-1.0.so $(OSS_LIBSDIR)/libmongoc.so
 	$(LN) -sf $(OSS_LIBSDIR)/libbson-1.0.so $(OSS_LIBSDIR)/libbson.so
 	$(MAKE) -C $(LZ4DIR) 
 	$(CP) $(LZ4DIR)/*.so $(OSS_LIBSDIR)

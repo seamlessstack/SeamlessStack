@@ -25,7 +25,8 @@ CFLAGS += -I $(TOPDIR)/policy/include
 CFLAGS += -I $(TOPDIR)/lib/memcache/include -I $(TOPDIR)/oss_install/include
 CFLAGS += -I $(TOPDIR)/lib/serdes/include -I $(TOPDIR)/cli/include/
 CFLAGS += -I$(TOPDIR)/oss
-CFLAGS += -I $(TOPDIR)/oss/mongo-c-driver/src
+CFLAGS += -I $(TOPDIR)/oss/mongo-c-driver/src/mongoc
+CFLAGS += -I $(TOPDIR)/oss/mongo-c-driver/src/libbson/src/bson
 CFLAGS += -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DFUSE_USE_VERSION=26
 CFLAGS += -DMONGO_HAVE_STDINT
 #CFLAGS += -fsanitize=address -fno-omit-frame-pointer 

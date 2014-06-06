@@ -262,7 +262,7 @@ mongo_db_insert(char *key, char *data, size_t len, db_type_t type,
 		return -1;
 	}
 
-	bson_finish(&b);
+	// bson_finish(&b);
 
 	pthread_rwlock_wrlock(&mongo_db_lock);
 
@@ -271,7 +271,7 @@ mongo_db_insert(char *key, char *data, size_t len, db_type_t type,
 			get_collection_name(type));
 
 	if (NULL != collection) {
-		ret = mongo_collection_insert(collection, MONGOC_INSERT_NONE, &b,
+		ret = mongoc_collection_insert(collection, MONGOC_INSERT_NONE, &b,
 				NULL, &error);
 		if (ret != true) {
 			sfs_log(ctx, SFS_ERR,
@@ -324,13 +324,13 @@ mongo_db_remove(char *key, db_type_t type, log_ctx_t *ctx)
 
 		return -1;
 	}
-	bson_finish(&b);
+	// bson_finish(&b);
 
 	pthread_rwlock_wrlock(&mongo_db_lock);
 	collection = mongoc_client_get_collection(client, DB_NAME,
 			get_collection_name(type));
 	if (NULL != collection) {
-		ret = mongo_collection_remove(collection,
+		ret = mongoc_collection_remove(collection,
 				MONGOC_DELETE_SINGLE_REMOVE, &b, NULL, &error);
 		if (ret != true) {
 			sfs_log(ctx, SFS_ERR,
@@ -401,7 +401,7 @@ mongo_db_seekread(char * key, char *data, size_t len, off_t offset,
 
 		return -1;
 	}
-	bson_finish(&query);
+	// bson_finish(&query);
 
 	// We expect only one document per collection for a given key
 	pthread_rwlock_rdlock(&mongo_db_lock);
@@ -466,7 +466,7 @@ mongo_db_seekread(char * key, char *data, size_t len, off_t offset,
 				__FUNCTION__, record_len, key, DB_NAME,
 				get_collection_name(type));
 			bson_destroy(&query);
-			bson_iter_destroy(&iter);
+			// bson_iter_destroy(&iter);
 
 			return -ENOMEM;
 		}
@@ -539,7 +539,7 @@ mongo_db_iterate(db_type_t type, iterator_function_t iterator_fn, void *params,
 			bson_iter_find(&iter, "record length");
 			record_len = bson_iter_int32(&iter);
 			iterator_fn(params, key, binary, record_len);
-			bson_iter_destroy(&iter);
+			// bson_iter_destroy(&iter);
 		}
 		mongoc_cursor_destroy(cursor);
 	}
@@ -583,7 +583,7 @@ mongo_db_get(char *key, char **data, db_type_t type, log_ctx_t *ctx)
 	bson_init(&query);
 	bson_append_utf8(&query, "record_num", strlen("record_num"),
 			key, strlen(key));
-	bson_finish(&query);
+	// bson_finish(&query);
 
 	// We expect only one document per collection for a given key
 	// So mongo_find_one suffices
@@ -647,7 +647,7 @@ mongo_db_get(char *key, char **data, db_type_t type, log_ctx_t *ctx)
 				__FUNCTION__, record_len, key, DB_NAME,
 				get_collection_name(type));
 			bson_destroy(&query);
-			bson_iter_destroy(&iter);
+			// bson_iter_destroy(&iter);
 
 			return -ENOMEM;
 		}
@@ -729,7 +729,7 @@ mongo_db_update(char *key, char *data, size_t len, db_type_t type,
 		return -1;
 	}
 
-	bson_finish(&b);
+	// bson_finish(&b);
 	bson_init(&query);
 	ret = bson_append_utf8(&query, "record_num", strlen("record_num"),
 			key, strlen(key));
