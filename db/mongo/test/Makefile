@@ -19,7 +19,8 @@
 TOPDIR = ../../..
 MONGO_OBJECTS = test_mongo.o
 MONGO_TEST = test_mongo
-CFLAGS += -I ../include -I $(TOPDIR)/oss/mongo-c-driver/src 
+CFLAGS += -I ../include -I $(TOPDIR)/oss/mongo-c-driver/src/mongoc
+CFLAGS += -I ../include -I $(TOPDIR)/oss/mongo-c-driver/src/libbson/src/bson
 CFLAGS += -I $(TOPDIR)/common/include -DMONGO_HAVE_STDINT
 CFLAGS += -D_GNU_SOURCE
 CC = gcc
