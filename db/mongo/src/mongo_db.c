@@ -290,6 +290,8 @@ mongo_db_insert(char *key, char *data, size_t len, db_type_t type,
 			__FUNCTION__, key, (int) type, DB_NAME, get_collection_name(type));
 		pthread_rwlock_unlock(&mongo_db_lock);
 		bson_destroy(&b);
+
+		return 1;
 	} else {
 		sfs_log(ctx, SFS_ERR, "%s: Collection %s not found. Insertion "
 				"failed \n", __FUNCTION__, get_collection_name(type));

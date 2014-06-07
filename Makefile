@@ -90,8 +90,8 @@ install:
 	$(CP) $(VALIDATE_DIR)/*.so $(LIBDIR)
 	$(CP) $(SFSDIR)/sfs $(BINDIR)
 	$(CP) $(SFSDDIR)/sfsd $(BINDIR)
-#	$(LN) -s $(LIBDIR)/libbson.so $(LIBDIR)/libbson.so.0.7
-#	$(LN) -s $(LIBDIR)/libmongoc.so $(LIBDIR)/libmongoc.so.0.7
+	$(LN) -s $(LIBDIR)/libbson.so $(LIBDIR)/libbson-1.0.so.0
+	$(LN) -s $(LIBDIR)/libmongoc.so $(LIBDIR)/libmongoc-1.0.so.0
 
 tags:
 	$(RM) -f cscope.out
