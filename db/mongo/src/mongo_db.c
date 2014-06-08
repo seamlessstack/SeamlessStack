@@ -27,6 +27,7 @@
 #include <stdbool.h>
 #include <mongo_db.h>
 #include <sstack_log.h>
+#include <unistd.h>
 
 pthread_rwlock_t mongo_db_lock = PTHREAD_RWLOCK_INITIALIZER;
 mongoc_client_t *client = NULL;
@@ -243,14 +244,6 @@ mongo_db_insert(char *key, char *data, size_t len, db_type_t type,
 		return -1;
 	}
 
-	ret = bson_append_binary(&b, record_name, strlen(record_name),
-			BSON_TYPE_BINARY, (const uint8_t *) data, (uint32_t) len);
-	if (ret != true) {
-		sfs_log(ctx, SFS_ERR, "%s: Failed to append inode to bson for"
-			" inode %s. Error = %d \n", __FUNCTION__, key, ret);
-		bson_destroy(&b);
-		return -ret;
-	}
 
 	ret = bson_append_int32(&b, "record_length", strlen("record_length"),
 			(int32_t) len);
@@ -260,6 +253,15 @@ mongo_db_insert(char *key, char *data, size_t len, db_type_t type,
 		bson_destroy(&b);
 
 		return -1;
+	}
+
+	ret = bson_append_binary(&b, record_name, strlen(record_name),
+			BSON_SUBTYPE_BINARY, (const uint8_t *) data, (uint32_t) len);
+	if (ret != true) {
+		sfs_log(ctx, SFS_ERR, "%s: Failed to append inode to bson for"
+			" inode %s. Error = %d \n", __FUNCTION__, key, ret);
+		bson_destroy(&b);
+		return -ret;
 	}
 
 	// bson_finish(&b);
@@ -374,7 +376,7 @@ mongo_db_seekread(char * key, char *data, size_t len, off_t offset,
 {
 	bool ret = false;
 	bson_t query;
-	bson_t *response;
+	const bson_t *response;
 	bson_iter_t iter;
 	char record_name[REC_NAME_SIZE];
 	uint64_t record_len = 0;
@@ -417,6 +419,7 @@ mongo_db_seekread(char * key, char *data, size_t len, off_t offset,
 		bson_subtype_t subtype;
 		uint32_t binary_len = 0;
 		uint8_t *binary;
+		bson_iter_t iter2;
 
 		// Can also be MONGOC_READ_NEAREST if eventual consistency is preferred
 		// as MongoDB follows primary-secondary model of replication which
@@ -429,17 +432,6 @@ mongo_db_seekread(char * key, char *data, size_t len, off_t offset,
 							0, 1, 0, &query, NULL, read_prefs);
 
 		mongoc_read_prefs_destroy(read_prefs);
-		if (mongoc_cursor_error(cursor, &error)) {
-			sfs_log(ctx, SFS_ERR,
-				"%s: Failed to retrieve record for %s from"
-				" collection %s.%s . Error = %d\n",
-				__FUNCTION__, key, DB_NAME, get_collection_name(type), ret);
-			bson_destroy(&query);
-			mongoc_cursor_destroy(cursor);
-			pthread_rwlock_unlock(&mongo_db_lock);
-
-			return -1;
-		}
 
 		// Get the document
 		ret = mongoc_cursor_next(cursor, (const bson_t **) &response);
@@ -453,11 +445,22 @@ mongo_db_seekread(char * key, char *data, size_t len, off_t offset,
 
 			return -1;
 		}
-		mongoc_cursor_destroy(cursor);
 		pthread_rwlock_unlock(&mongo_db_lock);
+		if (mongoc_cursor_error(cursor, &error)) {
+			sfs_log(ctx, SFS_ERR,
+				"%s: Failed to retrieve record for %s from"
+				" collection %s.%s . Error = %d\n",
+				__FUNCTION__, key, DB_NAME, get_collection_name(type), ret);
+			bson_destroy(&query);
+			mongoc_cursor_destroy(cursor);
+		//	pthread_rwlock_unlock(&mongo_db_lock);
+
+			return -1;
+		}
 
 		bson_iter_init(&iter, response);
-		(void)bson_iter_find(&iter, "record_length");
+		bson_iter_find_descendant(&iter, "record_length", &iter2);
+		//(void)bson_iter_find(&iter, "record_length");
 		record_len = bson_iter_int32(&iter);
 		// Allocate memory for data
 		record = malloc(record_len);
@@ -475,8 +478,9 @@ mongo_db_seekread(char * key, char *data, size_t len, off_t offset,
 
 		(void) construct_record_name(record_name, type);
 
-		(void)bson_iter_find(&iter,  record_name);
-		bson_iter_binary(&iter, &subtype, &binary_len,
+		//(void)bson_iter_find(&iter,  record_name);
+		bson_iter_find_descendant(&iter, record_name, &iter2);
+		bson_iter_binary(&iter2, &subtype, &binary_len,
 				(const uint8_t **) &binary);
 		if (*binary)
 			memcpy(record, binary, record_len);
@@ -484,7 +488,8 @@ mongo_db_seekread(char * key, char *data, size_t len, off_t offset,
 		// Assuming whence to be SEEK_SET
 		memcpy(data, record + offset, len);
 		bson_destroy(&query);
-		bson_destroy(response);
+		bson_destroy((bson_t *) response);
+		mongoc_cursor_destroy(cursor);
 
 		return len;
 	} else {
@@ -566,7 +571,7 @@ mongo_db_get(char *key, char **data, db_type_t type, log_ctx_t *ctx)
 {
 	int ret = -1;
 	bson_t query;
-	bson_t response;
+	const bson_t *response;
 	bson_iter_t iter;
 	char record_name[REC_NAME_SIZE];
 	uint64_t record_len = 0;
@@ -595,15 +600,16 @@ mongo_db_get(char *key, char **data, db_type_t type, log_ctx_t *ctx)
 	if (NULL != collection) {
 		mongoc_read_prefs_t *read_prefs = NULL;
 		bson_error_t error;
-		bson_subtype_t subtype;
+		bson_subtype_t subtype = BSON_SUBTYPE_BINARY;
 		uint32_t binary_len = 0;
-		uint8_t *binary = NULL;
+		const uint8_t *binary;
+		bson_t new;
 
 
 		// Can also be MONGOC_READ_NEAREST if eventual consistency is preferred
 		// as MongoDB follows primary-secondary model of replication which
 		// leads to eventual consistency.
-		read_prefs = mongoc_read_prefs_new(MONGOC_READ_PRIMARY);
+		// read_prefs = mongoc_read_prefs_new(MONGOC_READ_PRIMARY);
 
 		// Passing 1 as limit returns only one record
 		// Passing NULL as fields retruns all fields of the matching record
@@ -623,7 +629,7 @@ mongo_db_get(char *key, char **data, db_type_t type, log_ctx_t *ctx)
 			return -1;
 		}
 		// Get the document
-		ret = mongoc_cursor_next(cursor, (const bson_t **) &response);
+		ret = mongoc_cursor_next(cursor, &response);
 		if (ret == false) {
 			sfs_log(ctx, SFS_ERR, "%s: Unable to retrieve record from "
 					"collection %s.%s. \n",
@@ -637,9 +643,12 @@ mongo_db_get(char *key, char **data, db_type_t type, log_ctx_t *ctx)
 		mongoc_cursor_destroy(cursor);
 		pthread_rwlock_unlock(&mongo_db_lock);
 
-		bson_iter_init(&iter, &response);
+		bson_iter_init(&iter, response);
 		(void)bson_iter_find(&iter, "record_length");
 		record_len = bson_iter_int32(&iter);
+		sfs_log(ctx, SFS_DEBUG, "%s: record_len = %d \n",
+				__FUNCTION__, record_len);
+		syncfs(ctx->log_fd);
 		// Allocate memory for data
 		*data = malloc(record_len);
 		if (NULL == *data) {
@@ -655,14 +664,37 @@ mongo_db_get(char *key, char **data, db_type_t type, log_ctx_t *ctx)
 		}
 
 		(void) construct_record_name(record_name, type);
+		sfs_log(ctx, SFS_DEBUG, "%s: record_name = %s\n", __FUNCTION__,
+				record_name);
 
-		(void)bson_iter_find(&iter,  record_name);
+		syncfs(ctx->log_fd);
+
+		bson_iter_init(&iter, response);
+#if 1
+		if (bson_iter_find(&iter,  record_name) != true) {
+			sfs_log(ctx, SFS_DEBUG, "%s: Document does not contain record "
+					"name %s\n", __FUNCTION__, record_name);
+
+			return -1;
+		}
+
 		bson_iter_binary(&iter, &subtype, &binary_len,
 				(const uint8_t **) &binary);
-		if (*binary)
-			memcpy(*data, binary, record_len);
+		memcpy(*data, bson_iter_value(&iter), record_len);
+	//	if (*binary)
+	//		memcpy(*data, binary, record_len);
+#endif
+#if 0
+		bson_copy_to_excluding(response, &new, "record_num", "record_len");
+		bson_iter_init(&iter, &new);
+		bson_iter_binary(&iter, &subtype, &binary_len,
+				(const uint8_t **) &binary);
+
+		memcpy(*data, bson_iter_value(&iter), record_len);
+//		memcpy(*data, binary, record_len);
+#endif
 		bson_destroy(&query);
-		bson_destroy(&response);
+		bson_destroy((bson_t *) response);
 
 		sfs_log(ctx, SFS_INFO, "%s: Retruning %d\n", __FUNCTION__, record_len);
 
