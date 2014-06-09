@@ -600,7 +600,7 @@ mongo_db_get(char *key, char **data, db_type_t type, log_ctx_t *ctx)
 	if (NULL != collection) {
 		mongoc_read_prefs_t *read_prefs = NULL;
 		bson_error_t error;
-		bson_subtype_t subtype = BSON_SUBTYPE_BINARY;
+		bson_subtype_t subtype;
 		uint32_t binary_len = 0;
 		const uint8_t *binary;
 		bson_t new;
@@ -670,7 +670,7 @@ mongo_db_get(char *key, char **data, db_type_t type, log_ctx_t *ctx)
 		syncfs(ctx->log_fd);
 
 		bson_iter_init(&iter, response);
-#if 1
+#if 0
 		if (bson_iter_find(&iter,  record_name) != true) {
 			sfs_log(ctx, SFS_DEBUG, "%s: Document does not contain record "
 					"name %s\n", __FUNCTION__, record_name);
@@ -692,6 +692,12 @@ mongo_db_get(char *key, char **data, db_type_t type, log_ctx_t *ctx)
 
 		memcpy(*data, bson_iter_value(&iter), record_len);
 //		memcpy(*data, binary, record_len);
+#endif
+#if 1
+		BCON_EXTRACT((bson_t *) response, record_name, BCONE_BIN(subtype,
+					binary, binary_len));
+		memcpy(*data, binary, binary_len);
+
 #endif
 		bson_destroy(&query);
 		bson_destroy((bson_t *) response);
