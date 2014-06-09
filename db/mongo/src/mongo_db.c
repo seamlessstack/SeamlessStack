@@ -622,7 +622,6 @@ mongo_db_get(char *key, char **data, db_type_t type, log_ctx_t *ctx)
 				"%s: Failed to retrieve record for %s from"
 				" collection %s.%s . Error = %d\n",
 				__FUNCTION__, key, DB_NAME, get_collection_name(type), ret);
-			bson_destroy(&query);
 			mongoc_cursor_destroy(cursor);
 			pthread_rwlock_unlock(&mongo_db_lock);
 
@@ -634,7 +633,6 @@ mongo_db_get(char *key, char **data, db_type_t type, log_ctx_t *ctx)
 			sfs_log(ctx, SFS_ERR, "%s: Unable to retrieve record from "
 					"collection %s.%s. \n",
 					__FUNCTION__, DB_NAME, get_collection_name(type));
-			bson_destroy(&query);
 			mongoc_cursor_destroy(cursor);
 			pthread_rwlock_unlock(&mongo_db_lock);
 
@@ -657,7 +655,6 @@ mongo_db_get(char *key, char **data, db_type_t type, log_ctx_t *ctx)
 				"Requested size = %"PRId64" key = %s db name = %s.%s\n",
 				__FUNCTION__, record_len, key, DB_NAME,
 				get_collection_name(type));
-			bson_destroy(&query);
 			// bson_iter_destroy(&iter);
 
 			return -ENOMEM;
@@ -699,7 +696,6 @@ mongo_db_get(char *key, char **data, db_type_t type, log_ctx_t *ctx)
 		memcpy(*data, binary, binary_len);
 
 #endif
-		bson_destroy(&query);
 		bson_destroy((bson_t *) response);
 
 		sfs_log(ctx, SFS_INFO, "%s: Retruning %d\n", __FUNCTION__, record_len);
@@ -710,7 +706,6 @@ mongo_db_get(char *key, char **data, db_type_t type, log_ctx_t *ctx)
 				__FUNCTION__, DB_NAME, get_collection_name(type));
 
 		pthread_rwlock_unlock(&mongo_db_lock);
-		bson_destroy(&query);
 		return -1;
 	}
 }
