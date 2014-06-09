@@ -232,7 +232,6 @@ mongo_db_insert(char *key, char *data, size_t len, db_type_t type,
 	if (ret != true) {
 		sfs_log(ctx, SFS_ERR, "%s: Failed to append record_num to bson for "
 			"inode %s. Error = %d \n", __FUNCTION__, key, ret);
-		bson_destroy(&b);
 		return -ret;
 	}
 
@@ -240,7 +239,6 @@ mongo_db_insert(char *key, char *data, size_t len, db_type_t type,
 	if (ret != 0) {
 		sfs_log(ctx, SFS_ERR, "%s: Invalid record type %d specified\n",
 			__FUNCTION__, type);
-		bson_destroy(&b);
 		return -1;
 	}
 
@@ -250,7 +248,6 @@ mongo_db_insert(char *key, char *data, size_t len, db_type_t type,
 	if (ret != true) {
 		sfs_log(ctx, SFS_ERR, "%s: Failed to append size to bson for "
 			"inode %s. Error = %d \n", __FUNCTION__, key, ret);
-		bson_destroy(&b);
 
 		return -1;
 	}
@@ -260,7 +257,6 @@ mongo_db_insert(char *key, char *data, size_t len, db_type_t type,
 	if (ret != true) {
 		sfs_log(ctx, SFS_ERR, "%s: Failed to append inode to bson for"
 			" inode %s. Error = %d \n", __FUNCTION__, key, ret);
-		bson_destroy(&b);
 		return -ret;
 	}
 
@@ -281,7 +277,6 @@ mongo_db_insert(char *key, char *data, size_t len, db_type_t type,
 				"into collection %s.%s . Error = %d\n",
 				__FUNCTION__, key, (int) type, DB_NAME,
 				get_collection_name(type), ret);
-			bson_destroy(&b);
 			pthread_rwlock_unlock(&mongo_db_lock);
 
 			return -1;
@@ -291,14 +286,12 @@ mongo_db_insert(char *key, char *data, size_t len, db_type_t type,
 			" into db.collection %s.%s\n",
 			__FUNCTION__, key, (int) type, DB_NAME, get_collection_name(type));
 		pthread_rwlock_unlock(&mongo_db_lock);
-		bson_destroy(&b);
 
 		return 1;
 	} else {
 		sfs_log(ctx, SFS_ERR, "%s: Collection %s not found. Insertion "
 				"failed \n", __FUNCTION__, get_collection_name(type));
 		pthread_rwlock_unlock(&mongo_db_lock);
-		bson_destroy(&b);
 
 		return -1;
 	}
@@ -324,7 +317,6 @@ mongo_db_remove(char *key, db_type_t type, log_ctx_t *ctx)
 	if (ret != true) {
 		sfs_log(ctx, SFS_ERR, "%s: Failed to append record_num to bson for "
 			"inode %s. Error = %d \n", __FUNCTION__, key, ret);
-		bson_destroy(&b);
 
 		return -1;
 	}
@@ -343,7 +335,6 @@ mongo_db_remove(char *key, db_type_t type, log_ctx_t *ctx)
 				__FUNCTION__, key, (int) type, DB_NAME,
 				get_collection_name(type), ret);
 			pthread_rwlock_unlock(&mongo_db_lock);
-			bson_destroy(&b);
 
 			return -1;
 		}
@@ -353,15 +344,12 @@ mongo_db_remove(char *key, db_type_t type, log_ctx_t *ctx)
 			__FUNCTION__, key, (int) type, DB_NAME,
 			get_collection_name(type));
 		pthread_rwlock_unlock(&mongo_db_lock);
-		bson_destroy(&b);
-
 		return 1;
 	} else {
 		sfs_log(ctx, SFS_ERR, "%s: Collection %s not found. Unable "
 				"to remove record %s \n",
 				__FUNCTION__, get_collection_name(type), key);
 		pthread_rwlock_unlock(&mongo_db_lock);
-		bson_destroy(&b);
 
 		return -1;
 	}
@@ -401,7 +389,6 @@ mongo_db_seekread(char * key, char *data, size_t len, off_t offset,
 	if (ret != true) {
 		sfs_log(ctx, SFS_ERR, "%s: Failed to append record_num to bson for "
 			"inode %s. Error = %d \n", __FUNCTION__, key, ret);
-		bson_destroy(&query);
 
 		return -1;
 	}
@@ -418,8 +405,7 @@ mongo_db_seekread(char * key, char *data, size_t len, off_t offset,
 		bson_error_t error;
 		bson_subtype_t subtype;
 		uint32_t binary_len = 0;
-		uint8_t *binary;
-		bson_iter_t iter2;
+		const uint8_t *binary;
 
 		// Can also be MONGOC_READ_NEAREST if eventual consistency is preferred
 		// as MongoDB follows primary-secondary model of replication which
@@ -439,7 +425,6 @@ mongo_db_seekread(char * key, char *data, size_t len, off_t offset,
 			sfs_log(ctx, SFS_ERR, "%s: Unable to retrieve record from "
 					"collection %s.%s. \n",
 					__FUNCTION__, DB_NAME, get_collection_name(type));
-			bson_destroy(&query);
 			mongoc_cursor_destroy(cursor);
 			pthread_rwlock_unlock(&mongo_db_lock);
 
@@ -451,7 +436,6 @@ mongo_db_seekread(char * key, char *data, size_t len, off_t offset,
 				"%s: Failed to retrieve record for %s from"
 				" collection %s.%s . Error = %d\n",
 				__FUNCTION__, key, DB_NAME, get_collection_name(type), ret);
-			bson_destroy(&query);
 			mongoc_cursor_destroy(cursor);
 		//	pthread_rwlock_unlock(&mongo_db_lock);
 
@@ -459,8 +443,7 @@ mongo_db_seekread(char * key, char *data, size_t len, off_t offset,
 		}
 
 		bson_iter_init(&iter, response);
-		bson_iter_find_descendant(&iter, "record_length", &iter2);
-		//(void)bson_iter_find(&iter, "record_length");
+		(void)bson_iter_find(&iter, "record_length");
 		record_len = bson_iter_int32(&iter);
 		// Allocate memory for data
 		record = malloc(record_len);
@@ -470,7 +453,6 @@ mongo_db_seekread(char * key, char *data, size_t len, off_t offset,
 				"Requested size = %"PRId64" key = %s db name = %s.%s\n",
 				__FUNCTION__, record_len, key, DB_NAME,
 				get_collection_name(type));
-			bson_destroy(&query);
 			// bson_iter_destroy(&iter);
 
 			return -ENOMEM;
@@ -478,16 +460,12 @@ mongo_db_seekread(char * key, char *data, size_t len, off_t offset,
 
 		(void) construct_record_name(record_name, type);
 
-		//(void)bson_iter_find(&iter,  record_name);
-		bson_iter_find_descendant(&iter, record_name, &iter2);
-		bson_iter_binary(&iter2, &subtype, &binary_len,
-				(const uint8_t **) &binary);
-		if (*binary)
-			memcpy(record, binary, record_len);
+		BCON_EXTRACT((bson_t *) response, record_name, BCONE_BIN(subtype,
+					binary, binary_len));
+		memcpy(record, binary, binary_len);
 		// Offset it by offset
 		// Assuming whence to be SEEK_SET
 		memcpy(data, record + offset, len);
-		bson_destroy(&query);
 		bson_destroy((bson_t *) response);
 		mongoc_cursor_destroy(cursor);
 
@@ -496,7 +474,6 @@ mongo_db_seekread(char * key, char *data, size_t len, off_t offset,
 		sfs_log(ctx, SFS_ERR, "%s: Unable to find collection %s.%s \n",
 				__FUNCTION__, DB_NAME, get_collection_name(type));
 		pthread_rwlock_unlock(&mongo_db_lock);
-		bson_destroy(&query);
 
 		return -1;
 	}
@@ -729,7 +706,6 @@ mongo_db_update(char *key, char *data, size_t len, db_type_t type,
 	if (ret != true) {
 		sfs_log(ctx, SFS_ERR, "%s: Failed to append record_num to bson for "
 			"inode %s. Error = %d \n", __FUNCTION__, key, ret);
-		bson_destroy(&b);
 
 		return -1;
 	}
@@ -738,7 +714,6 @@ mongo_db_update(char *key, char *data, size_t len, db_type_t type,
 	if (ret != 0) {
 		sfs_log(ctx, SFS_ERR, "%s: Invalid record type %d specified\n",
 			__FUNCTION__, type);
-		bson_destroy(&b);
 
 		return -1;
 	}
@@ -749,7 +724,6 @@ mongo_db_update(char *key, char *data, size_t len, db_type_t type,
 	if (ret != true) {
 		sfs_log(ctx, SFS_ERR, "%s: Failed to append inode to bson for"
 			" inode %s. Error = %d \n", __FUNCTION__, key, ret);
-		bson_destroy(&b);
 
 		return -1;
 	}
@@ -759,7 +733,6 @@ mongo_db_update(char *key, char *data, size_t len, db_type_t type,
 	if (ret != true) {
 		sfs_log(ctx, SFS_ERR, "%s: Failed to append size to bson for "
 			"inode %s. Error = %d \n", __FUNCTION__, key, ret);
-		bson_destroy(&b);
 
 		return -1;
 	}
@@ -771,7 +744,6 @@ mongo_db_update(char *key, char *data, size_t len, db_type_t type,
 	if (ret != true) {
 		sfs_log(ctx, SFS_ERR, "%s: Failed to append record_num to bson for "
 			"inode %s. Error = %d \n", __FUNCTION__, key, ret);
-		bson_destroy(&query);
 
 		return -1;
 	}
@@ -788,8 +760,6 @@ mongo_db_update(char *key, char *data, size_t len, db_type_t type,
 					__FUNCTION__, key, DB_NAME,
 					get_collection_name(type), ret);
 			pthread_rwlock_unlock(&mongo_db_lock);
-			bson_destroy(&b);
-			bson_destroy(&query);
 
 			return -1;
 		}
@@ -802,8 +772,6 @@ mongo_db_update(char *key, char *data, size_t len, db_type_t type,
 				__FUNCTION__, DB_NAME,
 				get_collection_name(type));
 		pthread_rwlock_unlock(&mongo_db_lock);
-		bson_destroy(&b);
-		bson_destroy(&query);
 
 		return -1;
 	}
