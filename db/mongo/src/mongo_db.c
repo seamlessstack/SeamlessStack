@@ -29,6 +29,8 @@
 #include <sstack_log.h>
 #include <unistd.h>
 
+#define MONGO_TEST 1
+
 pthread_rwlock_t mongo_db_lock = PTHREAD_RWLOCK_INITIALIZER;
 mongoc_client_t *client = NULL;
 
@@ -466,7 +468,7 @@ mongo_db_seekread(char * key, char *data, size_t len, off_t offset,
 		// Offset it by offset
 		// Assuming whence to be SEEK_SET
 		memcpy(data, record + offset, len);
-		bson_destroy((bson_t *) response);
+		//bson_destroy((bson_t *) response);
 		mongoc_cursor_destroy(cursor);
 
 		return len;
@@ -673,7 +675,7 @@ mongo_db_get(char *key, char **data, db_type_t type, log_ctx_t *ctx)
 		memcpy(*data, binary, binary_len);
 
 #endif
-		bson_destroy((bson_t *) response);
+		// bson_destroy((bson_t *) response);
 
 		sfs_log(ctx, SFS_INFO, "%s: Retruning %d\n", __FUNCTION__, record_len);
 
@@ -765,6 +767,7 @@ mongo_db_update(char *key, char *data, size_t len, db_type_t type,
 		}
 		sfs_log(ctx, SFS_INFO, "%s: Successfully updated record %s \n",
 				__FUNCTION__, key);
+		pthread_rwlock_unlock(&mongo_db_lock);
 
 		return len;
 	} else {
