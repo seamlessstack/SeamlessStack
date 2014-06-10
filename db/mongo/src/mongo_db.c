@@ -29,6 +29,9 @@
 #include <sstack_log.h>
 #include <unistd.h>
 
+// Setting MONGO_TEST clears the mongo db collections during init
+// This is just for avoding MongoDB based corruptions. This needs to be fixed
+// later.
 #define MONGO_TEST 1
 
 pthread_rwlock_t mongo_db_lock = PTHREAD_RWLOCK_INITIALIZER;
