@@ -31,6 +31,7 @@
 #include <syslog.h>
 #include <sys/param.h>
 #include <stdint.h>
+#include <stddef.h>
 #include <policy.h>
 #include <sstack_bitops.h>
 #include <sstack_db.h>
@@ -76,6 +77,7 @@ typedef struct extent {
 } sstack_extent_t;
 
 
+#if 0
 /*
  * get_extent_fixed_fields_len - Return length of fixed fields in extent
  *
@@ -92,6 +94,13 @@ get_extent_fixed_fields_len(void)
 			sizeof(sstack_cksum_t) + sizeof(unsigned int));
 }
 
+#else
+static inline int
+get_extent_fixed_fields_len(void)
+{
+	return offsetof(sstack_extent_t, e_path);
+}
+#endif // if 0
 
 
 // Defines erasure code location
@@ -156,6 +165,7 @@ typedef struct inode {
  * PLEASE MODIFY THIS FUNCTION WHEN SET OF FIXED FIELDS CHANGE
  */
 
+#if 0
 static inline int
 get_inode_fixed_fields_len(void)
 {
@@ -164,6 +174,16 @@ get_inode_fixed_fields_len(void)
 			+ (2 *sizeof(sstack_size_t)) + sizeof(sstack_sfsd_info_t *) +
 			+ 32 /* All uint/int32_t's */ + 16 /* All uint64_t's */);
 }
+#else
+static inline int
+get_inode_fixed_fields_len(void)
+{
+	return offsetof(sstack_inode_t, i_xattr);
+}
+
+#endif // if 0
+
+
 extern int get_extents(unsigned long long  inode_num, sstack_extent_t *extent,
 				int num_extents, db_t *db);
 extern uint64_t get_inode_number(const char *path);
