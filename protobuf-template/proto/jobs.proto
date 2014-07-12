@@ -54,6 +54,21 @@ message sstack_nfs_setattr_cmd
 	required sstack_file_attribute_t attribute = 1;
 }
 
+message sstack_file_name_t
+{
+	required uint32 name_len = 1;
+	required bytes name = 2;
+	enum sfs_protocol_t
+	{
+		NFS = 1;
+		CIFS = 2;
+		ISCSI = 3;
+		NATIVE = 4;
+	}
+	required sfs_protocol_t proto = 3;
+	required sstack_address_t address = 4;
+}
+
 message sstack_nfs_lookup_cmd
 {
 	required sstack_file_name_t where = 1;
@@ -131,21 +146,6 @@ message sstack_nfs_access_cmd
 	required uint32 mode = 1;
 }
 
-message sstack_file_name_t
-{
-	required uint32 name_len = 1;
-	required bytes name = 2;
-	enum sfs_protocol_t
-	{
-		NFS = 1;
-		CIFS = 2;
-		ISCSI = 3;
-		NATIVE = 4;
-	}
-	required sfs_protocol_t proto = 3;
-	required sstack_address_t address = 4;
-}
-
 message sstack_nfs_symlink_cmd
 {
 	required sstack_file_name_t new_path = 1;
@@ -168,14 +168,9 @@ message sstack_nfs_commit_cmd
 	required uint64 count = 2;
 }
 
-message sstack_extent_handle
-{
-	required sstack_file_name_t extent_handle = 1;
-}
-
 message sstack_nfs_command_struct
 {
-	optional sstack_extent_handle extent_handle = 1;
+	optional sstack_file_name_t extent_handle = 1;
 	optional sstack_chunk_cmd add_chunk_cmd = 2;
 	optional sstack_chunk_cmd update_chunk_cmd = 3;
 	optional sstack_chunk_cmd delete_chunk_cmd = 4;
