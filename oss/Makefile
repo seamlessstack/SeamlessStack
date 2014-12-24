@@ -27,7 +27,6 @@ OSS_DIR = $(PWD)
 OSS_INSTALL_DIR = $(OSS_DIR)/oss_install
 OSS_LIBSDIR = $(OSS_INSTALL_DIR)/lib
 OSS_INCLUDEDIR = $(OSS_INSTALL_DIR)/include
-OPENSSL_DIR = openssl-1.0.1g
 GFP = $(shell pwd)/gf-complete
 RBTREE_DIR = rbtree
 CLISH_DIR = clish-0.7.3
@@ -56,10 +55,6 @@ all: $(CONFIGURE)
 	$(LN) -sf $(OSS_LIBSDIR)/libbson-1.0.so $(OSS_LIBSDIR)/libbson.so
 	$(MAKE) -C $(LZ4DIR) 
 	$(CP) $(LZ4DIR)/*.so $(OSS_LIBSDIR)
-	$(MAKE) -C $(OPENSSL_DIR)
-	$(CP) $(OPENSSL_DIR)/*.so $(OSS_LIBSDIR)
-	$(MKDIR) $(OSS_INCLUDEDIR)/openssl
-	$(CP)  $(OPENSSL_DIR)/include/openssl/* $(OSS_INCLUDEDIR)/openssl
 	$(MAKE) -C $(RBTREE_DIR)
 	$(CP) $(RBTREE_DIR)/*.so $(OSS_LIBSDIR)
 	$(MAKE) -C $(CLISH_DIR)
@@ -70,7 +65,6 @@ all: $(CONFIGURE)
 
 $(CONFIGURE): gf_comp jerasure_touch
 	$(CD) $(MEMCACHEDDIR) && ./configure --prefix=$(OSS_INSTALL_DIR)
-	$(CD) $(OPENSSL_DIR) && ./config shared
 	$(CD) $(JERASUREDIR) && ./configure LDFLAGS=-L$(GFP)/src/.libs \
 			CPPFLAGS=-I$(GFP)/include
 	$(CD) $(CZMQ_DIR) && ./autogen.sh
@@ -97,7 +91,6 @@ clean:
 	$(MAKE) -C $(MONGOCDIR) clean
 	$(MAKE) -C $(BSONDIR) clean
 	$(MAKE) -C $(LZ4DIR) clean
-	$(MAKE) -C $(OPENSSL_DIR) clean
 	$(MAKE) -C $(RBTREE_DIR) clean
 	$(MAKE) -C $(CLISH_DIR) clean
 	$(MAKE) -C $(GF_COMPLETEDIR) clean

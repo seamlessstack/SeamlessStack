@@ -5,7 +5,7 @@
 /* #undef HAVE_ALTIVEC */
 
 /* Support AVX (Advanced Vector Extensions) instructions */
-/* #undef HAVE_AVX */
+#define HAVE_AVX /**/
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #define HAVE_DLFCN_H 1
@@ -20,7 +20,7 @@
 #define HAVE_MMX /**/
 
 /* Support (PCLMULDQ) Carry-Free Muliplication */
-/* #undef HAVE_PCLMULDQ */
+#define HAVE_PCLMULDQ /**/
 
 /* Support SSE (Streaming SIMD Extensions) instructions */
 #define HAVE_SSE /**/
@@ -32,13 +32,13 @@
 #define HAVE_SSE3 /**/
 
 /* Support SSSE4.1 (Streaming SIMD Extensions 4.1) instructions */
-/* #undef HAVE_SSE4_1 */
+#define HAVE_SSE4_1 /**/
 
 /* Support SSSE4.2 (Streaming SIMD Extensions 4.2) instructions */
-/* #undef HAVE_SSE4_2 */
+#define HAVE_SSE4_2 /**/
 
 /* Support SSSE3 (Supplemental Streaming SIMD Extensions 3) instructions */
-/* #undef HAVE_SSSE3 */
+#define HAVE_SSSE3 /**/
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #define HAVE_STDINT_H 1

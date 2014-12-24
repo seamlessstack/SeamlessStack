@@ -1,8 +1,7 @@
 clish/shell/libclish_la-shell_find_create_ptype.lo: \
  clish/shell/shell_find_create_ptype.c clish/shell/private.h \
  clish/shell.h /usr/include/stdio.h /usr/include/features.h \
- /usr/include/stdc-predef.h /usr/include/x86_64-linux-gnu/bits/predefs.h \
- /usr/include/x86_64-linux-gnu/sys/cdefs.h \
+ /usr/include/stdc-predef.h /usr/include/x86_64-linux-gnu/sys/cdefs.h \
  /usr/include/x86_64-linux-gnu/bits/wordsize.h \
  /usr/include/x86_64-linux-gnu/gnu/stubs.h \
  /usr/include/x86_64-linux-gnu/gnu/stubs-64.h \
@@ -35,8 +34,6 @@ clish/shell.h:
 /usr/include/features.h:
 
 /usr/include/stdc-predef.h:
-
-/usr/include/x86_64-linux-gnu/bits/predefs.h:
 
 /usr/include/x86_64-linux-gnu/sys/cdefs.h:
 

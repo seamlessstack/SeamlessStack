@@ -4,7 +4,6 @@ clish/pargv/libclish_la-pargv.lo: clish/pargv/pargv.c \
  clish/command.h clish/view.h clish/param.h lub/string.h lub/c_decl.h \
  lub/argv.h lub/c_decl.h lub/types.h /usr/include/stdlib.h \
  /usr/include/features.h /usr/include/stdc-predef.h \
- /usr/include/x86_64-linux-gnu/bits/predefs.h \
  /usr/include/x86_64-linux-gnu/sys/cdefs.h \
  /usr/include/x86_64-linux-gnu/bits/wordsize.h \
  /usr/include/x86_64-linux-gnu/gnu/stubs.h \
@@ -24,6 +23,7 @@ clish/pargv/libclish_la-pargv.lo: clish/pargv/pargv.c \
  /usr/include/x86_64-linux-gnu/bits/select2.h \
  /usr/include/x86_64-linux-gnu/sys/sysmacros.h \
  /usr/include/x86_64-linux-gnu/bits/pthreadtypes.h /usr/include/alloca.h \
+ /usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h \
  /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
  /usr/include/x86_64-linux-gnu/bits/stdlib.h /usr/include/string.h \
  /usr/include/xlocale.h /usr/include/x86_64-linux-gnu/bits/string.h \
@@ -70,8 +70,6 @@ lub/types.h:
 
 /usr/include/stdc-predef.h:
 
-/usr/include/x86_64-linux-gnu/bits/predefs.h:
-
 /usr/include/x86_64-linux-gnu/sys/cdefs.h:
 
 /usr/include/x86_64-linux-gnu/bits/wordsize.h:
@@ -115,6 +113,8 @@ lub/types.h:
 /usr/include/x86_64-linux-gnu/bits/pthreadtypes.h:
 
 /usr/include/alloca.h:
+
+/usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h:
 
 /usr/include/x86_64-linux-gnu/bits/stdlib-float.h:
 

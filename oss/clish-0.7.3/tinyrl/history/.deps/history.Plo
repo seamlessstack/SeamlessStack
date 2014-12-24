@@ -1,6 +1,5 @@
 tinyrl/history/history.lo: tinyrl/history/history.c /usr/include/string.h \
  /usr/include/features.h /usr/include/stdc-predef.h \
- /usr/include/x86_64-linux-gnu/bits/predefs.h \
  /usr/include/x86_64-linux-gnu/sys/cdefs.h \
  /usr/include/x86_64-linux-gnu/bits/wordsize.h \
  /usr/include/x86_64-linux-gnu/gnu/stubs.h \
@@ -20,6 +19,7 @@ tinyrl/history/history.lo: tinyrl/history/history.c /usr/include/string.h \
  /usr/include/x86_64-linux-gnu/bits/stdio2.h /usr/include/assert.h \
  tinyrl/history/private.h tinyrl/history.h lub/c_decl.h lub/types.h \
  lub/string.h /usr/include/stdlib.h \
+ /usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h \
  /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
  /usr/include/x86_64-linux-gnu/bits/stdlib.h
 
@@ -28,8 +28,6 @@ tinyrl/history/history.lo: tinyrl/history/history.c /usr/include/string.h \
 /usr/include/features.h:
 
 /usr/include/stdc-predef.h:
-
-/usr/include/x86_64-linux-gnu/bits/predefs.h:
 
 /usr/include/x86_64-linux-gnu/sys/cdefs.h:
 
@@ -86,6 +84,8 @@ lub/types.h:
 lub/string.h:
 
 /usr/include/stdlib.h:
+
+/usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h:
 
 /usr/include/x86_64-linux-gnu/bits/stdlib-float.h:
 

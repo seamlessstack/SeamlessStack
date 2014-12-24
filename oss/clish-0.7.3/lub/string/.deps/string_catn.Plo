@@ -1,8 +1,7 @@
 lub/string/string_catn.lo: lub/string/string_catn.c lub/string/private.h \
  lub/string.h /usr/lib/gcc/x86_64-linux-gnu/4.7/include/stddef.h \
  lub/c_decl.h /usr/include/string.h /usr/include/features.h \
- /usr/include/stdc-predef.h /usr/include/x86_64-linux-gnu/bits/predefs.h \
- /usr/include/x86_64-linux-gnu/sys/cdefs.h \
+ /usr/include/stdc-predef.h /usr/include/x86_64-linux-gnu/sys/cdefs.h \
  /usr/include/x86_64-linux-gnu/bits/wordsize.h \
  /usr/include/x86_64-linux-gnu/gnu/stubs.h \
  /usr/include/x86_64-linux-gnu/gnu/stubs-64.h \
@@ -12,6 +11,7 @@ lub/string/string_catn.lo: lub/string/string_catn.c lub/string/private.h \
  /usr/include/x86_64-linux-gnu/bits/types.h \
  /usr/include/x86_64-linux-gnu/bits/typesizes.h \
  /usr/include/x86_64-linux-gnu/bits/string3.h /usr/include/stdlib.h \
+ /usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h \
  /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
  /usr/include/x86_64-linux-gnu/bits/stdlib.h
 
@@ -28,8 +28,6 @@ lub/c_decl.h:
 /usr/include/features.h:
 
 /usr/include/stdc-predef.h:
-
-/usr/include/x86_64-linux-gnu/bits/predefs.h:
 
 /usr/include/x86_64-linux-gnu/sys/cdefs.h:
 
@@ -54,6 +52,8 @@ lub/c_decl.h:
 /usr/include/x86_64-linux-gnu/bits/string3.h:
 
 /usr/include/stdlib.h:
+
+/usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h:
 
 /usr/include/x86_64-linux-gnu/bits/stdlib-float.h:
 

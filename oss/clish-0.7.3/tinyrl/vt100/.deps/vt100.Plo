@@ -1,11 +1,11 @@
 tinyrl/vt100/vt100.lo: tinyrl/vt100/vt100.c /usr/include/stdlib.h \
  /usr/include/features.h /usr/include/stdc-predef.h \
- /usr/include/x86_64-linux-gnu/bits/predefs.h \
  /usr/include/x86_64-linux-gnu/sys/cdefs.h \
  /usr/include/x86_64-linux-gnu/bits/wordsize.h \
  /usr/include/x86_64-linux-gnu/gnu/stubs.h \
  /usr/include/x86_64-linux-gnu/gnu/stubs-64.h \
  /usr/lib/gcc/x86_64-linux-gnu/4.7/include/stddef.h \
+ /usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h \
  /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
  /usr/include/x86_64-linux-gnu/bits/stdlib.h /usr/include/unistd.h \
  /usr/include/x86_64-linux-gnu/bits/posix_opt.h \
@@ -30,8 +30,6 @@ tinyrl/vt100/vt100.lo: tinyrl/vt100/vt100.c /usr/include/stdlib.h \
 
 /usr/include/stdc-predef.h:
 
-/usr/include/x86_64-linux-gnu/bits/predefs.h:
-
 /usr/include/x86_64-linux-gnu/sys/cdefs.h:
 
 /usr/include/x86_64-linux-gnu/bits/wordsize.h:
@@ -41,6 +39,8 @@ tinyrl/vt100/vt100.lo: tinyrl/vt100/vt100.c /usr/include/stdlib.h \
 /usr/include/x86_64-linux-gnu/gnu/stubs-64.h:
 
 /usr/lib/gcc/x86_64-linux-gnu/4.7/include/stddef.h:
+
+/usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h:
 
 /usr/include/x86_64-linux-gnu/bits/stdlib-float.h:
 

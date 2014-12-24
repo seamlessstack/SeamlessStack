@@ -1,5 +1,4 @@
-bin/tclish.o: bin/tclish.cpp /usr/include/stdc-predef.h \
- /usr/include/x86_64-linux-gnu/bits/predefs.h config.h \
+bin/tclish.o: bin/tclish.cpp /usr/include/stdc-predef.h config.h \
  /usr/include/stdio.h /usr/include/features.h \
  /usr/include/x86_64-linux-gnu/sys/cdefs.h \
  /usr/include/x86_64-linux-gnu/bits/wordsize.h \
@@ -16,8 +15,6 @@ bin/tclish.o: bin/tclish.cpp /usr/include/stdc-predef.h \
  /usr/include/x86_64-linux-gnu/bits/stdio2.h
 
 /usr/include/stdc-predef.h:
-
-/usr/include/x86_64-linux-gnu/bits/predefs.h:
 
 config.h:
 

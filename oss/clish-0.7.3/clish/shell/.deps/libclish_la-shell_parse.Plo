@@ -1,7 +1,6 @@
 clish/shell/libclish_la-shell_parse.lo: clish/shell/shell_parse.c \
  clish/shell/private.h clish/shell.h /usr/include/stdio.h \
  /usr/include/features.h /usr/include/stdc-predef.h \
- /usr/include/x86_64-linux-gnu/bits/predefs.h \
  /usr/include/x86_64-linux-gnu/sys/cdefs.h \
  /usr/include/x86_64-linux-gnu/bits/wordsize.h \
  /usr/include/x86_64-linux-gnu/gnu/stubs.h \
@@ -38,8 +37,6 @@ clish/shell.h:
 /usr/include/features.h:
 
 /usr/include/stdc-predef.h:
-
-/usr/include/x86_64-linux-gnu/bits/predefs.h:
 
 /usr/include/x86_64-linux-gnu/sys/cdefs.h:
 

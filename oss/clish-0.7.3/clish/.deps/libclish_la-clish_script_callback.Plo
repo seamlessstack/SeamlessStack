@@ -1,6 +1,5 @@
 clish/libclish_la-clish_script_callback.lo: clish/clish_script_callback.c \
  /usr/include/stdio.h /usr/include/features.h /usr/include/stdc-predef.h \
- /usr/include/x86_64-linux-gnu/bits/predefs.h \
  /usr/include/x86_64-linux-gnu/sys/cdefs.h \
  /usr/include/x86_64-linux-gnu/bits/wordsize.h \
  /usr/include/x86_64-linux-gnu/gnu/stubs.h \
@@ -27,6 +26,7 @@ clish/libclish_la-clish_script_callback.lo: clish/clish_script_callback.c \
  /usr/include/x86_64-linux-gnu/bits/select2.h \
  /usr/include/x86_64-linux-gnu/sys/sysmacros.h \
  /usr/include/x86_64-linux-gnu/bits/pthreadtypes.h /usr/include/alloca.h \
+ /usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h \
  /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
  /usr/include/x86_64-linux-gnu/bits/stdlib.h clish/private.h lub/c_decl.h \
  clish/shell.h /usr/include/pthread.h /usr/include/sched.h \
@@ -41,8 +41,6 @@ clish/libclish_la-clish_script_callback.lo: clish/clish_script_callback.c \
 /usr/include/features.h:
 
 /usr/include/stdc-predef.h:
-
-/usr/include/x86_64-linux-gnu/bits/predefs.h:
 
 /usr/include/x86_64-linux-gnu/sys/cdefs.h:
 
@@ -107,6 +105,8 @@ clish/libclish_la-clish_script_callback.lo: clish/clish_script_callback.c \
 /usr/include/x86_64-linux-gnu/bits/pthreadtypes.h:
 
 /usr/include/alloca.h:
+
+/usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h:
 
 /usr/include/x86_64-linux-gnu/bits/stdlib-float.h:
 

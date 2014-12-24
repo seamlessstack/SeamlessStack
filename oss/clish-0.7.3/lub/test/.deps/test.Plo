@@ -1,6 +1,5 @@
 lub/test/test.lo: lub/test/test.c /usr/include/stdio.h \
  /usr/include/features.h /usr/include/stdc-predef.h \
- /usr/include/x86_64-linux-gnu/bits/predefs.h \
  /usr/include/x86_64-linux-gnu/sys/cdefs.h \
  /usr/include/x86_64-linux-gnu/bits/wordsize.h \
  /usr/include/x86_64-linux-gnu/gnu/stubs.h \
@@ -18,6 +17,7 @@ lub/test/test.lo: lub/test/test.c /usr/include/stdio.h \
  /usr/include/x86_64-linux-gnu/bits/string2.h /usr/include/endian.h \
  /usr/include/x86_64-linux-gnu/bits/endian.h \
  /usr/include/x86_64-linux-gnu/bits/string3.h /usr/include/stdlib.h \
+ /usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h \
  /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
  /usr/include/x86_64-linux-gnu/bits/stdlib.h lub/test.h lub/types.h
 
@@ -26,8 +26,6 @@ lub/test/test.lo: lub/test/test.c /usr/include/stdio.h \
 /usr/include/features.h:
 
 /usr/include/stdc-predef.h:
-
-/usr/include/x86_64-linux-gnu/bits/predefs.h:
 
 /usr/include/x86_64-linux-gnu/sys/cdefs.h:
 
@@ -72,6 +70,8 @@ lub/test/test.lo: lub/test/test.c /usr/include/stdio.h \
 /usr/include/x86_64-linux-gnu/bits/string3.h:
 
 /usr/include/stdlib.h:
+
+/usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h:
 
 /usr/include/x86_64-linux-gnu/bits/stdlib-float.h:
 

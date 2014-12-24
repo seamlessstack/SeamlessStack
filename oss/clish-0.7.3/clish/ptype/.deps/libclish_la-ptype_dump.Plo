@@ -4,7 +4,6 @@ clish/ptype/libclish_la-ptype_dump.lo: clish/ptype/ptype_dump.c \
  clish/command.h clish/view.h clish/param.h lub/argv.h lub/c_decl.h \
  lub/types.h /usr/include/x86_64-linux-gnu/sys/types.h \
  /usr/include/features.h /usr/include/stdc-predef.h \
- /usr/include/x86_64-linux-gnu/bits/predefs.h \
  /usr/include/x86_64-linux-gnu/sys/cdefs.h \
  /usr/include/x86_64-linux-gnu/bits/wordsize.h \
  /usr/include/x86_64-linux-gnu/gnu/stubs.h \
@@ -53,8 +52,6 @@ lub/types.h:
 /usr/include/features.h:
 
 /usr/include/stdc-predef.h:
-
-/usr/include/x86_64-linux-gnu/bits/predefs.h:
 
 /usr/include/x86_64-linux-gnu/sys/cdefs.h:
 

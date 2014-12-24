@@ -5,7 +5,7 @@
 /* #undef HAVE_ALTIVEC */
 
 /* Support AVX (Advanced Vector Extensions) instructions */
-/* #undef HAVE_AVX */
+#define HAVE_AVX /**/
 
 /* Define to 1 if you have the `bzero' function. */
 #define HAVE_BZERO 1
@@ -60,13 +60,13 @@
 #define HAVE_SSE3 /**/
 
 /* Support SSSE4.1 (Streaming SIMD Extensions 4.1) instructions */
-/* #undef HAVE_SSE4_1 */
+#define HAVE_SSE4_1 /**/
 
 /* Support SSSE4.2 (Streaming SIMD Extensions 4.2) instructions */
-/* #undef HAVE_SSE4_2 */
+#define HAVE_SSE4_2 /**/
 
 /* Support SSSE3 (Supplemental Streaming SIMD Extensions 3) instructions */
-/* #undef HAVE_SSSE3 */
+#define HAVE_SSSE3 /**/
 
 /* Define to 1 if you have the <stddef.h> header file. */
 #define HAVE_STDDEF_H 1

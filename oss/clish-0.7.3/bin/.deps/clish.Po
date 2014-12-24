@@ -1,5 +1,4 @@
-bin/clish.o: bin/clish.cpp /usr/include/stdc-predef.h \
- /usr/include/x86_64-linux-gnu/bits/predefs.h clish/private.h \
+bin/clish.o: bin/clish.cpp /usr/include/stdc-predef.h clish/private.h \
  lub/c_decl.h clish/shell.h /usr/include/stdio.h /usr/include/features.h \
  /usr/include/x86_64-linux-gnu/sys/cdefs.h \
  /usr/include/x86_64-linux-gnu/bits/wordsize.h \
@@ -27,8 +26,6 @@ bin/clish.o: bin/clish.cpp /usr/include/stdc-predef.h \
  clish/param.h
 
 /usr/include/stdc-predef.h:
-
-/usr/include/x86_64-linux-gnu/bits/predefs.h:
 
 clish/private.h:
 

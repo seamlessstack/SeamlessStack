@@ -2,8 +2,7 @@ clish/param/libclish_la-param.lo: clish/param/param.c \
  clish/param/private.h clish/param.h clish/ptype.h lub/types.h \
  lub/bintree.h /usr/lib/gcc/x86_64-linux-gnu/4.7/include/stddef.h \
  lub/string.h lub/c_decl.h /usr/include/assert.h /usr/include/features.h \
- /usr/include/stdc-predef.h /usr/include/x86_64-linux-gnu/bits/predefs.h \
- /usr/include/x86_64-linux-gnu/sys/cdefs.h \
+ /usr/include/stdc-predef.h /usr/include/x86_64-linux-gnu/sys/cdefs.h \
  /usr/include/x86_64-linux-gnu/bits/wordsize.h \
  /usr/include/x86_64-linux-gnu/gnu/stubs.h \
  /usr/include/x86_64-linux-gnu/gnu/stubs-64.h /usr/include/stdlib.h \
@@ -22,6 +21,7 @@ clish/param/libclish_la-param.lo: clish/param/param.c \
  /usr/include/x86_64-linux-gnu/bits/select2.h \
  /usr/include/x86_64-linux-gnu/sys/sysmacros.h \
  /usr/include/x86_64-linux-gnu/bits/pthreadtypes.h /usr/include/alloca.h \
+ /usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h \
  /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
  /usr/include/x86_64-linux-gnu/bits/stdlib.h /usr/include/stdio.h \
  /usr/include/libio.h /usr/include/_G_config.h /usr/include/wchar.h \
@@ -52,8 +52,6 @@ lub/c_decl.h:
 /usr/include/features.h:
 
 /usr/include/stdc-predef.h:
-
-/usr/include/x86_64-linux-gnu/bits/predefs.h:
 
 /usr/include/x86_64-linux-gnu/sys/cdefs.h:
 
@@ -100,6 +98,8 @@ lub/c_decl.h:
 /usr/include/x86_64-linux-gnu/bits/pthreadtypes.h:
 
 /usr/include/alloca.h:
+
+/usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h:
 
 /usr/include/x86_64-linux-gnu/bits/stdlib-float.h:
 
