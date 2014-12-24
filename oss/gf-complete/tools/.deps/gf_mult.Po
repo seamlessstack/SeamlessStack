@@ -33,10 +33,16 @@ gf_mult.o: gf_mult.c /usr/include/stdc-predef.h /usr/include/stdio.h \
  /usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h \
  /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
  /usr/include/x86_64-linux-gnu/bits/stdlib.h ../include/gf_complete.h \
+ /usr/lib/gcc/x86_64-linux-gnu/4.8/include/nmmintrin.h \
+ /usr/lib/gcc/x86_64-linux-gnu/4.8/include/smmintrin.h \
+ /usr/lib/gcc/x86_64-linux-gnu/4.8/include/tmmintrin.h \
+ /usr/lib/gcc/x86_64-linux-gnu/4.8/include/pmmintrin.h \
  /usr/lib/gcc/x86_64-linux-gnu/4.8/include/emmintrin.h \
  /usr/lib/gcc/x86_64-linux-gnu/4.8/include/xmmintrin.h \
  /usr/lib/gcc/x86_64-linux-gnu/4.8/include/mmintrin.h \
  /usr/lib/gcc/x86_64-linux-gnu/4.8/include/mm_malloc.h \
+ /usr/lib/gcc/x86_64-linux-gnu/4.8/include/popcntintrin.h \
+ /usr/lib/gcc/x86_64-linux-gnu/4.8/include/wmmintrin.h \
  ../include/gf_method.h ../include/gf_complete.h ../include/gf_general.h
 
 /usr/include/stdc-predef.h:
@@ -135,6 +141,14 @@ gf_mult.o: gf_mult.c /usr/include/stdc-predef.h /usr/include/stdio.h \
 
 ../include/gf_complete.h:
 
+/usr/lib/gcc/x86_64-linux-gnu/4.8/include/nmmintrin.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/4.8/include/smmintrin.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/4.8/include/tmmintrin.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/4.8/include/pmmintrin.h:
+
 /usr/lib/gcc/x86_64-linux-gnu/4.8/include/emmintrin.h:
 
 /usr/lib/gcc/x86_64-linux-gnu/4.8/include/xmmintrin.h:
@@ -142,6 +156,10 @@ gf_mult.o: gf_mult.c /usr/include/stdc-predef.h /usr/include/stdio.h \
 /usr/lib/gcc/x86_64-linux-gnu/4.8/include/mmintrin.h:
 
 /usr/lib/gcc/x86_64-linux-gnu/4.8/include/mm_malloc.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/4.8/include/popcntintrin.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/4.8/include/wmmintrin.h:
 
 ../include/gf_method.h:
 

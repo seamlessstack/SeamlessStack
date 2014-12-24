@@ -6,6 +6,10 @@ gf_w16.lo: gf_w16.c /usr/include/stdc-predef.h ../include/gf_int.h \
  /usr/include/x86_64-linux-gnu/gnu/stubs.h \
  /usr/include/x86_64-linux-gnu/gnu/stubs-64.h \
  /usr/include/x86_64-linux-gnu/bits/wchar.h \
+ /usr/lib/gcc/x86_64-linux-gnu/4.8/include/nmmintrin.h \
+ /usr/lib/gcc/x86_64-linux-gnu/4.8/include/smmintrin.h \
+ /usr/lib/gcc/x86_64-linux-gnu/4.8/include/tmmintrin.h \
+ /usr/lib/gcc/x86_64-linux-gnu/4.8/include/pmmintrin.h \
  /usr/lib/gcc/x86_64-linux-gnu/4.8/include/emmintrin.h \
  /usr/lib/gcc/x86_64-linux-gnu/4.8/include/xmmintrin.h \
  /usr/lib/gcc/x86_64-linux-gnu/4.8/include/mmintrin.h \
@@ -28,8 +32,11 @@ gf_w16.lo: gf_w16.c /usr/include/stdc-predef.h ../include/gf_int.h \
  /usr/include/x86_64-linux-gnu/bits/pthreadtypes.h /usr/include/alloca.h \
  /usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h \
  /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
- /usr/include/x86_64-linux-gnu/bits/stdlib.h /usr/include/string.h \
- /usr/include/xlocale.h /usr/include/x86_64-linux-gnu/bits/string.h \
+ /usr/include/x86_64-linux-gnu/bits/stdlib.h \
+ /usr/lib/gcc/x86_64-linux-gnu/4.8/include/popcntintrin.h \
+ /usr/lib/gcc/x86_64-linux-gnu/4.8/include/wmmintrin.h \
+ /usr/include/string.h /usr/include/xlocale.h \
+ /usr/include/x86_64-linux-gnu/bits/string.h \
  /usr/include/x86_64-linux-gnu/bits/string2.h \
  /usr/include/x86_64-linux-gnu/bits/string3.h /usr/include/stdio.h \
  /usr/include/libio.h /usr/include/_G_config.h /usr/include/wchar.h \
@@ -60,6 +67,14 @@ gf_w16.lo: gf_w16.c /usr/include/stdc-predef.h ../include/gf_int.h \
 /usr/include/x86_64-linux-gnu/gnu/stubs-64.h:
 
 /usr/include/x86_64-linux-gnu/bits/wchar.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/4.8/include/nmmintrin.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/4.8/include/smmintrin.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/4.8/include/tmmintrin.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/4.8/include/pmmintrin.h:
 
 /usr/lib/gcc/x86_64-linux-gnu/4.8/include/emmintrin.h:
 
@@ -114,6 +129,10 @@ gf_w16.lo: gf_w16.c /usr/include/stdc-predef.h ../include/gf_int.h \
 /usr/include/x86_64-linux-gnu/bits/stdlib-float.h:
 
 /usr/include/x86_64-linux-gnu/bits/stdlib.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/4.8/include/popcntintrin.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/4.8/include/wmmintrin.h:
 
 /usr/include/string.h:
 

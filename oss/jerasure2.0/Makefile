@@ -219,7 +219,7 @@ CC = gcc
 CCDEPMODE = depmode=gcc3
 CFLAGS = -g -O3 -Wall
 CPP = gcc -E
-CPPFLAGS = -I/home/anand/sstack/oss/gf-complete/include
+CPPFLAGS = -I/home/anand/sstack_new/oss/gf-complete/include
 CYGPATH_W = echo
 DEFS = -DHAVE_CONFIG_H
 DEPDIR = .deps
@@ -238,7 +238,7 @@ INSTALL_PROGRAM = ${INSTALL}
 INSTALL_SCRIPT = ${INSTALL}
 INSTALL_STRIP_PROGRAM = $(install_sh) -c -s
 LD = /usr/bin/ld -m elf_x86_64
-LDFLAGS = -L/home/anand/sstack/oss/gf-complete/src/.libs
+LDFLAGS = -L/home/anand/sstack_new/oss/gf-complete/src/.libs
 LIBOBJS = 
 LIBS = -lgf_complete 
 LIBTOOL = $(SHELL) $(top_builddir)/libtool

@@ -31,7 +31,7 @@ reed_sol.lo: reed_sol.c /usr/include/stdc-predef.h /usr/include/stdio.h \
  /usr/include/xlocale.h /usr/include/x86_64-linux-gnu/bits/string.h \
  /usr/include/x86_64-linux-gnu/bits/string2.h \
  /usr/include/x86_64-linux-gnu/bits/string3.h \
- /home/anand/sstack/oss/gf-complete/include/gf_complete.h \
+ /home/anand/sstack_new/oss/gf-complete/include/gf_complete.h \
  /usr/lib/gcc/x86_64-linux-gnu/4.8/include/stdint.h /usr/include/stdint.h \
  /usr/include/x86_64-linux-gnu/bits/wchar.h ../include/galois.h \
  ../include/jerasure.h ../include/reed_sol.h
@@ -122,7 +122,7 @@ reed_sol.lo: reed_sol.c /usr/include/stdc-predef.h /usr/include/stdio.h \
 
 /usr/include/x86_64-linux-gnu/bits/string3.h:
 
-/home/anand/sstack/oss/gf-complete/include/gf_complete.h:
+/home/anand/sstack_new/oss/gf-complete/include/gf_complete.h:
 
 /usr/lib/gcc/x86_64-linux-gnu/4.8/include/stdint.h:
 
