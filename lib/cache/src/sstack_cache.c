@@ -1,20 +1,21 @@
-/*************************************************************************
+/*
+ * Copyright (C) 2014 SeamlessStack
  *
- * SEAMLESSSTACK CONFIDENTIAL
- * __________________________
+ *  This file is part of SeamlessStack distributed file system.
  *
- *  [2012] - [2014]  SeamlessStack Inc
- *  All Rights Reserved.
+ * SeamlessStack distributed file system is free software: you can redistribute
+ * it and/or modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 2 of the License,
+ * or (at your option) any later version.
  *
- * NOTICE:  All information contained herein is, and remains
- * the property of SeamlessStack Incorporated and its suppliers,
- * if any.  The intellectual and technical concepts contained
- * herein are proprietary to SeamlessStack Incorporated
- * and its suppliers and may be covered by U.S. and Foreign Patents,
- * patents in process, and are protected by trade secret or copyright law.
- * Dissemination of this information or reproduction of this material
- * is strictly forbidden unless prior written permission is obtained
- * from SeamlessStack Incorporated.
+ * SeamlessStack distributed file system is distributed in the hope that it
+ * will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with SeamlessStack distributed file system. If not,
+ * see <http://www.gnu.org/licenses/>.
  */
 
 #include <inttypes.h>
@@ -101,7 +102,7 @@ cache_init(log_ctx_t *ctx)
 						__FUNCTION__);
 		return -1;
 	}
-	
+
 	ssd_cache = ssd_cache_register(ctx);
 	if (ssd_cache == NULL) {
 		sfs_log(ctx, SFS_ERR, "%s: Failed to register ssd_cache\n",
@@ -346,7 +347,7 @@ sstack_cache_get(uint8_t *hashkey, size_t size, log_ctx_t *ctx)
 	}
 	c = node->info;
 	pthread_spin_unlock(&cache_lock);
-	
+
 	pthread_mutex_lock(&(c->lock));
 	if (c->on_ssd == true) {
 		// Data is on SSD cache

@@ -1,3 +1,23 @@
+/*
+ * Copyright (C) 2014 SeamlessStack
+ *
+ *  This file is part of SeamlessStack distributed file system.
+ *
+ * SeamlessStack distributed file system is free software: you can redistribute
+ * it and/or modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 2 of the License,
+ * or (at your option) any later version.
+ *
+ * SeamlessStack distributed file system is distributed in the hope that it
+ * will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with SeamlessStack distributed file system. If not,
+ * see <http://www.gnu.org/licenses/>.
+ */
+
 #include <stdio.h>
 #include <sstack_cache_api.h>
 #include <stdlib.h>
@@ -24,7 +44,7 @@ main(void)
 	if (memc == NULL) {
 		printf("%s: %d\n", __FUNCTION__, __LINE__);
 		return (-1);
-	}	
+	}
 
 	printf("%s: %d connection succeeded\n", __FUNCTION__, __LINE__);
 
@@ -35,7 +55,7 @@ main(void)
 	}
 
 	printf("%s: %d cache init done\n", __FUNCTION__, __LINE__);
-	
+
 	cache_entry = sstack_allocate_cache_entry(NULL);
 	if (cache_entry == NULL) {
 		printf("%s: %d\n", __FUNCTION__, __LINE__);
@@ -52,7 +72,7 @@ main(void)
 		printf("%s: %d\n", __FUNCTION__, __LINE__);
 	    return (-1);
 	}
-	
+
 	printf("%s: %d cache_store success\n", __FUNCTION__, __LINE__);
 
 	data = sstack_cache_get(key, 1000, NULL);
@@ -62,7 +82,7 @@ main(void)
 	}
 
 	printf("%s: %d cache_get %s\n", __FUNCTION__, __LINE__, data);
-	
+
 	cache_entry = sstack_allocate_cache_entry(NULL);
 	if (cache_entry == NULL) {
 		printf("%s: %d\n", __FUNCTION__, __LINE__);
@@ -79,7 +99,7 @@ main(void)
 		printf("%s: %d\n", __FUNCTION__, __LINE__);
 	    return (-1);
 	}
-	
+
 	printf("%s: %d cache_store success\n", __FUNCTION__, __LINE__);
 
 	data = sstack_cache_get(key1, 1000, NULL);
@@ -89,7 +109,7 @@ main(void)
 	}
 
 	printf("%s: %d cache_get %s\n", __FUNCTION__, __LINE__, data);
-	
+
 	data = sstack_cache_get(key, 1000, NULL);
 	if (data == NULL) {
 		printf("%s: %d\n", __FUNCTION__, __LINE__);

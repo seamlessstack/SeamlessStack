@@ -1,21 +1,23 @@
-/*************************************************************************
+/*
+ * Copyright (C) 2014 SeamlessStack
  *
- * SEAMLESSSTACK CONFIDENTIAL
- * __________________________
+ *  This file is part of SeamlessStack distributed file system.
  *
- *  [2012] - [2014]  SeamlessStack Inc
- *  All Rights Reserved.
+ * SeamlessStack distributed file system is free software: you can redistribute
+ * it and/or modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 2 of the License,
+ * or (at your option) any later version.
  *
- * NOTICE:  All information contained herein is, and remains
- * the property of SeamlessStack Incorporated and its suppliers,
- * if any.  The intellectual and technical concepts contained
- * herein are proprietary to SeamlessStack Incorporated
- * and its suppliers and may be covered by U.S. and Foreign Patents,
-s * patents in process, and are protected by trade secret or copyright law.
- * Dissemination of this information or reproduction of this material
- * is strictly forbidden unless prior written permission is obtained
- * from SeamlessStack Incorporated.
+ * SeamlessStack distributed file system is distributed in the hope that it
+ * will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with SeamlessStack distributed file system. If not,
+ * see <http://www.gnu.org/licenses/>.
  */
+
 #define __POSIX_SOURCE
 
 #include <stdio.h>
@@ -158,16 +160,16 @@ int32_t submit_policy_entry(struct policy_input *pi, db_t *db,
 	sprintf(key, "%s^%s^%d^%d", pi->pi_fname, pi->pi_ftype,
 		pi->pi_uid, pi->pi_gid);
 
-		
+
 	pthread_rwlock_rdlock(&policy_tab.pt_table_lock);
 	get_pe_from_pi(pi, pe);
 	add_policy_to_pst(key, index, pe);
 	get_pdbe_from_pe(pe, &pdb_entry);
 
-	if (db->db_ops.db_get(key, (char *)dummy_pdb_entry, 
+	if (db->db_ops.db_get(key, (char *)dummy_pdb_entry,
 									db_type, policy_ctx) != 0) {
 		/* Its an update operation */
-		if (db->db_ops.db_update(key, (char *)&pdb_entry, 
+		if (db->db_ops.db_update(key, (char *)&pdb_entry,
 				sizeof(pdb_entry), db_type, policy_ctx) == 0) {
 			sfs_log(policy_ctx, SFS_INFO,
 					"Policy submitted successfully");
@@ -192,7 +194,7 @@ int32_t submit_policy_entry(struct policy_input *pi, db_t *db,
 			free(pe);
 			ret = -EINVAL;
 		}
-	}	
+	}
 	pthread_rwlock_unlock(&policy_tab.pt_table_lock);
 
 ret:
@@ -215,7 +217,7 @@ int32_t delete_policy_entry(struct policy_input *pi, db_t *db,
 	}
 
 	if (!pol_list[pi->pi_index] || (pi->pi_index >= num_pol)
-			|| (pi->pi_index < 0)) 
+			|| (pi->pi_index < 0))
 		return -EINVAL;
 
 	p_input = pol_list[pi->pi_index];
@@ -238,8 +240,8 @@ int32_t delete_policy_entry(struct policy_input *pi, db_t *db,
 
 	free(pol_list[pi->pi_index]);
 	return (0);
-}	
-		
+}
+
 uint32_t show_policy_entries(uint8_t **resp_buf, ssize_t *resp_len,
 							db_t *db, db_type_t db_type)
 {
@@ -251,14 +253,14 @@ uint32_t show_policy_entries(uint8_t **resp_buf, ssize_t *resp_len,
 
 	if (pol_list) {
 		for (i = 0; i < num_pol; i++) {
-			if (pol_list[i]) 
+			if (pol_list[i])
 				free(pol_list[i]);
-		}	
+		}
 		free(pol_list);
 	}
 
 	num_pol = 0;
-	db->db_ops.db_iterate(db_type, collect_policy_entries, &num_pol, 
+	db->db_ops.db_iterate(db_type, collect_policy_entries, &num_pol,
 									policy_ctx);
 	*resp_len = 0;
 	for (i = 0; i < num_pol; i++) {
@@ -275,7 +277,7 @@ uint32_t show_policy_entries(uint8_t **resp_buf, ssize_t *resp_len,
 			sprintf(policy_string + strlen(policy_string),
 					"%s  ", pi->pi_policy_tag[j]);
 		}
-		
+
 		entry_len = strlen(policy_string);
 		temp = realloc(*resp_buf, *resp_len + entry_len);
 		if (temp == NULL) {
@@ -396,10 +398,10 @@ static void collect_policy_entries(void *params, char *key, void *data,
 
 	num_pol++;
 	temp = realloc(pol_list, (num_pol) * sizeof(struct policy_input *));
-	if (temp == NULL) 
+	if (temp == NULL)
 		return;
 	pol_list = temp;
-	
+
 	p_input = malloc(sizeof(struct policy_input));
 	strcpy(p_input->pi_fname, strtok(key, "^"));
 	strcpy(p_input->pi_ftype, strtok(NULL, "^"));
@@ -408,7 +410,7 @@ static void collect_policy_entries(void *params, char *key, void *data,
 
 	p_input->pi_attr = pe->pe_attr;
 	p_input->pi_num_policy = pe->pe_num_plugins;
-	for (i = 0; i < pe->pe_num_plugins; i++) 
+	for (i = 0; i < pe->pe_num_plugins; i++)
 		strncpy(p_input->pi_policy_tag[i], pe->pe_policy[i]->pp_policy_name,
 					POLICY_TAG_LEN);
 	pol_list[num_pol - 1] = p_input;
